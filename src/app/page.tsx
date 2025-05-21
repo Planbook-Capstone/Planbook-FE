@@ -135,7 +135,7 @@ export default function Home() {
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 tracking-tight">
             <span className="block">PlanBookAI</span>
-            <span className="block mt-2 text-blue-300">
+            <span className="block mt-2 text-blue-300 text-2xl font-calsans">
               Công nghệ AI cho trải nghiệm du lịch
             </span>
           </h1>
