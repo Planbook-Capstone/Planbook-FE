@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Questrial } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/store";
-import Head from "next/head";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Head>
+      <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -46,9 +45,9 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Cal+Sans&display=swap"
           rel="stylesheet"
         />
-      </Head>
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${questrial.className} antialiased`}
       >
         <AppProvider>{children}</AppProvider>
       </body>

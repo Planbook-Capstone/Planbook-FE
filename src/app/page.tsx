@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import MainLayout from "@/components/layout/MainLayout";
@@ -351,9 +350,9 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "PlanBookAI đã tạo một lịch trình hoàn hảo cho kỳ nghỉ của tôi
-                  ở Đà Nẵng. AI đề xuất những địa điểm phù hợp với sở thích của
-                  tôi mà chính bản thân tôi cũng không nghĩ tới!"
+                  &quot;PlanBookAI đã tạo một lịch trình hoàn hảo cho kỳ nghỉ
+                  của tôi ở Đà Nẵng. AI đề xuất những địa điểm phù hợp với sở
+                  thích của tôi mà chính bản thân tôi cũng không nghĩ tới!&quot;
                 </p>
               </div>
 
@@ -380,9 +379,10 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "Hệ thống gợi ý thông minh của PlanBookAI giúp tôi tiết kiệm
-                  rất nhiều thời gian khi lập kế hoạch cho chuyến đi châu Âu.
-                  Điều tuyệt nhất là nó liên tục cải thiện qua mỗi lần sử dụng!"
+                  &quot;Hệ thống gợi ý thông minh của PlanBookAI giúp tôi tiết
+                  kiệm rất nhiều thời gian khi lập kế hoạch cho chuyến đi châu
+                  Âu. Điều tuyệt nhất là nó liên tục cải thiện qua mỗi lần sử
+                  dụng!&quot;
                 </p>
               </div>
 
@@ -417,9 +417,9 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-gray-600 italic">
-                  "Tôi đánh giá cao khả năng của PlanBookAI trong việc điều
+                  &quot;Tôi đánh giá cao khả năng của PlanBookAI trong việc điều
                   chỉnh lịch trình khi có thay đổi bất ngờ. Trợ lý AI đã giúp
-                  tôi tìm phương án thay thế nhanh chóng khi gặp vấn đề."
+                  tôi tìm phương án thay thế nhanh chóng khi gặp vấn đề.&quot;
                 </p>
               </div>
             </div>

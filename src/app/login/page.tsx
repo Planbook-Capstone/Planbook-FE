@@ -2,18 +2,31 @@
 import { Button, Divider, Form, Input } from "antd";
 import { ArrowRight } from "lucide-react";
 import React from "react";
+import Image from "next/image";
 
 const LoginPage = () => {
   return (
     <div className="h-screen">
       {/* Background */}
-      <img
-        src="/images/background/loginBG.svg"
-        className="absolute z-0 top-[2rem] left-[2rem] object-cover [object-position:right_bottom] h-[calc(100vh-4rem)] w-[calc(100vw-4rem)] rounded-3xl"
-      />
+      <div className="absolute z-0 top-[2rem] left-[2rem] h-[calc(100vh-4rem)] w-[calc(100vw-4rem)] rounded-3xl overflow-hidden">
+        <Image
+          src="/images/background/loginBG.svg"
+          alt="Login background"
+          fill
+          priority
+          className="object-cover [object-position:right_bottom]"
+        />
+      </div>
       <div className="absolute bottom-[2rem] right-[3rem] z-0">
         <div className="flex gap-3 pb-10">
-          <img src="/images/logo/logoDark.svg" />
+          <div className="relative w-15 h-15">
+            <Image
+              src="/images/logo/logoDark.svg"
+              alt="PlanBook Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
           <div>
             <h3 className="font-calsans text-xl">Planbook</h3>
             <h3 className="font-questrial text-lg">©Copyright Planbook 2025</h3>
@@ -85,7 +98,7 @@ const LoginPage = () => {
 
             <Divider />
 
-            <p className="text-sm text-center text-gray-600 font-questrial block text-left">
+            <p className="text-sm text-gray-600 font-questrial block">
               Bạn chưa có tài khoản?{" "}
               <a
                 href="#"
@@ -98,7 +111,14 @@ const LoginPage = () => {
         </div>
         <div className="flex text-white">
           <div className="flex flex-col justify-center items-center gap-3 translate-x-12 -translate-y-16">
-            <img src="/images/logo/logoLight.svg" />
+            <div className="relative w-17 h-17">
+              <Image
+                src="/images/logo/logoLight.svg"
+                alt="PlanBook Logo Light"
+                fill
+                className="object-contain"
+              />
+            </div>
             <div className="w-[1px] h-72 bg-white opacity-40"></div>
           </div>
           <div className="flex flex-col justify-center items-start gap-7">
