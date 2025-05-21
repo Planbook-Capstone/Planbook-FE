@@ -1,0 +1,10 @@
+.btn-base {
+  @apply font-questrial text-sm overflow-hidden;
+}
+
+.ant-btn.btn-secondary,
+.ant-btn.btn-secondary:focus,
+.ant-btn.btn-secondary:active,
+.ant-btn.btn-secondary:focus-visible {
+  @apply h-14 shadow-none p-0 rounded-md;
+}

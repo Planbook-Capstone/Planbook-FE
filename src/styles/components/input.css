@@ -1,0 +1,12 @@
+.input-base,
+.input-base.ant-input-affix-wrapper {
+  @apply rounded-none border-none font-questrial bg-none text-sm;
+}
+
+input.input-secondary.ant-input,
+.ant-input-affix-wrapper.input-secondary.input-base {
+  @apply text-[#7C95B1] bg-[#7C95B10D] p-4 rounded-md;
+}
+.ant-input-affix-wrapper.input-secondary.input-base input.ant-input {
+  @apply bg-transparent font-questrial;
+}
