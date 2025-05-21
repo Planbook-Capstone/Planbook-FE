@@ -7,6 +7,7 @@ import { useState } from "react";
 import "./index.scss";
 import { adminMenuItems, getLabel } from "@/constants/menuItem";
 import Header from "@/components/organisms/header";
+import Image from "next/image";
 
 type AdminLayoutProps = {
   children: React.ReactNode;
@@ -27,7 +28,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       >
         <div className="flex py-9 flex-col justify-between h-full">
           <div className="h-13 w-full flex items-center justify-center">
-            <img className="h-full" src="/images/logoPlanbook.png" />
+            <div className="relative h-full w-full">
+              <Image
+                src="/images/logoPlanbook.png"
+                alt="PlanBook Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
           </div>
 
           <Menu
