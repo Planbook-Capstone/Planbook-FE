@@ -47,7 +47,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${questrial.className} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable} antialiased`}
       >
         <AppProvider>{children}</AppProvider>
       </body>

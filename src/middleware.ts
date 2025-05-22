@@ -13,10 +13,10 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value || "";
 
   // Redirect logic for authentication
-  if (!isPublicPath && !token) {
-    // Redirect to login if trying to access a protected route without a token
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  // if (!isPublicPath && !token) {
+  //   // Redirect to login if trying to access a protected route without a token
+  //   return NextResponse.redirect(new URL("/login", request.url));
+  // }
 
   if (isPublicPath && token) {
     // Redirect to home if trying to access login/register with a token
