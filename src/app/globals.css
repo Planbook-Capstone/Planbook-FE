@@ -3,7 +3,7 @@
 
 @import "../styles/theme.css";
 
-@custom-variant dark (&: is(.dark *));
+/* @custom-variant dark (&: is(.dark *)); */
 
 @theme inline {
   --color-background: var(--background);
@@ -45,6 +45,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+}
+body {
+  font-family: var(--font-questrial);
 }
 
 :root {
