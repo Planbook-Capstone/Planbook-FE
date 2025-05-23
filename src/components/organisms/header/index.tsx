@@ -11,7 +11,7 @@ const Header: FC<HeaderProps> = ({ title }) => {
   return (
     <div className="flex justify-between pt-7">
       <div>
-        <h1 className="text-2xl font-bold pt-3">{title}</h1>
+        <h1 className="text-2xl font-semibold pt-3 font-questrial">{title}</h1>
       </div>
       <div
         className="flex gap-5"
