@@ -38,3 +38,10 @@ const adminItems = [
 export const adminMenuItems: MenuItem[] = adminItems.map((item) =>
   getItem(item.label, item.key, item.icon)
 );
+
+export const userItems = [
+  { label: "Trợ lý", href: "/" },
+  { label: "Kho tài liệu", href: "document/private" },
+  { label: "Tài liệu cộng đồng", href: "document/public" },
+
+];
