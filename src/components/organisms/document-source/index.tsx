@@ -17,15 +17,15 @@ export default function DocumentSource({
   onAdd,
 }: DocumentSourceProps) {
   return (
-    <aside className="w-full max-w-xs border-r px-4 py-6">
-      <h2 className="text-lg font-semibold mb-4">Nguồn tài liệu</h2>
+    <aside className="w-full max-w-xs border-r border-t border-l px-6 py-6 rounded-t-2xl">
+      <h2 className="text-xl font-calsans mb-4">Nguồn tài liệu</h2>
       <div className="space-y-3">
         {documents.map((doc, idx) => (
           <DocumentItem key={idx} {...doc} />
         ))}
         <button
           onClick={onAdd}
-          className="w-full border border-dashed rounded-md py-2 text-sm text-gray-600 hover:bg-gray-50"
+          className="w-full border border-dashed rounded-sm py-2 text-base hover:bg-gray-50 text-start pl-4"
         >
           + Thêm tài liệu
         </button>

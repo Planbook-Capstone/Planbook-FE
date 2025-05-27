@@ -46,11 +46,13 @@ export default function Page() {
   ];
 
   return (
-    <ChatScreenTemplate
-      messages={messages}
-      tags={tags}
-      results={results}
-      documents={documents}
-    />
+    <div className="h-screen">
+      <ChatScreenTemplate
+        messages={messages}
+        tags={tags}
+        results={results}
+        documents={documents}
+      />
+    </div>
   );
 }

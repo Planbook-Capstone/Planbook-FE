@@ -13,8 +13,8 @@ interface ResultPanelProps {
 
 export default function ResultPanel({ results, onDelete }: ResultPanelProps) {
   return (
-    <aside className="w-full max-w-xs border-l px-4 py-6">
-      <h2 className="text-lg font-semibold mb-4">Kết quả</h2>
+    <aside className="w-full max-w-xs border-r border-t border-l px-6 py-6 rounded-t-2xl">
+      <h2 className="text-xl font-calsans mb-4">Kết quả</h2>
       <div className="space-y-3">
         {results.map((result, idx) => (
           <ResultItem key={idx} {...result} />
