@@ -11,7 +11,7 @@ import Image from "next/image";
 function UserButton() {
   return (
     <div className="flex justify-end items-center gap-2.5">
-      <div className="px-2.5 py-2 border rounded-md flex items-center justify-center font-calsans">
+      <div className="px-2.5 py-1.5 border rounded-md flex items-center justify-center font-calsans">
         <Image
           src="/images/power.svg"
           alt="PlanBook Logo"
@@ -23,7 +23,7 @@ function UserButton() {
       </div>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger className="outline-none relative">
-          <Avatar className="size-10 rounded-md hover:opacity-75 transition border border-neutral-300">
+          <Avatar className="size-9 rounded-md hover:opacity-75 transition border border-neutral-300">
             <AvatarImage
               src={
                 "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3fA0BO-KVbrQRmZeAiRwHHDrllxLWuPK4HCKmjnKcTnc82OBcd_8iYKPHIS2doiXbq2A_&s"
@@ -42,7 +42,7 @@ function UserButton() {
           sideOffset={5}
         >
           <div className="flex items-center justify-start gap-2 px-2.5 py-4">
-            <Avatar className="size-10 hover:opacity-75 transition border border-neutral-300">
+            <Avatar className="size-9 hover:opacity-75 transition border border-neutral-300">
               <AvatarFallback className="bg-neutral-200 font-medium text-neutral-500 flex items-center justify-center">
                 Test
               </AvatarFallback>

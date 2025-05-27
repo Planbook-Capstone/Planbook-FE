@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
-type BannerProps = {
+interface BannerProps {
   backgroundImage?: string;
   sideImage?: string;
   title?: string;
   subtitle?: string;
   width?: "w-full" | "w-2/5";
   heightBanner?: string;
-};
+}
 
 const Banner = ({
   backgroundImage,
@@ -47,7 +47,7 @@ const Banner = ({
                 </>
               )}
             </p>
-            <Button>+ Đóng góp tài liệu</Button>
+            {/* <Button>+ Đóng góp tài liệu</Button> */}
           </div>
         </div>
         <div className={cn("absolute right-0 bottom-0", width, heightBanner)}>

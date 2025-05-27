@@ -1,60 +1,70 @@
+"use client";
+
 import Link from "next/link";
 
 import MainLayout from "@/components/layout/MainLayout";
 import Banner from "@/components/organisms/banner";
+import CardFeature from "@/components/organisms/card-feature";
+import {
+  ExamIcon,
+  FormIcon,
+  LessonPlanIcon,
+  PenIcon,
+  SlideIcon,
+} from "@/constants/icon";
 
 export default function Home() {
   // Dữ liệu tính năng AI
   const aiFeatures = [
     {
       id: 1,
-      title: "Lập kế hoạch thông minh",
-      description:
-        "AI phân tích sở thích của bạn để tạo lịch trình chuyến đi phù hợp nhất",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-8 h-8"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
+      title: "Điền biểu mẫu",
+      description: "Điền biểu mẫu chuẩn hoá theo Bộ Giáo Dục",
+      href: "test",
+      icon: FormIcon,
     },
     {
       id: 2,
-      title: "Gợi ý cá nhân hóa",
+      title: "Tạo đề thi",
       description:
         "AI học từ lựa chọn trước đây để đề xuất điểm đến và trải nghiệm phù hợp",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-8 h-8"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
-          />
-        </svg>
-      ),
+      href: "test",
+      icon: ExamIcon,
     },
     {
       id: 3,
-      title: "Phân tích đánh giá",
+      title: "Slide bài giảng",
       description:
         "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
+      href: "test",
+      icon: SlideIcon,
+    },
+    {
+      id: 4,
+      title: "Giáo án",
+      description:
+        "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
+      href: "lesson",
+      icon: LessonPlanIcon,
+    },
+    {
+      id: 5,
+      title: "Chấm điểm tự động",
+      description:
+        "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
+      href: "test",
+      icon: PenIcon,
+    },
+  ];
+
+  // Dữ liệu điểm đến được AI khuyên dùng
+  const aiRecommendedDestinations = [
+    {
+      id: 1,
+      name: "Kyoto",
+      description:
+        "Được AI đề xuất cho người yêu thích văn hóa truyền thống và nghệ thuật",
+      matchScore: 97,
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -71,19 +81,6 @@ export default function Home() {
           />
         </svg>
       ),
-    },
-  ];
-
-  // Dữ liệu điểm đến được AI khuyên dùng
-  const aiRecommendedDestinations = [
-    {
-      id: 1,
-      name: "Kyoto",
-      country: "Nhật Bản",
-      description:
-        "Được AI đề xuất cho người yêu thích văn hóa truyền thống và nghệ thuật",
-      matchScore: 97,
-      imageUrl: "/images/kyoto.jpg", // Thay bằng đường dẫn thực tế
     },
     {
       id: 2,
@@ -118,6 +115,18 @@ export default function Home() {
     <MainLayout>
       <Banner />
       <div className="m-5" />
+      <section className="grid grid-cols-5 gap-5">
+        {aiFeatures?.map((feature) => (
+          <CardFeature
+            key={feature.id}
+            icon={feature.icon}
+            title={feature.title}
+            description={feature.description}
+            href={feature.href}
+          />
+        ))}
+      </section>
+      {/* <div className="m-5" />
       <Banner
         backgroundImage="/images/background/bgDocument.png"
         sideImage="/images/documentBanner.png"
@@ -125,7 +134,7 @@ export default function Home() {
         subtitle="Lưu tài liệu cá nhân theo cách của bạn"
         width="w-full"
         heightBanner="h-[255px]"
-      />
+      /> */}
     </MainLayout>
   );
 }
