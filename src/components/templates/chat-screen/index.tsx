@@ -25,7 +25,7 @@ export default function ChatScreenTemplate({
   onDelete,
 }: ChatScreenTemplateProps) {
   return (
-    <div className="flex h-full">
+    <div className="flex h-full px-8 gap-3 pt-8">
       <DocumentSource documents={documents} />
       <ChatPanel
         messages={messages}

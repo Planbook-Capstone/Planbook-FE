@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import MainLayout from "@/components/layout/MainLayout";
 import Banner from "@/components/organisms/banner";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   // Dữ liệu tính năng AI

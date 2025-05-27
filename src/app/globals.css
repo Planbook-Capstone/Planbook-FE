@@ -27,7 +27,7 @@
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
-  --color-border: var(--border);
+  --color-border: var(--common-grey-50);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -45,6 +45,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --shadow-base: var(--shadow-base);
 }
 body {
   font-family: var(--font-questrial);
@@ -83,6 +84,8 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --shadow-base: 0 0 4px 0 #0000000d;
+  --common-grey-50: #dfdfdf;
 }
 
 .dark {

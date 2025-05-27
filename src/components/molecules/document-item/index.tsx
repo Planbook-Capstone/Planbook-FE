@@ -17,22 +17,21 @@ export default function DocumentItem({
   onRemove,
 }: Props) {
   return (
-    <div className="flex items-start justify-between border rounded-md px-3 py-2 bg-white shadow-sm">
-      <div className="flex gap-2">
-        <FileIcon type={type} />
-        <div className="text-sm">
-          <p className="font-semibold">{name}</p>
-          <p className="text-xs text-gray-500 line-clamp-2">{description}</p>
+    <div className="flex items-start justify-between border rounded-md px-4 py-4 bg-white relative">
+      <div className="flex gap-4">
+        <FileIcon type={type} size={"lg"} />
+        <div className="text-sm flex flex-col gap-2">
+          <p className="font-calsans text-base">{name}</p>
+          <p className=" line-clamp-2 text-sm">{description}</p>
         </div>
       </div>
-      {onRemove && (
-        <button
-          className="text-gray-400 hover:text-red-500 mt-1"
-          onClick={onRemove}
-        >
-          <CloseOutlined />
-        </button>
-      )}
+
+      <button
+        className=" hover:scale-105 cursor-pointer mt-1 absolute -right-2 -top-3 bg-white border h-6 w-6 rounded-full shadow-base"
+        onClick={onRemove}
+      >
+        <CloseOutlined className="h-2 w-2" />
+      </button>
     </div>
   );
 }

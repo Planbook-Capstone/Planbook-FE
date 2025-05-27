@@ -11,7 +11,7 @@ interface ResultItemProps {
 
 export default function ResultItem({ type, name, onDelete }: ResultItemProps) {
   return (
-    <div className="flex justify-between items-center bg-white border rounded-md p-3 shadow-sm">
+    <div className="flex justify-between items-center bg-white rounded-md p-3">
       <div className="flex gap-2 items-center">
         <FileIcon type={type} />
         <div className="text-sm font-medium">{name}</div>
@@ -20,7 +20,7 @@ export default function ResultItem({ type, name, onDelete }: ResultItemProps) {
         variant="ghost"
         size="icon"
         onClick={onDelete}
-        className="text-gray-400 hover:text-red-500"
+        className=" hover:scale-105 border rounded-sm shadow-base"
       >
         <DeleteOutlined />
       </Button>
