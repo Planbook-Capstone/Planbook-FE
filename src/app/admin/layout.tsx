@@ -9,7 +9,7 @@ import { adminMenuItems, getLabel } from "@/constants/menuItem";
 import Header from "@/components/organisms/header";
 import Image from "next/image";
 
-type AdminLayoutProps = {
+interface AdminLayoutProps  {
   children: React.ReactNode;
 };
 
