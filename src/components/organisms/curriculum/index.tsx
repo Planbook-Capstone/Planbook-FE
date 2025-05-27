@@ -5,11 +5,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-type CurriculumListProps = {
+interface CurriculumListProps {
   classId?: number;
   subjectId?: number;
   bookId?: number;
-};
+}
 
 const CurriculumList = ({
   classId,
