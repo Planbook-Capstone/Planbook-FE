@@ -24,7 +24,7 @@ const Banner = ({
       <div
         style={{
           backgroundImage: `url(${
-            backgroundImage || "/images/background/bgHome.png"
+            backgroundImage || "/images/background/bgHome.svg"
           })`,
         }}
         className="relative bg-cover bg-center bg-no-repeat text-black rounded-2xl border border-[#DFDFDF]"
@@ -52,7 +52,7 @@ const Banner = ({
         </div>
         <div className={cn("absolute right-0 bottom-0", width, heightBanner)}>
           <Image
-            src={sideImage || "/images/educationHome.png"}
+            src={sideImage || "/images/banner/bannerHome.svg"}
             alt="banner"
             fill
             quality={100}
