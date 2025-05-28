@@ -9,10 +9,10 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
+    <div className="min-h-screen flex flex-col px-10 overflow-x-hidden">
       <MainHeader />
 
-      <main className="flex-grow container mx-auto p-3.5 space-y-5">
+      <main className="flex-grow container mx-auto p-5 space-y-5">
         {children}
       </main>
 
