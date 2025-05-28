@@ -8,10 +8,13 @@ import CardFeature from "@/components/organisms/card-feature";
 import {
   ExamIcon,
   FormIcon,
+  HistoryIcon,
   LessonPlanIcon,
   PenIcon,
   SlideIcon,
 } from "@/constants/icon";
+import ItemSection from "@/components/organisms/item-section";
+import HistoryCard from "@/components/organisms/history-card";
 
 export default function Home() {
   // Dữ liệu tính năng AI
@@ -114,7 +117,7 @@ export default function Home() {
   return (
     <MainLayout>
       <Banner />
-      <div className="m-5" />
+
       <section className="grid grid-cols-5 gap-5">
         {aiFeatures?.map((feature) => (
           <CardFeature
@@ -126,6 +129,22 @@ export default function Home() {
           />
         ))}
       </section>
+
+      <ItemSection
+        title={
+          <>
+            {HistoryIcon}
+            Lịch sử
+          </>
+        }
+      />
+
+      <section className="grid grid-cols-4 gap-5">
+        {Array.from({ length: 7 }).map((_, index) => (
+          <HistoryCard key={index} />
+        ))}
+      </section>
+
       {/* <div className="m-5" />
       <Banner
         backgroundImage="/images/background/bgDocument.png"
