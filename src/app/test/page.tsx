@@ -1,4 +1,5 @@
 import ChatScreenTemplate from "@/components/templates/chat-screen";
+import TestLayout from "@/components/templates/test-layout";
 
 export default function Page() {
   const messages = [
@@ -47,12 +48,13 @@ export default function Page() {
 
   return (
     <div className="h-screen">
-      <ChatScreenTemplate
+      {/* <ChatScreenTemplate
         messages={messages}
         tags={tags}
         results={results}
         documents={documents}
-      />
+      /> */}
+      <TestLayout />
     </div>
   );
 }
