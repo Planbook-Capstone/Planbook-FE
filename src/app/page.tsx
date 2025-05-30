@@ -15,8 +15,12 @@ import {
 } from "@/constants/icon";
 import ItemSection from "@/components/organisms/item-section";
 import HistoryCard from "@/components/organisms/history-card";
+import HistoryList from "@/components/organisms/history-list";
+import { useSearchParams } from "next/navigation";
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const view = searchParams.get("view") || "grid";
   // Dữ liệu tính năng AI
   const aiFeatures = [
     {
@@ -138,12 +142,15 @@ export default function Home() {
           </>
         }
       />
-
-      <section className="grid grid-cols-4 gap-5">
-        {Array.from({ length: 7 }).map((_, index) => (
-          <HistoryCard key={index} />
-        ))}
-      </section>
+      {view === "list" ? (
+        <HistoryList />
+      ) : (
+        <section className="grid grid-cols-4 gap-5">
+          {Array.from({ length: 7 }).map((_, index) => (
+            <HistoryCard key={index} />
+          ))}
+        </section>
+      )}
 
       {/* <Banner
         backgroundImage="/images/background/bgDocument.png"
