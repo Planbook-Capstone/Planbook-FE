@@ -20,7 +20,7 @@ function UserButton() {
       <Select defaultValue="2025">
         <SelectTrigger className="w-4/5 p-2">
           <div className="flex gap-2 items-center ">
-            <p className="font-calsans border-r-2 px-1">Học kỳ </p>
+            <p className="font-calsans border-r-2 px-1">Năm học </p>
             <SelectValue placeholder="Học kì" />
           </div>
         </SelectTrigger>
