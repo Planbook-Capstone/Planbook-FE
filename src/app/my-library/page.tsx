@@ -1,11 +1,39 @@
 import MainLayout from "@/components/layout/MainLayout";
+import FolderCard from "@/components/molecules/folder-card";
 import ItemSection from "@/components/organisms/item-section";
 import { Button } from "@/components/ui/Button";
 import FallingText from "@/components/ui/FallingText";
 import { Plus } from "lucide-react";
 import React from "react";
 
-function DocumentPrivate() {
+function MyLibrary() {
+  const myFolder = [
+    {
+      name: "Tài liệu tham khảo",
+      colorId: "1",
+      folderId: 1,
+    },
+    {
+      name: "Đề thi",
+      colorId: "2",
+      folderId: 2,
+    },
+    {
+      name: "Bài tập",
+      colorId: "3",
+      folderId: 3,
+    },
+    {
+      name: "Mẫu tài liệu",
+      colorId: "4",
+      folderId: 4,
+    },
+    {
+      name: "Mẫu tài liệu",
+      colorId: "5",
+      folderId: 5,
+    },
+  ];
   return (
     <MainLayout>
       <div
@@ -47,8 +75,18 @@ function DocumentPrivate() {
           </Button>
         }
       />
+      <div className="flex gap-5">
+        {myFolder?.map((f) => (
+          <FolderCard
+            key={f.folderId}
+            id={f.folderId.toString()}
+            colorId={f.colorId}
+            title={f.name}
+          />
+        ))}
+      </div>
     </MainLayout>
   );
 }
 
-export default DocumentPrivate;
+export default MyLibrary;

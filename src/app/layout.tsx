@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Questrial } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/store";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,7 +50,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable} antialiased`}
       >
-        <AppProvider>{children}</AppProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <AppProvider>{children}</AppProvider>
+        </Suspense>
       </body>
     </html>
   );
