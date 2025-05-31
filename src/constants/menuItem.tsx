@@ -41,7 +41,7 @@ export const adminMenuItems: MenuItem[] = adminItems.map((item) =>
 
 export const userItems = [
   { label: "Trợ lý", href: "/" },
-  { label: "Kho tài liệu", href: "document/private" },
-  { label: "Tài liệu cộng đồng", href: "document/public" },
+  { label: "Kho tài liệu", href: "/my-library" },
+  { label: "Tài liệu cộng đồng", href: "/community" },
 
 ];

@@ -152,14 +152,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* <Banner
-        backgroundImage="/images/background/bgDocument.png"
-        sideImage="/images/banner/bannerDocument.svg"
-        title="Tài liệu cộng đồng"
-        subtitle="Lưu tài liệu cá nhân theo cách của bạn"
-        width="w-full"
-        heightBanner="h-[220px]"
-      /> */}
+    
     </MainLayout>
   );
 }
