@@ -24,10 +24,7 @@ const MainHeader = (props: MainHeaderProps) => {
       <div className="flex justify-center items-center gap-10">
         {userItems.map((item) => {
           const pathname = usePathname();
-          const isActive =
-            item.href === "/"
-              ? pathname.startsWith("/") && !pathname.startsWith("/document")
-              : pathname.startsWith(`/${item.href}`);
+          const isActive = pathname === item.href;
           return (
             <Link href={item.href} key={item.href}>
               <div

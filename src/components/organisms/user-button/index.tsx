@@ -29,7 +29,7 @@ function UserButton() {
           <SelectItem value="2024">2024-2025</SelectItem>
         </SelectContent>
       </Select>
-      <div className="px-2.5 py-1.5 border rounded-md flex items-center justify-center font-calsans">
+      <div className="px-3.5 py-1.5 border rounded-md flex items-center justify-center font-calsans">
         <Image
           src="/images/power.svg"
           alt="PlanBook Logo"
