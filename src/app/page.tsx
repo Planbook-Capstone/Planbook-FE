@@ -8,12 +8,19 @@ import CardFeature from "@/components/organisms/card-feature";
 import {
   ExamIcon,
   FormIcon,
+  HistoryIcon,
   LessonPlanIcon,
   PenIcon,
   SlideIcon,
 } from "@/constants/icon";
+import ItemSection from "@/components/organisms/item-section";
+import HistoryCard from "@/components/organisms/history-card";
+import HistoryList from "@/components/organisms/history-list";
+import { useSearchParams } from "next/navigation";
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const view = searchParams.get("view") || "grid";
   // Dữ liệu tính năng AI
   const aiFeatures = [
     {
@@ -114,7 +121,7 @@ export default function Home() {
   return (
     <MainLayout>
       <Banner />
-      <div className="m-5" />
+
       <section className="grid grid-cols-5 gap-5">
         {aiFeatures?.map((feature) => (
           <CardFeature
@@ -126,15 +133,26 @@ export default function Home() {
           />
         ))}
       </section>
-      {/* <div className="m-5" />
-      <Banner
-        backgroundImage="/images/background/bgDocument.png"
-        sideImage="/images/documentBanner.png"
-        title="Tài liệu cộng đồng"
-        subtitle="Lưu tài liệu cá nhân theo cách của bạn"
-        width="w-full"
-        heightBanner="h-[255px]"
-      /> */}
+
+      <ItemSection
+        title={
+          <>
+            {HistoryIcon}
+            Lịch sử
+          </>
+        }
+      />
+      {view === "list" ? (
+        <HistoryList />
+      ) : (
+        <section className="grid grid-cols-4 gap-5">
+          {Array.from({ length: 7 }).map((_, index) => (
+            <HistoryCard key={index} />
+          ))}
+        </section>
+      )}
+
+    
     </MainLayout>
   );
 }
