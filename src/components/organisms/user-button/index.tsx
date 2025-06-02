@@ -7,11 +7,29 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut } from "lucide-react";
 import Image from "next/image";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 function UserButton() {
   return (
     <div className="flex justify-end items-center gap-2.5">
-      <div className="px-2.5 py-1.5 border rounded-md flex items-center justify-center font-calsans">
+      <Select defaultValue="2025">
+        <SelectTrigger className="w-4/5 p-2">
+          <div className="flex gap-2 items-center ">
+            <p className="font-calsans border-r-2 px-1">Năm học </p>
+            <SelectValue placeholder="Học kì" />
+          </div>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="2025">2025-2026</SelectItem>
+          <SelectItem value="2024">2024-2025</SelectItem>
+        </SelectContent>
+      </Select>
+      <div className="px-3.5 py-1.5 border rounded-md flex items-center justify-center font-calsans">
         <Image
           src="/images/power.svg"
           alt="PlanBook Logo"
