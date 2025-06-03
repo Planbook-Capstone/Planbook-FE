@@ -28,10 +28,10 @@ export function BreadcrumbTrail({ items, className }: BreadcrumbTrailProps) {
         const isLast = index === items.length - 1;
 
         const classNameText = cn(
-          "inline-flex items-center gap-1 text-sm",
+          "inline-flex items-center gap-1 text-sm text-black",
           item.active
-            ? "text-lg font-calsans text-gray-900"
-            : "text-muted-foreground font-questrial hover:text-foreground"
+            ? "text-lg font-calsans text-black"
+            : "text-muted-foreground font-questrial hover:text-foreground !text-black"
         );
 
         const content = item.href ? (

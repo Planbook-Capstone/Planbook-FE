@@ -31,9 +31,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           },
           {
             label: "Chấm điểm tự động",
-          },
-          {
-            label: "Chấm điểm tự động",
             active: true,
           },
         ]}
