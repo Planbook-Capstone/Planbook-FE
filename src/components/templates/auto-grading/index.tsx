@@ -4,7 +4,7 @@ import StepHeader from "@/components/molecules/step-header";
 import AutoGradingStepper from "@/components/organisms/auto-grading-stepper";
 import AnswerUpload from "@/components/ui/AnswerUpload";
 import { Button } from "@/components/ui/Button";
-import { Table } from "@/components/ui/Table";
+import { AntTable } from "@/components/ui/table";
 import { useState } from "react";
 
 const columns = [
@@ -92,7 +92,7 @@ export default function AutoGradingPage() {
             }}
           />
         ) : (
-          <Table columns={columns} dataSource={data} rowSelection={{}} />
+          <AntTable columns={columns} dataSource={data} rowSelection={{}} />
         )}
       </div>
     </div>
