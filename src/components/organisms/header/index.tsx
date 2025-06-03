@@ -1,4 +1,5 @@
 import Account from "@/components/molecules/account";
+import { Divider } from "antd";
 import Image from "next/image";
 import { FC } from "react";
 
@@ -8,7 +9,7 @@ interface HeaderProps {
 
 const Header: FC<HeaderProps> = ({ title }) => {
   return (
-    <div className="flex justify-between pt-7">
+    <div className="flex items-center gap-2 pt-7">
       <div>
         {/* <h1 className="text-2xl font-semibold pt-3 font-questrial">{title}</h1> */}
         <Image
@@ -18,6 +19,8 @@ const Header: FC<HeaderProps> = ({ title }) => {
           width="130"
         />
       </div>
+      <div className="bg-neutral-300 h-6 w-[1px]" />
+      <span className="font-calsans text-lg text-neutral-400">{title}</span>
       <div
         className="flex gap-5"
         //   onClick={() => handleReadNoti()}
