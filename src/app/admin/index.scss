@@ -1,7 +1,10 @@
-.ant-layout-sider-children {
-  @apply flex flex-col justify-center items-center bg-gradient-to-b from-[#ffffff] to-[#f6f5f8];
+.ant-layout.ant-layout-has-sider {
+  @apply bg-white;
+}
 
-  border-right: 0.5px solid rgba(0, 0, 0, 0.2);
+.ant-layout-sider-children {
+  @apply flex flex-col justify-center items-center bg-white;
+  border-right: 0.5px solid #dfdfdf;
 }
 .ant-collapse {
   &.ant-collapse-borderless {
@@ -30,7 +33,7 @@
   justify-content: center;
   align-items: center;
   border-radius: 9999px;
-  background: #c9c9c94f;
+  background: #ffffff;
   width: fit-content;
   .ant-menu-item {
     border-radius: 9999px;
