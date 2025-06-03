@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Questrial } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/store";
 import { Suspense } from "react";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,6 +52,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable} antialiased`}
       >
         <Suspense fallback={<div>Loading...</div>}>
+          <Toaster position="top-right" />
           <AppProvider>{children}</AppProvider>
         </Suspense>
       </body>

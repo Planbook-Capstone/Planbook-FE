@@ -1,10 +1,11 @@
+"use client"
+
 import MainLayout from "@/components/layout/MainLayout";
 import FolderCard from "@/components/molecules/folder-card";
+import CreateFolderModal from "@/components/organisms/create-folder-modal";
 import ItemSection from "@/components/organisms/item-section";
-import { Button } from "@/components/ui/Button";
 import FallingText from "@/components/ui/FallingText";
-import { Plus } from "lucide-react";
-import React from "react";
+
 
 function MyLibrary() {
   const myFolder = [
@@ -67,14 +68,7 @@ function MyLibrary() {
           trigger="auto"
         />
       </div>
-      <ItemSection
-        title="Phân loại tài liệu"
-        action={
-          <Button>
-            <Plus color="white" /> Tạo thư mục mới
-          </Button>
-        }
-      />
+      <ItemSection title="Phân loại tài liệu" action={<CreateFolderModal />} />
       <div className="flex gap-5">
         {myFolder?.map((f) => (
           <FolderCard
