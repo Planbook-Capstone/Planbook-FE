@@ -57,9 +57,9 @@ export default function AutoGradingPage() {
     setCurrentStep(value);
   };
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 mx-auto">
       <p className="text-sm text-gray-500 mb-1 font-questrial">Tiêu đề</p>
-      <Input className="w-full mb-5" />
+      <Input className="w-full mb-5 shadow-none" />
 
       <div className="flex flex-col justify-center gap-5">
         <AutoGradingStepper
@@ -68,8 +68,8 @@ export default function AutoGradingPage() {
           steps={[
             {
               title: (
-                <div className="flex flex-col items-start">
-                  <span>Bước 1</span>
+                <div className="flex flex-col items-start ">
+                  <span className="text-sm">Bước 1</span>
                   <span className="font-calsans">Upload bài làm</span>
                 </div>
               ),
@@ -78,7 +78,7 @@ export default function AutoGradingPage() {
             {
               title: (
                 <div className="flex flex-col items-start">
-                  <span>Bước 2</span>
+                  <span className="text-sm">Bước 2</span>
                   <span className="font-calsans">Upload đáp án</span>
                 </div>
               ),
@@ -86,7 +86,7 @@ export default function AutoGradingPage() {
             {
               title: (
                 <div className="flex flex-col items-start">
-                  <span>Bước 3</span>
+                  <span className="text-sm">Bước 3</span>
                   <span className="font-calsans">Chấm điểm</span>
                 </div>
               ),
