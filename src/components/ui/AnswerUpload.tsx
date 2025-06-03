@@ -4,6 +4,7 @@ import { Upload, message } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import type { RcFile, UploadFile } from "antd/es/upload";
+import Image from "next/image";
 
 const { Dragger } = Upload;
 
@@ -48,13 +49,18 @@ export default function AnswerUpload({
       beforeUpload={handleBeforeUpload}
       onChange={handleChange}
       {...uploadProps}
-      className="bg-white rounded-lg border-dashed border-2 p-8"
+      className="bg-white rounded-lg p-8 h-[300px]"
     >
-      <p className="ant-upload-drag-icon">
-        <InboxOutlined />
+      <p className="ant-upload-drag-icon w-full flex justify-center">
+        <Image
+          src="/images/illustration/packing.svg"
+          width="100"
+          height="100"
+          alt="Upload"
+        />
       </p>
-      <p className="text-lg font-semibold">{title}</p>
-      <p className="text-gray-500">{description}</p>
+      <p className="text-lg font-calsans">{title}</p>
+      <p className="text-gray-500 font-questrial">{description}</p>
     </Dragger>
   );
 }
