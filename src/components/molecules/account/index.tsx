@@ -9,7 +9,7 @@ interface AccountProps {
 
 const Account: FC<AccountProps> = ({ subTitle, title, src }) => {
   return (
-    <div className="flex gap-2">
+    <div className="flex">
       <div className="flex flex-col justify-center items-end">
         <p className="text-sm font-questrial">{subTitle}</p>
         <h3 className="text-lg font-semibold font-questrial">{title}</h3>

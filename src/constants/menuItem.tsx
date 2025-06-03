@@ -24,14 +24,41 @@ export const getLabel = (
 ): string | undefined => {
   return adminItems.find((item) => item.key === key)?.label;
 };
-const adminItems = [
-  { label: "Tổng quan", key: "/", icon: <HomeOutlined /> },
-  { label: "Tổng quan", key: "config", icon: <HomeOutlined /> },
-  { label: "Tổng quan", key: "h", icon: <HomeOutlined /> },
+export const adminItems = [
+  {
+    label: "Tổng quan",
+    key: "/",
+    icon: <HomeOutlined />,
+    image: "/icons/home.svg",
+    active: "/icons/home-active.svg",
+  },
+  {
+    label: "Tổng quan",
+    key: "config",
+    icon: <HomeOutlined />,
+    image: "/icons/book.svg",
+    active: "/icons/book-active.svg",
+  },
+  {
+    label: "Tổng quan",
+    key: "h",
+    icon: <HomeOutlined />,
+    image: "/icons/academic.svg",
+    active: "/icons/academic-active.svg",
+  },
   {
     label: "Cài đặt",
     key: "setting",
     icon: <SettingOutlined />,
+    image: "/icons/folder.svg",
+    active: "/icons/folder-active.svg",
+  },
+  {
+    label: "Cấu hình",
+    key: "configuration",
+    icon: <SettingOutlined />,
+    image: "/icons/gear.svg",
+    active: "/icons/gear-active.svg",
   },
 ];
 
@@ -43,5 +70,4 @@ export const userItems = [
   { label: "Trợ lý", href: "/" },
   { label: "Kho tài liệu", href: "/my-library" },
   { label: "Tài liệu cộng đồng", href: "/community" },
-
 ];
