@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-
+import { Table as AntTable } from "antd";
+import type { TableProps as AntTableProps } from "antd";
 import { cn } from "@/lib/utils";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
@@ -104,7 +105,33 @@ function TableCaption({
   );
 }
 
+interface CustomAntdTableProps<RecordType> extends AntTableProps<RecordType> {
+  bordered?: boolean;
+  className?: string;
+  size?: "small" | "middle" | "large";
+}
+
+function AntdTable<RecordType extends object = any>({
+  className,
+  bordered = false,
+  size = "middle",
+  pagination = false,
+  ...props
+}: CustomAntdTableProps<RecordType>) {
+  return (
+    <AntTable<RecordType>
+      className={cn("rounded-xl bg-white", className)}
+      bordered={bordered}
+      size={size}
+      pagination={pagination}
+      {...props}
+    />
+  );
+}
+
 export {
+  AntTable,
+  type CustomAntdTableProps,
   Table,
   TableHeader,
   TableBody,
