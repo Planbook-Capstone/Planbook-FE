@@ -1,10 +1,8 @@
 "use client";
-import { Layout, Menu, theme } from "antd";
+import { Layout, theme } from "antd";
 import { Content } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
-import { LogoutOutlined } from "@ant-design/icons";
 import { useState } from "react";
-import "./index.scss";
 import { adminItems, adminMenuItems, getLabel } from "@/constants/menuItem";
 import Header from "@/components/organisms/header";
 import Image from "next/image";
@@ -84,6 +82,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               borderRadius: borderRadiusLG,
               position: "relative",
             }}
+            className="font-questrial my-5"
           >
             {children}
           </div>
