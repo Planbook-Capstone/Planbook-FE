@@ -56,9 +56,8 @@ function LessonPlan() {
           </Select>
         </div>
       </div>
-      <div className="py-5">
-        <CurriculumList />
-      </div>
+
+      <CurriculumList />
     </MainLayout>
   );
 }
