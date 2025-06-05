@@ -21,6 +21,7 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         menuitem: "flex-col",
+        dash:"border border-dashed text-neutral-600 font-questrial hover:bg-neutral-100"
       },
       size: {
         default: "h-9 px-5 py-3 has-[>svg]:px-3",
