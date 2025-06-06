@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SidebarMenu } from "@/components/molecules/sidebar-menu";
 import Account from "@/components/molecules/account";
+import { usePathname } from "next/navigation";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,8 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [currentItem, setCurrentItem] = useState(adminMenuItems[0]);
+  const pathname = usePathname();
+  const title = getLabel(pathname.replace("/admin/", ""))
   const [collapsed, setCollapsed] = useState(true);
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -72,7 +75,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }}
         className="w-full h-auto rounded-t-lg shadow-xs px-5 overflow-y-scroll"
       >
-        <Header title={getLabel(currentItem?.key)} />
+        <Header title={title || "Tổng quan"} />
         <Content>
           <div
             style={{
