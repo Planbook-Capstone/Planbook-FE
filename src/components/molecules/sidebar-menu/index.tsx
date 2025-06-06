@@ -40,9 +40,9 @@ export function SidebarMenu({
       setInternalActiveKey(key);
     }
     onTabChange?.(key);
-
-    const newPath = pathname.replace(/\/$/, "") + "/" + key;
-    router.push(newPath);
+    // if (key === "/") router.push("/admin");
+    // const newPath = pathname.replace(/\/$/, "") + "/" + key;
+    router.push(`/admin/${key}`);
   };
 
   return (
