@@ -41,7 +41,7 @@ export const adminItems = [
   },
   {
     label: "Tổng quan",
-    key: "h",
+    key: "lesson-plan",
     icon: <HomeOutlined />,
     image: "/icons/academic.svg",
     active: "/icons/academic-active.svg",
