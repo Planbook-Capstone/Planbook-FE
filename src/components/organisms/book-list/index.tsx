@@ -1,5 +1,4 @@
-// BookTable.tsx
-import { useState } from "react";
+
 import { DataTable } from "../data-table";
 import { Book, bookColumns } from "./columns";
 import { Row } from "@tanstack/react-table";

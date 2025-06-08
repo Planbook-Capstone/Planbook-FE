@@ -40,8 +40,8 @@ export const adminItems = [
     active: "/icons/book-active.svg",
   },
   {
-    label: "Tổng quan",
-    key: "h",
+    label: "Năm học",
+    key: "workspace",
     icon: <HomeOutlined />,
     image: "/icons/academic.svg",
     active: "/icons/academic-active.svg",
