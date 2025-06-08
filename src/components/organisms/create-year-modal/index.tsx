@@ -71,7 +71,7 @@ function CreateYearModal() {
       </DialogTrigger>
       <DialogContent className="min-w-[300px]">
         <DialogHeader>
-          <DialogTitle>Tạo mới sách</DialogTitle>
+          <DialogTitle>Tạo năm học mới</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
           <Form {...form}>
