@@ -3,8 +3,27 @@ import { Button, Divider, Form, Input } from "antd";
 import { ArrowRight } from "lucide-react";
 import React from "react";
 import Image from "next/image";
+import { useUserServices } from "@/services/userService";
+import { toast } from "sonner";
 
 const LoginPage = () => {
+  const { mutate } = useUserServices();
+  const [form] = Form.useForm();
+
+  const onFinish = (values: any) => {
+    console.log("Form values:", values);
+    mutate(values, {
+      onSuccess: () => {
+        toast.success("Đăng nhập thành công");
+      },
+      onError: () => {
+        toast.error(
+          "Đăng nhập thất bại.Vui lòng kiểm tra kĩ thông tin đăng nhập"
+        );
+      },
+    }); // truyền giá trị email + password
+  };
+
   return (
     <div className="h-screen">
       {/* Background */}
@@ -47,15 +66,26 @@ const LoginPage = () => {
               </p>
             </div>
 
-            <Form layout="vertical" className="space-y-4 font-questrial">
-              <Form.Item name="email">
+            <Form
+              form={form}
+              onFinish={onFinish}
+              layout="vertical"
+              className="space-y-4 font-questrial"
+            >
+              <Form.Item
+                name="username"
+                rules={[{ required: true, message: "Vui lòng nhập email!" }]}
+              >
                 <Input
-                  placeholder="Địa chỉ Email"
+                  placeholder="Username"
                   size="large"
                   className="input-base input-secondary"
                 />
               </Form.Item>
-              <Form.Item name="password">
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
+              >
                 <Input.Password
                   placeholder="Mật khẩu"
                   size="large"
