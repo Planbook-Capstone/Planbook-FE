@@ -1,10 +1,7 @@
-import { EnumStatus } from "@/constants/enum";
-import { book, grade, subject, user } from "@prisma/client";
+import { grade, subject, user } from "@prisma/client";
 export type User = user;
 export type Grade = grade;
 export type Subject = subject;
-export type Book = book;
-
 
 export type BookResponse = {
   name: string;
