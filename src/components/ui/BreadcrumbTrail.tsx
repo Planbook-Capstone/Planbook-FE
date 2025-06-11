@@ -20,7 +20,7 @@ interface BreadcrumbTrailProps {
 }
 
 export function BreadcrumbTrail({ items, className }: BreadcrumbTrailProps) {
-  const router = useRouter();
+  // const router = useRouter();
 
   return (
     <div className={cn("flex items-center gap-4", className)}>

@@ -2,7 +2,7 @@ import { useBooksService } from "@/services/bookServices";
 import { DataTable } from "../data-table";
 import { bookColumns } from "./columns";
 import { Row } from "@tanstack/react-table";
-import { Book, BookResponse } from "@/types";
+import { BookResponse } from "@/types";
 
 interface BookTableProps {
   onSelectionChange?: (selectedRows: Row<BookResponse>[]) => void;
