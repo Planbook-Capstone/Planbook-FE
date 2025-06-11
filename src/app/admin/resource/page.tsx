@@ -5,12 +5,13 @@ import { ViewToggle } from "@/components/molecules/view-toggle";
 import BookTable from "@/components/organisms/book-list";
 import { useState } from "react";
 import { Row } from "@tanstack/react-table";
-import { Book } from "@/components/organisms/book-list/columns";
+
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
+import { BookResponse } from "@/types";
 
 const ResourceManagementPage = () => {
-  const [selected, setSelected] = useState<Row<Book>[]>([]);
+  const [selected, setSelected] = useState<Row<BookResponse>[]>([]);
 
   const handleDelete = () => {
     if (selected.length > 1) {
