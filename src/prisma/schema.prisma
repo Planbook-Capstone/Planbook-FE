@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/client"
 }
 
 datasource db {
@@ -113,6 +114,17 @@ model work_space {
   @@index([account_id], map: "FKqw9a3trno3gmqqlvn2dlsemhl")
 }
 
+model book_type {
+  id                   Bytes             @id @db.Binary(16)
+  created_at           String?           @db.VarChar(255)
+  description          String?           @db.VarChar(255)
+  icon                 String?           @db.TinyText
+  name                 String?           @db.VarChar(255)
+  status               book_type_status?
+  updated_at           String?           @db.VarChar(255)
+  token_cost_per_query Int
+}
+
 enum subject_status {
   ACTIVE
   INACTIVE
@@ -148,4 +160,9 @@ enum academic_year_status {
   INACTIVE
   ACTIVE
   UPCOMING
+}
+
+enum book_type_status {
+  ACTIVE
+  INACTIVE
 }
