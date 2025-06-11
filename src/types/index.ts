@@ -1,4 +1,4 @@
-import { grade, subject, user } from "@prisma/client";
+import type { grade, subject, user } from "@prisma/client";
 export type User = user;
 export type Grade = grade;
 export type Subject = subject;
