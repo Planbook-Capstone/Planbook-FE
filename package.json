@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prisma:generate": "prisma generate",
     "dev": "next dev --turbopack",
-    "build": "tsc --skipLibCheck --noEmitOnError false && next build || true",
+    "build": "npx prisma generate --schema=src/prisma/schema.prisma && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -62,5 +63,8 @@
     "tailwindcss": "^4.1.7",
     "tw-animate-css": "^1.3.0",
     "typescript": "^5"
+  },
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
   }
 }
