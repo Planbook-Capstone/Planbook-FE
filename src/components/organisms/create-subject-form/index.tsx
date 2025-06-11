@@ -1,20 +1,40 @@
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
+import { useGradesService } from "@/services/gradeServices";
+import { useCreateSubjectService } from "@/services/subjectServices";
+import { Grade, Subject } from "@/types";
 import { Form, Select, Space } from "antd";
 import { Plus, X } from "lucide-react";
+import { toast } from "sonner";
 
 interface CreateGardeFormProps {
   onSuccess?: () => void;
 }
 
 function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
-  const GRADES = ["Khối 10", "Khối 11", "Khối 12"];
-  const onFinish = (values: any) => {
+  const { data: grades } = useGradesService();
+  const { mutateAsync } = useCreateSubjectService();
+  const onFinish = async (values: any) => {
     console.log("Received values of form:", values);
-    // if (onSuccess) {
-    //   onSuccess();
-    // }
+
+    for (const subject of values.subjects) {
+      try {
+        await mutateAsync(subject);
+        toast.success(`Tạo môn học ${subject.name} thành công`);
+      } catch (error: any) {
+        console.error(error.response?.data || error.message, "Lỗi");
+        toast.error(
+          error.response?.data || `Tạo môn học ${subject.name} thất bại`
+        );
+        // Có thể tiếp tục hoặc break nếu muốn dừng
+      }
+    }
+
+    if (onSuccess) {
+      onSuccess();
+    }
   };
+
   return (
     <Form onFinish={onFinish} autoComplete="off">
       <Form.List name="subjects">
@@ -30,7 +50,7 @@ function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
                 <h1 className="font-calsans">Môn học {key + 1}</h1>
                 <Form.Item
                   {...restField}
-                  name={[name, "subject"]}
+                  name={[name, "name"]}
                   rules={[
                     { required: true, message: "Vui lòng điền tên môn học" },
                   ]}
@@ -39,13 +59,13 @@ function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
                 </Form.Item>
                 <Form.Item
                   {...restField}
-                  name={[name, "grade"]}
+                  name={[name, "gradeId"]}
                   rules={[{ required: true, message: "Vui lòng chọn khối" }]}
                 >
                   <Select placeholder="Chọn khối" size="large">
-                    {GRADES.map((grade) => (
-                      <Select.Option key={grade} value={grade}>
-                        {grade}
+                    {grades?.data?.content?.map((grade: Grade) => (
+                      <Select.Option key={grade?.id} value={grade?.id}>
+                        {grade?.name}
                       </Select.Option>
                     ))}
                   </Select>
@@ -69,7 +89,9 @@ function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
         )}
       </Form.List>
       <Form.Item>
-        <Button type="submit" className="w-1/2">Tạo môn học</Button>
+        <Button type="submit" className="w-1/2">
+          Tạo môn học
+        </Button>
       </Form.Item>
     </Form>
   );

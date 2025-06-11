@@ -21,7 +21,7 @@ const LoginPage = () => {
           "Đăng nhập thất bại.Vui lòng kiểm tra kĩ thông tin đăng nhập"
         );
       },
-    }); // truyền giá trị email + password
+    });
   };
 
   return (
