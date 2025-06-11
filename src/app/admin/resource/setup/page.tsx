@@ -2,14 +2,13 @@
 
 import CreateGardeForm from "@/components/organisms/create-grade-form";
 import CreateSubjectForm from "@/components/organisms/create-subject-form";
-import { Button } from "@/components/ui/Button";
-import { Steps, theme } from "antd";
+import { Steps } from "antd";
+
 import { useState } from "react";
-import { toast } from "sonner";
 
 function BookSetUpPage() {
-  const { token } = theme.useToken();
   const [current, setCurrent] = useState(0);
+
   const next = () => {
     setCurrent(current + 1);
   };
@@ -19,7 +18,7 @@ function BookSetUpPage() {
   };
   const steps = [
     {
-      title: "Tạo khối",
+      title: "Tạo Lớp",
       content: <CreateGardeForm onSuccess={next} />,
     },
     {
@@ -28,7 +27,7 @@ function BookSetUpPage() {
     },
     {
       title: "Hoàn thành",
-      content: "Hoàn thành",
+      content: "Quuay trở lại trang quản lý tài nguyên để xem kết quả",
     },
   ];
 

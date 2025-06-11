@@ -37,6 +37,15 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
+import { useGradesService } from "@/services/gradeServices";
+import { Grade, Subject } from "@/types";
+import { da, fi } from "date-fns/locale";
+import {
+  useSubjectsByGradeService,
+  useSubjectsService,
+} from "@/services/subjectServices";
+import { useCreateBookService } from "@/services/bookServices";
+import { sub } from "date-fns";
 
 const FormSchema = z.object({
   grade: z.string({
@@ -53,33 +62,51 @@ const FormSchema = z.object({
     .min(1, {
       message: "Tên sách phải ít nhất 1 kí tự",
     }),
-  description: z.string().optional(),
+  // description: z.string().optional(),
 });
 
 function CreateBookModal() {
   const router = useRouter();
+  const [selectedGrade, setSelectedGrade] = useState<string | undefined>(
+    undefined
+  );
+
+  const { data: subjectsByGrade } = useSubjectsByGradeService(selectedGrade);
+
+  const { data: grades } = useGradesService();
+
+  const { mutate } = useCreateBookService();
+
+  if (grades?.data?.content?.length === 0) {
+    router.push("/admin/resource/setup");
+  }
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
   function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(data);
-    toast("You submitted the following values", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
+    mutate({
+      name: data.name,
+      subjectId: parseInt(data.subject),
+    }, {
+      onSuccess: () => {
+        toast.success("Tạo sách thành công");
+      },
+      onError: () => {
+        toast.error(
+          "Tạo sách thất bại.Vui lòng kiểm tra kĩ thông tin"
+        );
+      },
     });
-    router.push("/admin/resource/123/content")
+
+    // router.push("/admin/resource/123/content");
   }
-  const grades = [
-    { value: "grade-1", label: "Khối 10" },
-    { value: "grade-2", label: "Khối 11" },
-  ];
-  const subjects = [
-    { value: "math", label: "Toán" },
-    { value: "literature", label: "Văn" },
-  ];
+
+  const onChangeGrade = (value: any) => {
+    console.log(value);
+    setSelectedGrade(value);
+  };
 
   return (
     <Dialog>
@@ -105,7 +132,10 @@ function CreateBookModal() {
                   <FormItem>
                     <FormLabel>Khối</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(data) => {
+                        field.onChange(data);
+                        onChangeGrade(data);
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -114,11 +144,15 @@ function CreateBookModal() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {grades.map((g) => (
-                          <SelectItem key={g.value} value={g.value}>
-                            {g.label}
-                          </SelectItem>
-                        ))}
+                        {grades?.data?.content
+                          ?.sort((a: Grade, b: Grade) =>
+                            a.name.localeCompare(b.name)
+                          )
+                          .map((g: Grade) => (
+                            <SelectItem key={g.id} value={g.id.toString()}>
+                              {g.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
 
@@ -142,11 +176,16 @@ function CreateBookModal() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {subjects?.map((subject) => (
-                          <SelectItem key={subject.value} value={subject.value}>
-                            {subject.label}
-                          </SelectItem>
-                        ))}
+                        {subjectsByGrade?.data?.content?.map(
+                          (subject: Subject) => (
+                            <SelectItem
+                              key={subject.id}
+                              value={subject.id.toString()}
+                            >
+                              {subject.name}
+                            </SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
 
@@ -170,7 +209,7 @@ function CreateBookModal() {
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
@@ -182,7 +221,7 @@ function CreateBookModal() {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
 
               <div className="flex justify-end items-center gap-2">
                 <DialogClose asChild>
