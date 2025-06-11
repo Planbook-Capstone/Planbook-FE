@@ -1,77 +1,151 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("NEXT_DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  avatar    String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders    Order[]
+model academic_year {
+  id         Bytes                 @id @db.Binary(16)
+  created_at DateTime?             @db.DateTime(6)
+  end_date   DateTime?             @db.DateTime(6)
+  start_date DateTime?             @db.DateTime(6)
+  status     academic_year_status?
+  updated_at DateTime?             @db.DateTime(6)
+  year_label String?               @db.VarChar(255)
+  work_space work_space[]
 }
 
-model Product {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  price       Float
-  images      String[]
-  category    String
-  tags        String[]
-  inStock     Boolean  @default(true)
-  quantity    Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  orderItems  OrderItem[]
+model book {
+  id         BigInt       @id @default(autoincrement())
+  created_at String?      @db.VarChar(255)
+  name       String       @db.VarChar(255)
+  status     book_status?
+  updated_at String?      @db.VarChar(255)
+  subject_id BigInt?
+  subject    subject?     @relation(fields: [subject_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK7ql5tfbkjvbc3k9xhtfva8nxq")
+  chapter    chapter[]
+
+  @@index([subject_id], map: "FK7ql5tfbkjvbc3k9xhtfva8nxq")
 }
 
-model Order {
-  id               String     @id @default(cuid())
-  user             User       @relation(fields: [userId], references: [id])
-  userId           String
-  items            OrderItem[]
-  total            Float
-  status           OrderStatus @default(PENDING)
-  shippingAddress  Json
-  billingAddress   Json
-  paymentMethod    String
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+model chapter {
+  id         BigInt          @id @default(autoincrement())
+  created_at String?         @db.VarChar(255)
+  name       String          @db.VarChar(255)
+  status     chapter_status?
+  updated_at String?         @db.VarChar(255)
+  book_id    BigInt?
+  book       book?           @relation(fields: [book_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKfxaijiug52tyrl5ifextmcfqb")
+  lesson     lesson[]
+
+  @@index([book_id], map: "FKfxaijiug52tyrl5ifextmcfqb")
 }
 
-model OrderItem {
-  id        String   @id @default(cuid())
-  order     Order    @relation(fields: [orderId], references: [id])
-  orderId   String
-  product   Product  @relation(fields: [productId], references: [id])
-  productId String
-  name      String
-  price     Float
-  quantity  Int
-  image     String
+model grade {
+  id         BigInt        @id @default(autoincrement())
+  created_at String?       @db.VarChar(255)
+  name       String        @unique(map: "UK_d6dkh99xnliqj2eg1gsidoyji") @db.VarChar(255)
+  status     grade_status?
+  updated_at String?       @db.VarChar(255)
+  subject    subject[]
 }
 
-enum Role {
-  USER
+model lesson {
+  id         BigInt         @id @default(autoincrement())
+  created_at String?        @db.VarChar(255)
+  name       String         @db.VarChar(255)
+  status     lesson_status?
+  updated_at String?        @db.VarChar(255)
+  chapter_id BigInt?
+  chapter    chapter?       @relation(fields: [chapter_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKyd2sg2b1awfx3br81o66mrwl")
+
+  @@index([chapter_id], map: "FKyd2sg2b1awfx3br81o66mrwl")
+}
+
+model refresh_token {
+  id         BigInt    @id @default(autoincrement())
+  expires_at DateTime? @db.DateTime(6)
+  is_revoked Boolean   @db.Bit(1)
+  issued_at  DateTime? @db.DateTime(6)
+  token      String?   @db.VarChar(255)
+  user_id    Bytes?    @db.Binary(16)
+  user       user?     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKfgk1klcib7i15utalmcqo7krt")
+
+  @@index([user_id], map: "FKfgk1klcib7i15utalmcqo7krt")
+}
+
+model subject {
+  id         BigInt          @id @default(autoincrement())
+  created_at String?         @db.VarChar(255)
+  name       String          @db.VarChar(255)
+  status     subject_status?
+  updated_at String?         @db.VarChar(255)
+  grade_id   BigInt?
+  book       book[]
+  grade      grade?          @relation(fields: [grade_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKam8igh6e0xp9r1tl7d8r1wneb")
+
+  @@index([grade_id], map: "FKam8igh6e0xp9r1tl7d8r1wneb")
+}
+
+model user {
+  id            Bytes           @id @db.Binary(16)
+  email         String?         @unique(map: "UK_ob8kqyqqgmefl0aco34akdtpe") @db.VarChar(255)
+  full_name     String?         @db.VarChar(255)
+  password      String?         @db.VarChar(255)
+  role          user_role?
+  username      String?         @unique(map: "UK_sb8bbouer5wak8vyiiy4pf2bx") @db.VarChar(255)
+  refresh_token refresh_token[]
+  work_space    work_space[]
+}
+
+model work_space {
+  id               Bytes          @id @db.Binary(16)
+  name             String?        @db.VarChar(255)
+  academic_year_id Bytes?         @db.Binary(16)
+  account_id       Bytes?         @db.Binary(16)
+  academic_year    academic_year? @relation(fields: [academic_year_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKl855mh3654i29yq7mbmjaj8mh")
+  user             user?          @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKqw9a3trno3gmqqlvn2dlsemhl")
+
+  @@index([academic_year_id], map: "FKl855mh3654i29yq7mbmjaj8mh")
+  @@index([account_id], map: "FKqw9a3trno3gmqqlvn2dlsemhl")
+}
+
+enum subject_status {
+  ACTIVE
+  INACTIVE
+}
+
+enum chapter_status {
+  ACTIVE
+  INACTIVE
+}
+
+enum book_status {
+  ACTIVE
+  INACTIVE
+}
+
+enum grade_status {
+  ACTIVE
+  INACTIVE
+}
+
+enum lesson_status {
+  ACTIVE
+  INACTIVE
+}
+
+enum user_role {
+  TEACHER
   ADMIN
+  STAFF
 }
 
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
+enum academic_year_status {
+  INACTIVE
+  ACTIVE
+  UPCOMING
 }
