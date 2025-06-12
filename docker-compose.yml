@@ -1,0 +1,14 @@
+services:
+  nextjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: planbook-app
+    restart: always
+    ports:
+      - "3000:3000" # Port 3000 của host map đến port 3000 của container
+    volumes:
+      - ./public:/app/public
+
+volumes:
+  db-data:

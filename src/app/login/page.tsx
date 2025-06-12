@@ -26,7 +26,7 @@ const LoginPage = () => {
   };
 
   const loginGG = async () => {
-    await supabase.auth.signInWithOAuth({
+    await supabase?.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: "http://localhost:3000/auth/callback",
