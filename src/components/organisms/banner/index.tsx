@@ -40,12 +40,7 @@ const Banner = ({
               {title || "Trợ lý dạy học thế hệ mới"}
             </h1>
             <p className="text-lg md:text-lg sm:text-sm mb-7">
-              {subtitle || (
-                <>
-                  Cung cấp công cụ hỗ trợ dạy học tiết kiệm thời gian cho <br />
-                  giáo viên Trung học phổ thông
-                </>
-              )}
+              {subtitle || <>CICD tới chơi broooooooo</>}
             </p>
             {/* <Button>+ Đóng góp tài liệu</Button> */}
           </div>
