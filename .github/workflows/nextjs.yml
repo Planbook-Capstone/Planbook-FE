@@ -1,32 +1,28 @@
-name: Deploy Next.js App
+# .github/workflows/deploy.yml
+name: Deploy to VPS
 
 on:
   push:
     branches:
       - main
-      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Set up job
-        run: echo "🚀 Starting deployment job..."
-
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
             echo "📁 Moving to project folder"
-            cd /root/fe/Planbook-FE || exit 1
+            cd /***/fe/Planbook-FE || exit 1
 
             echo "🔄 Resetting and pulling latest code"
             git reset --hard
@@ -51,6 +47,3 @@ jobs:
               docker stop planbook-app || true
               exit 1
             fi
-
-      - name: Deployment complete
-        run: echo "🎉 Deployment job finished."
