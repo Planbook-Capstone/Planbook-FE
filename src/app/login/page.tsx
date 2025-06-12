@@ -5,6 +5,7 @@ import React from "react";
 import Image from "next/image";
 import { useUserServices } from "@/services/userService";
 import { toast } from "sonner";
+import { supabase } from "@/config/supabaseClient";
 
 const LoginPage = () => {
   const { mutate } = useUserServices();
@@ -24,6 +25,14 @@ const LoginPage = () => {
     });
   };
 
+  const loginGG = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "http://localhost:3000/auth/callback",
+      },
+    });
+  };
   return (
     <div className="h-screen">
       {/* Background */}
@@ -110,6 +119,7 @@ const LoginPage = () => {
             </Form>
 
             <Button
+              onClick={loginGG}
               block
               size="large"
               className="btn-base btn-secondary flex !justify-between !pl-4 !border-[#E4EBF3] !border-1 !hover:bg-gray-100"

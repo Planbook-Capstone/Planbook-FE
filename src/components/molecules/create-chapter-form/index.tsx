@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 
 const CreateChapterForm = () => {
   const [form] = Form.useForm();
+  const onFinish = (values: any) => {
+    console.log("📦 Form Values:", values);
+  };
   return (
     <Form
       form={form}
-      // name="dynamic_form_complex"
       autoComplete="off"
       initialValues={{ items: [{}] }}
+      onFinish={onFinish}
     >
       <Form.List name="chapter">
         {(fields, { add, remove }) => (
@@ -26,12 +29,27 @@ const CreateChapterForm = () => {
                     noStyle
                     label="Chương"
                     name={[field.name, "chapterTitle"]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Vui lòng nhập tiêu đề chương",
+                      },
+                      {
+                        validator: (_, value) =>
+                          value && value.trim().length > 0
+                            ? Promise.resolve()
+                            : Promise.reject(
+                                "Không được để trống hoặc chỉ chứa khoảng trắng"
+                              ),
+                      },
+                    ]}
                   >
                     <Input
-                      className="bg-neutral-800 text-white font-calsans"
+                      className="bg-neutral-100 font-calsans placeholder:text-neutral-300"
                       placeholder="Chương 1"
                     />
                   </Form.Item>
+
                   <Button
                     onClick={() => {
                       remove(field.name);
@@ -55,6 +73,20 @@ const CreateChapterForm = () => {
                             <Form.Item
                               noStyle
                               name={[subField.name, "lessonTitle"]}
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Vui lòng nhập tiêu đề bài học",
+                                },
+                                {
+                                  validator: (_, value) =>
+                                    value && value.trim().length > 0
+                                      ? Promise.resolve()
+                                      : Promise.reject(
+                                          "Không được để trống hoặc chỉ chứa khoảng trắng"
+                                        ),
+                                },
+                              ]}
                             >
                               <Input placeholder="Bài 1" />
                             </Form.Item>
@@ -85,7 +117,11 @@ const CreateChapterForm = () => {
           </div>
         )}
       </Form.List>
-
+      <Form.Item className="py-5">
+        <Button type="submit" className="w-full">
+          Submit
+        </Button>
+      </Form.Item>
       <Form.Item noStyle shouldUpdate>
         {() => (
           <Typography>
