@@ -1,18 +1,23 @@
 "use client";
+import { useState } from "react";
 
 import CreateBookModal from "@/components/organisms/create-book-modal";
-import { ViewToggle } from "@/components/molecules/view-toggle";
 import BookTable from "@/components/organisms/book-list";
-import { useState } from "react";
+import GradeTable from "@/components/organisms/grade-list";
 import { Row } from "@tanstack/react-table";
-
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
-import { BookResponse } from "@/types";
+import { BookResponse, GradeResponse, SubjectResponse } from "@/types";
 import { useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SubjectTable from "@/components/organisms/subject-list";
 
 const ResourceManagementPage = () => {
   const [selected, setSelected] = useState<Row<BookResponse>[]>([]);
+  const [selectedSubject, setSelecteSubject] = useState<Row<SubjectResponse>[]>(
+    []
+  );
+
   const router = useRouter();
   const handleDelete = () => {
     if (selected.length > 1) {
@@ -26,35 +31,104 @@ const ResourceManagementPage = () => {
     if (selected.length > 1) {
       toast.error("Vui lòng chỉ chọn 1 sách");
     } else {
-      router.push(
-        `/admin/resource/${selected[0].original.id}/content`)
+      router.push(`/admin/resource/${selected[0].original.id}/content`);
     }
   };
 
-  return (
-    <div className="space-y-5">
-      <div className="flex justify-between">
-        <ViewToggle />
-
-        {selected.length > 0 ? (
-          <div className="flex gap-1.5 items-center">
-            <p className="text-sm text-muted-foreground pr-2.5">
-              Đã chọn {selected.length}
-            </p>
-            <Button onClick={handleDelete}>Xóa</Button>
-            <Button onClick={handleEdit} variant={"outline"}>
-              Chỉnh sửa
-            </Button>
+  const tabs = [
+    {
+      value: "grade",
+      label: "Quản lí khối",
+      content: (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="font-calsans text-base">Danh sách khối</h1>
           </div>
-        ) : (
-          <CreateBookModal />
-        )}
+          <GradeTable />
+        </div>
+      ),
+    },
+    {
+      value: "subject",
+      label: "Quản lí môn",
+      content: (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="font-calsans text-base">Danh sách môn</h1>
+            {selectedSubject.length > 0 && (
+              <div className="flex gap-1.5 items-center">
+                <p className="text-sm text-muted-foreground pr-2.5">
+                  Đã chọn {selectedSubject.length}
+                </p>
+                <Button>Xóa</Button>
+                <Button variant={"outline"}>Chỉnh sửa</Button>
+              </div>
+            )}
+          </div>
+          <SubjectTable
+            onSelectionChange={(rows) => {
+              setSelecteSubject(rows);
+            }}
+          />
+        </div>
+      ),
+    },
+    {
+      value: "book",
+      label: "Quản lí sách",
+      content: (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="font-calsans text-base">Danh sách sách</h1>
+            {selected.length > 0 ? (
+              <div className="flex gap-1.5 items-center">
+                <p className="text-sm text-muted-foreground pr-2.5">
+                  Đã chọn {selected.length}
+                </p>
+                <Button onClick={handleDelete}>Xóa</Button>
+                <Button onClick={handleEdit} variant={"outline"}>
+                  Chỉnh sửa
+                </Button>
+              </div>
+            ) : (
+              <CreateBookModal />
+            )}
+          </div>
+          <BookTable
+            onSelectionChange={(rows) => {
+              setSelected(rows);
+            }}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-5 w-full">
+      <div className="flex justify-between w-full">
+        <Tabs defaultValue="grade" className="w-full">
+          <div className="space-y-5 w-full">
+            <div className="flex justify-between w-full">
+              <Tabs defaultValue="grade" className="w-full">
+                <TabsList>
+                  {tabs.map((tab) => (
+                    <TabsTrigger key={tab.value} value={tab.value}>
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {tabs.map((tab) => (
+                  <TabsContent key={tab.value} value={tab.value}>
+                    {tab.content}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </div>
+          </div>
+        </Tabs>
       </div>
-      <BookTable
-        onSelectionChange={(rows) => {
-          setSelected(rows);
-        }}
-      />
     </div>
   );
 };

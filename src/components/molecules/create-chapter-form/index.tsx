@@ -11,10 +11,11 @@ import { toast } from "sonner";
 import {
   useCreateLessonService,
   useLessonsByChapterService,
+  useLessonsService,
 } from "@/services/lessonServices";
 import { useBookByIdService, useBooksService } from "@/services/bookServices";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 interface CreateChapterFormProps {
   bookId?: string;
@@ -75,27 +76,50 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
   };
 
   // const [initialChapters, setInitialChapters] = useState<any[]>([]);
+  // const { data: lessons } = useLessonsService(); // Fetch toàn bộ bài học
 
   // useEffect(() => {
-  //   if (chaptersByBook?.data?.content) {
-  //     const chapters = chaptersByBook.data.content.map((chapter: any) => ({
-  //       chapterTitle: chapter.name,
-  //       lesson: chapter.lessons.map((lesson: any) => ({
-  //         lessonTitle: lesson.name,
-  //       })),
-  //     }));
-  //     setInitialChapters(chapters);
-  //   }
-  // }, [chaptersByBook]);
+  //   const fetchChaptersAndLessons = async () => {
+  //     const allLessons = lessons?.data?.content ?? [];
+  //     const chapters = chaptersByBook?.data?.content ?? [];
 
-  // console.log(initialChapters);
+  //     if (chapters.length === 0) return;
+
+  //     try {
+  //       const chaptersWithLessons = chapters.map((chapter: any) => {
+  //         const chapterLessons = allLessons.filter(
+  //           (lesson: any) => lesson.chapter.id === chapter.id
+  //         );
+
+  //         return {
+  //           chapterTitle: chapter.name,
+  //           lesson: chapterLessons.map((lesson: any) => ({
+  //             lessonTitle: lesson.name,
+  //           })),
+  //         };
+  //       });
+
+  //       console.log(chaptersWithLessons, "Chương + Bài học (LOCAL FILTER)");
+
+  //       setInitialChapters(chaptersWithLessons);
+  //       form.setFieldsValue({ chapter: chaptersWithLessons });
+  //     } catch (err) {
+  //       console.error("Lỗi khi xử lý chương + bài học:", err);
+  //     }
+  //   };
+
+  //   fetchChaptersAndLessons();
+  // }, [chaptersByBook, lessons]);
+
   return (
     <>
       <div className="flex items-center gap-2">
         <h1 className="text-lg font-calsans py-5">{book?.data?.name}</h1>
 
         <Badge
-          variant={chaptersByBook?.data?.content?.length == 0 ? "active" : "warning"}
+          variant={
+            chaptersByBook?.data?.content?.length == 0 ? "active" : "warning"
+          }
         >
           {chaptersByBook?.data?.content?.length == 0
             ? "Đang tạo mới"
@@ -103,12 +127,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
         </Badge>
       </div>
 
-      <Form
-        form={form}
-        autoComplete="off"
-        // initialValues={{ chapter: initialChapters || [] }}
-        onFinish={onFinish}
-      >
+      <Form form={form} autoComplete="off" onFinish={onFinish}>
         <Form.List name="chapter">
           {(fields, { add, remove }) => (
             <div className="flex flex-col gap-4">
@@ -201,7 +220,11 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
                 </div>
               ))}
 
-              <Button variant={"dash"} onClick={() => add()}>
+              <Button
+                variant={"dash"}
+                onClick={() => add()}
+                className="bg-neutral-100"
+              >
                 + Thêm chương
               </Button>
             </div>

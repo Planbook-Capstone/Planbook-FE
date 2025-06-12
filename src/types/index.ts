@@ -4,6 +4,14 @@ export type User = user;
 export type Grade = grade;
 export type Subject = subject;
 
+export type GradeResponse = {
+  name: string;
+  id: bigint;
+  createdAt: string | null;
+  status: string | null;
+  updatedAt: string | null;
+};
+
 export type BookResponse = {
   name: string;
   id: bigint;
