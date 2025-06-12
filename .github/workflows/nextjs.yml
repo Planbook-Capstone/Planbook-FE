@@ -28,15 +28,15 @@ jobs:
             git reset --hard
             git pull origin master || git pull origin main
 
-            echo "🧼 Stopping old container if running..."
-            docker stop planbook-app || true
-            docker rm planbook-app || true
-
-            echo "🏗️ Building Docker image..."
+            echo "🏗️ Building Docker image (without affecting running container)..."
             if ! docker compose -f docker-compose.yml build; then
-              echo "❌ Build failed. Aborting deployment."
+              echo "❌ Build failed. Container still running. Abort."
               exit 1
             fi
+
+            echo "🧼 Build succeeded. Stopping old container..."
+            docker stop planbook-app || true
+            docker rm planbook-app || true
 
             echo "🚀 Starting new container..."
             docker compose -f docker-compose.yml up -d
@@ -49,7 +49,7 @@ jobs:
               echo "✅ Deployment successful!"
               docker image prune -f
             else
-              echo "❌ Health check failed. Stopping container..."
+              echo "❌ Health check failed. Rolling back..."
               docker stop planbook-app || true
               docker rm planbook-app || true
               exit 1
