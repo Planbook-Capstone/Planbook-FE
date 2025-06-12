@@ -9,15 +9,25 @@ import { Row } from "@tanstack/react-table";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
 import { BookResponse } from "@/types";
+import { useRouter } from "next/navigation";
 
 const ResourceManagementPage = () => {
   const [selected, setSelected] = useState<Row<BookResponse>[]>([]);
-
+  const router = useRouter();
   const handleDelete = () => {
     if (selected.length > 1) {
       toast.error("Vui lòng chỉ chọn 1 sách");
     } else {
       toast.success(`Đã xóa thành công sách ${selected[0].original.name}`);
+    }
+  };
+
+  const handleEdit = () => {
+    if (selected.length > 1) {
+      toast.error("Vui lòng chỉ chọn 1 sách");
+    } else {
+      router.push(
+        `/admin/resource/${selected[0].original.id}/content`)
     }
   };
 
@@ -32,7 +42,9 @@ const ResourceManagementPage = () => {
               Đã chọn {selected.length}
             </p>
             <Button onClick={handleDelete}>Xóa</Button>
-            <Button variant={"outline"}>Chỉnh sửa</Button>
+            <Button onClick={handleEdit} variant={"outline"}>
+              Chỉnh sửa
+            </Button>
           </div>
         ) : (
           <CreateBookModal />
