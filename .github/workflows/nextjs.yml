@@ -1,24 +1,35 @@
-echo "📥 Pulling latest code..."
-cd /root/fe/Planbook-FE
-git reset --hard
-git pull origin main || git pull origin master
+name: Deploy Next.js App
 
-echo "🛑 Stopping old container if running..."
-docker stop planbook-app || true
-docker rm planbook-app || true
+on:
+  push:
+    branches:
+      - main
+      - master
 
-echo "🏗️ Building and starting container..."
-docker compose -f docker-compose.yml up -d --build
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-echo "⏳ Waiting for container to start..."
-sleep 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-echo "🔍 Performing health check..."
-if curl -f http://localhost:3000/health || curl -f http://localhost:3000; then
-  echo "✅ Deployment successful!"
-  docker image prune -f
-else
-  echo "❌ Health check failed! Stopping container..."
-  docker stop planbook-app || true
-  exit 1
-fi
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          script: |
+            echo "📥 Pulling latest code..."
+            cd /root/fe/Planbook-FE
+            git reset --hard
+            git pull origin main || git pull origin master
+
+            echo "🛑 Stopping old container if running..."
+            docker stop planbook-app || true
+            docker rm planbook-app || true
+
+            echo "🏗️ Building and starting container..."
+            docker compose
