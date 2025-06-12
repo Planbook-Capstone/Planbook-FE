@@ -1,16 +1,14 @@
 "use client";
 import CreateChapterForm from "@/components/molecules/create-chapter-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { use } from "react";
 
-
-interface CreateBookDetailsProps {
-  params: {
-    bookId: string;
-  };
-}
-
-function CreateBookDetails({ params }: CreateBookDetailsProps) {
-  console.log(params.bookId);
+function CreateBookDetails({
+  params,
+}: {
+  params: Promise<{ bookId: string }>;
+}) {
+  const { bookId } = use(params); // ✅ unwrap promise
 
   return (
     <div>
@@ -20,7 +18,7 @@ function CreateBookDetails({ params }: CreateBookDetailsProps) {
           <TabsTrigger value="description">Mô tả</TabsTrigger>
         </TabsList>
         <TabsContent value="details">
-          <CreateChapterForm />
+          <CreateChapterForm bookId={bookId} />
         </TabsContent>
 
         <TabsContent value="description">Thông tin chung:</TabsContent>
