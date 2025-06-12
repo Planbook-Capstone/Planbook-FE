@@ -3,25 +3,19 @@ name: 🚀 Deploy PlanBook to VPS
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
 
 env:
-  NODE_VERSION: "18"
   VPS_APP_DIR: "/opt/planbook"
+  CONTAINER_NAME: "planbook-app"
 
 jobs:
-  # Deploy to VPS (chỉ chạy khi push vào main/master)
   deploy:
     name: 🚀 Deploy to VPS
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📤 Deploy to VPS
+      - name: 📤 SSH into VPS and deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -29,76 +23,28 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: 22
           script: |
-            echo "🚀 Starting deployment..."
-
-            # Tạo thư mục backup
-            mkdir -p ${{ env.VPS_APP_DIR }}/backups
-
-            # Backup version hiện tại (nếu có)
-            if [ -d "${{ env.VPS_APP_DIR }}/current" ]; then
-              echo "📦 Creating backup..."
-              cp -r ${{ env.VPS_APP_DIR }}/current ${{ env.VPS_APP_DIR }}/backups/backup-$(date +%Y%m%d-%H%M%S)
-              
-              # Giữ lại 5 backup gần nhất
-              cd ${{ env.VPS_APP_DIR }}/backups
-              ls -t | tail -n +6 | xargs -r rm -rf
-            fi
-
-            # Tạo thư mục mới cho deployment
-            mkdir -p ${{ env.VPS_APP_DIR }}/new-release
-            cd ${{ env.VPS_APP_DIR }}/new-release
-
-            # Clone source code mới nhất
-            echo "📥 Downloading latest code..."
-            git clone https://github.com/${{ github.repository }}.git .
-
-            # Copy environment file
-            cp ${{ env.VPS_APP_DIR }}/.env.production .env.production || echo "⚠️ .env.production not found, using default"
-
-            # Stop containers hiện tại
-            echo "🛑 Stopping current containers..."
-            cd ${{ env.VPS_APP_DIR }}/current 2>/dev/null && docker-compose -f docker-compose.prod.yml down || echo "No containers to stop"
-
-            # Chuyển sang version mới
+            echo "📥 Pulling latest code..."
             cd ${{ env.VPS_APP_DIR }}
-            rm -rf current
-            mv new-release current
-            cd current
+            git reset --hard
+            git pull origin main || git pull origin master
 
-            # Build và start containers mới
-            echo "🏗️ Building and starting new containers..."
-            docker-compose -f docker-compose.prod.yml up --build -d
+            echo "🛑 Stopping old container if running..."
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
 
-            # Đợi containers khởi động
-            echo "⏳ Waiting for containers to start..."
-            sleep 30
+            echo "🏗️ Building and starting container..."
+            docker compose -f docker-compose.yml up -d --build
 
-            # Health check
+            echo "⏳ Waiting for container to start..."
+            sleep 20
+
             echo "🔍 Performing health check..."
             if curl -f http://localhost:3000/health || curl -f http://localhost:3000; then
               echo "✅ Deployment successful!"
-              
-              # Cleanup old Docker images
               docker image prune -f
             else
-              echo "❌ Health check failed! Rolling back..."
-              
-              # Rollback
-              docker-compose -f docker-compose.prod.yml down
-              
-              # Restore backup
-              if [ -d "${{ env.VPS_APP_DIR }}/backups" ]; then
-                LATEST_BACKUP=$(ls -t ${{ env.VPS_APP_DIR }}/backups | head -n1)
-                if [ ! -z "$LATEST_BACKUP" ]; then
-                  echo "🔄 Restoring from backup: $LATEST_BACKUP"
-                  cd ${{ env.VPS_APP_DIR }}
-                  rm -rf current
-                  cp -r backups/$LATEST_BACKUP current
-                  cd current
-                  docker-compose -f docker-compose.prod.yml up -d
-                fi
-              fi
-              
+              echo "❌ Health check failed! Stopping container..."
+              docker stop ${{ env.CONTAINER_NAME }} || true
               exit 1
             fi
 
@@ -110,4 +56,3 @@ jobs:
             echo "🌐 App URL: http://${{ secrets.VPS_HOST }}"
           else
             echo "❌ Deployment failed!"
-          fi
