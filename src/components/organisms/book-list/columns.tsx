@@ -88,9 +88,9 @@ export const bookColumns: ColumnDef<BookResponse>[] = [
       const getStatusVariant = (status: string | null | undefined) => {
         switch (status) {
           case "ACTIVE":
-            return "active"; // hoặc dùng variant="green" nếu Badge hỗ trợ
+            return "success";
           case "INACTIVE":
-            return "destructive"; // hoặc "warning", tuỳ vào Badge
+            return "destructive";
           default:
             return "outline";
         }

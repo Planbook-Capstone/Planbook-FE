@@ -35,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import { useGradesService } from "@/services/gradeServices";
 import { Grade, Subject } from "@/types";
@@ -86,21 +85,23 @@ function CreateBookModal() {
   });
   function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(data);
-    mutate({
-      name: data.name,
-      subjectId: parseInt(data.subject),
-    }, {
-      onSuccess: () => {
-        toast.success("Tạo sách thành công");
+    mutate(
+      {
+        name: data.name,
+        subjectId: parseInt(data.subject),
       },
-      onError: () => {
-        toast.error(
-          "Tạo sách thất bại.Vui lòng kiểm tra kĩ thông tin"
-        );
-      },
-    });
-
-    // router.push("/admin/resource/123/content");
+      {
+        onSuccess: (response) => {
+          toast.success("Tạo sách thành công");
+          console.log(response.data);
+          router.push(`/admin/resource/${response?.data?.data?.id}/content`);
+          form.reset();
+        },
+        onError: () => {
+          toast.error("Tạo sách thất bại.Vui lòng kiểm tra kĩ thông tin");
+        },
+      }
+    );
   }
 
   const onChangeGrade = (value: any) => {
