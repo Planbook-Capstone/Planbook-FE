@@ -1,17 +1,20 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MoreVertical } from "lucide-react";
+import { BookResponse } from "@/types";
+import { translateStatus } from "@/utils/translateEnum";
+import { Badge } from "@/components/ui/badge";
 
-export type Book = {
-  id: number;
-  gradeId: string;
-  subjectId: string;
-  name: string;
-  description: string;
-  // updated_at: Date;
-};
+// export type Book = {
+//   id: number;
+//   gradeId: string;
+//   subjectId: string;
+//   name: string;
+//   description: string;
+//   // updated_at: Date;
+// };
 
-export const bookColumns: ColumnDef<Book>[] = [
+export const bookColumns: ColumnDef<BookResponse>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -31,21 +34,21 @@ export const bookColumns: ColumnDef<Book>[] = [
     enableSorting: false,
     enableHiding: false,
   },
+  // {
+  //   accessorKey: "gradeId",
+  //   header: "Khối",
+  //   cell: ({ row }) => (
+  //     <div className="flex items-center gap-2">
+  //       <span className="font-medium ">{row.original.gradeId}</span>
+  //     </div>
+  //   ),
+  // },
   {
-    accessorKey: "gradeId",
-    header: "Khối",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="font-medium ">{row.original.gradeId}</span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "subjectId",
+    accessorKey: "subject",
     header: "Môn học",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <span className="font-medium">{row.original.subjectId}</span>
+        <span className="font-medium">{row.original.subject?.name}</span>
       </div>
     ),
   },
@@ -59,19 +62,41 @@ export const bookColumns: ColumnDef<Book>[] = [
     ),
   },
   {
-    accessorKey: "description",
-    header: "Mô tả",
+    accessorKey: "createdAt",
+    header: "Ngày tạo",
     cell: ({ row }) => (
-      <div className="text-muted-foreground truncate ">
-        {row.original.description}
+      <div className="text-muted-foreground truncate">
+        {row.original.createdAt}
       </div>
     ),
   },
-  // {
-  //   accessorKey: "updated_at",
-  //   header: "Ngày cập nhật",
-  //   cell: ({ row }) => <span>{row.original.updated_at}</span>,
-  // },
- 
-  
+  {
+    accessorKey: "updatedAt",
+    header: "Ngày cập nhật",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.updatedAt}</span>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Trạng thái",
+    cell: ({ row }) => {
+      const status = row.original.status;
+      const statusText = translateStatus(status || "");
+
+      // Mapping status to variant or custom class
+      const getStatusVariant = (status: string | null | undefined) => {
+        switch (status) {
+          case "ACTIVE":
+            return "active"; // hoặc dùng variant="green" nếu Badge hỗ trợ
+          case "INACTIVE":
+            return "destructive"; // hoặc "warning", tuỳ vào Badge
+          default:
+            return "outline";
+        }
+      };
+
+      return <Badge variant={getStatusVariant(status)}>{statusText}</Badge>;
+    },
+  },
 ];

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Questrial } from "next/font/google";
+import { Geist, Geist_Mono, Questrial, Manrope } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/store";
 import { Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,6 +13,10 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
 });
 
@@ -49,12 +54,14 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable} ${manrope.variable} antialiased`}
       >
-        <Suspense fallback={<div>Loading...</div>}>
-          <Toaster position="top-right" />
-          <AppProvider>{children}</AppProvider>
-        </Suspense>
+        <ReactQueryProvider>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Toaster position="top-right" />
+            <AppProvider>{children}</AppProvider>
+          </Suspense>
+        </ReactQueryProvider>
       </body>
     </html>
   );

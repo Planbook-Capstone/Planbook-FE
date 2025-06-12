@@ -40,6 +40,7 @@ module.exports = {
         mono: ["var(--font-geist-mono)"],
         calsans: ["var(--font-calsans)"],
         questrial: ["var(--font-questrial)"],
+        manrope: ["var(--font-manrope)"],
       },
     },
   },
