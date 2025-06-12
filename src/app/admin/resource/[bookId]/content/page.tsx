@@ -1,7 +1,17 @@
 "use client";
 import CreateChapterForm from "@/components/molecules/create-chapter-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-function CreateBookDetails() {
+
+
+interface CreateBookDetailsProps {
+  params: {
+    bookId: string;
+  };
+}
+
+function CreateBookDetails({ params }: CreateBookDetailsProps) {
+  console.log(params.bookId);
+
   return (
     <div>
       <Tabs defaultValue="details">
@@ -12,6 +22,7 @@ function CreateBookDetails() {
         <TabsContent value="details">
           <CreateChapterForm />
         </TabsContent>
+
         <TabsContent value="description">Thông tin chung:</TabsContent>
       </Tabs>
     </div>
