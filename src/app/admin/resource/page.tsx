@@ -5,14 +5,21 @@ import { ViewToggle } from "@/components/molecules/view-toggle";
 import BookTable from "@/components/organisms/book-list";
 import { useState } from "react";
 import { Row } from "@tanstack/react-table";
-import { Book } from "@/components/organisms/book-list/columns";
+
 import { Button } from "@/components/ui/Button";
+import { toast } from "sonner";
+import { BookResponse } from "@/types";
 
 const ResourceManagementPage = () => {
-  const [selected, setSelected] = useState<Row<Book>[]>([]);
-  console.log(selected);
+  const [selected, setSelected] = useState<Row<BookResponse>[]>([]);
 
- 
+  const handleDelete = () => {
+    if (selected.length > 1) {
+      toast.error("Vui lòng chỉ chọn 1 sách");
+    } else {
+      toast.success(`Đã xóa thành công sách ${selected[0].original.name}`);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -24,7 +31,7 @@ const ResourceManagementPage = () => {
             <p className="text-sm text-muted-foreground pr-2.5">
               Đã chọn {selected.length}
             </p>
-            <Button>Xóa</Button>
+            <Button onClick={handleDelete}>Xóa</Button>
             <Button variant={"outline"}>Chỉnh sửa</Button>
           </div>
         ) : (
@@ -34,10 +41,6 @@ const ResourceManagementPage = () => {
       <BookTable
         onSelectionChange={(rows) => {
           setSelected(rows);
-          console.log(
-            "Selected books:",
-            rows.map((r) => r.original)
-          ); // Optional: xem dữ liệu gốc
         }}
       />
     </div>

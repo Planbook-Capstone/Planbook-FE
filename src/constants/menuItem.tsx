@@ -47,6 +47,13 @@ export const adminItems = [
     active: "/icons/academic-active.svg",
   },
   {
+    label: "Năm học",
+    key: "workspace",
+    icon: <HomeOutlined />,
+    image: "/icons/academic.svg",
+    active: "/icons/academic-active.svg",
+  },
+  {
     label: "Quản lí sách",
     key: "resource",
     icon: <SettingOutlined />,
