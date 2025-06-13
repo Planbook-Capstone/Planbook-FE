@@ -17,7 +17,7 @@ const MainHeader = (props: MainHeaderProps) => {
   const pathname = usePathname();
 
   return (
-    <header className="w-full px-4 py-3 border-b bg-white">
+    <header className="w-full px-4 py-3 bg-white">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
         <div className="flex items-center gap-2">
@@ -53,7 +53,11 @@ const MainHeader = (props: MainHeaderProps) => {
         {/* Mobile Menu Toggle */}
         <div className="md:hidden">
           <button onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {menuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
 
@@ -69,7 +73,11 @@ const MainHeader = (props: MainHeaderProps) => {
           {userItems.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link href={item.href} key={item.href} onClick={() => setMenuOpen(false)}>
+              <Link
+                href={item.href}
+                key={item.href}
+                onClick={() => setMenuOpen(false)}
+              >
                 <div
                   className={cn(
                     "text-sm py-1 font-medium transition hover:text-primary text-neutral-600",

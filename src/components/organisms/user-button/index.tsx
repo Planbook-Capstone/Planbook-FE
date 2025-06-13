@@ -14,7 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 function UserButton() {
+  const router = useRouter();
+  const handleLogout = () => {
+    router.push("/login");
+  };
   return (
     <div className="flex justify-end items-center gap-2.5">
       <Select defaultValue="2025">
@@ -71,7 +77,10 @@ function UserButton() {
             </div>
           </div>
 
-          <DropdownMenuItem className="h-10 flex items-center justify-center text-amber-700 font-medium cursor-pointer">
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className="h-10 flex items-center justify-center text-amber-700 font-medium cursor-pointer"
+          >
             <LogOut className="size-4 mr-2" /> Log out
           </DropdownMenuItem>
         </DropdownMenuContent>
