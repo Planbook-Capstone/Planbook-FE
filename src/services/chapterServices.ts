@@ -15,6 +15,6 @@ export const useCreateChapterService = createMutationHook(
   "/chapter"
 );
 export const useUpdateChapterService = updateMutationHook(
-  "chapters",
+  "chaptersByBook",
   "/chapter"
 );
