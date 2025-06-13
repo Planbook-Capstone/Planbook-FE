@@ -1,6 +1,8 @@
 "use client";
 import CreateChapterForm from "@/components/molecules/create-chapter-form";
+import BookContent from "@/components/organisms/book-content";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Book } from "lucide-react";
 import { use } from "react";
 
 function CreateBookDetails({
@@ -21,7 +23,10 @@ function CreateBookDetails({
           <CreateChapterForm bookId={bookId} />
         </TabsContent>
 
-        <TabsContent value="description">Thông tin chung:</TabsContent>
+        <TabsContent value="description">
+          Thông tin chung:
+          <BookContent bookId={bookId} />
+        </TabsContent>
       </Tabs>
     </div>
   );
