@@ -2,7 +2,6 @@
 import CreateChapterForm from "@/components/molecules/create-chapter-form";
 import BookContent from "@/components/templates/book-content";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Book } from "lucide-react";
 import { use } from "react";
 
 function CreateBookDetails({
