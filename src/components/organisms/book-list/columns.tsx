@@ -5,15 +5,6 @@ import { BookResponse } from "@/types";
 import { translateStatus } from "@/utils/translateEnum";
 import { Badge } from "@/components/ui/badge";
 
-// export type Book = {
-//   id: number;
-//   gradeId: string;
-//   subjectId: string;
-//   name: string;
-//   description: string;
-//   // updated_at: Date;
-// };
-
 export const bookColumns: ColumnDef<BookResponse>[] = [
   {
     id: "select",
@@ -44,6 +35,15 @@ export const bookColumns: ColumnDef<BookResponse>[] = [
   //   ),
   // },
   {
+    accessorKey: "grade",
+    header: "Tên khối",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{row.original.subject?.grade?.name}</span>
+      </div>
+    ),
+  },
+  {
     accessorKey: "subject",
     header: "Môn học",
     cell: ({ row }) => (
@@ -61,6 +61,7 @@ export const bookColumns: ColumnDef<BookResponse>[] = [
       </div>
     ),
   },
+
   {
     accessorKey: "createdAt",
     header: "Ngày tạo",

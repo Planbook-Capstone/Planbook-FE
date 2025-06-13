@@ -9,17 +9,13 @@ import { on } from "events";
 import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
-interface CreateGardeFormProps {
-  onSuccess?: () => void;
+interface CreateGradeFormProps {
+  onClose?: () => void;
 }
 
-function CreateGardeForm({ onSuccess }: CreateGardeFormProps) {
+function CreateGradeForm({ onClose }: CreateGradeFormProps) {
   const { mutateAsync } = useCreateGradeService();
-  const { data: grades } = useGradesService();
 
-  if (grades?.data?.content.length > 0) {
-    onSuccess?.();
-  }
   const onFinish = async (values: any) => {
     console.log("Received values of form:", values);
 
@@ -34,9 +30,7 @@ function CreateGardeForm({ onSuccess }: CreateGardeFormProps) {
       }
     }
 
-    if (onSuccess) {
-      onSuccess();
-    }
+    onClose?.();
   };
 
   return (
@@ -87,7 +81,7 @@ function CreateGardeForm({ onSuccess }: CreateGardeFormProps) {
               </div>
             ))}
             <Form.Item>
-              <Button variant={"dash"} onClick={() => add()} className="w-1/2">
+              <Button variant={"dash"} onClick={() => add()} className="w-full">
                 <Plus /> Thêm Lớp
               </Button>
 
@@ -103,4 +97,4 @@ function CreateGardeForm({ onSuccess }: CreateGardeFormProps) {
   );
 }
 
-export default CreateGardeForm;
+export default CreateGradeForm;
