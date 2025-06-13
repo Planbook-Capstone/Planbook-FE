@@ -3,6 +3,7 @@ import { AxiosError } from "axios";
 import {
   useMutation,
   UseMutationResult,
+  useQueries,
   useQuery,
   useQueryClient,
   UseQueryResult,
@@ -136,3 +137,22 @@ export const deleteMutationHook =
     });
   };
 
+/**
+ * Hook để tạo ra nhiều truy vấn đồng thời.
+ * @param queryKeyPrefix: key tiền tố cho react-query
+ * @param urlGenerator: function để tạo URL dựa vào item đầu vào
+ */
+export const createMultiQueryHook = (
+  queryKeyPrefix: string,
+  urlGenerator: (input: any) => string
+) => {
+  return (inputs: any[]): UseQueryResult<any, AxiosError<{ message: string }>>[] => {
+    return useQueries({
+      queries: inputs.map((input) => ({
+        queryKey: [queryKeyPrefix, input],
+        queryFn: async () => (await api.get(urlGenerator(input))).data,
+        enabled: !!input,
+      })),
+    });
+  };
+};

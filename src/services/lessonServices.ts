@@ -1,4 +1,5 @@
 import {
+  createMultiQueryHook,
   createMutationHook,
   createQueryHook,
   createQueryWithPathParamHook,
@@ -14,4 +15,9 @@ export const useLessonsByChapterService = createQueryWithPathParamHook(
 export const useUpdateLessonService = updateMutationHook(
   "lessons",
   "/lesson"
+);
+
+export const useLessonsByChaptersService = createMultiQueryHook(
+  "lessonsByChapter",
+  (chapterId) => `/lesson/by-chapter/${chapterId}`
 );
