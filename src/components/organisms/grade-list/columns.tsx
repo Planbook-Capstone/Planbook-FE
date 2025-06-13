@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { GradeResponse } from "@/types";
 import { translateStatus } from "@/utils/translateEnum";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import UpdateGradeModal from "../update-grade-modal";
+import { useState } from "react";
 
 export const gradeColumns: ColumnDef<GradeResponse>[] = [
   {
@@ -73,33 +75,44 @@ export const gradeColumns: ColumnDef<GradeResponse>[] = [
     header: "",
     cell: ({ row }) => {
       const grade = row.original;
+      const [modalOpen, setModalOpen] = useState(false);
+      const [selectedGrade, setSelectedGrade] = useState<GradeResponse | null>(
+        null
+      );
 
       const handleEdit = () => {
-        toast.success(`Chỉnh sửa khối: ${grade.name}`);
+        setModalOpen(true);
+        setSelectedGrade(grade);
       };
 
       const handleDelete = () => {
-        toast.success("Đã xóa thành công khối: " + grade.name);
+        toast.error("Chức năng xóa chưa được triển khai");
       };
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" className="rounded-full">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={-10}>
-            <DropdownMenuItem onClick={handleEdit}>Chỉnh sửa</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-              Xóa
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="ghost" className="rounded-full">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={-10}>
+              <DropdownMenuItem onClick={handleEdit}>
+                Chỉnh sửa
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                Xóa
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <UpdateGradeModal
+            open={modalOpen}
+            onOpenChange={setModalOpen}
+            grade={selectedGrade}
+          />
+        </>
       );
     },
   },
 ];
-
-
-
