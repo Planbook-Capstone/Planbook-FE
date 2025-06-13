@@ -122,7 +122,7 @@ export default function Home() {
     <MainLayout>
       <Banner />
 
-      <section className="grid grid-cols-5 gap-5">
+      <section className="grid grid-cols-1 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2 gap-5">
         {aiFeatures?.map((feature) => (
           <CardFeature
             key={feature.id}
@@ -145,7 +145,7 @@ export default function Home() {
       {view === "list" ? (
         <HistoryList />
       ) : (
-        <section className="grid grid-cols-4 gap-5">
+        <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {Array.from({ length: 7 }).map((_, index) => (
             <HistoryCard key={index} />
           ))}
