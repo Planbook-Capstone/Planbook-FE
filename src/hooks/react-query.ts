@@ -9,7 +9,6 @@ import {
 } from "@tanstack/react-query";
 import api from "@/config/axios";
 
-
 export const createQueryHook =
   (queryKey: string, url: string) =>
   (
@@ -136,3 +135,4 @@ export const deleteMutationHook =
       },
     });
   };
+
