@@ -11,12 +11,11 @@ import { BookResponse, GradeResponse, SubjectResponse } from "@/types";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubjectTable from "@/components/organisms/subject-list";
+import CreateGradeModal from "@/components/organisms/create-grade-modal";
+import CreateSubjectModal from "@/components/organisms/create-subject-modal";
 
 const ResourceManagementPage = () => {
   const [selected, setSelected] = useState<Row<BookResponse>[]>([]);
-  const [selectedSubject, setSelecteSubject] = useState<Row<SubjectResponse>[]>(
-    []
-  );
 
   const router = useRouter();
   const handleDelete = () => {
@@ -43,6 +42,7 @@ const ResourceManagementPage = () => {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h1 className="font-calsans text-base">Danh sách khối</h1>
+            <CreateGradeModal />
           </div>
           <GradeTable />
         </div>
@@ -55,21 +55,9 @@ const ResourceManagementPage = () => {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h1 className="font-calsans text-base">Danh sách môn</h1>
-            {selectedSubject.length > 0 && (
-              <div className="flex gap-1.5 items-center">
-                <p className="text-sm text-muted-foreground pr-2.5">
-                  Đã chọn {selectedSubject.length}
-                </p>
-                <Button>Xóa</Button>
-                <Button variant={"outline"}>Chỉnh sửa</Button>
-              </div>
-            )}
+            <CreateSubjectModal/>
           </div>
-          <SubjectTable
-            onSelectionChange={(rows) => {
-              setSelecteSubject(rows);
-            }}
-          />
+          <SubjectTable />
         </div>
       ),
     },

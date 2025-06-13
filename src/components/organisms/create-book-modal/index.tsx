@@ -76,10 +76,6 @@ function CreateBookModal() {
 
   const { mutate } = useCreateBookService();
 
-  if (grades?.data?.content?.length === 0) {
-    router.push("/admin/resource/setup");
-  }
-
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
