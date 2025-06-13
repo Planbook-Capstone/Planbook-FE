@@ -27,7 +27,7 @@ export default function Home() {
       id: 1,
       title: "Điền biểu mẫu",
       description: "Điền biểu mẫu chuẩn hoá theo Bộ Giáo Dục",
-      href: "test",
+      href: "chat",
       icon: FormIcon,
     },
     {
@@ -35,7 +35,7 @@ export default function Home() {
       title: "Tạo đề thi",
       description:
         "AI học từ lựa chọn trước đây để đề xuất điểm đến và trải nghiệm phù hợp",
-      href: "test",
+      href: "chat",
       icon: ExamIcon,
     },
     {
@@ -43,7 +43,7 @@ export default function Home() {
       title: "Slide bài giảng",
       description:
         "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
-      href: "test",
+      href: "chat",
       icon: SlideIcon,
     },
     {
@@ -59,7 +59,7 @@ export default function Home() {
       title: "Chấm điểm tự động",
       description:
         "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
-      href: "test",
+      href: "grading-test",
       icon: PenIcon,
     },
   ];
@@ -151,8 +151,6 @@ export default function Home() {
           ))}
         </section>
       )}
-
-    
     </MainLayout>
   );
 }
