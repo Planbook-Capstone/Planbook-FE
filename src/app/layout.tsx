@@ -5,6 +5,7 @@ import { AppProvider } from "@/store";
 import { Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
+import Loading from "@/components/ui/loading";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,7 +60,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable} ${manrope.variable} antialiased`}
       >
         <ReactQueryProvider>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loading />}>
             <Toaster position="top-right" />
             <AppProvider>{children}</AppProvider>
           </Suspense>
