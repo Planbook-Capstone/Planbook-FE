@@ -13,7 +13,7 @@ export const useLessonsByChapterService = createQueryWithPathParamHook(
   "/lesson/by-chapter"
 );
 export const useUpdateLessonService = updateMutationHook(
-  "lessons",
+  "lessonsByChapter",
   "/lesson"
 );
 
