@@ -7,11 +7,12 @@ import { Form, Select, Space } from "antd";
 import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
-interface CreateGardeFormProps {
+interface CreateSubjectFormProps {
   onSuccess?: () => void;
+  onClose?: () => void;
 }
 
-function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
+function CreateSubjectForm({ onSuccess, onClose }: CreateSubjectFormProps) {
   const { data: grades } = useGradesService();
   const { mutateAsync } = useCreateSubjectService();
   const onFinish = async (values: any) => {
@@ -30,9 +31,11 @@ function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
       }
     }
 
-    if (onSuccess) {
-      onSuccess();
-    }
+    onClose?.();
+
+    // if (onSuccess) {
+    //   onSuccess();
+    // }
   };
 
   return (
@@ -62,7 +65,11 @@ function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
                   name={[name, "gradeId"]}
                   rules={[{ required: true, message: "Vui lòng chọn khối" }]}
                 >
-                  <Select placeholder="Chọn khối" size="large">
+                  <Select
+                    placeholder="Chọn khối"
+                    size="large"
+                    getPopupContainer={(triggerNode) => triggerNode.parentNode}
+                  >
                     {grades?.data?.content?.map((grade: Grade) => (
                       <Select.Option key={grade?.id} value={grade?.id}>
                         {grade?.name}
@@ -81,7 +88,7 @@ function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
               </Space>
             ))}
             <Form.Item>
-              <Button variant={"dash"} onClick={() => add()} className="w-1/2">
+              <Button variant={"dash"} onClick={() => add()} className="w-full">
                 <Plus /> Thêm môn
               </Button>
             </Form.Item>
@@ -89,7 +96,7 @@ function CreateSubjectForm({ onSuccess }: CreateGardeFormProps) {
         )}
       </Form.List>
       <Form.Item>
-        <Button type="submit" className="w-1/2">
+        <Button type="submit" className="flex items-center w-full">
           Tạo môn học
         </Button>
       </Form.Item>
