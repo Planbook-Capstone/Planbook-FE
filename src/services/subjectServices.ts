@@ -2,6 +2,7 @@ import {
   createMutationHook,
   createQueryHook,
   createQueryWithPathParamHook,
+  patchMutationHook,
   updateMutationHook,
 } from "@/hooks/react-query";
 
@@ -18,3 +19,5 @@ export const useUpdateSubjectService = updateMutationHook(
   "subjects",
   "/subject"
 );
+
+export const useUpdateSubjectStatus = patchMutationHook("subjects", "/subject");
