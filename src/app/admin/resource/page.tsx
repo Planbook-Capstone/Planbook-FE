@@ -13,16 +13,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubjectTable from "@/components/organisms/subject-list";
 import CreateGradeModal from "@/components/organisms/create-grade-modal";
 import CreateSubjectModal from "@/components/organisms/create-subject-modal";
+import { useUpdateBookStatus } from "@/services/bookServices";
 
 const ResourceManagementPage = () => {
   const [selected, setSelected] = useState<Row<BookResponse>[]>([]);
-
+  const updateBookStatusMutation = useUpdateBookStatus();
   const router = useRouter();
   const handleDelete = () => {
     if (selected.length > 1) {
       toast.error("Vui lòng chỉ chọn 1 sách");
     } else {
-      toast.success(`Đã xóa thành công sách ${selected[0].original.name}`);
+      const book = selected[0].original;
+      const newStatus = book.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+
+      updateBookStatusMutation.mutate(
+        {
+          id: String(book.id),
+          field: "status",
+          queryParams: { newStatus }, // ✅ dùng biến động },
+        },
+        {
+          onSuccess: () => {
+            toast.success(
+              newStatus === "INACTIVE"
+                ? `Đã xoá sách ${book.name}`
+                : `Đã khôi phục sách ${book.name}`
+            );
+          },
+          onError: () => toast.error("Cập nhật trạng thái thất bại"),
+        }
+      );
     }
   };
 
@@ -55,7 +75,7 @@ const ResourceManagementPage = () => {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h1 className="font-calsans text-base">Danh sách môn</h1>
-            <CreateSubjectModal/>
+            <CreateSubjectModal />
           </div>
           <SubjectTable />
         </div>
@@ -73,7 +93,11 @@ const ResourceManagementPage = () => {
                 <p className="text-sm text-muted-foreground pr-2.5">
                   Đã chọn {selected.length}
                 </p>
-                <Button onClick={handleDelete}>Xóa</Button>
+                <Button onClick={handleDelete}>
+                  {selected[0].original.status === "ACTIVE"
+                    ? "Xóa"
+                    : "Khôi phục"}
+                </Button>
                 <Button onClick={handleEdit} variant={"outline"}>
                   Chỉnh sửa
                 </Button>
