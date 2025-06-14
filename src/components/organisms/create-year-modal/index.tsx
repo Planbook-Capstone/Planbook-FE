@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useCreateAcademicYearService } from "@/services/academicYearServices";
 
 import {
   Form,
@@ -31,7 +32,6 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/Button";
-import { vi } from "date-fns/locale";
 
 const FormSchema = z
   .object({
@@ -42,28 +42,67 @@ const FormSchema = z
       required_error: "Vui lòng chọn ngày kết thúc năm học.",
     }),
   })
-  .refine((data) => data.end_date > data.start_date, {
-    path: ["end_date"],
-    message: "Ngày kết thúc phải sau ngày bắt đầu.",
-  });
+  .refine(
+    (data) => {
+      const startYear = data.start_date.getFullYear();
+      const endYear = data.end_date.getFullYear();
+      const yearDiff = endYear - startYear;
+
+      return yearDiff >= 1;
+    },
+    {
+      path: ["end_date"],
+      message: "Ngày kết thúc phải lớn hơn ngày bắt đầu ít nhất 1 năm.",
+    }
+  )
+  .refine(
+    (data) => {
+      const startYear = data.start_date.getFullYear();
+      const endYear = data.end_date.getFullYear();
+      const yearDiff = endYear - startYear;
+
+      return yearDiff <= 2;
+    },
+    {
+      path: ["end_date"],
+      message: "Ngày kết thúc không được quá 2 năm so với ngày bắt đầu.",
+    }
+  );
 
 function CreateYearModal() {
+  const [open, setOpen] = useState(false);
+  const createAcademicYear = useCreateAcademicYearService();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
+
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
-    toast("You submitted the following values", {
-      description: (
-        <pre className="mt-2 w-[330px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+    try {
+      const payload = {
+        startDate: data.start_date.toISOString(),
+        endDate: data.end_date.toISOString(),
+      };
+
+      createAcademicYear.mutate(payload, {
+        onSuccess: () => {
+          toast.success("Tạo năm học thành công!");
+          form.reset();
+          setOpen(false);
+        },
+        onError: (error) => {
+          toast.error("Có lỗi xảy ra khi tạo năm học");
+          console.error("Error creating academic year:", error);
+        },
+      });
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi xử lý dữ liệu");
+      console.error("Error formatting data:", error);
+    }
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]">
           <Plus /> Tạo năm học mới
@@ -90,7 +129,7 @@ function CreateYearModal() {
                         <FormControl>
                           <Button variant={"outline"}>
                             {field.value ? (
-                              format(field.value, "PPP", { locale: vi })
+                              format(field.value, "dd/MM/yyyy")
                             ) : (
                               <span>Chọn năm bắt đầu</span>
                             )}
@@ -125,9 +164,9 @@ function CreateYearModal() {
                         <FormControl>
                           <Button variant={"outline"}>
                             {field.value ? (
-                              format(field.value, "PPP", { locale: vi })
+                              format(field.value, "dd/MM/yyyy")
                             ) : (
-                              <span>Chọn năm bắt đầu</span>
+                              <span>Chọn năm kết thúc</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -138,10 +177,10 @@ function CreateYearModal() {
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date("1900-01-01") || date < new Date()
-                          }
+                          disabled={(date) => date < new Date("1900-01-01")}
                           captionLayout="dropdown"
+                          fromYear={1900}
+                          toYear={2050}
                         />
                       </PopoverContent>
                     </Popover>
@@ -152,9 +191,16 @@ function CreateYearModal() {
 
               <div className="flex justify-end items-center gap-2">
                 <DialogClose asChild>
-                  <Button variant="outline">Hủy</Button>
+                  <Button
+                    variant="outline"
+                    disabled={createAcademicYear.isPending}
+                  >
+                    Hủy
+                  </Button>
                 </DialogClose>
-                <Button type="submit">Tạo</Button>
+                <Button type="submit" disabled={createAcademicYear.isPending}>
+                  {createAcademicYear.isPending ? "Đang tạo..." : "Tạo"}
+                </Button>
               </div>
             </form>
           </Form>

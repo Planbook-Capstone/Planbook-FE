@@ -1,18 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MoreVertical } from "lucide-react";
+import { AcademicYearResponse } from "@/types";
+import { format } from "date-fns";
+import { translateAcademicYearStatus } from "@/utils/translateEnum";
+import { Badge } from "@/components/ui/badge";
 
-export type AcademicYear = {
-  id: number;
-  start_date: string;
-  end_date: string;
-  year_label: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export const yearColumns: ColumnDef<AcademicYear>[] = [
+export const yearColumns: ColumnDef<AcademicYearResponse>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -33,45 +27,71 @@ export const yearColumns: ColumnDef<AcademicYear>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "start_date",
+    accessorKey: "startDate",
     header: "Năm bắt đầu",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <span className="font-medium ">{row.original.start_date}</span>
+        <span className="font-medium">
+          {row.original?.startDate
+            ? format(new Date(row.original.startDate), "dd/MM/yyyy")
+            : "N/A"}
+        </span>
       </div>
     ),
   },
   {
-    accessorKey: "end_date",
+    accessorKey: "endDate",
     header: "Năm kết thúc",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <span className="font-medium">{row.original.end_date}</span>
+        <span className="font-medium">
+          {row.original?.endDate
+            ? format(new Date(row.original.endDate), "dd/MM/yyyy")
+            : "N/A"}
+        </span>
       </div>
     ),
   },
   {
-    accessorKey: "name",
+    accessorKey: "yearLabel",
     header: "Năm học",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <span className="font-medium">{row.original.year_label}</span>
+        <span className="font-medium">{row.original.yearLabel}</span>
       </div>
     ),
   },
 
   {
-    accessorKey: "updated_at",
+    accessorKey: "updatedAt",
     header: "Ngày cập nhật",
-    cell: ({ row }) => <span>{row.original.updated_at}</span>,
+    cell: ({ row }) => (
+      <span>
+        {row.original?.updatedAt
+          ? format(new Date(row.original.updatedAt), "dd/MM/yyyy HH:mm")
+          : "N/A"}
+      </span>
+    ),
   },
   {
     accessorKey: "status",
     header: "Trạng thái",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="font-medium">{row.original.status}</span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const status = row.original.status;
+      const statusText = translateAcademicYearStatus(status || "");
+
+      const getStatusVariant = (status: string | null | undefined) => {
+        switch (status) {
+          case "ACTIVE":
+            return "success";
+          case "INACTIVE":
+            return "warning";
+          default:
+            return "outline";
+        }
+      };
+
+      return <Badge variant={getStatusVariant(status)}>{statusText}</Badge>;
+    },
   },
 ];

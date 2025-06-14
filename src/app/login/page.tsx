@@ -14,8 +14,9 @@ const LoginPage = () => {
   const onFinish = (values: any) => {
     console.log("Form values:", values);
     mutate(values, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         toast.success("Đăng nhập thành công");
+        localStorage.setItem("token", data?.data?.data?.token);
       },
       onError: () => {
         toast.error(
