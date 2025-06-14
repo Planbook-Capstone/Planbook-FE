@@ -1,9 +1,19 @@
-import { grade, subject, user } from "@/generated/client";
+import { academic_year, grade, subject, user } from "@/generated/client";
 
 export type User = user;
 export type Grade = grade;
 export type Subject = subject;
+export type AcademicYear = academic_year;
 
+export type AcademicYearResponse = {
+  id: bigint;
+  yearLabel: string;
+  startDate: Date | null;
+  endDate: Date | null;
+  status: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+};
 export type GradeResponse = {
   name: string;
   id: bigint;
