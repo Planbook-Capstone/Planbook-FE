@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import UpdateGradeModal from "../update-grade-modal";
 import { useState } from "react";
+import { useUpdateGradeStatus } from "@/services/gradeServices";
 
 export const gradeColumns: ColumnDef<GradeResponse>[] = [
   {
@@ -80,13 +81,33 @@ export const gradeColumns: ColumnDef<GradeResponse>[] = [
         null
       );
 
+      const updateStatusMutation = useUpdateGradeStatus();
+
       const handleEdit = () => {
         setModalOpen(true);
         setSelectedGrade(grade);
       };
 
-      const handleDelete = () => {
-        toast.error("Chức năng xóa chưa được triển khai");
+      const handleChangeStatus = (newStatus: "ACTIVE" | "INACTIVE") => {
+        updateStatusMutation.mutate(
+          {
+            id: String(grade.id), // ✅ truyền đúng id đang được chọn
+            field: "status",
+            queryParams: { newStatus }, // ✅ dùng biến động
+          },
+          {
+            onSuccess: () => {
+              toast.success(
+                newStatus === "ACTIVE"
+                  ? "Khôi phục thành công"
+                  : "Xoá thành công"
+              );
+            },
+            onError: () => {
+              toast.error("Cập nhật thất bại");
+            },
+          }
+        );
       };
 
       return (
@@ -101,11 +122,25 @@ export const gradeColumns: ColumnDef<GradeResponse>[] = [
               <DropdownMenuItem onClick={handleEdit}>
                 Chỉnh sửa
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                Xóa
-              </DropdownMenuItem>
+
+              {grade.status === "ACTIVE" ? (
+                <DropdownMenuItem
+                  onClick={() => handleChangeStatus("INACTIVE")}
+                  className="text-red-600"
+                >
+                  Xoá
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => handleChangeStatus("ACTIVE")}
+                  className="text-green-600"
+                >
+                  Khôi phục
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
+
           <UpdateGradeModal
             open={modalOpen}
             onOpenChange={setModalOpen}
