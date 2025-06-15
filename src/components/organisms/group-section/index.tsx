@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 
 export function GroupSection({ group, onUpdate, onDelete }: any) {
   return (
-    <div className="border p-4 rounded-lg bg-slate-50 space-y-4">
+    <div className="border p-4 rounded-lg bg-neutral-50 space-y-4">
       <GroupHeader
         groupName={group.group_name}
         onChange={(newName: string) =>
@@ -22,6 +22,7 @@ export function GroupSection({ group, onUpdate, onDelete }: any) {
 
       <Button
         size="sm"
+        className="bg-transparent border border-dashed text-neutral-500 p-5 w-full justify-start hover:bg-transparent hover:shadow-md"
         onClick={() => {
           const updated = [...(group.fields || [])];
           updated.push({

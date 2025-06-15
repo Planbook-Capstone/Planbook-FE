@@ -15,7 +15,7 @@ export function GroupHeader({ groupName, onChange, onDelete }: any) {
         />
       </FormField>
       <Button
-        className="h-10 w-10 bg-white text-neutral-400 hover:text-white border"
+        className="h-10 w-10 bg-white text-neutral-400 border"
         onClick={onDelete}
       >
         <X />

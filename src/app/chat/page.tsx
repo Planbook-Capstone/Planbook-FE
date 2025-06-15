@@ -46,7 +46,7 @@ export default function Page() {
   ];
 
   return (
-    <div className="h-screen">
+    <div className="h-full">
       <ChatScreenTemplate
         messages={messages}
         tags={tags}
