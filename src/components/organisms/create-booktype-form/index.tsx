@@ -77,18 +77,18 @@ function CreateBookTypeForm({
     }
   }, [initialValues]);
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
+  // const fileToBase64 = (file: File): Promise<string> => {
+  //   return new Promise((resolve, reject) => {
+  //     const reader = new FileReader();
+  //     reader.readAsDataURL(file);
+  //     reader.onload = () => resolve(reader.result as string);
+  //     reader.onerror = (error) => reject(error);
+  //   });
+  // };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     toast("test");
-    const base64Icon = await fileToBase64(data.icon);
+    // const base64Icon = await fileToBase64(data.icon);
 
     const payload = {
       name: data.name,
