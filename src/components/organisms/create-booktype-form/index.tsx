@@ -163,7 +163,7 @@ function CreateBookTypeForm({
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="icon"
           render={({ field }) => (
@@ -207,7 +207,7 @@ function CreateBookTypeForm({
               )}
             </FormItem>
           )}
-        />
+        /> */}
 
         <Button type="submit">{initialValues ? "Chỉnh sửa" : "Tạo mới"}</Button>
       </form>
