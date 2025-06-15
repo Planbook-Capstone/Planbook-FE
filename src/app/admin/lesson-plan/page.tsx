@@ -1,13 +1,15 @@
 "use client";
-
 import { FormBuilderCanvas } from "@/components/organisms/form-builder";
 import { FormPreview } from "@/components/organisms/form-preview";
 import { Button } from "@/components/ui/Button";
-import { EyeClosed, EyeIcon, EyeOff } from "lucide-react";
+import { FormField } from "@/components/ui/FormField";
+import { Input } from "@/components/ui/input";
+import { EyeIcon, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function FormBuilderPage() {
   const [formDefinition, setFormDefinition] = useState<any[]>([]);
+  const [formMeta, setFormMeta] = useState({ name: "", description: "" });
   const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
@@ -15,7 +17,29 @@ export default function FormBuilderPage() {
   }, [formDefinition]);
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 space-y-6">
+      <div className="space-y-4">
+        <FormField label="Tên biểu mẫu" htmlFor="form-name">
+          <Input
+            id="form-name"
+            placeholder="Nhập tên biểu mẫu"
+            value={formMeta.name}
+            onChange={(e) => setFormMeta({ ...formMeta, name: e.target.value })}
+          />
+        </FormField>
+
+        <FormField label="Mô tả biểu mẫu" htmlFor="form-description">
+          <Input
+            id="form-description"
+            placeholder="Nhập mô tả"
+            value={formMeta.description}
+            onChange={(e) =>
+              setFormMeta({ ...formMeta, description: e.target.value })
+            }
+          />
+        </FormField>
+      </div>
+
       <div className="flex justify-between">
         <div className="flex gap-2">
           <Button
@@ -27,16 +51,6 @@ export default function FormBuilderPage() {
             }}
           >
             + Thêm nhóm mới
-          </Button>
-
-          <Button
-            onClick={() => {
-              const json = JSON.stringify(formDefinition, null, 2);
-              console.log("Exported JSON:", json);
-              alert("Cấu hình đã log ra console.");
-            }}
-          >
-            Lưu cấu hình
           </Button>
         </div>
         <Button

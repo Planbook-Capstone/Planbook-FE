@@ -62,22 +62,40 @@ export function FormPreview({ config }: { config: any[] }) {
           value: opt.title,
         }));
 
-        const value = allValues[fieldName] || field.default_value || [];
+        const value = allValues?.[fieldName] || field.default_value || [];
 
         return (
           <div key={key} className="space-y-1">
-            <label className="block font-medium">{field.field_name}</label>
-            <Select
-              mode="multiple"
-              style={{ width: "100%" }}
-              options={options}
-              value={value}
-              onChange={(val) => {
-                setValue(fieldName, val);
-              }}
-              placeholder="Chọn giá trị"
-              allowClear
-            />
+            <label className="block font-medium text-sm text-gray-700">
+              {field.label || field.field_name}
+            </label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {options.map((opt: any, index: number) => {
+                const isSelected = value.includes(opt.value);
+
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      const newValue = isSelected
+                        ? value.filter((v: string) => v !== opt.value)
+                        : [...value, opt.value];
+
+                      setValue(fieldName, newValue);
+                    }}
+                    className={`px-4 py-2 h-9 rounded-full text-sm font-medium border transition flex items-center cursor-pointer
+                ${
+                  isSelected
+                    ? "bg-radial border-none from-[#407BE9] via-[#3AA7FC] to-[#28E1E4] text-white shadow-2xs"
+                    : "bg-transparent text-neutral-700 border-neutral-200 hover:bg-gray-200"
+                }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         );
       default:
