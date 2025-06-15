@@ -19,6 +19,7 @@ import { use, useEffect, useState } from "react";
 
 interface CreateChapterFormProps {
   bookId?: string;
+  onClose?: () => void;
 }
 
 const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
@@ -74,42 +75,6 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
       }
     }
   };
-
-  // const [initialChapters, setInitialChapters] = useState<any[]>([]);
-  // const { data: lessons } = useLessonsService(); // Fetch toàn bộ bài học
-
-  // useEffect(() => {
-  //   const fetchChaptersAndLessons = async () => {
-  //     const allLessons = lessons?.data?.content ?? [];
-  //     const chapters = chaptersByBook?.data?.content ?? [];
-
-  //     if (chapters.length === 0) return;
-
-  //     try {
-  //       const chaptersWithLessons = chapters.map((chapter: any) => {
-  //         const chapterLessons = allLessons.filter(
-  //           (lesson: any) => lesson.chapter.id === chapter.id
-  //         );
-
-  //         return {
-  //           chapterTitle: chapter.name,
-  //           lesson: chapterLessons.map((lesson: any) => ({
-  //             lessonTitle: lesson.name,
-  //           })),
-  //         };
-  //       });
-
-  //       console.log(chaptersWithLessons, "Chương + Bài học (LOCAL FILTER)");
-
-  //       setInitialChapters(chaptersWithLessons);
-  //       form.setFieldsValue({ chapter: chaptersWithLessons });
-  //     } catch (err) {
-  //       console.error("Lỗi khi xử lý chương + bài học:", err);
-  //     }
-  //   };
-
-  //   fetchChaptersAndLessons();
-  // }, [chaptersByBook, lessons]);
 
   return (
     <>

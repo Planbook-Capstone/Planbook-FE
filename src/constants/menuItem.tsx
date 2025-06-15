@@ -33,8 +33,8 @@ export const adminItems = [
     active: "/icons/home-active.svg",
   },
   {
-    label: "Tổng quan",
-    key: "config",
+    label: "Chức năng",
+    key: "booktype",
     icon: <HomeOutlined />,
     image: "/icons/book.svg",
     active: "/icons/book-active.svg",

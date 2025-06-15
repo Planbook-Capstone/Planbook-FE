@@ -36,34 +36,38 @@ const LoginPage = () => {
   };
   return (
     <div className="h-screen">
-      {/* Background */}
-      <div className="absolute z-0 top-[2rem] left-[2rem] h-[calc(100vh-4rem)] w-[calc(100vw-4rem)] rounded-3xl overflow-hidden">
-        <Image
-          src="/images/background/loginBG.svg"
-          alt="Login background"
-          fill
-          priority
-          className="object-cover [object-position:right_bottom]"
-        />
-      </div>
-      <div className="absolute bottom-[2rem] right-[3rem] z-0">
-        <div className="flex gap-3 pb-10">
-          <div className="relative w-15 h-15">
-            <Image
-              src="/images/logo/logoDark.svg"
-              alt="PlanBook Logo"
-              fill
-              className="object-contain"
-            />
-          </div>
-          <div>
-            <h3 className="font-calsans text-xl">Planbook</h3>
-            <h3 className="font-questrial text-lg">©Copyright Planbook 2025</h3>
+           <div className="hidden lg:block w-full">
+        {/* Background */}
+        <div className="absolute z-0 top-[2rem] left-[2rem] h-[calc(100vh-4rem)] w-[calc(100vw-4rem)] rounded-3xl overflow-hidden">
+          <Image
+            src="/images/background/loginBG.svg"
+            alt="Login background"
+            fill
+            priority
+            className="object-cover [object-position:right_bottom]"
+          />
+        </div>
+        <div className="absolute bottom-[2rem] right-[3rem] z-0">
+          <div className="flex gap-3 pb-10">
+            <div className="relative w-15 h-15">
+              <Image
+                src="/images/logo/logoDark.svg"
+                alt="PlanBook Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div>
+              <h3 className="font-calsans text-xl">Planbook</h3>
+              <h3 className="font-questrial text-lg">
+                ©Copyright Planbook 2025
+              </h3>
+            </div>
           </div>
         </div>
       </div>
       {/* Login Form */}
-      <div className="absolute h-full flex items-center pl-[8rem] justify-end gap-28">
+      <div className="absolute h-full flex items-center lg:pl-[8rem] justify-end gap-28">
         <div className="min-h-fit flex items-center justify-center bg-white px-4 py-10 z-10 rounded-md">
           <div className="w-full max-w-sm space-y-6 px-4">
             <div>
@@ -150,7 +154,7 @@ const LoginPage = () => {
             </p>
           </div>
         </div>
-        <div className="flex text-white">
+        <div className="hidden lg:flex text-white">
           <div className="flex flex-col justify-center items-center gap-3 translate-x-12 -translate-y-16">
             <div className="relative w-17 h-17">
               <Image
