@@ -14,28 +14,28 @@ export const API_ENDPOINTS = {
   ACADEMIC_YEARS: "/academic-years",
 
   // Books
-  BOOKS: "/book",
+  BOOKS: "/books",
 
   // Book Types
-  BOOK_TYPES: "/book-type",
+  BOOK_TYPES: "/book-types",
 
   // Chapters
-  CHAPTERS: "/chapter",
-  CHAPTERS_BY_BOOK: "/chapter/by-book",
+  CHAPTERS: "/chapters",
+  CHAPTERS_BY_BOOK: "/chapters/by-book",
 
   // Grades
-  GRADES: "/grade",
+  GRADES: "/grades",
 
   // Lessons
-  LESSONS: "/lesson",
-  LESSONS_BY_CHAPTER: "/lesson/by-chapter",
+  LESSONS: "/lessons",
+  LESSONS_BY_CHAPTER: "/lessons/by-chapter",
 
   // Subjects
-  SUBJECTS: "/subject",
-  SUBJECTS_BY_GRADE: "/subject/by-grade",
+  SUBJECTS: "/subjects",
+  SUBJECTS_BY_GRADE: "/subjects/by-grade",
 
   // Forms (Lesson Plans)
-  FORMS: "/form",
+  FORMS: "/forms",
 } as const;
 
 // Type for API endpoints (optional, for better TypeScript support)
