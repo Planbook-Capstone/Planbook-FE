@@ -1,5 +1,12 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/Button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -9,12 +16,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCreateBookTypeService } from "@/services/bookTypeServices";
+import { useCreateBookTypeService, useUpdateBookTypeService } from "@/services/bookTypeServices";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Plus } from "lucide-react";
 
 const FormSchema = z.object({
   name: z
@@ -45,7 +53,9 @@ const FormSchema = z.object({
 
 interface CreateBookTypeFormProps {
   onClose?: () => void;
+  onSuccess?: () => void;
   initialValues?: {
+    id?: string;
     name: string;
     description: string;
     tokenCostPerQuery: number;
@@ -55,10 +65,12 @@ interface CreateBookTypeFormProps {
 
 function CreateBookTypeForm({
   onClose,
+  onSuccess,
   initialValues,
 }: CreateBookTypeFormProps) {
   const [svgPreview, setSvgPreview] = useState<string | null>(null);
   const { mutate: createBookType } = useCreateBookTypeService();
+  const { mutate: updateBookType } = useUpdateBookTypeService();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -77,36 +89,54 @@ function CreateBookTypeForm({
     }
   }, [initialValues]);
 
-  // const fileToBase64 = (file: File): Promise<string> => {
-  //   return new Promise((resolve, reject) => {
-  //     const reader = new FileReader();
-  //     reader.readAsDataURL(file);
-  //     reader.onload = () => resolve(reader.result as string);
-  //     reader.onerror = (error) => reject(error);
-  //   });
-  // };
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    toast("test");
-    // const base64Icon = await fileToBase64(data.icon);
+    const base64Icon = await fileToBase64(data.icon);
 
     const payload = {
       name: data.name,
       description: data.description,
       tokenCostPerQuery: data.tokenCostPerQuery,
-      icon: "base64Icon",
+      icon: base64Icon,
     };
 
     console.log("Payload gửi lên API:", payload);
 
     try {
-      if (initialValues) {
-        toast.success("Cập nhật thành công!");
+      if (initialValues?.id) {
+        // Edit mode
+        updateBookType(
+          {
+            id: initialValues.id,
+            data: payload,
+          },
+          {
+            onSuccess: () => {
+              toast.success("Cập nhật thành công!");
+              onSuccess?.(); // Call parent success callback first
+              onClose?.();
+            },
+            onError: (error) => {
+              console.log(error?.response?.data);
+              toast.error("Đã xảy ra lỗi khi cập nhật dữ liệu.");
+            },
+          }
+        );
       } else {
+        // Create mode
         createBookType(payload, {
-          onSuccess: (data) => {
+          onSuccess: () => {
             toast.success("Tạo mới thành công!");
             form.reset();
+            onClose?.();
           },
           onError: (error) => {
             console.log(error?.response?.data);
@@ -114,8 +144,6 @@ function CreateBookTypeForm({
           },
         });
       }
-
-      onClose?.();
     } catch (error) {
       toast.error("Đã xảy ra lỗi khi gửi dữ liệu");
     }
@@ -163,7 +191,7 @@ function CreateBookTypeForm({
           )}
         />
 
-        {/* <FormField
+        <FormField
           control={form.control}
           name="icon"
           render={({ field }) => (
@@ -207,7 +235,7 @@ function CreateBookTypeForm({
               )}
             </FormItem>
           )}
-        /> */}
+        />
 
         <Button type="submit">{initialValues ? "Chỉnh sửa" : "Tạo mới"}</Button>
       </form>
@@ -215,4 +243,67 @@ function CreateBookTypeForm({
   );
 }
 
+// Modal wrapper component
+interface CreateBookTypeModalProps {
+  initialValues?: {
+    id?: string;
+    name: string;
+    description: string;
+    tokenCostPerQuery: number;
+    icon?: string;
+  };
+  isEdit?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onSuccess?: () => void;
+  trigger?: React.ReactNode;
+}
+
+function CreateBookTypeModal({
+  initialValues,
+  isEdit = false,
+  open,
+  onOpenChange,
+  onSuccess,
+  trigger
+}: CreateBookTypeModalProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  // Use external open state if provided, otherwise use internal state
+  const isOpen = open !== undefined ? open : internalOpen;
+  const setIsOpen = onOpenChange || setInternalOpen;
+
+  const defaultTrigger = (
+    <Button className="bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]">
+      <Plus /> Tạo loại sách mới
+    </Button>
+  );
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      {/* Only render trigger when modal is not controlled externally */}
+      {open === undefined && (
+        trigger ? (
+          <DialogTrigger asChild>{trigger}</DialogTrigger>
+        ) : (
+          <DialogTrigger asChild>{defaultTrigger}</DialogTrigger>
+        )
+      )}
+      <DialogContent className="min-w-[630px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {isEdit ? "Chỉnh sửa chức năng" : "Tạo chức năng mới"}
+          </DialogTitle>
+        </DialogHeader>
+        <CreateBookTypeForm
+          onClose={() => setIsOpen(false)}
+          onSuccess={onSuccess}
+          initialValues={initialValues}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default CreateBookTypeForm;
+export { CreateBookTypeModal };

@@ -1,17 +1,106 @@
 "use client";
-import CreateBookTypeForm from "@/components/organisms/create-booktype-form";
+import BookTypeTable from "@/components/organisms/booktype-list";
+import { CreateBookTypeModal } from "@/components/organisms/create-booktype-form";
+import { Button } from "@/components/ui/Button";
+import { BookTypeResponse } from "@/types";
+import { Row } from "@tanstack/react-table";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useUpdateBookTypeStatus } from "@/services/bookTypeServices";
 
 function BookTypePage() {
-//   const fakeInitialValues = {
-//     name: "Sách Tiếng Anh",
-//     description: "Dùng để học tiếng Anh từ cơ bản đến nâng cao",
-//     tokenCostPerQuery: 20,
-//     icon: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTciIGhlaWdodD0iNjkiIHZpZXdCb3g9IjAgMCA1NyA2OSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM0LjQzMzcgMEg2LjIwNjQzQzMuMzE5NDkgMCAwLjk3OTE1NiAyLjM0MDMzIDAuOTc5MTU2IDUuMjI3MjdWNjMuNzcyN0MwLjk3OTE1NiA2Ni42NTk3IDMuMzE5NDkgNjkgNi4yMDY0MyA2OUg1MS4xNjFDNTQuMDQ3OSA2OSA1Ni4zODgzIDY2LjY1OTcgNTYuMzg4MyA2My43NzI3VjIxLjQzMThMMzQuNDMzNyAwWiIgZmlsbD0idXJsKCNwYWludDBfbGluZWFyXzcwOF80NTA0KSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzcwOF80NTA0IiB4MT0iMjguNjgzNyIgeTE9IjAiIHgyPSIyOC42ODM3IiB5Mj0iNjkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzAwNERDMCIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDE5M0YiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4K",
-//   };
+  const [selected, setSelected] = useState<Row<BookTypeResponse>[]>([]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const updateStatusMutation = useUpdateBookTypeStatus();
+
+  const handleDelete = () => {
+    if (selected.length === 0) return;
+
+    const bookType = selected[0].original;
+    const newStatus = bookType.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+
+    updateStatusMutation.mutate(
+      {
+        id: String(bookType.id),
+        field: "status",
+        queryParams: { newStatus },
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            newStatus === "ACTIVE" ? "Khôi phục thành công" : "Xóa thành công"
+          );
+          setSelected([]); // Clear selection after action
+        },
+        onError: (error) => {
+          toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+        },
+      }
+    );
+  };
+
+  const handleEdit = () => {
+    if (selected.length > 1) {
+      toast.error("Vui lòng chỉ chọn 1 loại sách");
+    } else if (selected.length === 1) {
+      setEditModalOpen(true);
+    }
+  };
 
   return (
     <div>
-      <CreateBookTypeForm  />  
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="font-calsans text-base">Danh sách loại sách</h1>
+        {editModalOpen ? null : (
+          selected.length > 0 ? (
+            <div className="flex gap-1.5 items-center">
+              <p className="text-sm text-muted-foreground pr-2.5">
+                Đã chọn {selected.length}
+              </p>
+              <Button onClick={handleDelete}>
+                {selected[0].original.status === "ACTIVE" ? "Xóa" : "Khôi phục"}
+              </Button>
+              <Button onClick={handleEdit} variant={"outline"}>
+                Chỉnh sửa
+              </Button>
+            </div>
+          ) : (
+            <CreateBookTypeModal />
+          )
+        )}
+      </div>
+      <BookTypeTable
+        onSelectionChange={(rows) => {
+          setSelected(rows);
+        }}
+      />
+
+      {/* Edit Modal */}
+      {editModalOpen && selected.length === 1 && (
+        <CreateBookTypeModal
+          open={editModalOpen}
+          onOpenChange={(open) => {
+            setEditModalOpen(open);
+            if (!open) {
+              setSelected([]); // Clear selection when modal closes
+              setEditModalOpen(false); // Ensure edit modal state is reset
+            }
+          }}
+          onSuccess={() => {
+            // Clear selection immediately when edit is successful
+            setSelected([]);
+            setEditModalOpen(false);
+          }}
+          isEdit={true}
+          initialValues={{
+            id: String(selected[0].original.id),
+            name: selected[0].original.name || "",
+            description: selected[0].original.description || "",
+            tokenCostPerQuery: selected[0].original.tokenCostPerQuery || 0,
+            icon: selected[0].original.icon || undefined,
+          }}
+        />
+      )}
     </div>
   );
 }
