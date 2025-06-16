@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import UpdateSubjectModal from "../update-subject-modal";
 import { useState } from "react";
+import { useUpdateSubjectStatus } from "@/services/subjectServices";
 
 export const subjectColumns: ColumnDef<SubjectResponse>[] = [
   {
@@ -87,14 +88,32 @@ export const subjectColumns: ColumnDef<SubjectResponse>[] = [
       const [modalOpen, setModalOpen] = useState(false);
       const [selectedSubject, setSelectedSubject] =
         useState<SubjectResponse | null>(null);
-
+      const updateStatusMutation = useUpdateSubjectStatus();
       const handleEdit = () => {
         setModalOpen(true);
         setSelectedSubject(subject);
       };
 
-      const handleDelete = () => {
-        toast.error("Chức năng xóa chưa được triển khai");
+      const handleChangeStatus = (newStatus: "ACTIVE" | "INACTIVE") => {
+        updateStatusMutation.mutate(
+          {
+            id: String(subject.id), // ✅ truyền đúng id đang được chọn
+            field: "status",
+            queryParams: { newStatus }, // ✅ dùng biến động
+          },
+          {
+            onSuccess: () => {
+              toast.success(
+                newStatus === "ACTIVE"
+                  ? "Khôi phục thành công"
+                  : "Xoá thành công"
+              );
+            },
+            onError: () => {
+              toast.error("Cập nhật thất bại");
+            },
+          }
+        );
       };
 
       return (
@@ -109,9 +128,22 @@ export const subjectColumns: ColumnDef<SubjectResponse>[] = [
               <DropdownMenuItem onClick={handleEdit}>
                 Chỉnh sửa
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                Xóa
-              </DropdownMenuItem>
+
+              {subject.status === "ACTIVE" ? (
+                <DropdownMenuItem
+                  onClick={() => handleChangeStatus("INACTIVE")}
+                  className="text-red-600"
+                >
+                  Xoá
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => handleChangeStatus("ACTIVE")}
+                  className="text-green-600"
+                >
+                  Khôi phục
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           <UpdateSubjectModal

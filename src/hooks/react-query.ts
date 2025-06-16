@@ -146,7 +146,9 @@ export const createMultiQueryHook = (
   queryKeyPrefix: string,
   urlGenerator: (input: any) => string
 ) => {
-  return (inputs: any[]): UseQueryResult<any, AxiosError<{ message: string }>>[] => {
+  return (
+    inputs: any[]
+  ): UseQueryResult<any, AxiosError<{ message: string }>>[] => {
     return useQueries({
       queries: inputs.map((input) => ({
         queryKey: [queryKeyPrefix, input],
@@ -156,3 +158,37 @@ export const createMultiQueryHook = (
     });
   };
 };
+
+/**
+ * Hook để update 1 field thông qua endpoint có path param và query param
+ * @param queryKey react-query key để invalidate
+ * @param baseUrl ví dụ: /api/book-type
+ */
+export const patchMutationHook =
+  (queryKey: string, baseUrl: string) =>
+  (): UseMutationResult<
+    any,
+    AxiosError<{ message: string }>,
+    { id: string; field: string; queryParams: Record<string, string | number> }
+  > => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: async ({
+        id,
+        field,
+        queryParams,
+      }: {
+        id: string;
+        field: string;
+        queryParams: Record<string, string | number>;
+      }) => {
+        const searchParams = new URLSearchParams(queryParams as any).toString();
+        const fullUrl = `${baseUrl}/${id}/${field}?${searchParams}`; // ✅ chính xác theo yêu cầu
+        return await api.patch(fullUrl);
+      },
+      onSuccess: (_data, { id }) => {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
+      },
+    });
+  };

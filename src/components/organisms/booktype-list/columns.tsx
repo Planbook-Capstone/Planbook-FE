@@ -1,11 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MoreVertical } from "lucide-react";
-import { BookResponse } from "@/types";
+import { BookTypeResponse } from "@/types";
 import { translateStatus } from "@/utils/translateEnum";
 import { Badge } from "@/components/ui/badge";
 
-export const bookColumns: ColumnDef<BookResponse>[] = [
+export const bookTypeColumns: ColumnDef<BookTypeResponse>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -25,39 +25,54 @@ export const bookColumns: ColumnDef<BookResponse>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-  // {
-  //   accessorKey: "gradeId",
-  //   header: "Khối",
-  //   cell: ({ row }) => (
-  //     <div className="flex items-center gap-2">
-  //       <span className="font-medium ">{row.original.gradeId}</span>
-  //     </div>
-  //   ),
-  // },
   {
-    accessorKey: "grade",
-    header: "Tên khối",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="font-medium">{row.original.subject?.grade?.name}</span>
-      </div>
-    ),
+    accessorKey: "icon",
+    header: "Icon",
+    cell: ({ row }) => {
+      const iconBase64 = row.original.icon;
+
+      return iconBase64 ? (
+        <div className="w-9 h-9">
+          <img
+            src={iconBase64}
+            alt="SVG icon"
+            className="object-contain w-full h-full"
+          />
+        </div>
+      ) : (
+        <span className="text-muted-foreground italic">Không có</span>
+      );
+    },
   },
-  {
-    accessorKey: "subject",
-    header: "Môn học",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="font-medium">{row.original.subject?.name}</span>
-      </div>
-    ),
-  },
+
   {
     accessorKey: "name",
-    header: "Tên sách",
+    header: "Tên chức năng",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span className="font-medium">{row.original.name}</span>
+      </div>
+    ),
+  },
+
+  {
+    accessorKey: "description",
+    header: "Mô tả",
+    cell: ({ row }) => (
+      <div className="max-w-[300px]">
+        <span className="block font-medium whitespace-normal break-words line-clamp-2">
+          {row.original.description}
+        </span>
+      </div>
+    ),
+  },
+
+  {
+    accessorKey: "tokenCostPerQuery",
+    header: "Token/request",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{row.original.tokenCostPerQuery}</span>
       </div>
     ),
   },
