@@ -18,7 +18,9 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [currentItem, setCurrentItem] = useState(adminMenuItems[0]);
   const pathname = usePathname();
-  const title = getLabel(pathname.replace("/admin/", ""))
+  const title =
+    getLabel(pathname.replace("/admin/", "")) ||
+    getLabel(pathname?.split("/")[2]);
   const [collapsed, setCollapsed] = useState(true);
   const {
     token: { colorBgContainer, borderRadiusLG },

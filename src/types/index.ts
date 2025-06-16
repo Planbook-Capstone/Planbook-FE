@@ -29,6 +29,26 @@ export type SubjectResponse = {
   updatedAt: string | null;
   grade: Grade | null;
 };
+
+export type LessonPlanResponse = {
+  id: string;
+  title: string;
+  createdAt: string;
+  content?: JSON;
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+};
+
+export type SubscriptionResponse = {
+  id: string | number;
+  name: string;
+  status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL";
+  duration_months: number;
+  price: number;
+  currency: "VND" | "USD";
+  created_at: string;
+  updated_at: string;
+};
+
 // // User types
 // export interface User {
 //   id: string;
