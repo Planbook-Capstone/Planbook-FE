@@ -5,19 +5,20 @@ import {
   createQueryWithPathParamHook,
   updateMutationHook,
 } from "@/hooks/react-query";
+import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
-export const useLessonsService = createQueryHook("lessons", "/lesson");
-export const useCreateLessonService = createMutationHook("lessons", "/lesson");
+export const useLessonsService = createQueryHook("lessons", API_ENDPOINTS.LESSONS);
+export const useCreateLessonService = createMutationHook("lessons", API_ENDPOINTS.LESSONS);
 export const useLessonsByChapterService = createQueryWithPathParamHook(
   "lessonsByChapter",
-  "/lesson/by-chapter"
+  API_ENDPOINTS.LESSONS_BY_CHAPTER
 );
 export const useUpdateLessonService = updateMutationHook(
   "lessonsByChapter",
-  "/lesson"
+  API_ENDPOINTS.LESSONS
 );
 
 export const useLessonsByChaptersService = createMultiQueryHook(
   "lessonsByChapter",
-  (chapterId) => `/lesson/by-chapter/${chapterId}`
+  (chapterId) => `${API_ENDPOINTS.LESSONS_BY_CHAPTER}/${chapterId}`
 );
