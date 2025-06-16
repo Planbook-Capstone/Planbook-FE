@@ -4,17 +4,18 @@ import {
   createQueryWithPathParamHook,
   updateMutationHook,
 } from "@/hooks/react-query";
+import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
-export const useChaptersService = createQueryHook("chapters", "/chapter");
+export const useChaptersService = createQueryHook("chapters", API_ENDPOINTS.CHAPTERS);
 export const useChaptersByBookService = createQueryWithPathParamHook(
   "chaptersByBook",
-  "/chapter/by-book"
+  API_ENDPOINTS.CHAPTERS_BY_BOOK
 );
 export const useCreateChapterService = createMutationHook(
   "chapters",
-  "/chapter"
+  API_ENDPOINTS.CHAPTERS
 );
 export const useUpdateChapterService = updateMutationHook(
   "chaptersByBook",
-  "/chapter"
+  API_ENDPOINTS.CHAPTERS
 );

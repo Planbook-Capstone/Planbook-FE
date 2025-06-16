@@ -4,11 +4,12 @@ import {
   createQueryWithPathParamHook,
   patchMutationHook,
 } from "@/hooks/react-query";
+import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
-export const useBooksService = createQueryHook("books", "/book");
+export const useBooksService = createQueryHook("books", API_ENDPOINTS.BOOKS);
 export const useBookByIdService = createQueryWithPathParamHook(
   "bookById",
-  "/book"
+  API_ENDPOINTS.BOOKS
 );
-export const useCreateBookService = createMutationHook("books", "/book");
-export const useUpdateBookStatus = patchMutationHook("books", "/book");
+export const useCreateBookService = createMutationHook("books", API_ENDPOINTS.BOOKS);
+export const useUpdateBookStatus = patchMutationHook("books", API_ENDPOINTS.BOOKS);
