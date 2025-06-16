@@ -14,7 +14,7 @@ export default function ResultItem({ type, name, onDelete }: ResultItemProps) {
     <div className="flex justify-between items-center bg-white rounded-md p-3">
       <div className="flex gap-2 items-center">
         <FileIcon type={type} />
-        <div className="text-sm font-medium">{name}</div>
+        <div className="text-sm font-questrial">{name}</div>
       </div>
       <Button
         variant="ghost"

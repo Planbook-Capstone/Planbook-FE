@@ -25,7 +25,7 @@ const Input = React.forwardRef<
       <textarea
         data-slot="textarea"
         ref={ref as React.Ref<HTMLTextAreaElement>}
-        className={cn(commonClass, "h-24")}
+        className={cn(commonClass, "h-16")}
         {...(props as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
       />
     );

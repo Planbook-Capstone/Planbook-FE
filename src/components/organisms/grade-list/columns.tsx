@@ -24,16 +24,6 @@ export const gradeColumns: ColumnDef<GradeResponse>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-
-  {
-    accessorKey: "name",
-    header: "Tên khối",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="font-medium">{row.original.name}</span>
-      </div>
-    ),
-  },
   {
     accessorKey: "createdAt",
     header: "Ngày tạo",

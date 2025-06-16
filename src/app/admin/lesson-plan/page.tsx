@@ -1,68 +1,44 @@
 "use client";
 
-import { FormBuilderCanvas } from "@/components/organisms/form-builder";
-import { FormPreview } from "@/components/organisms/form-preview";
+import LessonPlanTable from "@/components/organisms/lesson-plan-list";
 import { Button } from "@/components/ui/Button";
-import { EyeClosed, EyeIcon, EyeOff } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { LessonPlanResponse } from "@/types";
+import { Row } from "@tanstack/react-table";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-export default function FormBuilderPage() {
-  const [formDefinition, setFormDefinition] = useState<any[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
+export default function LessonPlanManagementPage() {
+  const [selected, setSelected] = useState<Row<LessonPlanResponse>[]>([]);
+  const router = useRouter();
 
-  useEffect(() => {
-    console.log("formDefinition:", JSON.stringify(formDefinition, null, 2));
-  }, [formDefinition]);
+  const handleCreateLessonPlan = () => {
+    router.push("/admin/lesson-plan/new");
+  };
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex justify-between">
-        <div className="flex gap-2">
+    <div className="space-y-5">
+      <div className="flex justify-between items-center">
+        <Input placeholder="Tìm kiếm" className="max-w-sm" />
+        {selected.length > 0 ? (
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">
+              Đã chọn {selected.length}
+            </p>
+            <Button>Chỉnh sửa</Button>
+          </div>
+        ) : (
           <Button
-            onClick={() => {
-              setFormDefinition([
-                ...formDefinition,
-                { group_name: "", fields: [] },
-              ]);
-            }}
+            className="bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
+            onClick={handleCreateLessonPlan}
           >
-            + Thêm nhóm mới
+            <Plus /> Tạo giáo án mới
           </Button>
-
-          <Button
-            onClick={() => {
-              const json = JSON.stringify(formDefinition, null, 2);
-              console.log("Exported JSON:", json);
-              alert("Cấu hình đã log ra console.");
-            }}
-          >
-            Lưu cấu hình
-          </Button>
-        </div>
-        <Button
-          variant="secondary"
-          onClick={() => setShowPreview(!showPreview)}
-        >
-          {showPreview ? (
-            <div className="flex gap-2 items-center">
-              <EyeOff /> Ẩn xem trước
-            </div>
-          ) : (
-            <div className="flex gap-2 items-center">
-              <EyeIcon /> Xem trước
-            </div>
-          )}
-        </Button>
+        )}
       </div>
 
-      {showPreview ? (
-        <FormPreview config={formDefinition} />
-      ) : (
-        <FormBuilderCanvas
-          groups={formDefinition}
-          onChange={setFormDefinition}
-        />
-      )}
+      <LessonPlanTable onSelectionChange={(rows) => setSelected(rows)} />
     </div>
   );
 }
