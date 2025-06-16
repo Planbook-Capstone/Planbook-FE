@@ -1,9 +1,26 @@
-import { grade, subject, user } from "@/generated/client";
+import {
+  academic_year,
+  book_type,
+  grade,
+  subject,
+  user,
+} from "@/generated/client";
 
 export type User = user;
 export type Grade = grade;
 export type Subject = subject;
+export type AcademicYear = academic_year;
+export type BookType = book_type;
 
+export type AcademicYearResponse = {
+  id: bigint;
+  yearLabel: string;
+  startDate: Date | null;
+  endDate: Date | null;
+  status: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+};
 export type GradeResponse = {
   name: string;
   id: bigint;
@@ -47,6 +64,16 @@ export type SubscriptionResponse = {
   currency: "VND" | "USD";
   created_at: string;
   updated_at: string;
+};
+export type BookTypeResponse = {
+  id: bigint;
+  name: string;
+  icon: string | null;
+  description: string | null;
+  createdAt: string | null;
+  status: string | null;
+  updatedAt: string | null;
+  tokenCostPerQuery: number | null;
 };
 
 // // User types

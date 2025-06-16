@@ -40,6 +40,13 @@ export const adminItems = [
     active: "/icons/diamond-active.svg",
   },
   {
+    label: "Chức năng",
+    key: "booktype",
+    icon: <HomeOutlined />,
+    image: "/icons/book.svg",
+    active: "/icons/book-active.svg",
+  },
+  {
     label: "Giáo án",
     key: "lesson-plan",
     icon: <HomeOutlined />,
