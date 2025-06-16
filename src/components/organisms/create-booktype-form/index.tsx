@@ -24,32 +24,49 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Plus } from "lucide-react";
 
-const FormSchema = z.object({
-  name: z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => val.length > 0, {
-      message: "Tên chức năng không được để trống",
-    }),
-  description: z
-    .string({ required_error: "Mô tả không được để trống" })
-    .transform((val) => val.trim())
-    .refine((val) => val.length > 0, {
-      message: "Mô tả không được để trống",
-    }),
-  tokenCostPerQuery: z.coerce
-    .number({
-      invalid_type_error: "Phải là số",
-    })
-    .int("Phải là số nguyên")
-    .gt(0, "Phải lớn hơn 0"),
+// Create schema function to handle SSR
+const createFormSchema = () => {
+  const baseSchema = {
+    name: z
+      .string()
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: "Tên chức năng không được để trống",
+      }),
+    description: z
+      .string({ required_error: "Mô tả không được để trống" })
+      .transform((val) => val.trim())
+      .refine((val) => val.length > 0, {
+        message: "Mô tả không được để trống",
+      }),
+    tokenCostPerQuery: z.coerce
+      .number({
+        invalid_type_error: "Phải là số",
+      })
+      .int("Phải là số nguyên")
+      .gt(0, "Phải lớn hơn 0"),
+  };
 
-  icon: z
-    .instanceof(File, { message: "Vui lòng chọn một file SVG" })
-    .refine((file) => file.type === "image/svg+xml", {
-      message: "Chỉ chấp nhận file SVG",
-    }),
-});
+  // Only add File validation on client-side
+  if (typeof window !== "undefined") {
+    return z.object({
+      ...baseSchema,
+      icon: z
+        .instanceof(File, { message: "Vui lòng chọn một file SVG" })
+        .refine((file) => file.type === "image/svg+xml", {
+          message: "Chỉ chấp nhận file SVG",
+        }),
+    });
+  }
+
+  // Server-side schema without File validation
+  return z.object({
+    ...baseSchema,
+    icon: z.any(),
+  });
+};
+
+const FormSchema = createFormSchema();
 
 interface CreateBookTypeFormProps {
   onClose?: () => void;
