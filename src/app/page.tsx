@@ -21,7 +21,6 @@ import { useSearchParams } from "next/navigation";
 export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
-  // Dữ liệu tính năng AI
   const aiFeatures = [
     {
       id: 1,

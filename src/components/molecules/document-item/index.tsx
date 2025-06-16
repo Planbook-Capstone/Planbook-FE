@@ -22,7 +22,7 @@ export default function DocumentItem({
         <FileIcon type={type} size={"lg"} />
         <div className="text-sm flex flex-col gap-2">
           <p className="font-calsans text-base">{name}</p>
-          <p className=" line-clamp-2 text-sm">{description}</p>
+          <p className=" line-clamp-2 text-sm font-questrial">{description}</p>
         </div>
       </div>
 

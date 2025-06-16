@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   return (
-    <Layout>
+    <Layout className="h-screen">
       <DetailHeader
         breadcrumbs={[
           {
@@ -43,10 +43,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           },
         ]}
       />
-      <Content>
+      <Content className="h-full" style={{ height: "100%" }}>
         <div
           style={{
             minHeight: 360,
+            height: "100%",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
             position: "relative",
