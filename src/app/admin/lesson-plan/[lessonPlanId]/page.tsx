@@ -2,11 +2,7 @@
 
 import { FormBuilderContainer } from "@/components/organisms/create-lesson-plan-template";
 import { Button } from "@/components/ui/Button";
-import {
-  useCreateFormService,
-  useFormsService,
-} from "@/services/lessonPlanServices";
-import { Form } from "antd";
+import { useCreateFormService } from "@/services/lessonPlanServices";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -29,7 +25,9 @@ export default function FormBuilderPage() {
     console.log("Lưu dưới dạng nháp");
   };
 
-  const handleSave = async () => {
+  const { mutate } = useCreateFormService();
+
+  const handleSave = () => {
     try {
       const payload = {
         name: formMeta.name.trim(),
@@ -37,7 +35,7 @@ export default function FormBuilderPage() {
         definition: formDefinition,
       };
 
-      await mutate(payload, {
+      mutate(payload, {
         onSuccess: () => {
           toast.success("Tạo biểu mẫu thành công");
           router.back();
@@ -50,23 +48,6 @@ export default function FormBuilderPage() {
     } catch (err) {
       toast.error("Lỗi không xác định khi tạo biểu mẫu");
     }
-  };
-
-  const { mutate } = useCreateFormService();
-  const [form] = Form.useForm();
-
-  const onFinish = (values: any) => {
-    console.log("Form values:", values);
-    mutate(values, {
-      onSuccess: () => {
-        toast.success("Đăng nhập thành công");
-      },
-      onError: () => {
-        toast.error(
-          "Đăng nhập thất bại.Vui lòng kiểm tra kĩ thông tin đăng nhập"
-        );
-      },
-    });
   };
 
   return (
