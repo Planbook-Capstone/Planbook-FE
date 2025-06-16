@@ -1,9 +1,16 @@
-import { academic_year, grade, subject, user } from "@/generated/client";
+import {
+  academic_year,
+  book_type,
+  grade,
+  subject,
+  user,
+} from "@/generated/client";
 
 export type User = user;
 export type Grade = grade;
 export type Subject = subject;
 export type AcademicYear = academic_year;
+export type BookType = book_type;
 
 export type AcademicYearResponse = {
   id: bigint;
@@ -39,6 +46,18 @@ export type SubjectResponse = {
   updatedAt: string | null;
   grade: Grade | null;
 };
+
+export type BookTypeResponse = {
+  id: bigint;
+  name: string;
+  icon: string | null;
+  description: string | null;
+  createdAt: string | null;
+  status: string | null;
+  updatedAt: string | null;
+  tokenCostPerQuery: number | null;
+};
+
 // // User types
 // export interface User {
 //   id: string;
