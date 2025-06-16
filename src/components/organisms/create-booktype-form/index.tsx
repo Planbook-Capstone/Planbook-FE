@@ -24,49 +24,28 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Plus } from "lucide-react";
 
-// Create schema function to handle SSR
-const createFormSchema = () => {
-  const baseSchema = {
-    name: z
-      .string()
-      .transform((val) => val.trim())
-      .refine((val) => val.length > 0, {
-        message: "Tên chức năng không được để trống",
-      }),
-    description: z
-      .string({ required_error: "Mô tả không được để trống" })
-      .transform((val) => val.trim())
-      .refine((val) => val.length > 0, {
-        message: "Mô tả không được để trống",
-      }),
-    tokenCostPerQuery: z.coerce
-      .number({
-        invalid_type_error: "Phải là số",
-      })
-      .int("Phải là số nguyên")
-      .gt(0, "Phải lớn hơn 0"),
-  };
-
-  // Only add File validation on client-side
-  if (typeof window !== "undefined") {
-    return z.object({
-      ...baseSchema,
-      icon: z
-        .instanceof(File, { message: "Vui lòng chọn một file SVG" })
-        .refine((file) => file.type === "image/svg+xml", {
-          message: "Chỉ chấp nhận file SVG",
-        }),
-    });
-  }
-
-  // Server-side schema without File validation
-  return z.object({
-    ...baseSchema,
-    icon: z.any(),
-  });
-};
-
-const FormSchema = createFormSchema();
+// Base schema without File validation for SSR compatibility
+const FormSchema = z.object({
+  name: z
+    .string()
+    .transform((val) => val.trim())
+    .refine((val) => val.length > 0, {
+      message: "Tên chức năng không được để trống",
+    }),
+  description: z
+    .string({ required_error: "Mô tả không được để trống" })
+    .transform((val) => val.trim())
+    .refine((val) => val.length > 0, {
+      message: "Mô tả không được để trống",
+    }),
+  tokenCostPerQuery: z.coerce
+    .number({
+      invalid_type_error: "Phải là số",
+    })
+    .int("Phải là số nguyên")
+    .gt(0, "Phải lớn hơn 0"),
+  icon: z.any(), // Use z.any() to avoid SSR issues with File type
+});
 
 interface CreateBookTypeFormProps {
   onClose?: () => void;
@@ -116,7 +95,20 @@ function CreateBookTypeForm({
   };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    const base64Icon = await fileToBase64(data.icon);
+    let base64Icon = initialValues?.icon; // Use existing icon for edit mode
+
+    // If a new file is uploaded, validate and convert it
+    if (data.icon && data.icon instanceof File) {
+      if (data.icon.type !== "image/svg+xml") {
+        toast.error("Chỉ chấp nhận file SVG");
+        return;
+      }
+      base64Icon = await fileToBase64(data.icon);
+    } else if (!initialValues?.id) {
+      // For create mode, file is required
+      toast.error("Vui lòng chọn một file SVG");
+      return;
+    }
 
     const payload = {
       name: data.name,

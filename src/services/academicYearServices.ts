@@ -4,15 +4,16 @@ import {
   createQueryWithPathParamHook,
   patchMutationHook,
 } from "@/hooks/react-query";
+import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 export const useAcademicYearsService = createQueryHook(
   "academicYears",
-  "/academic-years"
+  API_ENDPOINTS.ACADEMIC_YEARS
 );
 
 export const useCreateAcademicYearService = createMutationHook(
   "academicYears",
-  "/academic-years"
+  API_ENDPOINTS.ACADEMIC_YEARS
 );
 // export const useUpdateBookStatus = patchMutationHook("books", "/book");
 // export const useBookTypesService = createQueryHook("bookTypes", "/book");
