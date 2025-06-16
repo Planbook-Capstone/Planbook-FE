@@ -6,17 +6,25 @@ import Image from "next/image";
 import { useUserServices } from "@/services/userService";
 import { toast } from "sonner";
 import { supabase } from "@/config/supabaseClient";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const { mutate } = useUserServices();
   const [form] = Form.useForm();
-
+  const router = useRouter();
   const onFinish = (values: any) => {
     console.log("Form values:", values);
     mutate(values, {
       onSuccess: (data) => {
         toast.success("Đăng nhập thành công");
         localStorage.setItem("token", data?.data?.data?.token);
+        localStorage.setItem("refreshToken", data?.data?.data?.refreshToken);
+
+        if (data.data.data.role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       },
       onError: () => {
         toast.error(
@@ -36,7 +44,7 @@ const LoginPage = () => {
   };
   return (
     <div className="h-screen">
-           <div className="hidden lg:block w-full">
+      <div className="hidden lg:block w-full">
         {/* Background */}
         <div className="absolute z-0 top-[2rem] left-[2rem] h-[calc(100vh-4rem)] w-[calc(100vw-4rem)] rounded-3xl overflow-hidden">
           <Image
