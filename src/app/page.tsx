@@ -26,29 +26,6 @@ export default function Home() {
   const aiFeatures = [
     {
       id: 1,
-      title: "Điền biểu mẫu",
-      description: "Điền biểu mẫu chuẩn hoá theo Bộ Giáo Dục",
-      href: "chat",
-      icon: FormIcon,
-    },
-    {
-      id: 2,
-      title: "Tạo đề thi",
-      description:
-        "AI học từ lựa chọn trước đây để đề xuất điểm đến và trải nghiệm phù hợp",
-      href: "chat",
-      icon: ExamIcon,
-    },
-    {
-      id: 3,
-      title: "Slide bài giảng",
-      description:
-        "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
-      href: "chat",
-      icon: SlideIcon,
-    },
-    {
-      id: 4,
       title: "Giáo án",
       description:
         "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
@@ -56,12 +33,35 @@ export default function Home() {
       icon: LessonPlanIcon,
     },
     {
-      id: 5,
+      id: 2,
+      title: "Slide bài giảng",
+      description:
+        "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
+      href: "chat",
+      icon: SlideIcon,
+    },
+    {
+      id: 3,
+      title: "Tạo đề thi",
+      description:
+        "AI học từ lựa chọn trước đây để đề xuất điểm đến và trải nghiệm phù hợp",
+      href: "chat",
+      icon: ExamIcon,
+    },
+    {
+      id: 4,
       title: "Chấm điểm tự động",
       description:
         "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
       href: "grading-test",
       icon: PenIcon,
+    },
+    {
+      id: 5,
+      title: "Điền biểu mẫu",
+      description: "Điền biểu mẫu chuẩn hoá theo Bộ Giáo Dục",
+      href: "chat",
+      icon: FormIcon,
     },
   ];
 
@@ -122,10 +122,14 @@ export default function Home() {
   const getRandomColorClass = () => {
     const colorClasses = [
       "text-teal-300",
+      "text-gray-600",
       "text-green-300",
       "text-blue-500",
+      "text-gray-600",
       "text-violet-400",
       "text-cyan-300",
+      "text-gray-600",
+      "text-gray-600",
       "text-rose-700",
       "text-pink-600",
       "text-gray-600",
