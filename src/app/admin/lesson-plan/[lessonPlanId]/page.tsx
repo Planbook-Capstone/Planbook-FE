@@ -32,7 +32,8 @@ export default function FormBuilderPage() {
       const payload = {
         name: formMeta.name.trim(),
         description: formMeta.description?.trim() || "",
-        definition: formDefinition,
+        formData: formDefinition,
+        status: "DRAFT",
       };
 
       mutate(payload, {

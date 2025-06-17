@@ -69,10 +69,19 @@ export const bookTypeColumns: ColumnDef<BookTypeResponse>[] = [
 
   {
     accessorKey: "tokenCostPerQuery",
-    header: "Token/request",
+    header: "Số lượng token",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span className="font-medium">{row.original.tokenCostPerQuery}</span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "priority",
+    header: "Độ ưu tiên",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{row.original.priority}</span>
       </div>
     ),
   },
