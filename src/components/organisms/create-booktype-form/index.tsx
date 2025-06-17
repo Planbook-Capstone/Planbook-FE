@@ -10,6 +10,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -40,6 +41,15 @@ const FormSchema = z.object({
     .transform((val) => val.trim())
     .refine((val) => val.length > 0, {
       message: "Mô tả không được để trống",
+    }),
+  href: z
+    .string()
+    .transform((val) => val.trim())
+    .refine((val) => val.length > 0, {
+      message: "Đường dẫn không được để trống",
+    })
+    .refine((val) => val.startsWith("/"), {
+      message: "Đường dẫn phải bắt đầu bằng /",
     }),
   tokenCostPerQuery: z.coerce
     .number({
@@ -198,6 +208,27 @@ function CreateBookTypeForm({
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="href"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Đường dẫn</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="/path/to/feature"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                Đường dẫn URL cho chức năng (ví dụ: /lesson, /exam)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="tokenCostPerQuery"
@@ -284,6 +315,7 @@ interface CreateBookTypeModalProps {
     id?: string;
     name: string;
     description: string;
+    href: string;
     tokenCostPerQuery: number;
     icon?: string;
     priority?: number;

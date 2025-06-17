@@ -72,6 +72,8 @@ export type BookTypeResponse = {
   name: string;
   icon: string | null;
   description: string | null;
+  href: string | null;
+  priority: number | null;
   createdAt: string | null;
   status: string | null;
   updatedAt: string | null;
