@@ -9,55 +9,115 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useGradesService } from "@/services/gradeServices";
+import { useSubjectsByGradeService } from "@/services/subjectServices";
+import { useBooksBySubjectService } from "@/services/bookServices";
+import { GradeResponse, SubjectResponse, BookResponse } from "@/types";
+import { useState, useEffect } from "react";
 
 function LessonPlan() {
-  const handleChange = (value: string) => {
-    console.log("Selected value:", value);
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedBook, setSelectedBook] = useState<string>("");
+
+  // API calls
+  const { data: grades } = useGradesService();
+  const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
+    enabled: !!selectedGrade, // Only call when grade is selected
+  });
+  const { data: books } = useBooksBySubjectService(selectedSubject, {
+    enabled: !!selectedSubject, // Only call when subject is selected
+  });
+
+  // Handle grade selection
+  const handleGradeChange = (value: string) => {
+    console.log("Selected grade:", value);
+    setSelectedGrade(value);
+    // Reset dependent selections
+    setSelectedSubject("");
+    setSelectedBook("");
+  };
+
+  // Handle subject selection
+  const handleSubjectChange = (value: string) => {
+    console.log("Selected subject:", value);
+    setSelectedSubject(value);
+    // Reset dependent selections
+    setSelectedBook("");
+  };
+
+  // Handle book selection
+  const handleBookChange = (value: string) => {
+    console.log("Selected book:", value);
+    setSelectedBook(value);
   };
   return (
     <MainLayout>
       <div className="flex justify-between items-center gap-5">
         <div className="flex-col w-full">
           <p className="text-sm font-bold">Khối học</p>
-          <Select onValueChange={handleChange}>
+          <Select value={selectedGrade} onValueChange={handleGradeChange}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Lớp" />
+              <SelectValue placeholder="Chọn lớp" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1">10</SelectItem>
-              <SelectItem value="2">11</SelectItem>
-              <SelectItem value="3">12</SelectItem>
+              {grades?.data?.content?.map((grade: GradeResponse) => (
+                <SelectItem key={grade.id} value={grade.id.toString()}>
+                  {grade.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex-col w-full">
           <p className="text-sm font-bold">Môn học</p>
-          <Select onValueChange={handleChange}>
+          <Select
+            value={selectedSubject}
+            onValueChange={handleSubjectChange}
+            disabled={!selectedGrade}
+          >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Môn" />
+              <SelectValue
+                placeholder={selectedGrade ? "Chọn môn học" : "Chọn lớp trước"}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1">Toán</SelectItem>
-              <SelectItem value="2">Hóa</SelectItem>
-              <SelectItem value="3">Lý</SelectItem>
+              {subjects?.data?.content?.map((subject: SubjectResponse) => (
+                <SelectItem key={subject.id} value={subject.id.toString()}>
+                  {subject.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex-col w-full">
-          <p className="text-sm font-bold">Chương trình học</p>
-          <Select onValueChange={handleChange}>
+          <p className="text-sm font-bold">Sách</p>
+          <Select
+            value={selectedBook}
+            onValueChange={handleBookChange}
+            disabled={!selectedSubject}
+          >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sách" />
+              <SelectValue
+                placeholder={
+                  selectedSubject ? "Chọn sách" : "Chọn môn học trước"
+                }
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">Sách cánh diều</SelectItem>
-              <SelectItem value="dark">chân trời</SelectItem>
+              {books?.data?.content?.map((book: BookResponse) => (
+                <SelectItem key={book.id} value={book.id.toString()}>
+                  {book.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      <CurriculumList />
+      <CurriculumList bookId={selectedBook} />
     </MainLayout>
   );
 }
