@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
 
   // Books
   BOOKS: "/books",
+  BOOKS_BY_SUBJECT: "/books/by-subject",
 
   // Book Types
   BOOK_TYPES: "/book-types",
