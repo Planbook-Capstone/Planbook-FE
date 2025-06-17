@@ -107,6 +107,8 @@ model work_space {
   name             String?        @db.VarChar(255)
   academic_year_id Bytes?         @db.Binary(16)
   account_id       Bytes?         @db.Binary(16)
+  created_at       String?        @db.VarChar(255)
+  updated_at       String?        @db.VarChar(255)
   academic_year    academic_year? @relation(fields: [academic_year_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKl855mh3654i29yq7mbmjaj8mh")
   user             user?          @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKqw9a3trno3gmqqlvn2dlsemhl")
 
@@ -118,11 +120,22 @@ model book_type {
   id                   Bytes             @id @db.Binary(16)
   created_at           String?           @db.VarChar(255)
   description          String?           @db.VarChar(255)
-  icon                 String?           @db.TinyText
+  icon                 String?           @db.LongText
   name                 String?           @db.VarChar(255)
   status               book_type_status?
   updated_at           String?           @db.VarChar(255)
   token_cost_per_query Int
+  priority             Int
+}
+
+model form {
+  id               BigInt  @id @default(autoincrement())
+  form_definition  Json?
+  created_at       String? @db.VarChar(255)
+  form_description String? @db.VarChar(255)
+  form_name        String  @db.VarChar(255)
+  updated_at       String? @db.VarChar(255)
+  form_status      Int     @db.TinyInt
 }
 
 enum subject_status {
