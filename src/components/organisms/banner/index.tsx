@@ -35,11 +35,11 @@ const Banner = ({
             heightBanner
           )}
         >
-          <div className="py-7">
-            <h1 className="text-3xl md:text-3xl sm:text-xl mb-3 font-calsans">
+          <div className="py-7 -translate-y-28 md:-translate-y-0 w-full">
+            <h1 className="text-xl md:text-3xl sm:text-xl mb-3 font-calsans text-center md:text-start">
               {title || "Trợ lý dạy học thế hệ mới"}
             </h1>
-            <p className="text-lg md:text-lg sm:text-sm mb-7">
+            <p className="text-base md:text-lg sm:text-sm mb-7 md:block hidden">
               {subtitle || (
                 <>
                   Cung cấp công cụ hỗ trợ dạy học tiết kiệm thời gian cho <br />
@@ -50,7 +50,13 @@ const Banner = ({
             {/* <Button>+ Đóng góp tài liệu</Button> */}
           </div>
         </div>
-        <div className={cn("absolute right-0 bottom-0", width, heightBanner)}>
+        <div
+          className={cn(
+            width,
+            heightBanner,
+            "absolute right-0 bottom-0 md:translate-y-0 translate-y-10 w-full md:w-2/5"
+          )}
+        >
           <Image
             src={sideImage || "/images/banner/bannerHome.svg"}
             alt="banner"
