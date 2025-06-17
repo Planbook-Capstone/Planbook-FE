@@ -94,6 +94,7 @@ function BookTypePage() {
             id: String(selected[0].original.id),
             name: selected[0].original.name || "",
             description: selected[0].original.description || "",
+            href: selected[0].original.href || "/",
             tokenCostPerQuery: selected[0].original.tokenCostPerQuery || 0,
             priority: selected[0].original.priority || 0,
             icon: selected[0].original.icon || undefined,
