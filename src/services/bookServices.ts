@@ -7,6 +7,10 @@ import {
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 export const useBooksService = createQueryHook("books", API_ENDPOINTS.BOOKS);
+export const useBooksBySubjectService = createQueryWithPathParamHook(
+  "booksBySubject",
+  API_ENDPOINTS.BOOKS_BY_SUBJECT
+);
 export const useBookByIdService = createQueryWithPathParamHook(
   "bookById",
   API_ENDPOINTS.BOOKS
