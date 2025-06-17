@@ -49,9 +49,11 @@ export type SubjectResponse = {
 
 export type LessonPlanResponse = {
   id: string;
-  title: string;
-  createdAt: string;
-  content?: JSON;
+  name: string;
+  description?: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+  formData?: JSON;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
 };
 
@@ -73,6 +75,7 @@ export type BookTypeResponse = {
   createdAt: string | null;
   status: string | null;
   updatedAt: string | null;
+  priority: number | null;
   tokenCostPerQuery: number | null;
 };
 

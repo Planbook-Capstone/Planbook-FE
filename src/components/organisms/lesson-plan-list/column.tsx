@@ -13,17 +13,15 @@ import { toast } from "sonner";
 
 export const lessonPlanColumns: ColumnDef<LessonPlanResponse>[] = [
   {
-    id: "index",
+    id: "id",
     header: "STT",
     cell: ({ row }) => row.index + 1,
     enableSorting: false,
   },
   {
-    accessorKey: "title",
+    accessorKey: "name",
     header: "Tên giáo án",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.title}</span>
-    ),
+    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
   },
   {
     accessorKey: "createdAt",
@@ -53,7 +51,7 @@ export const lessonPlanColumns: ColumnDef<LessonPlanResponse>[] = [
       const lesson = row.original;
 
       const handleEdit = () => {
-        toast.info(`Chỉnh sửa giáo án: ${lesson.title}`);
+        toast.info(`Chỉnh sửa giáo án: ${lesson.name}`);
       };
 
       const handleDelete = () => {

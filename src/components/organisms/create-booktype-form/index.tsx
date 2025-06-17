@@ -16,7 +16,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCreateBookTypeService, useUpdateBookTypeService } from "@/services/bookTypeServices";
+import {
+  useCreateBookTypeService,
+  useUpdateBookTypeService,
+} from "@/services/bookTypeServices";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -44,6 +47,12 @@ const FormSchema = z.object({
     })
     .int("Phải là số nguyên")
     .gt(0, "Phải lớn hơn 0"),
+  priority: z.coerce
+    .number({
+      invalid_type_error: "Phải là số",
+    })
+    .int("Phải là số nguyên")
+    .gt(0, "Phải lớn hơn 0"),
   icon: z.any(), // Use z.any() to avoid SSR issues with File type
 });
 
@@ -55,6 +64,7 @@ interface CreateBookTypeFormProps {
     name: string;
     description: string;
     tokenCostPerQuery: number;
+    priority?: number;
     icon?: string; // base64
   };
 }
@@ -74,6 +84,7 @@ function CreateBookTypeForm({
       name: initialValues?.name || "",
       description: initialValues?.description || "",
       tokenCostPerQuery: initialValues?.tokenCostPerQuery || undefined,
+      priority: initialValues?.priority || undefined,
       icon: undefined,
     },
     mode: "onChange",
@@ -115,6 +126,7 @@ function CreateBookTypeForm({
       description: data.description,
       tokenCostPerQuery: data.tokenCostPerQuery,
       icon: base64Icon,
+      priority: data.priority,
     };
 
     console.log("Payload gửi lên API:", payload);
@@ -202,6 +214,20 @@ function CreateBookTypeForm({
 
         <FormField
           control={form.control}
+          name="priority"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Độ ưu tiên</FormLabel>
+              <FormControl>
+                <Input type="number" min={1} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="icon"
           render={({ field }) => (
             <FormItem>
@@ -260,6 +286,7 @@ interface CreateBookTypeModalProps {
     description: string;
     tokenCostPerQuery: number;
     icon?: string;
+    priority?: number;
   };
   isEdit?: boolean;
   open?: boolean;
@@ -274,7 +301,7 @@ function CreateBookTypeModal({
   open,
   onOpenChange,
   onSuccess,
-  trigger
+  trigger,
 }: CreateBookTypeModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
 
@@ -291,13 +318,12 @@ function CreateBookTypeModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {/* Only render trigger when modal is not controlled externally */}
-      {open === undefined && (
-        trigger ? (
+      {open === undefined &&
+        (trigger ? (
           <DialogTrigger asChild>{trigger}</DialogTrigger>
         ) : (
           <DialogTrigger asChild>{defaultTrigger}</DialogTrigger>
-        )
-      )}
+        ))}
       <DialogContent className="min-w-[630px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
