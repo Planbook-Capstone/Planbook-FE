@@ -17,7 +17,7 @@ export default function DocumentSource({
   onAdd,
 }: DocumentSourceProps) {
   return (
-    <aside className="w-full max-w-xs border-r border-t border-l px-6 py-6 rounded-t-2xl">
+    <aside className="w-full h-full border-r border-t border-l px-6 py-6 rounded-t-2xl">
       <h2 className="text-lg font-calsans mb-4">Nguồn tài liệu</h2>
       <div className="space-y-3">
         {documents.map((doc, idx) => (
