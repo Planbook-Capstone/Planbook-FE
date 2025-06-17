@@ -51,22 +51,20 @@ function BookTypePage() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="font-calsans text-base">Danh sách loại sách</h1>
-        {editModalOpen ? null : (
-          selected.length > 0 ? (
-            <div className="flex gap-1.5 items-center">
-              <p className="text-sm text-muted-foreground pr-2.5">
-                Đã chọn {selected.length}
-              </p>
-              <Button onClick={handleDelete}>
-                {selected[0].original.status === "ACTIVE" ? "Xóa" : "Khôi phục"}
-              </Button>
-              <Button onClick={handleEdit} variant={"outline"}>
-                Chỉnh sửa
-              </Button>
-            </div>
-          ) : (
-            <CreateBookTypeModal />
-          )
+        {editModalOpen ? null : selected.length > 0 ? (
+          <div className="flex gap-1.5 items-center">
+            <p className="text-sm text-muted-foreground pr-2.5">
+              Đã chọn {selected.length}
+            </p>
+            <Button onClick={handleDelete}>
+              {selected[0].original.status === "ACTIVE" ? "Xóa" : "Khôi phục"}
+            </Button>
+            <Button onClick={handleEdit} variant={"outline"}>
+              Chỉnh sửa
+            </Button>
+          </div>
+        ) : (
+          <CreateBookTypeModal />
         )}
       </div>
       <BookTypeTable
@@ -97,6 +95,7 @@ function BookTypePage() {
             name: selected[0].original.name || "",
             description: selected[0].original.description || "",
             tokenCostPerQuery: selected[0].original.tokenCostPerQuery || 0,
+            priority: selected[0].original.priority || 0,
             icon: selected[0].original.icon || undefined,
           }}
         />

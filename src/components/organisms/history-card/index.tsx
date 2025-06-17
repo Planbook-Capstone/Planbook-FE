@@ -1,5 +1,13 @@
 import { Button } from "@/components/ui/Button";
-import { FileMinus, MoreHorizontal } from "lucide-react";
+import {
+  FaBoxArchive,
+  FaBriefcase,
+  FaCalendar,
+  FaCertificate,
+  FaFile,
+  FaFlask,
+} from "react-icons/fa6";
+import { IconType } from "react-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,13 +16,35 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface HistoryCardProps {}
+interface HistoryCardProps {
+  className?: string;
+}
 
-export default function HistoryCard({}: HistoryCardProps) {
+export default function HistoryCard({ className }: HistoryCardProps) {
+  const icons: IconType[] = [
+    FaBoxArchive,
+    FaBriefcase,
+    FaCalendar,
+    FaCertificate,
+    FaFile,
+    FaFlask,
+  ];
+  const getRandomIcon = (): IconType => {
+    const randomIndex = Math.floor(Math.random() * icons.length);
+    return icons[randomIndex];
+  };
+  const RandomIcon = getRandomIcon();
   return (
-    <div className="relative border rounded-md p-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition duration-200">
-      <FileMinus className="absolute -top-3" />
+    <div className="relative border rounded-md p-4 bg-white shadow-none cursor-pointer hover:shadow-md transition duration-200">
+      <RandomIcon
+        className={cn(
+          "absolute -top-3 h-6 w-6 text-neutral-800 text-shadow-md",
+          className
+        )}
+      />
 
       <div className="flex items-center justify-between">
         <h3 className="mt-2 font-calsans text-sm text-black line-clamp-1">

@@ -3,6 +3,7 @@ import { Row } from "@tanstack/react-table";
 import { LessonPlanResponse } from "@/types";
 import { DataTable } from "../data-table";
 import { lessonPlanColumns } from "./column";
+import { useFormsService } from "@/services/lessonPlanServices";
 
 interface LessonPlanTableProps {
   onSelectionChange?: (selectedRows: Row<LessonPlanResponse>[]) => void;
@@ -11,12 +12,12 @@ interface LessonPlanTableProps {
 export default function LessonPlanTable({
   onSelectionChange,
 }: LessonPlanTableProps) {
-  const lessonPlans: any = null;
+  const { data: lessonPlans } = useFormsService();
 
   return (
     <DataTable
       columns={lessonPlanColumns}
-      data={lessonPlans?.data?.content || []}
+      data={lessonPlans?.data || []}
       onSelectionChange={onSelectionChange}
     />
   );

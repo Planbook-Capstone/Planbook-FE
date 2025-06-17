@@ -17,10 +17,12 @@ import ItemSection from "@/components/organisms/item-section";
 import HistoryCard from "@/components/organisms/history-card";
 import HistoryList from "@/components/organisms/history-list";
 import { useSearchParams } from "next/navigation";
+import { useBookTypesService } from "@/services/bookTypeServices";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
+  const { data: bookTypes } = useBookTypesService();
   const aiFeatures = [
     {
       id: 1,
@@ -117,6 +119,21 @@ export default function Home() {
     },
   ];
 
+  const getRandomColorClass = () => {
+    const colorClasses = [
+      "text-teal-300",
+      "text-green-300",
+      "text-blue-500",
+      "text-violet-400",
+      "text-cyan-300",
+      "text-rose-700",
+      "text-pink-600",
+      "text-gray-600",
+    ];
+    const randomIndex = Math.floor(Math.random() * colorClasses.length);
+    return colorClasses[randomIndex];
+  };
+
   return (
     <MainLayout>
       <Banner />
@@ -146,7 +163,7 @@ export default function Home() {
       ) : (
         <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {Array.from({ length: 7 }).map((_, index) => (
-            <HistoryCard key={index} />
+            <HistoryCard key={index} className={getRandomColorClass()} />
           ))}
         </section>
       )}
