@@ -2,7 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MoreVertical } from "lucide-react";
 import { BookResponse } from "@/types";
-import { translateStatus } from "@/utils/translateEnum";
+import { getStatusVariant, translateStatus } from "@/utils/translateEnum";
 import { Badge } from "@/components/ui/badge";
 
 export const bookColumns: ColumnDef<BookResponse>[] = [
@@ -84,18 +84,6 @@ export const bookColumns: ColumnDef<BookResponse>[] = [
     cell: ({ row }) => {
       const status = row.original.status;
       const statusText = translateStatus(status || "");
-
-      // Mapping status to variant or custom class
-      const getStatusVariant = (status: string | null | undefined) => {
-        switch (status) {
-          case "ACTIVE":
-            return "success";
-          case "INACTIVE":
-            return "warning";
-          default:
-            return "outline";
-        }
-      };
 
       return <Badge variant={getStatusVariant(status)}>{statusText}</Badge>;
     },
