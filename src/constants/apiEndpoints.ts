@@ -49,6 +49,9 @@ export const PDF_API_ENDPOINTS = {
 
   // Quick analysis
   QUICK_TEXTBOOK_ANALYSIS: "/pdf/quick-textbook-analysis",
+
+  //Task-progress
+  TASKS_PROGRESS: "/tasks/progress",
 } as const;
 
 // Combined endpoints for easy access
