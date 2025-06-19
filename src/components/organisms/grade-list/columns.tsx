@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { GradeResponse } from "@/types";
-import { translateStatus } from "@/utils/translateEnum";
+import { getStatusVariant, translateStatus } from "@/utils/translateEnum";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/Button";
 import { MoreVertical } from "lucide-react";
@@ -25,6 +25,11 @@ export const gradeColumns: ColumnDef<GradeResponse>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "name",
+    header: "Tên khối",
+    cell: ({ row }) => row.original.name,
+  },
+  {
     accessorKey: "createdAt",
     header: "Ngày tạo",
     cell: ({ row }) => (
@@ -46,17 +51,6 @@ export const gradeColumns: ColumnDef<GradeResponse>[] = [
     cell: ({ row }) => {
       const status = row.original.status;
       const statusText = translateStatus(status || "");
-
-      const getStatusVariant = (status: string | null | undefined) => {
-        switch (status) {
-          case "ACTIVE":
-            return "success";
-          case "INACTIVE":
-            return "warning";
-          default:
-            return "outline";
-        }
-      };
 
       return <Badge variant={getStatusVariant(status)}>{statusText}</Badge>;
     },
