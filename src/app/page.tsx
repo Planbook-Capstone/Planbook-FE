@@ -8,6 +8,7 @@ import { PricingSection } from "@/components/organisms/pricing-section";
 import { ParallaxProvider } from "react-scroll-parallax";
 
 export default function LandingPage() {
+  console.log("test")
   return (
     <div className="min-h-screen w-full flex flex-col justify-center">
       <ParallaxProvider>
