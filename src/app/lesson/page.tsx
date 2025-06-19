@@ -53,7 +53,7 @@ function LessonPlan() {
   };
   return (
     <MainLayout>
-      <div className="flex justify-between items-center gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
         <div className="flex-col w-full">
           <p className="text-sm font-bold">Khối học</p>
           <Select value={selectedGrade} onValueChange={handleGradeChange}>
@@ -92,7 +92,7 @@ function LessonPlan() {
           </Select>
         </div>
 
-        <div className="flex-col w-full">
+        <div className="flex-col w-full col-span-2 lg:col-span-1">
           <p className="text-sm font-bold">Sách</p>
           <Select
             value={selectedBook}
