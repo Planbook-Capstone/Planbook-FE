@@ -196,7 +196,9 @@ exports.Prisma.Work_spaceScalarFieldEnum = {
   id: 'id',
   name: 'name',
   academic_year_id: 'academic_year_id',
-  account_id: 'account_id'
+  account_id: 'account_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 };
 
 exports.Prisma.Book_typeScalarFieldEnum = {
@@ -207,12 +209,28 @@ exports.Prisma.Book_typeScalarFieldEnum = {
   name: 'name',
   status: 'status',
   updated_at: 'updated_at',
-  token_cost_per_query: 'token_cost_per_query'
+  token_cost_per_query: 'token_cost_per_query',
+  priority: 'priority'
+};
+
+exports.Prisma.FormScalarFieldEnum = {
+  id: 'id',
+  form_definition: 'form_definition',
+  created_at: 'created_at',
+  form_description: 'form_description',
+  form_name: 'form_name',
+  updated_at: 'updated_at',
+  form_status: 'form_status'
 };
 
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.NullsOrder = {
@@ -266,7 +284,9 @@ exports.Prisma.userOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.work_spaceOrderByRelevanceFieldEnum = {
-  name: 'name'
+  name: 'name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 };
 
 exports.Prisma.book_typeOrderByRelevanceFieldEnum = {
@@ -274,6 +294,24 @@ exports.Prisma.book_typeOrderByRelevanceFieldEnum = {
   description: 'description',
   icon: 'icon',
   name: 'name',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
+exports.Prisma.formOrderByRelevanceFieldEnum = {
+  created_at: 'created_at',
+  form_description: 'form_description',
+  form_name: 'form_name',
   updated_at: 'updated_at'
 };
 exports.academic_year_status = exports.$Enums.academic_year_status = {
@@ -328,7 +366,8 @@ exports.Prisma.ModelName = {
   subject: 'subject',
   user: 'user',
   work_space: 'work_space',
-  book_type: 'book_type'
+  book_type: 'book_type',
+  form: 'form'
 };
 
 /**
