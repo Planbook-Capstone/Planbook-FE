@@ -9,10 +9,6 @@ export const HeroSection = () => {
   const mage = useParallax<HTMLDivElement>({
     translateY: [10, -20],
   });
-  const resize = useParallax<HTMLDivElement>({
-    scale: [1, 1.2],
-    translateX: [0, 10],
-  });
   return (
     <ParallaxProvider>
       <section className="text-center py-16 relative">
@@ -48,7 +44,7 @@ export const HeroSection = () => {
             style={{ width: "100%", height: "auto" }}
             quality={100}
           />
-          <div ref={resize.ref}>
+          <div>
             <Image
               src="/images/illustration/bookRequestCard.svg"
               alt="product-illustration"
