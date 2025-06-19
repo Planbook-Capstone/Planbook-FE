@@ -12,6 +12,7 @@ import {
   useLessonsByChapterService,
   useLessonsService,
 } from "@/services/lessonServices";
+import { useQuickTextBookAnalysisService } from "@/services/textbookServices";
 import { useBookByIdService, useBooksService } from "@/services/bookServices";
 import { Badge } from "@/components/ui/badge";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
@@ -68,11 +69,14 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
 
   const { mutateAsync: createChapterMutateAsync } = useCreateChapterService();
   const { mutateAsync: createLessonMutateAsync } = useCreateLessonService();
+  const { mutateAsync: quickAnalysisMutateAsync } = useQuickTextBookAnalysisService();
 
   console.log("Chapters by book:", chaptersByBook?.data?.content);
 
   // Loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState<string>("");
 
   // React Hook Form setup
   const {
@@ -105,8 +109,10 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
   console.log("Chapter fields:", chapterFields);
 
   const onSubmit = async (data: FormData) => {
-    console.log("Received values of form:", data);
+    console.log("📝 Form submission started:", data);
+    console.log("🔧 Quick Analysis Service available:", !!quickAnalysisMutateAsync);
     setIsSubmitting(true);
+    setAnalysisProgress("");
 
     try {
       // Validate that we have at least one chapter
@@ -146,10 +152,76 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
                 lesson.pdfFile.name
               );
 
-              await createLessonMutateAsync(lessonData);
+              const createdLesson = await createLessonMutateAsync(lessonData);
+              console.log("✅ Lesson created successfully:", {
+                lessonTitle: lesson.lessonTitle,
+                lessonId: createdLesson?.data?.data?.id,
+                pdfFileName: lesson.pdfFile.name,
+                response: createdLesson
+              });
+
               toast.success(
                 `→ Tạo bài ${lesson.lessonTitle} thành công (có PDF: ${lesson.pdfFile.name})`
               );
+
+              // Gọi Quick TextBook Analysis sau khi tạo lesson thành công
+              if (createdLesson?.data?.data?.id && lesson.pdfFile) {
+                try {
+                  setIsAnalyzing(true);
+                  setAnalysisProgress(`Đang phân tích PDF cho bài "${lesson.lessonTitle}"...`);
+
+                  console.log("🚀 Starting Quick TextBook Analysis for lesson:", {
+                    lessonId: createdLesson.data.data.id,
+                    fileName: lesson.pdfFile.name,
+                    fileSize: lesson.pdfFile.size
+                  });
+
+                  // Tạo FormData cho quick analysis
+                  const analysisFormData = new FormData();
+                  analysisFormData.append("lesson_id", createdLesson.data.data.id);
+                  analysisFormData.append("file", lesson.pdfFile);
+                  analysisFormData.append("filename", lesson.pdfFile.name);
+
+                  // Optional: Thêm metadata
+                  analysisFormData.append("lesson_title", lesson.lessonTitle);
+                  analysisFormData.append("chapter_title", chapter.chapterTitle);
+                  if (bookId) {
+                    analysisFormData.append("book_id", bookId);
+                  }
+
+                  const analysisResponse = await quickAnalysisMutateAsync(analysisFormData);
+
+                  console.log("✅ Quick Analysis Response:", analysisResponse);
+                  console.log("📊 Analysis Data Structure:", {
+                    success: analysisResponse?.success,
+                    bookId: analysisResponse?.book_id,
+                    lessonId: analysisResponse?.lesson_id,
+                    hasBookStructure: !!analysisResponse?.book_structure,
+                    chaptersCount: analysisResponse?.book_structure?.chapters?.length || 0
+                  });
+
+                  toast.success(
+                    `📊 Phân tích PDF cho bài "${lesson.lessonTitle}" thành công!`
+                  );
+
+                  setAnalysisProgress(`Phân tích hoàn tất cho bài "${lesson.lessonTitle}"`);
+                } catch (analysisError: any) {
+                  console.error("❌ Quick Analysis Error:", analysisError);
+                  console.error("📝 Error details:", {
+                    message: analysisError.message,
+                    response: analysisError.response?.data,
+                    status: analysisError.response?.status
+                  });
+
+                  toast.error(
+                    `Phân tích PDF thất bại cho bài "${lesson.lessonTitle}": ${analysisError.message}`
+                  );
+                  setAnalysisProgress(`Lỗi phân tích: ${analysisError.message}`);
+                  // Không throw error để không dừng việc tạo lesson khác
+                } finally {
+                  setIsAnalyzing(false);
+                }
+              }
             } catch (lessonError: any) {
               console.error(
                 lessonError.response?.data || lessonError.message,
@@ -268,8 +340,26 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
           </Button>
         </div>
 
-        <Button type="submit" className="w-full mt-5" disabled={isSubmitting}>
-          {isSubmitting ? "Đang tạo..." : "Tạo chương và bài học"}
+        {/* Analysis Progress Display */}
+        {(isAnalyzing || analysisProgress) && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              {isAnalyzing && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              )}
+              <span className="text-sm text-blue-700 font-medium">
+                {analysisProgress || "Đang phân tích PDF..."}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          className="w-full mt-5"
+          disabled={isSubmitting || isAnalyzing}
+        >
+          {isSubmitting ? "Đang tạo..." : isAnalyzing ? "Đang phân tích..." : "Tạo chương và bài học"}
         </Button>
       </form>
     </>
