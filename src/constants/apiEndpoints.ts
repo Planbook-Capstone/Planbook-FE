@@ -39,5 +39,28 @@ export const API_ENDPOINTS = {
   FORMS: "/forms",
 } as const;
 
+// PDF API Endpoints (Secondary API - Port 8000)
+export const PDF_API_ENDPOINTS = {
+  // Textbook management
+  GET_ALL_TEXTBOOKS: "/pdf/getAllTextBook",
+  GET_TEXTBOOK_BY_ID: (id: string) => `/pdf/getTextBook/${id}`,
+  UPLOAD_TEXTBOOK: "/pdf/upload",
+  DELETE_TEXTBOOK: (id: string) => `/pdf/deleteTextBook/${id}`,
+
+  // Quick analysis
+  QUICK_TEXTBOOK_ANALYSIS: "/pdf/quick-textbook-analysis",
+
+  //Task-progress
+  TASKS_PROGRESS: "/tasks/progress",
+} as const;
+
+// Combined endpoints for easy access
+export const ALL_API_ENDPOINTS = {
+  MAIN: API_ENDPOINTS,
+  PDF: PDF_API_ENDPOINTS,
+} as const;
+
 // Type for API endpoints (optional, for better TypeScript support)
-export type ApiEndpoint = typeof API_ENDPOINTS[keyof typeof API_ENDPOINTS];
+export type ApiEndpoint = (typeof API_ENDPOINTS)[keyof typeof API_ENDPOINTS];
+export type PdfApiEndpoint =
+  (typeof PDF_API_ENDPOINTS)[keyof typeof PDF_API_ENDPOINTS];
