@@ -11,7 +11,7 @@ export const HeroSection = () => {
   });
   const resize = useParallax<HTMLDivElement>({
     scale: [1, 1.2],
-    translateX: [0, 20],
+    translateX: [0, 10],
   });
   return (
     <ParallaxProvider>
