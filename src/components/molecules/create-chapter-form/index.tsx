@@ -269,7 +269,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
         <div className="flex flex-col gap-4">
           {chapterFields.map((chapterField, chapterIndex) => (
             <div key={chapterField.id}>
-              <div className="flex items-center gap-2 w-full pb-2.5">
+              <div className="flex items-start gap-2 w-full pb-2.5">
                 <div className="flex-1">
                   <Controller
                     name={`chapters.${chapterIndex}.chapterTitle`}
