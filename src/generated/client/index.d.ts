@@ -63,6 +63,11 @@ export type work_space = $Result.DefaultSelection<Prisma.$work_spacePayload>
  * 
  */
 export type book_type = $Result.DefaultSelection<Prisma.$book_typePayload>
+/**
+ * Model form
+ * 
+ */
+export type form = $Result.DefaultSelection<Prisma.$formPayload>
 
 /**
  * Enums
@@ -391,6 +396,16 @@ export class PrismaClient<
     * ```
     */
   get book_type(): Prisma.book_typeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.form`: Exposes CRUD operations for the **form** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Forms
+    * const forms = await prisma.form.findMany()
+    * ```
+    */
+  get form(): Prisma.formDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -840,7 +855,8 @@ export namespace Prisma {
     subject: 'subject',
     user: 'user',
     work_space: 'work_space',
-    book_type: 'book_type'
+    book_type: 'book_type',
+    form: 'form'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -859,7 +875,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "academic_year" | "book" | "chapter" | "grade" | "lesson" | "refresh_token" | "subject" | "user" | "work_space" | "book_type"
+      modelProps: "academic_year" | "book" | "chapter" | "grade" | "lesson" | "refresh_token" | "subject" | "user" | "work_space" | "book_type" | "form"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1523,6 +1539,72 @@ export namespace Prisma {
           }
         }
       }
+      form: {
+        payload: Prisma.$formPayload<ExtArgs>
+        fields: Prisma.formFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.formFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.formFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload>
+          }
+          findFirst: {
+            args: Prisma.formFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.formFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload>
+          }
+          findMany: {
+            args: Prisma.formFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload>[]
+          }
+          create: {
+            args: Prisma.formCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload>
+          }
+          createMany: {
+            args: Prisma.formCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.formDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload>
+          }
+          update: {
+            args: Prisma.formUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload>
+          }
+          deleteMany: {
+            args: Prisma.formDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.formUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.formUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$formPayload>
+          }
+          aggregate: {
+            args: Prisma.FormAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateForm>
+          }
+          groupBy: {
+            args: Prisma.formGroupByArgs<ExtArgs>
+            result: $Utils.Optional<FormGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.formCountArgs<ExtArgs>
+            result: $Utils.Optional<FormCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1617,6 +1699,7 @@ export namespace Prisma {
     user?: userOmit
     work_space?: work_spaceOmit
     book_type?: book_typeOmit
+    form?: formOmit
   }
 
   /* Types for Logging */
@@ -9951,6 +10034,8 @@ export namespace Prisma {
     name: string | null
     academic_year_id: Uint8Array | null
     account_id: Uint8Array | null
+    created_at: string | null
+    updated_at: string | null
   }
 
   export type Work_spaceMaxAggregateOutputType = {
@@ -9958,6 +10043,8 @@ export namespace Prisma {
     name: string | null
     academic_year_id: Uint8Array | null
     account_id: Uint8Array | null
+    created_at: string | null
+    updated_at: string | null
   }
 
   export type Work_spaceCountAggregateOutputType = {
@@ -9965,6 +10052,8 @@ export namespace Prisma {
     name: number
     academic_year_id: number
     account_id: number
+    created_at: number
+    updated_at: number
     _all: number
   }
 
@@ -9974,6 +10063,8 @@ export namespace Prisma {
     name?: true
     academic_year_id?: true
     account_id?: true
+    created_at?: true
+    updated_at?: true
   }
 
   export type Work_spaceMaxAggregateInputType = {
@@ -9981,6 +10072,8 @@ export namespace Prisma {
     name?: true
     academic_year_id?: true
     account_id?: true
+    created_at?: true
+    updated_at?: true
   }
 
   export type Work_spaceCountAggregateInputType = {
@@ -9988,6 +10081,8 @@ export namespace Prisma {
     name?: true
     academic_year_id?: true
     account_id?: true
+    created_at?: true
+    updated_at?: true
     _all?: true
   }
 
@@ -10068,6 +10163,8 @@ export namespace Prisma {
     name: string | null
     academic_year_id: Uint8Array | null
     account_id: Uint8Array | null
+    created_at: string | null
+    updated_at: string | null
     _count: Work_spaceCountAggregateOutputType | null
     _min: Work_spaceMinAggregateOutputType | null
     _max: Work_spaceMaxAggregateOutputType | null
@@ -10092,6 +10189,8 @@ export namespace Prisma {
     name?: boolean
     academic_year_id?: boolean
     account_id?: boolean
+    created_at?: boolean
+    updated_at?: boolean
     academic_year?: boolean | work_space$academic_yearArgs<ExtArgs>
     user?: boolean | work_space$userArgs<ExtArgs>
   }, ExtArgs["result"]["work_space"]>
@@ -10103,9 +10202,11 @@ export namespace Prisma {
     name?: boolean
     academic_year_id?: boolean
     account_id?: boolean
+    created_at?: boolean
+    updated_at?: boolean
   }
 
-  export type work_spaceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "academic_year_id" | "account_id", ExtArgs["result"]["work_space"]>
+  export type work_spaceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "academic_year_id" | "account_id" | "created_at" | "updated_at", ExtArgs["result"]["work_space"]>
   export type work_spaceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     academic_year?: boolean | work_space$academic_yearArgs<ExtArgs>
     user?: boolean | work_space$userArgs<ExtArgs>
@@ -10122,6 +10223,8 @@ export namespace Prisma {
       name: string | null
       academic_year_id: Uint8Array | null
       account_id: Uint8Array | null
+      created_at: string | null
+      updated_at: string | null
     }, ExtArgs["result"]["work_space"]>
     composites: {}
   }
@@ -10497,6 +10600,8 @@ export namespace Prisma {
     readonly name: FieldRef<"work_space", 'String'>
     readonly academic_year_id: FieldRef<"work_space", 'Bytes'>
     readonly account_id: FieldRef<"work_space", 'Bytes'>
+    readonly created_at: FieldRef<"work_space", 'String'>
+    readonly updated_at: FieldRef<"work_space", 'String'>
   }
     
 
@@ -10910,10 +11015,12 @@ export namespace Prisma {
 
   export type Book_typeAvgAggregateOutputType = {
     token_cost_per_query: number | null
+    priority: number | null
   }
 
   export type Book_typeSumAggregateOutputType = {
     token_cost_per_query: number | null
+    priority: number | null
   }
 
   export type Book_typeMinAggregateOutputType = {
@@ -10925,6 +11032,7 @@ export namespace Prisma {
     status: $Enums.book_type_status | null
     updated_at: string | null
     token_cost_per_query: number | null
+    priority: number | null
   }
 
   export type Book_typeMaxAggregateOutputType = {
@@ -10936,6 +11044,7 @@ export namespace Prisma {
     status: $Enums.book_type_status | null
     updated_at: string | null
     token_cost_per_query: number | null
+    priority: number | null
   }
 
   export type Book_typeCountAggregateOutputType = {
@@ -10947,16 +11056,19 @@ export namespace Prisma {
     status: number
     updated_at: number
     token_cost_per_query: number
+    priority: number
     _all: number
   }
 
 
   export type Book_typeAvgAggregateInputType = {
     token_cost_per_query?: true
+    priority?: true
   }
 
   export type Book_typeSumAggregateInputType = {
     token_cost_per_query?: true
+    priority?: true
   }
 
   export type Book_typeMinAggregateInputType = {
@@ -10968,6 +11080,7 @@ export namespace Prisma {
     status?: true
     updated_at?: true
     token_cost_per_query?: true
+    priority?: true
   }
 
   export type Book_typeMaxAggregateInputType = {
@@ -10979,6 +11092,7 @@ export namespace Prisma {
     status?: true
     updated_at?: true
     token_cost_per_query?: true
+    priority?: true
   }
 
   export type Book_typeCountAggregateInputType = {
@@ -10990,6 +11104,7 @@ export namespace Prisma {
     status?: true
     updated_at?: true
     token_cost_per_query?: true
+    priority?: true
     _all?: true
   }
 
@@ -11088,6 +11203,7 @@ export namespace Prisma {
     status: $Enums.book_type_status | null
     updated_at: string | null
     token_cost_per_query: number
+    priority: number
     _count: Book_typeCountAggregateOutputType | null
     _avg: Book_typeAvgAggregateOutputType | null
     _sum: Book_typeSumAggregateOutputType | null
@@ -11118,6 +11234,7 @@ export namespace Prisma {
     status?: boolean
     updated_at?: boolean
     token_cost_per_query?: boolean
+    priority?: boolean
   }, ExtArgs["result"]["book_type"]>
 
 
@@ -11131,9 +11248,10 @@ export namespace Prisma {
     status?: boolean
     updated_at?: boolean
     token_cost_per_query?: boolean
+    priority?: boolean
   }
 
-  export type book_typeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "created_at" | "description" | "icon" | "name" | "status" | "updated_at" | "token_cost_per_query", ExtArgs["result"]["book_type"]>
+  export type book_typeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "created_at" | "description" | "icon" | "name" | "status" | "updated_at" | "token_cost_per_query" | "priority", ExtArgs["result"]["book_type"]>
 
   export type $book_typePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "book_type"
@@ -11147,6 +11265,7 @@ export namespace Prisma {
       status: $Enums.book_type_status | null
       updated_at: string | null
       token_cost_per_query: number
+      priority: number
     }, ExtArgs["result"]["book_type"]>
     composites: {}
   }
@@ -11524,6 +11643,7 @@ export namespace Prisma {
     readonly status: FieldRef<"book_type", 'book_type_status'>
     readonly updated_at: FieldRef<"book_type", 'String'>
     readonly token_cost_per_query: FieldRef<"book_type", 'Int'>
+    readonly priority: FieldRef<"book_type", 'Int'>
   }
     
 
@@ -11846,6 +11966,944 @@ export namespace Prisma {
 
 
   /**
+   * Model form
+   */
+
+  export type AggregateForm = {
+    _count: FormCountAggregateOutputType | null
+    _avg: FormAvgAggregateOutputType | null
+    _sum: FormSumAggregateOutputType | null
+    _min: FormMinAggregateOutputType | null
+    _max: FormMaxAggregateOutputType | null
+  }
+
+  export type FormAvgAggregateOutputType = {
+    id: number | null
+    form_status: number | null
+  }
+
+  export type FormSumAggregateOutputType = {
+    id: bigint | null
+    form_status: number | null
+  }
+
+  export type FormMinAggregateOutputType = {
+    id: bigint | null
+    created_at: string | null
+    form_description: string | null
+    form_name: string | null
+    updated_at: string | null
+    form_status: number | null
+  }
+
+  export type FormMaxAggregateOutputType = {
+    id: bigint | null
+    created_at: string | null
+    form_description: string | null
+    form_name: string | null
+    updated_at: string | null
+    form_status: number | null
+  }
+
+  export type FormCountAggregateOutputType = {
+    id: number
+    form_definition: number
+    created_at: number
+    form_description: number
+    form_name: number
+    updated_at: number
+    form_status: number
+    _all: number
+  }
+
+
+  export type FormAvgAggregateInputType = {
+    id?: true
+    form_status?: true
+  }
+
+  export type FormSumAggregateInputType = {
+    id?: true
+    form_status?: true
+  }
+
+  export type FormMinAggregateInputType = {
+    id?: true
+    created_at?: true
+    form_description?: true
+    form_name?: true
+    updated_at?: true
+    form_status?: true
+  }
+
+  export type FormMaxAggregateInputType = {
+    id?: true
+    created_at?: true
+    form_description?: true
+    form_name?: true
+    updated_at?: true
+    form_status?: true
+  }
+
+  export type FormCountAggregateInputType = {
+    id?: true
+    form_definition?: true
+    created_at?: true
+    form_description?: true
+    form_name?: true
+    updated_at?: true
+    form_status?: true
+    _all?: true
+  }
+
+  export type FormAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which form to aggregate.
+     */
+    where?: formWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of forms to fetch.
+     */
+    orderBy?: formOrderByWithRelationInput | formOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: formWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` forms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` forms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned forms
+    **/
+    _count?: true | FormCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: FormAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: FormSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: FormMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: FormMaxAggregateInputType
+  }
+
+  export type GetFormAggregateType<T extends FormAggregateArgs> = {
+        [P in keyof T & keyof AggregateForm]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateForm[P]>
+      : GetScalarType<T[P], AggregateForm[P]>
+  }
+
+
+
+
+  export type formGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: formWhereInput
+    orderBy?: formOrderByWithAggregationInput | formOrderByWithAggregationInput[]
+    by: FormScalarFieldEnum[] | FormScalarFieldEnum
+    having?: formScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: FormCountAggregateInputType | true
+    _avg?: FormAvgAggregateInputType
+    _sum?: FormSumAggregateInputType
+    _min?: FormMinAggregateInputType
+    _max?: FormMaxAggregateInputType
+  }
+
+  export type FormGroupByOutputType = {
+    id: bigint
+    form_definition: JsonValue | null
+    created_at: string | null
+    form_description: string | null
+    form_name: string
+    updated_at: string | null
+    form_status: number
+    _count: FormCountAggregateOutputType | null
+    _avg: FormAvgAggregateOutputType | null
+    _sum: FormSumAggregateOutputType | null
+    _min: FormMinAggregateOutputType | null
+    _max: FormMaxAggregateOutputType | null
+  }
+
+  type GetFormGroupByPayload<T extends formGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FormGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof FormGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], FormGroupByOutputType[P]>
+            : GetScalarType<T[P], FormGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type formSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    form_definition?: boolean
+    created_at?: boolean
+    form_description?: boolean
+    form_name?: boolean
+    updated_at?: boolean
+    form_status?: boolean
+  }, ExtArgs["result"]["form"]>
+
+
+
+  export type formSelectScalar = {
+    id?: boolean
+    form_definition?: boolean
+    created_at?: boolean
+    form_description?: boolean
+    form_name?: boolean
+    updated_at?: boolean
+    form_status?: boolean
+  }
+
+  export type formOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "form_definition" | "created_at" | "form_description" | "form_name" | "updated_at" | "form_status", ExtArgs["result"]["form"]>
+
+  export type $formPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "form"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      form_definition: Prisma.JsonValue | null
+      created_at: string | null
+      form_description: string | null
+      form_name: string
+      updated_at: string | null
+      form_status: number
+    }, ExtArgs["result"]["form"]>
+    composites: {}
+  }
+
+  type formGetPayload<S extends boolean | null | undefined | formDefaultArgs> = $Result.GetResult<Prisma.$formPayload, S>
+
+  type formCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<formFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FormCountAggregateInputType | true
+    }
+
+  export interface formDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['form'], meta: { name: 'form' } }
+    /**
+     * Find zero or one Form that matches the filter.
+     * @param {formFindUniqueArgs} args - Arguments to find a Form
+     * @example
+     * // Get one Form
+     * const form = await prisma.form.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends formFindUniqueArgs>(args: SelectSubset<T, formFindUniqueArgs<ExtArgs>>): Prisma__formClient<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Form that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {formFindUniqueOrThrowArgs} args - Arguments to find a Form
+     * @example
+     * // Get one Form
+     * const form = await prisma.form.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends formFindUniqueOrThrowArgs>(args: SelectSubset<T, formFindUniqueOrThrowArgs<ExtArgs>>): Prisma__formClient<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Form that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {formFindFirstArgs} args - Arguments to find a Form
+     * @example
+     * // Get one Form
+     * const form = await prisma.form.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends formFindFirstArgs>(args?: SelectSubset<T, formFindFirstArgs<ExtArgs>>): Prisma__formClient<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Form that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {formFindFirstOrThrowArgs} args - Arguments to find a Form
+     * @example
+     * // Get one Form
+     * const form = await prisma.form.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends formFindFirstOrThrowArgs>(args?: SelectSubset<T, formFindFirstOrThrowArgs<ExtArgs>>): Prisma__formClient<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Forms that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {formFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Forms
+     * const forms = await prisma.form.findMany()
+     * 
+     * // Get first 10 Forms
+     * const forms = await prisma.form.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const formWithIdOnly = await prisma.form.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends formFindManyArgs>(args?: SelectSubset<T, formFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Form.
+     * @param {formCreateArgs} args - Arguments to create a Form.
+     * @example
+     * // Create one Form
+     * const Form = await prisma.form.create({
+     *   data: {
+     *     // ... data to create a Form
+     *   }
+     * })
+     * 
+     */
+    create<T extends formCreateArgs>(args: SelectSubset<T, formCreateArgs<ExtArgs>>): Prisma__formClient<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Forms.
+     * @param {formCreateManyArgs} args - Arguments to create many Forms.
+     * @example
+     * // Create many Forms
+     * const form = await prisma.form.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends formCreateManyArgs>(args?: SelectSubset<T, formCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Form.
+     * @param {formDeleteArgs} args - Arguments to delete one Form.
+     * @example
+     * // Delete one Form
+     * const Form = await prisma.form.delete({
+     *   where: {
+     *     // ... filter to delete one Form
+     *   }
+     * })
+     * 
+     */
+    delete<T extends formDeleteArgs>(args: SelectSubset<T, formDeleteArgs<ExtArgs>>): Prisma__formClient<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Form.
+     * @param {formUpdateArgs} args - Arguments to update one Form.
+     * @example
+     * // Update one Form
+     * const form = await prisma.form.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends formUpdateArgs>(args: SelectSubset<T, formUpdateArgs<ExtArgs>>): Prisma__formClient<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Forms.
+     * @param {formDeleteManyArgs} args - Arguments to filter Forms to delete.
+     * @example
+     * // Delete a few Forms
+     * const { count } = await prisma.form.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends formDeleteManyArgs>(args?: SelectSubset<T, formDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Forms.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {formUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Forms
+     * const form = await prisma.form.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends formUpdateManyArgs>(args: SelectSubset<T, formUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Form.
+     * @param {formUpsertArgs} args - Arguments to update or create a Form.
+     * @example
+     * // Update or create a Form
+     * const form = await prisma.form.upsert({
+     *   create: {
+     *     // ... data to create a Form
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Form we want to update
+     *   }
+     * })
+     */
+    upsert<T extends formUpsertArgs>(args: SelectSubset<T, formUpsertArgs<ExtArgs>>): Prisma__formClient<$Result.GetResult<Prisma.$formPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Forms.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {formCountArgs} args - Arguments to filter Forms to count.
+     * @example
+     * // Count the number of Forms
+     * const count = await prisma.form.count({
+     *   where: {
+     *     // ... the filter for the Forms we want to count
+     *   }
+     * })
+    **/
+    count<T extends formCountArgs>(
+      args?: Subset<T, formCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FormCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Form.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FormAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends FormAggregateArgs>(args: Subset<T, FormAggregateArgs>): Prisma.PrismaPromise<GetFormAggregateType<T>>
+
+    /**
+     * Group by Form.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {formGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends formGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: formGroupByArgs['orderBy'] }
+        : { orderBy?: formGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, formGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetFormGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the form model
+   */
+  readonly fields: formFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for form.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__formClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the form model
+   */
+  interface formFieldRefs {
+    readonly id: FieldRef<"form", 'BigInt'>
+    readonly form_definition: FieldRef<"form", 'Json'>
+    readonly created_at: FieldRef<"form", 'String'>
+    readonly form_description: FieldRef<"form", 'String'>
+    readonly form_name: FieldRef<"form", 'String'>
+    readonly updated_at: FieldRef<"form", 'String'>
+    readonly form_status: FieldRef<"form", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * form findUnique
+   */
+  export type formFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * Filter, which form to fetch.
+     */
+    where: formWhereUniqueInput
+  }
+
+  /**
+   * form findUniqueOrThrow
+   */
+  export type formFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * Filter, which form to fetch.
+     */
+    where: formWhereUniqueInput
+  }
+
+  /**
+   * form findFirst
+   */
+  export type formFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * Filter, which form to fetch.
+     */
+    where?: formWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of forms to fetch.
+     */
+    orderBy?: formOrderByWithRelationInput | formOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for forms.
+     */
+    cursor?: formWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` forms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` forms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of forms.
+     */
+    distinct?: FormScalarFieldEnum | FormScalarFieldEnum[]
+  }
+
+  /**
+   * form findFirstOrThrow
+   */
+  export type formFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * Filter, which form to fetch.
+     */
+    where?: formWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of forms to fetch.
+     */
+    orderBy?: formOrderByWithRelationInput | formOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for forms.
+     */
+    cursor?: formWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` forms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` forms.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of forms.
+     */
+    distinct?: FormScalarFieldEnum | FormScalarFieldEnum[]
+  }
+
+  /**
+   * form findMany
+   */
+  export type formFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * Filter, which forms to fetch.
+     */
+    where?: formWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of forms to fetch.
+     */
+    orderBy?: formOrderByWithRelationInput | formOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing forms.
+     */
+    cursor?: formWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` forms from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` forms.
+     */
+    skip?: number
+    distinct?: FormScalarFieldEnum | FormScalarFieldEnum[]
+  }
+
+  /**
+   * form create
+   */
+  export type formCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * The data needed to create a form.
+     */
+    data: XOR<formCreateInput, formUncheckedCreateInput>
+  }
+
+  /**
+   * form createMany
+   */
+  export type formCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many forms.
+     */
+    data: formCreateManyInput | formCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * form update
+   */
+  export type formUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * The data needed to update a form.
+     */
+    data: XOR<formUpdateInput, formUncheckedUpdateInput>
+    /**
+     * Choose, which form to update.
+     */
+    where: formWhereUniqueInput
+  }
+
+  /**
+   * form updateMany
+   */
+  export type formUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update forms.
+     */
+    data: XOR<formUpdateManyMutationInput, formUncheckedUpdateManyInput>
+    /**
+     * Filter which forms to update
+     */
+    where?: formWhereInput
+    /**
+     * Limit how many forms to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * form upsert
+   */
+  export type formUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * The filter to search for the form to update in case it exists.
+     */
+    where: formWhereUniqueInput
+    /**
+     * In case the form found by the `where` argument doesn't exist, create a new form with this data.
+     */
+    create: XOR<formCreateInput, formUncheckedCreateInput>
+    /**
+     * In case the form was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<formUpdateInput, formUncheckedUpdateInput>
+  }
+
+  /**
+   * form delete
+   */
+  export type formDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+    /**
+     * Filter which form to delete.
+     */
+    where: formWhereUniqueInput
+  }
+
+  /**
+   * form deleteMany
+   */
+  export type formDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which forms to delete
+     */
+    where?: formWhereInput
+    /**
+     * Limit how many forms to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * form without action
+   */
+  export type formDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the form
+     */
+    select?: formSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the form
+     */
+    omit?: formOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -11959,7 +13017,9 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     academic_year_id: 'academic_year_id',
-    account_id: 'account_id'
+    account_id: 'account_id',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
   };
 
   export type Work_spaceScalarFieldEnum = (typeof Work_spaceScalarFieldEnum)[keyof typeof Work_spaceScalarFieldEnum]
@@ -11973,10 +13033,24 @@ export namespace Prisma {
     name: 'name',
     status: 'status',
     updated_at: 'updated_at',
-    token_cost_per_query: 'token_cost_per_query'
+    token_cost_per_query: 'token_cost_per_query',
+    priority: 'priority'
   };
 
   export type Book_typeScalarFieldEnum = (typeof Book_typeScalarFieldEnum)[keyof typeof Book_typeScalarFieldEnum]
+
+
+  export const FormScalarFieldEnum: {
+    id: 'id',
+    form_definition: 'form_definition',
+    created_at: 'created_at',
+    form_description: 'form_description',
+    form_name: 'form_name',
+    updated_at: 'updated_at',
+    form_status: 'form_status'
+  };
+
+  export type FormScalarFieldEnum = (typeof FormScalarFieldEnum)[keyof typeof FormScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -11985,6 +13059,14 @@ export namespace Prisma {
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const NullsOrder: {
@@ -12065,7 +13147,9 @@ export namespace Prisma {
 
 
   export const work_spaceOrderByRelevanceFieldEnum: {
-    name: 'name'
+    name: 'name',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
   };
 
   export type work_spaceOrderByRelevanceFieldEnum = (typeof work_spaceOrderByRelevanceFieldEnum)[keyof typeof work_spaceOrderByRelevanceFieldEnum]
@@ -12080,6 +13164,33 @@ export namespace Prisma {
   };
 
   export type book_typeOrderByRelevanceFieldEnum = (typeof book_typeOrderByRelevanceFieldEnum)[keyof typeof book_typeOrderByRelevanceFieldEnum]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+  export const QueryMode: {
+    default: 'default',
+    insensitive: 'insensitive'
+  };
+
+  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+  export const formOrderByRelevanceFieldEnum: {
+    created_at: 'created_at',
+    form_description: 'form_description',
+    form_name: 'form_name',
+    updated_at: 'updated_at'
+  };
+
+  export type formOrderByRelevanceFieldEnum = (typeof formOrderByRelevanceFieldEnum)[keyof typeof formOrderByRelevanceFieldEnum]
 
 
   /**
@@ -12182,6 +13293,20 @@ export namespace Prisma {
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -12715,6 +13840,8 @@ export namespace Prisma {
     name?: StringNullableFilter<"work_space"> | string | null
     academic_year_id?: BytesNullableFilter<"work_space"> | Uint8Array | null
     account_id?: BytesNullableFilter<"work_space"> | Uint8Array | null
+    created_at?: StringNullableFilter<"work_space"> | string | null
+    updated_at?: StringNullableFilter<"work_space"> | string | null
     academic_year?: XOR<Academic_yearNullableScalarRelationFilter, academic_yearWhereInput> | null
     user?: XOR<UserNullableScalarRelationFilter, userWhereInput> | null
   }
@@ -12724,6 +13851,8 @@ export namespace Prisma {
     name?: SortOrderInput | SortOrder
     academic_year_id?: SortOrderInput | SortOrder
     account_id?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
     academic_year?: academic_yearOrderByWithRelationInput
     user?: userOrderByWithRelationInput
     _relevance?: work_spaceOrderByRelevanceInput
@@ -12737,6 +13866,8 @@ export namespace Prisma {
     name?: StringNullableFilter<"work_space"> | string | null
     academic_year_id?: BytesNullableFilter<"work_space"> | Uint8Array | null
     account_id?: BytesNullableFilter<"work_space"> | Uint8Array | null
+    created_at?: StringNullableFilter<"work_space"> | string | null
+    updated_at?: StringNullableFilter<"work_space"> | string | null
     academic_year?: XOR<Academic_yearNullableScalarRelationFilter, academic_yearWhereInput> | null
     user?: XOR<UserNullableScalarRelationFilter, userWhereInput> | null
   }, "id">
@@ -12746,6 +13877,8 @@ export namespace Prisma {
     name?: SortOrderInput | SortOrder
     academic_year_id?: SortOrderInput | SortOrder
     account_id?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    updated_at?: SortOrderInput | SortOrder
     _count?: work_spaceCountOrderByAggregateInput
     _max?: work_spaceMaxOrderByAggregateInput
     _min?: work_spaceMinOrderByAggregateInput
@@ -12759,6 +13892,8 @@ export namespace Prisma {
     name?: StringNullableWithAggregatesFilter<"work_space"> | string | null
     academic_year_id?: BytesNullableWithAggregatesFilter<"work_space"> | Uint8Array | null
     account_id?: BytesNullableWithAggregatesFilter<"work_space"> | Uint8Array | null
+    created_at?: StringNullableWithAggregatesFilter<"work_space"> | string | null
+    updated_at?: StringNullableWithAggregatesFilter<"work_space"> | string | null
   }
 
   export type book_typeWhereInput = {
@@ -12773,6 +13908,7 @@ export namespace Prisma {
     status?: Enumbook_type_statusNullableFilter<"book_type"> | $Enums.book_type_status | null
     updated_at?: StringNullableFilter<"book_type"> | string | null
     token_cost_per_query?: IntFilter<"book_type"> | number
+    priority?: IntFilter<"book_type"> | number
   }
 
   export type book_typeOrderByWithRelationInput = {
@@ -12784,6 +13920,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     updated_at?: SortOrderInput | SortOrder
     token_cost_per_query?: SortOrder
+    priority?: SortOrder
     _relevance?: book_typeOrderByRelevanceInput
   }
 
@@ -12799,6 +13936,7 @@ export namespace Prisma {
     status?: Enumbook_type_statusNullableFilter<"book_type"> | $Enums.book_type_status | null
     updated_at?: StringNullableFilter<"book_type"> | string | null
     token_cost_per_query?: IntFilter<"book_type"> | number
+    priority?: IntFilter<"book_type"> | number
   }, "id">
 
   export type book_typeOrderByWithAggregationInput = {
@@ -12810,6 +13948,7 @@ export namespace Prisma {
     status?: SortOrderInput | SortOrder
     updated_at?: SortOrderInput | SortOrder
     token_cost_per_query?: SortOrder
+    priority?: SortOrder
     _count?: book_typeCountOrderByAggregateInput
     _avg?: book_typeAvgOrderByAggregateInput
     _max?: book_typeMaxOrderByAggregateInput
@@ -12829,6 +13968,72 @@ export namespace Prisma {
     status?: Enumbook_type_statusNullableWithAggregatesFilter<"book_type"> | $Enums.book_type_status | null
     updated_at?: StringNullableWithAggregatesFilter<"book_type"> | string | null
     token_cost_per_query?: IntWithAggregatesFilter<"book_type"> | number
+    priority?: IntWithAggregatesFilter<"book_type"> | number
+  }
+
+  export type formWhereInput = {
+    AND?: formWhereInput | formWhereInput[]
+    OR?: formWhereInput[]
+    NOT?: formWhereInput | formWhereInput[]
+    id?: BigIntFilter<"form"> | bigint | number
+    form_definition?: JsonNullableFilter<"form">
+    created_at?: StringNullableFilter<"form"> | string | null
+    form_description?: StringNullableFilter<"form"> | string | null
+    form_name?: StringFilter<"form"> | string
+    updated_at?: StringNullableFilter<"form"> | string | null
+    form_status?: IntFilter<"form"> | number
+  }
+
+  export type formOrderByWithRelationInput = {
+    id?: SortOrder
+    form_definition?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    form_description?: SortOrderInput | SortOrder
+    form_name?: SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    form_status?: SortOrder
+    _relevance?: formOrderByRelevanceInput
+  }
+
+  export type formWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    AND?: formWhereInput | formWhereInput[]
+    OR?: formWhereInput[]
+    NOT?: formWhereInput | formWhereInput[]
+    form_definition?: JsonNullableFilter<"form">
+    created_at?: StringNullableFilter<"form"> | string | null
+    form_description?: StringNullableFilter<"form"> | string | null
+    form_name?: StringFilter<"form"> | string
+    updated_at?: StringNullableFilter<"form"> | string | null
+    form_status?: IntFilter<"form"> | number
+  }, "id">
+
+  export type formOrderByWithAggregationInput = {
+    id?: SortOrder
+    form_definition?: SortOrderInput | SortOrder
+    created_at?: SortOrderInput | SortOrder
+    form_description?: SortOrderInput | SortOrder
+    form_name?: SortOrder
+    updated_at?: SortOrderInput | SortOrder
+    form_status?: SortOrder
+    _count?: formCountOrderByAggregateInput
+    _avg?: formAvgOrderByAggregateInput
+    _max?: formMaxOrderByAggregateInput
+    _min?: formMinOrderByAggregateInput
+    _sum?: formSumOrderByAggregateInput
+  }
+
+  export type formScalarWhereWithAggregatesInput = {
+    AND?: formScalarWhereWithAggregatesInput | formScalarWhereWithAggregatesInput[]
+    OR?: formScalarWhereWithAggregatesInput[]
+    NOT?: formScalarWhereWithAggregatesInput | formScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"form"> | bigint | number
+    form_definition?: JsonNullableWithAggregatesFilter<"form">
+    created_at?: StringNullableWithAggregatesFilter<"form"> | string | null
+    form_description?: StringNullableWithAggregatesFilter<"form"> | string | null
+    form_name?: StringWithAggregatesFilter<"form"> | string
+    updated_at?: StringNullableWithAggregatesFilter<"form"> | string | null
+    form_status?: IntWithAggregatesFilter<"form"> | number
   }
 
   export type academic_yearCreateInput = {
@@ -13361,6 +14566,8 @@ export namespace Prisma {
   export type work_spaceCreateInput = {
     id: Uint8Array
     name?: string | null
+    created_at?: string | null
+    updated_at?: string | null
     academic_year?: academic_yearCreateNestedOneWithoutWork_spaceInput
     user?: userCreateNestedOneWithoutWork_spaceInput
   }
@@ -13370,11 +14577,15 @@ export namespace Prisma {
     name?: string | null
     academic_year_id?: Uint8Array | null
     account_id?: Uint8Array | null
+    created_at?: string | null
+    updated_at?: string | null
   }
 
   export type work_spaceUpdateInput = {
     id?: BytesFieldUpdateOperationsInput | Uint8Array
     name?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
     academic_year?: academic_yearUpdateOneWithoutWork_spaceNestedInput
     user?: userUpdateOneWithoutWork_spaceNestedInput
   }
@@ -13384,6 +14595,8 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     academic_year_id?: NullableBytesFieldUpdateOperationsInput | Uint8Array | null
     account_id?: NullableBytesFieldUpdateOperationsInput | Uint8Array | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type work_spaceCreateManyInput = {
@@ -13391,11 +14604,15 @@ export namespace Prisma {
     name?: string | null
     academic_year_id?: Uint8Array | null
     account_id?: Uint8Array | null
+    created_at?: string | null
+    updated_at?: string | null
   }
 
   export type work_spaceUpdateManyMutationInput = {
     id?: BytesFieldUpdateOperationsInput | Uint8Array
     name?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type work_spaceUncheckedUpdateManyInput = {
@@ -13403,6 +14620,8 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     academic_year_id?: NullableBytesFieldUpdateOperationsInput | Uint8Array | null
     account_id?: NullableBytesFieldUpdateOperationsInput | Uint8Array | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type book_typeCreateInput = {
@@ -13414,6 +14633,7 @@ export namespace Prisma {
     status?: $Enums.book_type_status | null
     updated_at?: string | null
     token_cost_per_query: number
+    priority: number
   }
 
   export type book_typeUncheckedCreateInput = {
@@ -13425,6 +14645,7 @@ export namespace Prisma {
     status?: $Enums.book_type_status | null
     updated_at?: string | null
     token_cost_per_query: number
+    priority: number
   }
 
   export type book_typeUpdateInput = {
@@ -13436,6 +14657,7 @@ export namespace Prisma {
     status?: NullableEnumbook_type_statusFieldUpdateOperationsInput | $Enums.book_type_status | null
     updated_at?: NullableStringFieldUpdateOperationsInput | string | null
     token_cost_per_query?: IntFieldUpdateOperationsInput | number
+    priority?: IntFieldUpdateOperationsInput | number
   }
 
   export type book_typeUncheckedUpdateInput = {
@@ -13447,6 +14669,7 @@ export namespace Prisma {
     status?: NullableEnumbook_type_statusFieldUpdateOperationsInput | $Enums.book_type_status | null
     updated_at?: NullableStringFieldUpdateOperationsInput | string | null
     token_cost_per_query?: IntFieldUpdateOperationsInput | number
+    priority?: IntFieldUpdateOperationsInput | number
   }
 
   export type book_typeCreateManyInput = {
@@ -13458,6 +14681,7 @@ export namespace Prisma {
     status?: $Enums.book_type_status | null
     updated_at?: string | null
     token_cost_per_query: number
+    priority: number
   }
 
   export type book_typeUpdateManyMutationInput = {
@@ -13469,6 +14693,7 @@ export namespace Prisma {
     status?: NullableEnumbook_type_statusFieldUpdateOperationsInput | $Enums.book_type_status | null
     updated_at?: NullableStringFieldUpdateOperationsInput | string | null
     token_cost_per_query?: IntFieldUpdateOperationsInput | number
+    priority?: IntFieldUpdateOperationsInput | number
   }
 
   export type book_typeUncheckedUpdateManyInput = {
@@ -13480,6 +14705,77 @@ export namespace Prisma {
     status?: NullableEnumbook_type_statusFieldUpdateOperationsInput | $Enums.book_type_status | null
     updated_at?: NullableStringFieldUpdateOperationsInput | string | null
     token_cost_per_query?: IntFieldUpdateOperationsInput | number
+    priority?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type formCreateInput = {
+    id?: bigint | number
+    form_definition?: NullableJsonNullValueInput | InputJsonValue
+    created_at?: string | null
+    form_description?: string | null
+    form_name: string
+    updated_at?: string | null
+    form_status: number
+  }
+
+  export type formUncheckedCreateInput = {
+    id?: bigint | number
+    form_definition?: NullableJsonNullValueInput | InputJsonValue
+    created_at?: string | null
+    form_description?: string | null
+    form_name: string
+    updated_at?: string | null
+    form_status: number
+  }
+
+  export type formUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    form_definition?: NullableJsonNullValueInput | InputJsonValue
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    form_description?: NullableStringFieldUpdateOperationsInput | string | null
+    form_name?: StringFieldUpdateOperationsInput | string
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
+    form_status?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type formUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    form_definition?: NullableJsonNullValueInput | InputJsonValue
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    form_description?: NullableStringFieldUpdateOperationsInput | string | null
+    form_name?: StringFieldUpdateOperationsInput | string
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
+    form_status?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type formCreateManyInput = {
+    id?: bigint | number
+    form_definition?: NullableJsonNullValueInput | InputJsonValue
+    created_at?: string | null
+    form_description?: string | null
+    form_name: string
+    updated_at?: string | null
+    form_status: number
+  }
+
+  export type formUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    form_definition?: NullableJsonNullValueInput | InputJsonValue
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    form_description?: NullableStringFieldUpdateOperationsInput | string | null
+    form_name?: StringFieldUpdateOperationsInput | string
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
+    form_status?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type formUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    form_definition?: NullableJsonNullValueInput | InputJsonValue
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    form_description?: NullableStringFieldUpdateOperationsInput | string | null
+    form_name?: StringFieldUpdateOperationsInput | string
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
+    form_status?: IntFieldUpdateOperationsInput | number
   }
 
   export type BytesFilter<$PrismaModel = never> = {
@@ -14219,6 +15515,8 @@ export namespace Prisma {
     name?: SortOrder
     academic_year_id?: SortOrder
     account_id?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
   }
 
   export type work_spaceMaxOrderByAggregateInput = {
@@ -14226,6 +15524,8 @@ export namespace Prisma {
     name?: SortOrder
     academic_year_id?: SortOrder
     account_id?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
   }
 
   export type work_spaceMinOrderByAggregateInput = {
@@ -14233,6 +15533,8 @@ export namespace Prisma {
     name?: SortOrder
     academic_year_id?: SortOrder
     account_id?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
   }
 
   export type Enumbook_type_statusNullableFilter<$PrismaModel = never> = {
@@ -14268,10 +15570,12 @@ export namespace Prisma {
     status?: SortOrder
     updated_at?: SortOrder
     token_cost_per_query?: SortOrder
+    priority?: SortOrder
   }
 
   export type book_typeAvgOrderByAggregateInput = {
     token_cost_per_query?: SortOrder
+    priority?: SortOrder
   }
 
   export type book_typeMaxOrderByAggregateInput = {
@@ -14283,6 +15587,7 @@ export namespace Prisma {
     status?: SortOrder
     updated_at?: SortOrder
     token_cost_per_query?: SortOrder
+    priority?: SortOrder
   }
 
   export type book_typeMinOrderByAggregateInput = {
@@ -14294,10 +15599,12 @@ export namespace Prisma {
     status?: SortOrder
     updated_at?: SortOrder
     token_cost_per_query?: SortOrder
+    priority?: SortOrder
   }
 
   export type book_typeSumOrderByAggregateInput = {
     token_cost_per_query?: SortOrder
+    priority?: SortOrder
   }
 
   export type Enumbook_type_statusNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -14324,6 +15631,99 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type formOrderByRelevanceInput = {
+    fields: formOrderByRelevanceFieldEnum | formOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type formCountOrderByAggregateInput = {
+    id?: SortOrder
+    form_definition?: SortOrder
+    created_at?: SortOrder
+    form_description?: SortOrder
+    form_name?: SortOrder
+    updated_at?: SortOrder
+    form_status?: SortOrder
+  }
+
+  export type formAvgOrderByAggregateInput = {
+    id?: SortOrder
+    form_status?: SortOrder
+  }
+
+  export type formMaxOrderByAggregateInput = {
+    id?: SortOrder
+    created_at?: SortOrder
+    form_description?: SortOrder
+    form_name?: SortOrder
+    updated_at?: SortOrder
+    form_status?: SortOrder
+  }
+
+  export type formMinOrderByAggregateInput = {
+    id?: SortOrder
+    created_at?: SortOrder
+    form_description?: SortOrder
+    form_name?: SortOrder
+    updated_at?: SortOrder
+    form_status?: SortOrder
+  }
+
+  export type formSumOrderByAggregateInput = {
+    id?: SortOrder
+    form_status?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type work_spaceCreateNestedManyWithoutAcademic_yearInput = {
@@ -15199,10 +16599,35 @@ export namespace Prisma {
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type work_spaceCreateWithoutAcademic_yearInput = {
     id: Uint8Array
     name?: string | null
+    created_at?: string | null
+    updated_at?: string | null
     user?: userCreateNestedOneWithoutWork_spaceInput
   }
 
@@ -15210,6 +16635,8 @@ export namespace Prisma {
     id: Uint8Array
     name?: string | null
     account_id?: Uint8Array | null
+    created_at?: string | null
+    updated_at?: string | null
   }
 
   export type work_spaceCreateOrConnectWithoutAcademic_yearInput = {
@@ -15246,6 +16673,8 @@ export namespace Prisma {
     name?: StringNullableFilter<"work_space"> | string | null
     academic_year_id?: BytesNullableFilter<"work_space"> | Uint8Array | null
     account_id?: BytesNullableFilter<"work_space"> | Uint8Array | null
+    created_at?: StringNullableFilter<"work_space"> | string | null
+    updated_at?: StringNullableFilter<"work_space"> | string | null
   }
 
   export type subjectCreateWithoutBookInput = {
@@ -15759,6 +17188,8 @@ export namespace Prisma {
   export type work_spaceCreateWithoutUserInput = {
     id: Uint8Array
     name?: string | null
+    created_at?: string | null
+    updated_at?: string | null
     academic_year?: academic_yearCreateNestedOneWithoutWork_spaceInput
   }
 
@@ -15766,6 +17197,8 @@ export namespace Prisma {
     id: Uint8Array
     name?: string | null
     academic_year_id?: Uint8Array | null
+    created_at?: string | null
+    updated_at?: string | null
   }
 
   export type work_spaceCreateOrConnectWithoutUserInput = {
@@ -15938,11 +17371,15 @@ export namespace Prisma {
     id: Uint8Array
     name?: string | null
     account_id?: Uint8Array | null
+    created_at?: string | null
+    updated_at?: string | null
   }
 
   export type work_spaceUpdateWithoutAcademic_yearInput = {
     id?: BytesFieldUpdateOperationsInput | Uint8Array
     name?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
     user?: userUpdateOneWithoutWork_spaceNestedInput
   }
 
@@ -15950,12 +17387,16 @@ export namespace Prisma {
     id?: BytesFieldUpdateOperationsInput | Uint8Array
     name?: NullableStringFieldUpdateOperationsInput | string | null
     account_id?: NullableBytesFieldUpdateOperationsInput | Uint8Array | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type work_spaceUncheckedUpdateManyWithoutAcademic_yearInput = {
     id?: BytesFieldUpdateOperationsInput | Uint8Array
     name?: NullableStringFieldUpdateOperationsInput | string | null
     account_id?: NullableBytesFieldUpdateOperationsInput | Uint8Array | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type chapterCreateManyBookInput = {
@@ -16104,6 +17545,8 @@ export namespace Prisma {
     id: Uint8Array
     name?: string | null
     academic_year_id?: Uint8Array | null
+    created_at?: string | null
+    updated_at?: string | null
   }
 
   export type refresh_tokenUpdateWithoutUserInput = {
@@ -16133,6 +17576,8 @@ export namespace Prisma {
   export type work_spaceUpdateWithoutUserInput = {
     id?: BytesFieldUpdateOperationsInput | Uint8Array
     name?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
     academic_year?: academic_yearUpdateOneWithoutWork_spaceNestedInput
   }
 
@@ -16140,12 +17585,16 @@ export namespace Prisma {
     id?: BytesFieldUpdateOperationsInput | Uint8Array
     name?: NullableStringFieldUpdateOperationsInput | string | null
     academic_year_id?: NullableBytesFieldUpdateOperationsInput | Uint8Array | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type work_spaceUncheckedUpdateManyWithoutUserInput = {
     id?: BytesFieldUpdateOperationsInput | Uint8Array
     name?: NullableStringFieldUpdateOperationsInput | string | null
     academic_year_id?: NullableBytesFieldUpdateOperationsInput | Uint8Array | null
+    created_at?: NullableStringFieldUpdateOperationsInput | string | null
+    updated_at?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
 
