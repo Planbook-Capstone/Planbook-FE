@@ -1,4 +1,5 @@
 "use client";
+
 import { FeatureCardsSection } from "@/components/organisms/feature-card-section";
 import { Footer } from "@/components/organisms/footer";
 import { LandingPageHeader } from "@/components/organisms/header/LandingPageHeader";

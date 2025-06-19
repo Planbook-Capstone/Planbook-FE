@@ -25,6 +25,11 @@ export const gradeColumns: ColumnDef<GradeResponse>[] = [
     enableHiding: false,
   },
   {
+    id: "name",
+    header: "Tên khối",
+    cell: ({ row }) => row.original.name,
+  },
+  {
     accessorKey: "createdAt",
     header: "Ngày tạo",
     cell: ({ row }) => (
