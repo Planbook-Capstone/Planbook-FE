@@ -24,7 +24,7 @@ export const PartnerSection = () => {
           </Button>
         </div>
 
-        <div className="w-full md:w-[480px] absolute bottom-0 right-20">
+        <div className="w-full md:w-[480px] hidden md:block absolute bottom-0 right-20">
           <Image
             src="/images/illustration/phone.svg"
             alt="Ảnh mockup Planbook"
