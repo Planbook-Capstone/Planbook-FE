@@ -23,7 +23,7 @@ const LoginPage = () => {
         if (data.data.data.role === "ADMIN") {
           router.push("/admin");
         } else {
-          router.push("/");
+          router.push("/home");
         }
       },
       onError: () => {

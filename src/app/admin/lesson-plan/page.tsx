@@ -16,6 +16,10 @@ export default function LessonPlanManagementPage() {
   const handleCreateLessonPlan = () => {
     router.push("/admin/lesson-plan/new");
   };
+  const handleEditLessonPlan = () => {
+    console.log(selected);
+    // router.push("/admin/lesson-plan/" + selected);
+  };
 
   return (
     <div className="space-y-5">
@@ -26,7 +30,7 @@ export default function LessonPlanManagementPage() {
             <p className="text-sm text-muted-foreground">
               Đã chọn {selected.length}
             </p>
-            <Button>Chỉnh sửa</Button>
+            <Button onClick={handleEditLessonPlan}>Chỉnh sửa</Button>
           </div>
         ) : (
           <Button
