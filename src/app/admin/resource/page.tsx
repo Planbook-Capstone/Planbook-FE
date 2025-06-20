@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 
 import CreateBookModal from "@/components/organisms/create-book-modal";
 import BookTable from "@/components/organisms/book-list";
@@ -7,13 +8,19 @@ import GradeTable from "@/components/organisms/grade-list";
 import { Row } from "@tanstack/react-table";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
-import { BookResponse, GradeResponse, SubjectResponse } from "@/types";
+import { BookResponse } from "@/types";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubjectTable from "@/components/organisms/subject-list";
-import CreateGradeModal from "@/components/organisms/create-grade-modal";
-import CreateSubjectModal from "@/components/organisms/create-subject-modal";
 import { useUpdateBookStatus } from "@/services/bookServices";
+
+// Dynamic imports to avoid SSR issues
+const CreateGradeModal = dynamic(() => import("@/components/organisms/create-grade-modal"), {
+  ssr: false,
+});
+const CreateSubjectModal = dynamic(() => import("@/components/organisms/create-subject-modal"), {
+  ssr: false,
+});
 
 const ResourceManagementPage = () => {
   const [selected, setSelected] = useState<Row<BookResponse>[]>([]);
