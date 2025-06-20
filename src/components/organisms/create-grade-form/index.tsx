@@ -4,96 +4,126 @@ import {
   useCreateGradeService,
   useGradesService,
 } from "@/services/gradeServices";
-import { Form } from "antd";
-import { on } from "events";
 import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { gradeFormSchema, type GradeFormData } from "@/schemas";
 
 interface CreateGradeFormProps {
   onClose?: () => void;
 }
 
 function CreateGradeForm({ onClose }: CreateGradeFormProps) {
-  const { mutateAsync } = useCreateGradeService();
+  const { mutateAsync: createGradeMutateAsync } = useCreateGradeService();
+  const { refetch } = useGradesService();
 
-  const onFinish = async (values: any) => {
-    console.log("Received values of form:", values);
+  // React Hook Form setup
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<GradeFormData>({
+    resolver: zodResolver(gradeFormSchema),
+    defaultValues: {
+      grades: [{ name: "" }],
+    },
+  });
 
-    for (const grade of values.grades) {
-      try {
-        await mutateAsync(grade);
-        toast.success(`Tạo khối ${grade.name} thành công`);
-      } catch (error: any) {
-        console.error(error.response?.data || error.message, "Lỗi");
-        toast.error(error.response?.data || `Tạo khối ${grade.name} thất bại`);
-        // Nếu muốn dừng luôn khi có lỗi thì dùng: break;
+  const {
+    fields: gradeFields,
+    append: appendGrade,
+    remove: removeGrade,
+  } = useFieldArray({
+    control,
+    name: "grades",
+  });
+
+  const onSubmit = async (data: GradeFormData) => {
+    console.log("Received values of form:", data);
+
+    try {
+      for (const grade of data.grades) {
+        await createGradeMutateAsync({
+          name: grade.name.trim(),
+        });
       }
+      toast.success("Tạo khối thành công!");
+      refetch();
+      reset({ grades: [{ name: "" }] });
+      onClose?.();
+    } catch (error: any) {
+      console.error(error.response?.data || error.message);
+      toast.error(error.response?.data || "Tạo khối thất bại");
     }
-
-    onClose?.();
   };
 
   return (
-    <Form onFinish={onFinish}>
-      <Form.List
-        name="grades"
-        rules={[
-          {
-            validator: async (_, grades) => {
-              if (!grades || grades.length < 1) {
-                return Promise.reject(new Error("Phải có ít nhất 1 khối"));
-              }
-            },
-          },
-        ]}
-      >
-        {(fields, { add, remove }, { errors }) => (
-          <>
-            {fields.map((field, index) => (
-              <div className="flex items-start gap-2 w-full pb-2.5" key={index}>
-                <Form.Item
-                  required={false}
-                  label="Tên Lớp"
-                  name={[field.name, "name"]}
-                  rules={[
-                    {
-                      required: true,
-                      whitespace: true,
-                      message: "Vui lòng nhập tên khối hoặc xóa ô này.",
-                    },
-                  ]}
-                >
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="flex flex-col gap-4">
+        {gradeFields.map((gradeField, gradeIndex) => (
+          <div key={gradeField.id} className="flex items-start gap-2 w-full pb-2.5">
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Tên Khối
+              </label>
+              <Controller
+                name={`grades.${gradeIndex}.name`}
+                control={control}
+                render={({ field }) => (
                   <Input
-                    className="bg-background font-calsans"
-                    placeholder="Lớp 10"
+                    {...field}
+                    className="bg-neutral-100 font-calsans placeholder:text-neutral-300 text-black"
+                    placeholder="Khối 1"
                   />
-                </Form.Item>
-                {fields.length > 1 ? (
-                  <Button
-                    onClick={() => {
-                      remove(field.name);
-                    }}
-                    className="h-full bg-neutral-800 border text-white hover:bg-neutral-600"
-                  >
-                    <X />
-                  </Button>
-                ) : null}
-              </div>
-            ))}
-            <Form.Item>
-              <Button variant={"dash"} onClick={() => add()} className="w-full">
-                <Plus /> Thêm Lớp
-              </Button>
+                )}
+              />
+              {errors.grades?.[gradeIndex]?.name && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.grades[gradeIndex]?.name?.message}
+                </p>
+              )}
+            </div>
 
-              <Form.ErrorList errors={errors} />
-            </Form.Item>
-          </>
+            <Button
+              type="button"
+              onClick={() => {
+                if (gradeFields.length <= 1) {
+                  toast.error("Phải có ít nhất 1 khối");
+                  return;
+                }
+                removeGrade(gradeIndex);
+              }}
+              disabled={gradeFields.length <= 1}
+              className="h-full bg-neutral-800 border text-white hover:bg-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+            >
+              <X />
+            </Button>
+          </div>
+        ))}
+
+        <Button
+          type="button"
+          variant="dash"
+          onClick={() => appendGrade({ name: "" })}
+          className="bg-neutral-100 w-full"
+        >
+          <Plus />
+          Thêm khối
+        </Button>
+
+        {errors.grades && (
+          <p className="text-red-500 text-sm">
+            {errors.grades.message}
+          </p>
         )}
-      </Form.List>
-      <Form.Item>
-        <Button type="submit">Tạo Lớp</Button>
-      </Form.Item>
-    </Form>
+      </div>
+
+      <Button type="submit" className="w-full mt-5" disabled={isSubmitting}>
+        {isSubmitting ? "Đang tạo..." : "Tạo khối"}
+      </Button>
+    </form>
   );
 }
 
