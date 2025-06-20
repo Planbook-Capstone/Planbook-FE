@@ -1,6 +1,4 @@
 "use client";
-
-import { FAQsSection } from "@/components/organisms/faqs";
 import { FeatureCardsSection } from "@/components/organisms/feature-card-section";
 import { Footer } from "@/components/organisms/footer";
 import { LandingPageHeader } from "@/components/organisms/header/LandingPageHeader";
@@ -18,7 +16,6 @@ export default function LandingPage() {
         <HeroSection />
         <FeatureCardsSection />
         <PricingSection />
-        <FAQsSection />
         <PartnerSection />
         <Footer />
       </ParallaxProvider>
