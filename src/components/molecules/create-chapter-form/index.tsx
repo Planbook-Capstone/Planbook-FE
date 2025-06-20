@@ -20,6 +20,7 @@ import { z } from "zod";
 import { useState } from "react";
 import { getStatusVariant, translateStatus } from "@/utils/translateEnum";
 import { useQuickTextBookAnalysisService } from "@/services/textbookServices";
+import TaskProgressWrapper from "@/components/molecules/task-progress-wrapper";
 
 // Zod schema for validation
 const lessonSchema = z.object({
@@ -65,18 +66,25 @@ interface CreateChapterFormProps {
 
 const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
   const { data: book } = useBookByIdService(bookId);
-  const { data: chaptersByBook } = useChaptersByBookService(bookId);
+  // const { data: chaptersByBook } = useChaptersByBookService(bookId);
 
   const { mutateAsync: createChapterMutateAsync } = useCreateChapterService();
   const { mutateAsync: createLessonMutateAsync } = useCreateLessonService();
-  const { mutateAsync: quickAnalysisMutateAsync } = useQuickTextBookAnalysisService();
+  const { mutateAsync: quickAnalysisMutateAsync } =
+    useQuickTextBookAnalysisService();
 
-  console.log("Chapters by book:", chaptersByBook?.data?.content);
+  // console.log("Chapters by book:", chaptersByBook?.data?.content);
 
   // Loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState<string>("");
+  const [activeTaskIds, setActiveTaskIds] = useState<string[]>([]);
+
+  // Function to remove completed tasks
+  const removeCompletedTask = (taskId: string) => {
+    setActiveTaskIds(prev => prev.filter(id => id !== taskId));
+  };
 
   // React Hook Form setup
   const {
@@ -105,11 +113,10 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
     name: "chapters",
   });
 
-  console.log("Form errors:", errors);
-  console.log("Chapter fields:", chapterFields);
+  // console.log("Form errors:", errors);
 
   const onSubmit = async (data: FormData) => {
-    console.log("Received values of form:", data);
+    // console.log("Received values of form:", data);
     setIsSubmitting(true);
 
     try {
@@ -159,56 +166,63 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
               if (createdLesson?.data?.data?.id && lesson.pdfFile) {
                 try {
                   setIsAnalyzing(true);
-                  setAnalysisProgress(`Đang phân tích PDF cho bài "${lesson.lessonTitle}"...`);
+                  setAnalysisProgress(
+                    `Đang phân tích PDF cho bài "${lesson.lessonTitle}"...`
+                  );
 
-                  console.log("🚀 Starting Quick TextBook Analysis for lesson:", {
-                    lessonId: createdLesson.data.data.id,
-                    fileName: lesson.pdfFile.name,
-                    fileSize: lesson.pdfFile.size
-                  });
+                  console.log(
+                    "🚀 Starting Quick TextBook Analysis for lesson:",
+                    {
+                      lessonId: createdLesson.data.data.id,
+                      fileName: lesson.pdfFile.name,
+                      fileSize: lesson.pdfFile.size,
+                    }
+                  );
 
                   // Tạo FormData cho quick analysis
                   const analysisFormData = new FormData();
-                  analysisFormData.append("lesson_id", createdLesson.data.data.id);
+                  analysisFormData.append(
+                    "lesson_id",
+                    createdLesson.data.data.id
+                  );
                   analysisFormData.append("file", lesson.pdfFile);
-                  analysisFormData.append("filename", lesson.pdfFile.name);
                   analysisFormData.append("create_embeddings", "true");
 
-                  // // Optional: Thêm metadata
-                  // analysisFormData.append("lesson_title", lesson.lessonTitle);
-                  // analysisFormData.append("chapter_title", chapter.chapterTitle);
-                  if (bookId) {
-                    analysisFormData.append("book_id", bookId);
-                  }
-
-                  const analysisResponse = await quickAnalysisMutateAsync(analysisFormData);
+                  const analysisResponse = await quickAnalysisMutateAsync(
+                    analysisFormData
+                  );
 
                   console.log("✅ Quick Analysis Response:", analysisResponse);
-                  console.log("📊 Analysis Data Structure:", {
-                    success: analysisResponse?.success,
-                    bookId: analysisResponse?.book_id,
-                    lessonId: analysisResponse?.lesson_id,
-                    hasBookStructure: !!analysisResponse?.book_structure,
-                    chaptersCount: analysisResponse?.book_structure?.chapters?.length || 0
-                  });
+
+                  const taskId = analysisResponse?.data?.task_id;
+                  console.log("Task ID:", taskId);
+
+                  // Add task_id to activeTaskIds array
+                  if (taskId) {
+                    setActiveTaskIds(prev => [...prev, taskId]);
+                  }
 
                   toast.success(
                     `📊 Phân tích PDF cho bài "${lesson.lessonTitle}" thành công!`
                   );
 
-                  setAnalysisProgress(`Phân tích hoàn tất cho bài "${lesson.lessonTitle}"`);
+                  setAnalysisProgress(
+                    `Phân tích hoàn tất cho bài "${lesson.lessonTitle}"`
+                  );
                 } catch (analysisError: any) {
                   console.error("❌ Quick Analysis Error:", analysisError);
                   console.error("📝 Error details:", {
                     message: analysisError.message,
                     response: analysisError.response?.data,
-                    status: analysisError.response?.status
+                    status: analysisError.response?.status,
                   });
 
                   toast.error(
                     `Phân tích PDF thất bại cho bài "${lesson.lessonTitle}": ${analysisError.message}`
                   );
-                  setAnalysisProgress(`Lỗi phân tích: ${analysisError.message}`);
+                  setAnalysisProgress(
+                    `Lỗi phân tích: ${analysisError.message}`
+                  );
                   // Không throw error để không dừng việc tạo lesson khác
                 } finally {
                   setIsAnalyzing(false);
@@ -266,76 +280,96 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
         </Badge>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="flex flex-col gap-4">
-          {chapterFields.map((chapterField, chapterIndex) => (
-            <div key={chapterField.id}>
-              <div className="flex items-start gap-2 w-full pb-2.5">
-                <div className="flex-1">
-                  <Controller
-                    name={`chapters.${chapterIndex}.chapterTitle`}
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        className="bg-neutral-100 font-calsans placeholder:text-neutral-300"
-                        placeholder="Chương 1"
-                      />
+      {/* Conditional rendering based on activeTaskIds */}
+      {activeTaskIds.length > 0 ? (
+        // Show only progress tracking when there are active tasks
+        <div className="mt-8 space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">
+            Tiến trình phân tích PDF
+          </h3>
+          <div className="grid grid-cols-4 gap-2">
+            {activeTaskIds.map((taskId) => (
+              <TaskProgressWrapper
+                key={taskId}
+                taskId={taskId}
+                onTaskCompleted={removeCompletedTask}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        // Show form when no active tasks
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="flex flex-col gap-4">
+            {chapterFields.map((chapterField, chapterIndex) => (
+              <div key={chapterField.id}>
+                <div className="flex items-start gap-2 w-full pb-2.5">
+                  <div className="flex-1">
+                    <Controller
+                      name={`chapters.${chapterIndex}.chapterTitle`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          className="bg-neutral-100 font-calsans placeholder:text-neutral-300"
+                          placeholder="Chương 1"
+                        />
+                      )}
+                    />
+                    {errors.chapters?.[chapterIndex]?.chapterTitle && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.chapters[chapterIndex]?.chapterTitle?.message}
+                      </p>
                     )}
-                  />
-                  {errors.chapters?.[chapterIndex]?.chapterTitle && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.chapters[chapterIndex]?.chapterTitle?.message}
-                    </p>
-                  )}
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (chapterFields.length <= 1) {
+                        toast.error("Phải có ít nhất 1 chương");
+                        return;
+                      }
+                      removeChapter(chapterIndex);
+                    }}
+                    disabled={chapterFields.length <= 1}
+                    className="h-full bg-neutral-800 border text-white hover:bg-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <X />
+                  </Button>
                 </div>
 
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (chapterFields.length <= 1) {
-                      toast.error("Phải có ít nhất 1 chương");
-                      return;
-                    }
-                    removeChapter(chapterIndex);
-                  }}
-                  disabled={chapterFields.length <= 1}
-                  className="h-full bg-neutral-800 border text-white hover:bg-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <X />
-                </Button>
+                {/* Lessons Section */}
+                <div className="pl-14">
+                  <LessonsFieldArray
+                    control={control}
+                    chapterIndex={chapterIndex}
+                    errors={errors}
+                  />
+                </div>
               </div>
+            ))}
 
-              {/* Lessons Section */}
-              <div className="pl-14">
-                <LessonsFieldArray
-                  control={control}
-                  chapterIndex={chapterIndex}
-                  errors={errors}
-                />
-              </div>
-            </div>
-          ))}
+            <Button
+              type="button"
+              variant="dash"
+              onClick={() =>
+                appendChapter({
+                  chapterTitle: "",
+                  lessons: [{ lessonTitle: "", pdfFile: new File([], "") }],
+                })
+              }
+              className="bg-neutral-100"
+            >
+              + Thêm chương
+            </Button>
+          </div>
 
-          <Button
-            type="button"
-            variant="dash"
-            onClick={() =>
-              appendChapter({
-                chapterTitle: "",
-                lessons: [{ lessonTitle: "", pdfFile: new File([], "") }],
-              })
-            }
-            className="bg-neutral-100"
-          >
-            + Thêm chương
+          <Button type="submit" className="w-full mt-5" disabled={isSubmitting}>
+            {isSubmitting ? "Đang tạo..." : "Tạo chương và bài học"}
           </Button>
-        </div>
-
-        <Button type="submit" className="w-full mt-5" disabled={isSubmitting}>
-          {isSubmitting ? "Đang tạo..." : "Tạo chương và bài học"}
-        </Button>
-      </form>
+        </form>
+      )}
     </>
   );
 };

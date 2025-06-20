@@ -1,16 +1,16 @@
-"use client"
+"use client";
+import TaskProgressWrapper from "@/components/molecules/task-progress-wrapper";
 import { Progress } from "@/components/ui/progress";
 import { useTaskStatusService } from "@/services/progressTaskServices";
 import React from "react";
 
 function DemoPage() {
-  const { data } = useTaskStatusService("1a578603-5275-4b88-a6d2-0b6601984682");
-
-  console.log(data?.current_progress, "test");
-
   return (
-    <div className="grid grid-cols-3">
-      <Progress value={data?.current_progress} />
+    <div className="grid grid-cols-4 gap-2">
+      <TaskProgressWrapper />
+      <TaskProgressWrapper />
+      <TaskProgressWrapper />
+      <TaskProgressWrapper />
     </div>
   );
 }
