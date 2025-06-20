@@ -172,10 +172,11 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
                   analysisFormData.append("lesson_id", createdLesson.data.data.id);
                   analysisFormData.append("file", lesson.pdfFile);
                   analysisFormData.append("filename", lesson.pdfFile.name);
+                  analysisFormData.append("create_embeddings", "true");
 
-                  // Optional: Thêm metadata
-                  analysisFormData.append("lesson_title", lesson.lessonTitle);
-                  analysisFormData.append("chapter_title", chapter.chapterTitle);
+                  // // Optional: Thêm metadata
+                  // analysisFormData.append("lesson_title", lesson.lessonTitle);
+                  // analysisFormData.append("chapter_title", chapter.chapterTitle);
                   if (bookId) {
                     analysisFormData.append("book_id", bookId);
                   }
