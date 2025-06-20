@@ -118,29 +118,21 @@ const ResourceManagementPage = () => {
 
   return (
     <div className="space-y-5 w-full">
-      <div className="flex justify-between w-full">
-        <Tabs defaultValue="grade" className="w-full">
-          <div className="space-y-5 w-full">
-            <div className="flex justify-between w-full">
-              <Tabs defaultValue="grade" className="w-full">
-                <TabsList>
-                  {tabs.map((tab) => (
-                    <TabsTrigger key={tab.value} value={tab.value}>
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+      <Tabs defaultValue="grade" className="w-full">
+        <TabsList>
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-                {tabs.map((tab) => (
-                  <TabsContent key={tab.value} value={tab.value}>
-                    {tab.content}
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </div>
-          </div>
-        </Tabs>
-      </div>
+        {tabs.map((tab) => (
+          <TabsContent key={tab.value} value={tab.value}>
+            {tab.content}
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 };
