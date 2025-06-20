@@ -16,3 +16,14 @@ const academicYearStatusMap: Record<string, string> = {
 export function translateAcademicYearStatus(status: string): string {
   return academicYearStatusMap[status] || "Không xác định";
 }
+
+export const getStatusVariant = (status: string | null | undefined) => {
+  switch (status) {
+    case "ACTIVE":
+      return "success";
+    case "INACTIVE":
+      return "warning";
+    default:
+      return "outline";
+  }
+};
