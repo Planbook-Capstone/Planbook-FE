@@ -4,7 +4,7 @@ import CreateYearModal from "@/components/organisms/create-year-modal";
 import { Button } from "@/components/ui/Button";
 import { AcademicYearResponse } from "@/types";
 import { Row } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+
 import { useState } from "react";
 
 function WorkspaceManagementPage() {

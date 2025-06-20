@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios";
 
 // Main API instance (default port)
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_LOCAL_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 // Secondary API instance (different port)
