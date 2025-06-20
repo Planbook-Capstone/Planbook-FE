@@ -1,11 +1,15 @@
 "use client";
+import dynamic from "next/dynamic";
 import AcademicYearTable from "@/components/organisms/academic-year-table";
-import CreateYearModal from "@/components/organisms/create-year-modal";
 import { Button } from "@/components/ui/Button";
 import { AcademicYearResponse } from "@/types";
 import { Row } from "@tanstack/react-table";
-
 import { useState } from "react";
+
+// Dynamic import to avoid SSR issues
+const CreateYearModal = dynamic(() => import("@/components/organisms/create-year-modal"), {
+  ssr: false,
+});
 
 function WorkspaceManagementPage() {
   const [selected, setSelected] = useState<Row<AcademicYearResponse>[]>([]);
