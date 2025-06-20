@@ -32,52 +32,17 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/Button";
-
-const FormSchema = z
-  .object({
-    start_date: z.date({
-      required_error: "Vui lòng chọn ngày bắt đầu năm học.",
-    }),
-    end_date: z.date({
-      required_error: "Vui lòng chọn ngày kết thúc năm học.",
-    }),
-  })
-  .refine(
-    (data) => {
-      const startYear = data.start_date.getFullYear();
-      const endYear = data.end_date.getFullYear();
-      const yearDiff = endYear - startYear;
-
-      return yearDiff >= 1;
-    },
-    {
-      path: ["end_date"],
-      message: "Ngày kết thúc phải lớn hơn ngày bắt đầu ít nhất 1 năm.",
-    }
-  )
-  .refine(
-    (data) => {
-      const startYear = data.start_date.getFullYear();
-      const endYear = data.end_date.getFullYear();
-      const yearDiff = endYear - startYear;
-
-      return yearDiff <= 2;
-    },
-    {
-      path: ["end_date"],
-      message: "Ngày kết thúc không được quá 2 năm so với ngày bắt đầu.",
-    }
-  );
+import { academicYearSchema } from "@/schemas";
 
 function CreateYearModal() {
   const [open, setOpen] = useState(false);
   const createAcademicYear = useCreateAcademicYearService();
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<z.infer<typeof academicYearSchema>>({
+    resolver: zodResolver(academicYearSchema),
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  function onSubmit(data: z.infer<typeof academicYearSchema>) {
     try {
       const payload = {
         startDate: data.start_date.toISOString(),

@@ -16,48 +16,13 @@ import { useBookByIdService, useBooksService } from "@/services/bookServices";
 import { Badge } from "@/components/ui/badge";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useState } from "react";
 import { getStatusVariant, translateStatus } from "@/utils/translateEnum";
 import { useQuickTextBookAnalysisService } from "@/services/textbookServices";
 import TaskProgressWrapper from "@/components/molecules/task-progress-wrapper";
+import { formSchema, type FormData } from "@/schemas";
 
-// Zod schema for validation
-const lessonSchema = z.object({
-  lessonTitle: z
-    .string()
-    .min(1, "Vui lòng nhập tiêu đề bài học")
-    .refine((val) => val.trim().length > 0, {
-      message: "Không được để trống hoặc chỉ chứa khoảng trắng",
-    }),
-  pdfFile: z
-    .instanceof(File)
-    .refine((file) => file.type === "application/pdf", {
-      message: "Chỉ được upload file PDF",
-    })
-    .refine((file) => file.size <= 10 * 1024 * 1024, {
-      message: "File phải nhỏ hơn 10MB",
-    })
-    .refine((file) => file.size > 0, {
-      message: "Vui lòng chọn file PDF",
-    }),
-});
 
-const chapterSchema = z.object({
-  chapterTitle: z
-    .string()
-    .min(1, "Vui lòng nhập tiêu đề chương")
-    .refine((val) => val.trim().length > 0, {
-      message: "Không được để trống hoặc chỉ chứa khoảng trắng",
-    }),
-  lessons: z.array(lessonSchema).min(1, "Chương phải có ít nhất 1 bài học"),
-});
-
-const formSchema = z.object({
-  chapters: z.array(chapterSchema).min(1, "Phải có ít nhất 1 chương"),
-});
-
-type FormData = z.infer<typeof formSchema>;
 
 interface CreateChapterFormProps {
   bookId?: string;
@@ -311,7 +276,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
                       render={({ field }) => (
                         <Input
                           {...field}
-                          className="bg-neutral-100 font-calsans placeholder:text-neutral-300"
+                          className="bg-neutral-100 font-calsans placeholder:text-neutral-300 text-black"
                           placeholder="Chương 1"
                         />
                       )}
@@ -405,7 +370,7 @@ const LessonsFieldArray = ({
               <Controller
                 name={`chapters.${chapterIndex}.lessons.${lessonIndex}.lessonTitle`}
                 control={control}
-                render={({ field }) => <Input {...field} placeholder="Bài 1" />}
+                render={({ field }) => <Input {...field} placeholder="Bài 1" className="text-black placeholder:text-neutral-300" />}
               />
               {errors.chapters?.[chapterIndex]?.lessons?.[lessonIndex]
                 ?.lessonTitle && (
