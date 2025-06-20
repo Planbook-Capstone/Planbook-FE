@@ -63,7 +63,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
       chapters: [
         {
           chapterTitle: "",
-          lessons: [{ lessonTitle: "", pdfFile: new File([], "") }],
+          lessons: [{ lessonTitle: "", pdfFile: typeof File !== 'undefined' ? new File([], "") : null as any }],
         },
       ],
     },
@@ -223,7 +223,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
         chapters: [
           {
             chapterTitle: "",
-            lessons: [{ lessonTitle: "", pdfFile: new File([], "") }],
+            lessons: [{ lessonTitle: "", pdfFile: typeof File !== 'undefined' ? new File([], "") : null as any }],
           },
         ],
       });
@@ -321,7 +321,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
               onClick={() =>
                 appendChapter({
                   chapterTitle: "",
-                  lessons: [{ lessonTitle: "", pdfFile: new File([], "") }],
+                  lessons: [{ lessonTitle: "", pdfFile: typeof File !== 'undefined' ? new File([], "") : null as any }],
                 })
               }
               className="bg-neutral-100"
@@ -448,7 +448,7 @@ const LessonsFieldArray = ({
                         type="button"
                         size="sm"
                         variant="ghost"
-                        onClick={() => onChange(new File([], ""))}
+                        onClick={() => onChange(typeof File !== 'undefined' ? new File([], "") : null)}
                         className="h-6 w-6 p-0 text-green-600 hover:text-green-800"
                       >
                         <X size={14} />
@@ -480,7 +480,7 @@ const LessonsFieldArray = ({
         type="button"
         variant="dash"
         onClick={() =>
-          appendLesson({ lessonTitle: "", pdfFile: new File([], "") })
+          appendLesson({ lessonTitle: "", pdfFile: typeof File !== 'undefined' ? new File([], "") : null as any })
         }
       >
         + Thêm bài
