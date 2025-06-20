@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SubjectResponse } from "@/types";
-import { translateStatus } from "@/utils/translateEnum";
+import { getStatusVariant, translateStatus } from "@/utils/translateEnum";
 import { Badge } from "@/components/ui/badge";
 import { MoreVertical } from "lucide-react";
 import {
@@ -65,17 +65,6 @@ export const subjectColumns: ColumnDef<SubjectResponse>[] = [
     cell: ({ row }) => {
       const status = row.original.status;
       const statusText = translateStatus(status || "");
-
-      const getStatusVariant = (status: string | null | undefined) => {
-        switch (status) {
-          case "ACTIVE":
-            return "success";
-          case "INACTIVE":
-            return "warning";
-          default:
-            return "outline";
-        }
-      };
 
       return <Badge variant={getStatusVariant(status)}>{statusText}</Badge>;
     },
