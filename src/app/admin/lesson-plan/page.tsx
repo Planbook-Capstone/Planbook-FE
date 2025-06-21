@@ -1,6 +1,6 @@
 "use client";
 
-import CreateFrameworkModal from "@/components/organisms/create-framework-modal";
+import dynamic from "next/dynamic";
 import LessonPlanTable from "@/components/organisms/lesson-plan-list";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,11 @@ import { Row } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+// Dynamic import to avoid SSR issues
+const CreateFrameworkModal = dynamic(() => import("@/components/organisms/create-framework-modal"), {
+  ssr: false,
+});
 
 export default function LessonPlanManagementPage() {
   const [selected, setSelected] = useState<Row<LessonPlanResponse>[]>([]);
