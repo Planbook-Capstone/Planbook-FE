@@ -24,48 +24,7 @@ export default function Home() {
   const view = searchParams.get("view") || "grid";
   const { data: bookTypes } = useBookTypesService();
 
-  const aiFeatures = [
-    {
-      id: 1,
-      title: "Giáo án",
-      description:
-        "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
-      href: "lesson",
-      icon: LessonPlanIcon,
-    },
-    {
-      id: 2,
-      title: "Slide bài giảng",
-      description:
-        "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
-      href: "chat",
-      icon: SlideIcon,
-    },
-    {
-      id: 3,
-      title: "Tạo đề thi",
-      description:
-        "AI học từ lựa chọn trước đây để đề xuất điểm đến và trải nghiệm phù hợp",
-      href: "chat",
-      icon: ExamIcon,
-    },
-    {
-      id: 4,
-      title: "Chấm điểm tự động",
-      description:
-        "AI xử lý hàng nghìn đánh giá để đưa ra thông tin chính xác về điểm đến",
-      href: "grading-test",
-      icon: PenIcon,
-    },
-    {
-      id: 5,
-      title: "Điền biểu mẫu",
-      description: "Điền biểu mẫu chuẩn hoá theo Bộ Giáo Dục",
-      href: "chat",
-      icon: FormIcon,
-    },
-  ];
-
+  
   // Dữ liệu điểm đến được AI khuyên dùng
   const aiRecommendedDestinations = [
     {
@@ -150,7 +109,7 @@ export default function Home() {
             <CardFeature
               key={feature.id}
               icon={feature.icon}
-              title={feature.title}
+              title={feature.name}
               description={feature.description}
               href={feature.href}
             />
