@@ -23,6 +23,7 @@ export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
   const { data: bookTypes } = useBookTypesService();
+
   const aiFeatures = [
     {
       id: 1,
@@ -143,15 +144,17 @@ export default function Home() {
       <Banner />
 
       <section className="grid grid-cols-1 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2 gap-5">
-        {aiFeatures?.map((feature) => (
-          <CardFeature
-            key={feature.id}
-            icon={feature.icon}
-            title={feature.title}
-            description={feature.description}
-            href={feature.href}
-          />
-        ))}
+        {bookTypes?.data?.content
+          ?.sort((a: any, b: any) => a.priority - b.priority)
+          ?.map((feature: any) => (
+            <CardFeature
+              key={feature.id}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+              href={feature.href}
+            />
+          ))}
       </section>
 
       <ItemSection
