@@ -9,11 +9,15 @@ import { Row } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 // Dynamic import to avoid SSR issues
-const CreateFrameworkModal = dynamic(() => import("@/components/organisms/create-framework-modal"), {
-  ssr: false,
-});
+const CreateFrameworkModal = dynamic(
+  () => import("@/components/organisms/create-framework-modal"),
+  {
+    ssr: false,
+  }
+);
 
 export default function LessonPlanManagementPage() {
   const [selected, setSelected] = useState<Row<LessonPlanResponse>[]>([]);
@@ -25,6 +29,11 @@ export default function LessonPlanManagementPage() {
   const handleEditLessonPlan = () => {
     console.log(selected);
     // router.push("/admin/lesson-plan/" + selected);
+    if (selected.length > 1) {
+      toast.error("Vui lòng chỉ chọn 1 mẫu");
+    } else {
+      router.push("/admin/lesson-plan/" + selected[0].original.id);
+    }
   };
 
   return (
