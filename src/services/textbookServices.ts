@@ -18,11 +18,6 @@ export const useTextBookByIdService = createSecondaryQueryHook(
   PDF_API_ENDPOINTS.GET_TEXTBOOK_BY_ID("") // Will be replaced with actual ID
 );
 
-// Upload textbook
-export const useUploadTextBookService = createSecondaryMutationHook(
-  "textbooks",
-  PDF_API_ENDPOINTS.UPLOAD_TEXTBOOK
-);
 
 // Quick textbook analysis
 export const useQuickTextBookAnalysisService = createSecondaryMutationHook(
@@ -30,8 +25,3 @@ export const useQuickTextBookAnalysisService = createSecondaryMutationHook(
   PDF_API_ENDPOINTS.QUICK_TEXTBOOK_ANALYSIS
 );
 
-// // Delete textbook
-// export const useDeleteTextBookService = createSecondaryMutationHook(
-//   "textbooks",
-//   PDF_API_ENDPOINTS.DELETE_TEXTBOOK("") // Will be replaced with actual ID
-// );
