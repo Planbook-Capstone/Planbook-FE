@@ -64,7 +64,8 @@ function CreateFolderModal() {
     <Dialog>
       <DialogTrigger asChild>
         <Button>
-          <Plus color="white" /> Tạo thư mục mới
+          <Plus color="white" />
+          <span className="hidden lg:block"> Tạo thư mục mới</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
