@@ -51,7 +51,12 @@ export const PDF_API_ENDPOINTS = {
   QUICK_TEXTBOOK_ANALYSIS: "/pdf/quick-textbook-analysis",
 
   //Task-progress
-  TASKS_STATUS: (taskId: string) => `/api/v1/tasks/status`,
+  TASKS_STATUS: `/tasks/status`,
+} as const;
+
+export const LESSON_FRAMEWORK_ENDPOINTS = {
+  //UPLOAD LESON PLAN FRAMEWORK
+  LESSON_PLAN_FRAMEWORK: `/lesson/lesson-plan-framework`,
 } as const;
 
 // Combined endpoints for easy access

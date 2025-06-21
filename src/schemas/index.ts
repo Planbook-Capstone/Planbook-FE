@@ -4,3 +4,4 @@ export { chapterSchema, type ChapterFormData } from "./chapter.schema";
 export { formSchema, type FormData } from "./form.schema";
 export { gradeItemSchema, gradeFormSchema, type GradeItemFormData, type GradeFormData } from "./grade.schema";
 export { academicYearSchema, type AcademicYearFormData } from "./academicYear.schema";
+export { frameworkSchema, type FrameworkFormData } from "./framework.schema";
