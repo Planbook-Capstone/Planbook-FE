@@ -7,8 +7,19 @@ import {
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
-export const useLessonsService = createQueryHook("lessons", API_ENDPOINTS.LESSONS);
-export const useCreateLessonService = createMutationHook("lessons", API_ENDPOINTS.LESSONS);
+export const useLessonsService = createQueryHook(
+  "lessons",
+  API_ENDPOINTS.LESSONS
+);
+export const useLessonByIdService = createQueryWithPathParamHook(
+  "lessonById",
+  API_ENDPOINTS.LESSONS
+);
+
+export const useCreateLessonService = createMutationHook(
+  "lessons",
+  API_ENDPOINTS.LESSONS
+);
 export const useLessonsByChapterService = createQueryWithPathParamHook(
   "lessonsByChapter",
   API_ENDPOINTS.LESSONS_BY_CHAPTER
