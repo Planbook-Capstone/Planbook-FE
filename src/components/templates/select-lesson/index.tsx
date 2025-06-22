@@ -1,6 +1,7 @@
+
+
 "use client";
 
-import MainLayout from "@/components/layout/MainLayout";
 import CurriculumList from "@/components/organisms/curriculum";
 import {
   Select,
@@ -13,9 +14,14 @@ import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
 import { GradeResponse, SubjectResponse, BookResponse } from "@/types";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-function LessonPlan() {
+interface SelectLessonProps {
+  onLessonSelect: (lessonId: string) => void;
+  title?: string;
+}
+
+function SelectLesson({ onLessonSelect, title = "Chọn bài học" }: SelectLessonProps) {
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedBook, setSelectedBook] = useState<string>("");
@@ -51,8 +57,17 @@ function LessonPlan() {
     console.log("Selected book:", value);
     setSelectedBook(value);
   };
+
+  // Handle lesson selection
+  const handleLessonSelectInternal = (lessonId: string) => {
+    console.log("Selected lesson:", lessonId);
+    onLessonSelect(lessonId);
+  };
+
   return (
-    <MainLayout>
+    <div className="space-y-6">
+      <h1 className="text-xl font-calsans">{title}</h1>
+
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
         <div className="flex-col w-full">
           <p className="text-sm font-bold">Khối học</p>
@@ -117,9 +132,13 @@ function LessonPlan() {
         </div>
       </div>
 
-      <CurriculumList bookId={selectedBook} />
-    </MainLayout>
+      {/* CurriculumList với callback để handle lesson selection */}
+      <CurriculumList
+        bookId={selectedBook}
+        onLessonSelect={handleLessonSelectInternal}
+      />
+    </div>
   );
 }
 
-export default LessonPlan;
+export default SelectLesson;

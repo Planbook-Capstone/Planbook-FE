@@ -9,9 +9,10 @@ import { useLessonsByChaptersService } from "@/services/lessonServices";
 
 interface CurriculumListProps {
   bookId?: string;
+  onLessonSelect?: (lessonId: string) => void;
 }
 
-const CurriculumList = ({ bookId }: CurriculumListProps) => {
+const CurriculumList = ({ bookId, onLessonSelect }: CurriculumListProps) => {
   // Get chapters by book
   const { data: chaptersResponse, isLoading: isLoadingChapters } =
     useChaptersByBookService(bookId);
@@ -55,7 +56,7 @@ const CurriculumList = ({ bookId }: CurriculumListProps) => {
           const isLoadingLessons = lessonQueries[index]?.isLoading || false;
 
           return (
-            <AccordionItem key={chapter.id} value={`chapter-${chapter.id}`}>
+            <AccordionItem key={chapter.id} value={`chapter-${chapter.id}`} className="mb-2">
               <AccordionTrigger className="border font-calsans text-base p-2">
                 {chapter.name}
               </AccordionTrigger>
@@ -70,6 +71,10 @@ const CurriculumList = ({ bookId }: CurriculumListProps) => {
                       <li
                         key={lesson.id}
                         className="ml-10 text-[15px] cursor-pointer list-none hover:text-blue-600 transition-colors text-lg py-1"
+                        onClick={() => {
+                          console.log("Lesson clicked:", lesson.id, lesson.name);
+                          onLessonSelect?.(lesson.id.toString());
+                        }}
                       >
                         {lesson.name}
                       </li>
