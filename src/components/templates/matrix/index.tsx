@@ -13,6 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
 import { FormField } from "@/components/ui/FormField";
+import { useExamGenerationService } from "@/services/examGenerateServices";
 
 type LevelType = "Vận dụng" | "Thông hiểu" | "Nhận biết";
 
@@ -48,13 +49,13 @@ const BOOK_OPTIONS = [
 // Data ảo cho danh sách bài học theo sách
 const LESSON_OPTIONS_BY_BOOK: Record<string, { id: string; name: string }[]> = {
   sach1: [
-    { id: "bai1", name: "Chương 1 - Đại cương hóa học" },
-    { id: "bai2", name: "Chương 2 - Bảng tuần hoàn" },
-    { id: "bai3", name: "Chương 3 - Liên kết hóa học" },
+    { id: "1", name: "Chương 1 - Đại cương hóa học" },
+    { id: "2", name: "Chương 2 - Bảng tuần hoàn" },
+    { id: "3", name: "Chương 3 - Liên kết hóa học" },
   ],
   sach2: [
-    { id: "bai4", name: "Chương 1 - Hóa học nâng cao" },
-    { id: "bai5", name: "Chương 2 - Phản ứng hữu cơ" },
+    { id: "4", name: "Chương 1 - Hóa học nâng cao" },
+    { id: "5", name: "Chương 2 - Phản ứng hữu cơ" },
   ],
 };
 
@@ -156,25 +157,69 @@ export default function ExamMatrixTable() {
   };
 
   function mapToBackend() {
+    // return {
+    //   ten_truong: "Trường THPT Nguyễn Huệ", // hoặc cho user nhập nếu muốn
+    //   mon_hoc: SUBJECT_OPTIONS.find((s) => s.value === subject)?.label || "",
+    //   lop: grade,
+    //   tong_so_cau: totalQuestions,
+    //   cau_hinh_de: contents
+    //     .filter((c) => c.lesson)
+    //     .map((content) => ({
+    //       lesson_id: content.lesson,
+    //       yeu_cau_can_dat: content.requirement,
+    //       muc_do: content.levels.map((level) => ({
+    //         loai: level.type,
+    //         so_cau: level.questionCount,
+    //         loai_cau: level.questionTypes,
+    //       })),
+    //     })),
+    // };
     return {
-      mon_hoc: SUBJECT_OPTIONS.find((s) => s.value === subject)?.label || "",
-      lop: grade,
-      tong_so_cau: totalQuestions,
-      chi_tiet_de: contents
-        .filter((c) => c.lesson)
-        .map((content) => ({
-          lesson_id: content.lesson,
-          cau_hinh_de: {
-            yeu_cau_can_dat: content.requirement,
-            muc_do: content.levels.map((level) => ({
-              loai: level.type,
-              so_cau: level.questionCount,
-              loai_cau: level.questionTypes,
-            })),
-          },
-        })),
+      exam_id: "hoa12_de_60cau",
+      ten_truong: "Trường THPT Nguyễn Huệ",
+      mon_hoc: "Hóa học",
+      lop: 12,
+      tong_so_cau: 60,
+      cau_hinh_de: [
+        {
+          lesson_id: "234",
+          yeu_cau_can_dat:
+            "Hiểu và phân biệt proton, neutron, electron theo khối lượng, điện tích và vị trí.",
+          muc_do: [
+            { loai: "Nhận biết", so_cau: 10, loai_cau: ["TN"] },
+            { loai: "Thông hiểu", so_cau: 5, loai_cau: ["TN"] },
+            { loai: "Vận dụng", so_cau: 5, loai_cau: ["TN"] },
+          ],
+        },
+        {
+          lesson_id: "235",
+          yeu_cau_can_dat:
+            "Viết và xác định cấu hình electron các nguyên tố từ Z = 1 đến Z = 30.",
+          muc_do: [
+            { loai: "Nhận biết", so_cau: 5, loai_cau: ["TN"] },
+            { loai: "Thông hiểu", so_cau: 10, loai_cau: ["TN"] },
+            { loai: "Vận dụng", so_cau: 5, loai_cau: ["TN"] },
+          ],
+        },
+        {
+          lesson_id: "236",
+          yeu_cau_can_dat: "Tính nguyên tử khối trung bình từ dữ liệu đồng vị.",
+          muc_do: [
+            { loai: "Nhận biết", so_cau: 5, loai_cau: ["TN"] },
+            { loai: "Thông hiểu", so_cau: 10, loai_cau: ["TN"] },
+            { loai: "Vận dụng", so_cau: 5, loai_cau: ["TN"] },
+          ],
+        },
+      ],
     };
   }
+
+  const {
+    mutate: generateExam,
+    isPending,
+    data,
+    error,
+  } = useExamGenerationService();
 
   return (
     <div className="max-w-full mx-auto p-12">
@@ -372,6 +417,11 @@ export default function ExamMatrixTable() {
       >
         Thêm dòng
       </Button>
+      <Button onClick={() => generateExam(mapToBackend())} disabled={isPending}>
+        Gửi dữ liệu sinh đề
+      </Button>
+      {error && <div className="text-red-500">Có lỗi: {error.message}</div>}
+      {data && <div className="text-green-600">Tạo đề thành công!</div>}
       <hr className="my-6" />
       <h3 className="font-bold mb-2">Exam Matrix JSON</h3>
       <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
