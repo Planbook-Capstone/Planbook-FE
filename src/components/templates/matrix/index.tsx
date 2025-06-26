@@ -23,7 +23,7 @@ type Level = {
 };
 
 type Content = {
-  lesson: string; // lessonId
+  lesson: string;
   requirement: string;
   levels: Level[];
 };
@@ -67,13 +67,11 @@ const QUESTION_TYPE_OPTIONS = [
 ];
 
 export default function ExamMatrixTable() {
-  // State cho các select đầu trang
   const [subject, setSubject] = useState("hoa");
   const [grade, setGrade] = useState(12);
   const [book, setBook] = useState("sach1");
   const [totalQuestions, setTotalQuestions] = useState(20);
 
-  // Dữ liệu bảng
   const [contents, setContents] = useState<Content[]>([
     {
       lesson: "",
@@ -86,7 +84,6 @@ export default function ExamMatrixTable() {
     },
   ]);
 
-  // Khi đổi sách thì reset lại danh sách bài học đã chọn
   React.useEffect(() => {
     setContents([
       {
@@ -150,7 +147,6 @@ export default function ExamMatrixTable() {
     setContents(contents.filter((_, i) => i !== idx));
   };
 
-  // Dummy AI suggest handler
   const handleAISuggest = (idx: number) => {
     handleContentChange(
       idx,
@@ -159,7 +155,6 @@ export default function ExamMatrixTable() {
     );
   };
 
-  // Mapping sang format backend
   function mapToBackend() {
     return {
       mon_hoc: SUBJECT_OPTIONS.find((s) => s.value === subject)?.label || "",
