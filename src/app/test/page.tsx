@@ -1,5 +1,6 @@
 import AutoGradingPage from "@/components/templates/auto-grading";
 import ChatScreenTemplate from "@/components/templates/chat-screen";
+import ExamMatrixTemplate from "@/components/templates/matrix";
 import TestLayout from "@/components/templates/test-layout";
 
 export default function Page() {
@@ -56,7 +57,7 @@ export default function Page() {
         documents={documents}
       /> */}
       {/* <TestLayout /> */}
-      <AutoGradingPage />
+      <ExamMatrixTemplate />
     </div>
   );
 }
