@@ -36,7 +36,7 @@ const CurriculumList = ({ bookId, onLessonSelect }: CurriculumListProps) => {
   if (!chapters || chapters.length === 0) {
     return (
       <div className="flex items-center justify-center p-8 text-gray-500">
-        <p>Không có chương nào trong sách này</p>
+        <p className="font-questrial">Không có chương nào trong sách này</p>
       </div>
     );
   }
@@ -56,14 +56,20 @@ const CurriculumList = ({ bookId, onLessonSelect }: CurriculumListProps) => {
           const isLoadingLessons = lessonQueries[index]?.isLoading || false;
 
           return (
-            <AccordionItem key={chapter.id} value={`chapter-${chapter.id}`} className="mb-2">
+            <AccordionItem
+              key={chapter.id}
+              value={`chapter-${chapter.id}`}
+              className="mb-2"
+            >
               <AccordionTrigger className="border font-calsans text-base p-2">
                 {chapter.name}
               </AccordionTrigger>
 
               <AccordionContent className="py-3">
                 {isLoadingLessons ? (
-                  <div className="ml-10 text-gray-500">Đang tải bài học...</div>
+                  <div className="ml-10 text-gray-500 font-questrial">
+                    Đang tải bài học...
+                  </div>
                 ) : lessonData.length > 0 ? (
                   lessonData
                     .sort((a: any, b: any) => a.id - b.id)
@@ -72,7 +78,11 @@ const CurriculumList = ({ bookId, onLessonSelect }: CurriculumListProps) => {
                         key={lesson.id}
                         className="ml-10 text-[15px] cursor-pointer list-none hover:text-blue-600 transition-colors text-lg py-1"
                         onClick={() => {
-                          console.log("Lesson clicked:", lesson.id, lesson.name);
+                          console.log(
+                            "Lesson clicked:",
+                            lesson.id,
+                            lesson.name
+                          );
                           onLessonSelect?.(lesson.id.toString());
                         }}
                       >
@@ -80,7 +90,9 @@ const CurriculumList = ({ bookId, onLessonSelect }: CurriculumListProps) => {
                       </li>
                     ))
                 ) : (
-                  <div className="ml-10 text-gray-500">Chưa có bài học nào</div>
+                  <div className="ml-10 text-gray-500 font-questrial">
+                    Chưa có bài học nào
+                  </div>
                 )}
               </AccordionContent>
             </AccordionItem>
