@@ -199,13 +199,19 @@ export default function MatrixTemplate2() {
             <th className="border px-2 py-4 align-middle" rowSpan={2}>
               <span className="font-normal">Bài học</span>
             </th>
-            <th className="border px-2 py-4 align-middle" colSpan={3}>
+            <th
+              className="border px-2 py-4 align-middle bg-amber-50"
+              colSpan={3}
+            >
               <span className="font-normal">Phần 1</span>
             </th>
-            <th className="border px-2 py-4 align-middle" colSpan={3}>
+            <th
+              className="border px-2 py-4 align-middle bg-green-50"
+              colSpan={3}
+            >
               <span className="font-normal">Phần 2</span>
             </th>
-            <th className="border px-2 py-4 align-middle" colSpan={3}>
+            <th className="border px-2 py-4 align-middle bg-sky-50" colSpan={3}>
               <span className="font-normal">Phần 3</span>
             </th>
             <th className="border px-2 py-4 align-middle" rowSpan={2}>
