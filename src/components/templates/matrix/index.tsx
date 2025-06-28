@@ -11,8 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles } from "lucide-react";
+import { Sparkles, TrashIcon } from "lucide-react";
 import { FormField } from "@/components/ui/FormField";
+import { useGradesService } from "@/services/gradeServices";
+import { useSubjectsByGradeService } from "@/services/subjectServices";
+import { useBooksBySubjectService } from "@/services/bookServices";
+import BookSelector from "@/components/molecules/book-selector";
 
 type LevelType = "Vận dụng" | "Thông hiểu" | "Nhận biết";
 
@@ -28,49 +32,29 @@ type Content = {
   levels: Level[];
 };
 
-const SUBJECT_OPTIONS = [
-  { value: "hoa", label: "Hóa học" },
-  { value: "toan", label: "Toán học" },
-  { value: "ly", label: "Vật lý" },
-];
-
-const GRADE_OPTIONS = [
-  { value: 10, label: "Lớp 10" },
-  { value: 11, label: "Lớp 11" },
-  { value: 12, label: "Lớp 12" },
-];
-
-const BOOK_OPTIONS = [
-  { value: "sach1", label: "Sách giáo khoa chuẩn" },
-  { value: "sach2", label: "Sách nâng cao" },
-];
-
-// Data ảo cho danh sách bài học theo sách
-const LESSON_OPTIONS_BY_BOOK: Record<string, { id: string; name: string }[]> = {
-  sach1: [
-    { id: "bai1", name: "Chương 1 - Đại cương hóa học" },
-    { id: "bai2", name: "Chương 2 - Bảng tuần hoàn" },
-    { id: "bai3", name: "Chương 3 - Liên kết hóa học" },
-  ],
-  sach2: [
-    { id: "bai4", name: "Chương 1 - Hóa học nâng cao" },
-    { id: "bai5", name: "Chương 2 - Phản ứng hữu cơ" },
-  ],
-};
-
-const LEVEL_TYPES: LevelType[] = ["Vận dụng", "Thông hiểu", "Nhận biết"];
-const QUESTION_TYPE_OPTIONS = [
-  { value: "TN", label: "Trắc nghiệm" },
-  { value: "TL", label: "Tự luận" },
-  { value: "DS", label: "Đúng/Sai" },
-  { value: "DT", label: "Điền từ" },
-];
-
 export default function ExamMatrixTable() {
-  const [subject, setSubject] = useState("hoa");
-  const [grade, setGrade] = useState(12);
-  const [book, setBook] = useState("sach1");
-  const [totalQuestions, setTotalQuestions] = useState(20);
+  // State cho chọn sách
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedBook, setSelectedBook] = useState<string>("");
+
+  // Lấy data động từ API
+  const { data: grades } = useGradesService();
+  const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
+    enabled: !!selectedGrade,
+  });
+  const { data: books } = useBooksBySubjectService(selectedSubject, {
+    enabled: !!selectedSubject,
+  });
+
+  // State cho bảng ma trận
+  const LEVEL_TYPES: LevelType[] = ["Vận dụng", "Thông hiểu", "Nhận biết"];
+  const QUESTION_TYPE_OPTIONS = [
+    { value: "TN", label: "Trắc nghiệm" },
+    { value: "TL", label: "Tự luận" },
+    { value: "DS", label: "Đúng/Sai" },
+    { value: "DT", label: "Điền từ" },
+  ];
 
   const [contents, setContents] = useState<Content[]>([
     {
@@ -96,9 +80,34 @@ export default function ExamMatrixTable() {
         })),
       },
     ]);
-  }, [book]);
+  }, [selectedBook]);
 
-  const LESSON_OPTIONS = LESSON_OPTIONS_BY_BOOK[book] || [];
+  const LESSON_OPTIONS: any[] = []; // TODO: Lấy từ API nếu có
+
+  function mapToBackend() {
+    const result = {
+      mon_hoc:
+        subjects?.data?.content?.find((s: any) => s.id === selectedSubject)
+          ?.name || "",
+      lop:
+        grades?.data?.content?.find((g: any) => g.id === selectedGrade)?.name ||
+        "",
+      tong_so_cau:
+        books?.data?.content?.find((b: any) => b.id === selectedBook)
+          ?.totalQuestions || "",
+      cau_hinh_de: contents.map((content) => ({
+        lesson_id: content.lesson,
+        yeu_cau_can_dat: content.requirement,
+        muc_do: content.levels.map((level) => ({
+          loai: level.type,
+          so_cau: level.questionCount,
+          loai_cau: level.questionTypes,
+        })),
+      })),
+    };
+    console.log("mapToBackend called", result);
+    return result;
+  }
 
   const handleContentChange = (
     idx: number,
@@ -155,88 +164,28 @@ export default function ExamMatrixTable() {
     );
   };
 
-  function mapToBackend() {
-    return {
-      mon_hoc: SUBJECT_OPTIONS.find((s) => s.value === subject)?.label || "",
-      lop: grade,
-      tong_so_cau: totalQuestions,
-      chi_tiet_de: contents
-        .filter((c) => c.lesson)
-        .map((content) => ({
-          lesson_id: content.lesson,
-          cau_hinh_de: {
-            yeu_cau_can_dat: content.requirement,
-            muc_do: content.levels.map((level) => ({
-              loai: level.type,
-              so_cau: level.questionCount,
-              loai_cau: level.questionTypes,
-            })),
-          },
-        })),
-    };
-  }
-
   return (
-    <div className="max-w-full mx-auto p-12">
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <FormField label="Môn học" htmlFor="subject-select">
-          <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger id="subject-select" className="w-full min-h-[40px]">
-              <SelectValue placeholder="Chọn môn học" />
-            </SelectTrigger>
-            <SelectContent>
-              {SUBJECT_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField label="Lớp" htmlFor="grade-select">
-          <Select
-            value={String(grade)}
-            onValueChange={(val) => setGrade(Number(val))}
-          >
-            <SelectTrigger id="grade-select" className="w-full min-h-[40px]">
-              <SelectValue placeholder="Chọn lớp" />
-            </SelectTrigger>
-            <SelectContent>
-              {GRADE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={String(opt.value)}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField label="Sách" htmlFor="book-select">
-          <Select value={book} onValueChange={setBook}>
-            <SelectTrigger id="book-select" className="w-full min-h-[40px]">
-              <SelectValue placeholder="Chọn sách" />
-            </SelectTrigger>
-            <SelectContent>
-              {BOOK_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField label="Tổng số câu" htmlFor="total-questions">
-          <Input
-            id="total-questions"
-            type="number"
-            min={1}
-            value={totalQuestions}
-            onChange={(e: any) => setTotalQuestions(Number(e.target.value))}
-            placeholder="Tổng số câu"
-            className="w-full min-h-[40px]"
-          />
-        </FormField>
+    <div className="max-w-full mx-auto px-12">
+      <BookSelector
+        title="Vui lòng chọn sách"
+        gradeOptions={grades?.data?.content || []}
+        subjectOptions={subjects?.data?.content || []}
+        bookOptions={books?.data?.content || []}
+        selectedGrade={selectedGrade}
+        selectedSubject={selectedSubject}
+        selectedBook={selectedBook}
+        onGradeChange={setSelectedGrade}
+        onSubjectChange={setSelectedSubject}
+        onBookChange={setSelectedBook}
+      />
+      <div className="mb-4 mt-6">
+        <h2 className="text-lg font-calsans">Ma trận đề thi</h2>
+        <h3 className="text-base font-questrial text-neutral-500">
+          Ma trận phân bổ đề thi dựa trên số lượng câu nhận biết, thông hiểu,
+          vận dụng
+        </h3>
       </div>
-      <h2 className="text-lg font-calsans mb-4">Ma trận đề thi</h2>
+
       <table className="w-full text-center rounded-md">
         <thead className="font-calsans text-base">
           <tr>
@@ -305,7 +254,7 @@ export default function ExamMatrixTable() {
                     onClick={() => handleAISuggest(idx)}
                     title="AI gợi ý"
                   >
-                    <Sparkles className="text-yellow-400" />
+                    <Sparkles className="text-neutral-400" />
                   </Button>
                 </div>
               </td>
@@ -351,12 +300,12 @@ export default function ExamMatrixTable() {
               ))}
               <td className="border px-2 py-1">
                 <Button
-                  variant="destructive"
                   size="sm"
                   type="button"
+                  className="px-0 py-5 bg-transparent shadow-none hover:bg-transparent hover:shadow-none"
                   onClick={() => removeContent(idx)}
                 >
-                  Xóa
+                  <TrashIcon className="text-neutral-600" />
                 </Button>
               </td>
             </tr>
@@ -365,12 +314,11 @@ export default function ExamMatrixTable() {
       </table>
       <Button
         variant="dash"
-        size="sm"
         type="button"
-        className="mt-4"
+        className="mt-4 rounded-md w-full"
         onClick={addContent}
       >
-        Thêm dòng
+        Thêm dòng mới +
       </Button>
       <hr className="my-6" />
       <h3 className="font-bold mb-2">Exam Matrix JSON</h3>
