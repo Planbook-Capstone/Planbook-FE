@@ -119,30 +119,30 @@ export default function ExamMatrixTable() {
 
   const LESSON_OPTIONS: any[] = []; // TODO: Lấy từ API nếu có
 
-  function mapToBackend() {
-    const result = {
-      mon_hoc:
-        subjects?.data?.content?.find((s: any) => s.id === selectedSubject)
-          ?.name || "",
-      lop:
-        grades?.data?.content?.find((g: any) => g.id === selectedGrade)?.name ||
-        "",
-      tong_so_cau:
-        books?.data?.content?.find((b: any) => b.id === selectedBook)
-          ?.totalQuestions || "",
-      cau_hinh_de: contents.map((content) => ({
-        lesson_id: content.lesson,
-        yeu_cau_can_dat: content.requirement,
-        muc_do: content.levels.map((level) => ({
-          loai: level.type,
-          so_cau: level.questionCount,
-          loai_cau: level.questionTypes,
-        })),
-      })),
-    };
-    console.log("mapToBackend called", result);
-    return result;
-  }
+  // function mapToBackend() {
+  //   const result = {
+  //     mon_hoc:
+  //       subjects?.data?.content?.find((s: any) => s.id === selectedSubject)
+  //         ?.name || "",
+  //     lop:
+  //       grades?.data?.content?.find((g: any) => g.id === selectedGrade)?.name ||
+  //       "",
+  //     tong_so_cau:
+  //       books?.data?.content?.find((b: any) => b.id === selectedBook)
+  //         ?.totalQuestions || "",
+  //     cau_hinh_de: contents.map((content) => ({
+  //       lesson_id: content.lesson,
+  //       yeu_cau_can_dat: content.requirement,
+  //       muc_do: content.levels.map((level) => ({
+  //         loai: level.type,
+  //         so_cau: level.questionCount,
+  //         loai_cau: level.questionTypes,
+  //       })),
+  //     })),
+  //   };
+  //   console.log("mapToBackend called", result);
+  //   return result;
+  // }
 
   const handleContentChange = (
     idx: number,
