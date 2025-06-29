@@ -13,10 +13,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, TrashIcon } from "lucide-react";
 import { FormField } from "@/components/ui/FormField";
+
+import { useExamGenerationService } from "@/services/examGenerateServices";
+
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
 import BookSelector from "@/components/molecules/book-selector";
+
 
 type LevelType = "Vận dụng" | "Thông hiểu" | "Nhận biết";
 
@@ -32,11 +36,42 @@ type Content = {
   levels: Level[];
 };
 
+
+const SUBJECT_OPTIONS = [
+  { value: "hoa", label: "Hóa học" },
+  { value: "toan", label: "Toán học" },
+  { value: "ly", label: "Vật lý" },
+];
+
+const GRADE_OPTIONS = [
+  { value: 10, label: "Lớp 10" },
+  { value: 11, label: "Lớp 11" },
+  { value: 12, label: "Lớp 12" },
+];
+
+const BOOK_OPTIONS = [
+  { value: "sach1", label: "Sách giáo khoa chuẩn" },
+  { value: "sach2", label: "Sách nâng cao" },
+];
+
+// Data ảo cho danh sách bài học theo sách
+const LESSON_OPTIONS_BY_BOOK: Record<string, { id: string; name: string }[]> = {
+  sach1: [
+    { id: "1", name: "Chương 1 - Đại cương hóa học" },
+    { id: "2", name: "Chương 2 - Bảng tuần hoàn" },
+    { id: "3", name: "Chương 3 - Liên kết hóa học" },
+  ],
+  sach2: [
+    { id: "4", name: "Chương 1 - Hóa học nâng cao" },
+    { id: "5", name: "Chương 2 - Phản ứng hữu cơ" },
+  ],
+};
 export default function ExamMatrixTable() {
   // State cho chọn sách
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedBook, setSelectedBook] = useState<string>("");
+
 
   // Lấy data động từ API
   const { data: grades } = useGradesService();
@@ -163,6 +198,73 @@ export default function ExamMatrixTable() {
       "AI gợi ý: Đạt chuẩn kiến thức, kỹ năng."
     );
   };
+
+
+  function mapToBackend() {
+    // return {
+    //   ten_truong: "Trường THPT Nguyễn Huệ", // hoặc cho user nhập nếu muốn
+    //   mon_hoc: SUBJECT_OPTIONS.find((s) => s.value === subject)?.label || "",
+    //   lop: grade,
+    //   tong_so_cau: totalQuestions,
+    //   cau_hinh_de: contents
+    //     .filter((c) => c.lesson)
+    //     .map((content) => ({
+    //       lesson_id: content.lesson,
+    //       yeu_cau_can_dat: content.requirement,
+    //       muc_do: content.levels.map((level) => ({
+    //         loai: level.type,
+    //         so_cau: level.questionCount,
+    //         loai_cau: level.questionTypes,
+    //       })),
+    //     })),
+    // };
+    return {
+      exam_id: "hoa12_de_60cau",
+      ten_truong: "Trường THPT Nguyễn Huệ",
+      mon_hoc: "Hóa học",
+      lop: 12,
+      tong_so_cau: 60,
+      cau_hinh_de: [
+        {
+          lesson_id: "234",
+          yeu_cau_can_dat:
+            "Hiểu và phân biệt proton, neutron, electron theo khối lượng, điện tích và vị trí.",
+          muc_do: [
+            { loai: "Nhận biết", so_cau: 10, loai_cau: ["TN"] },
+            { loai: "Thông hiểu", so_cau: 5, loai_cau: ["TN"] },
+            { loai: "Vận dụng", so_cau: 5, loai_cau: ["TN"] },
+          ],
+        },
+        {
+          lesson_id: "235",
+          yeu_cau_can_dat:
+            "Viết và xác định cấu hình electron các nguyên tố từ Z = 1 đến Z = 30.",
+          muc_do: [
+            { loai: "Nhận biết", so_cau: 5, loai_cau: ["TN"] },
+            { loai: "Thông hiểu", so_cau: 10, loai_cau: ["TN"] },
+            { loai: "Vận dụng", so_cau: 5, loai_cau: ["TN"] },
+          ],
+        },
+        {
+          lesson_id: "236",
+          yeu_cau_can_dat: "Tính nguyên tử khối trung bình từ dữ liệu đồng vị.",
+          muc_do: [
+            { loai: "Nhận biết", so_cau: 5, loai_cau: ["TN"] },
+            { loai: "Thông hiểu", so_cau: 10, loai_cau: ["TN"] },
+            { loai: "Vận dụng", so_cau: 5, loai_cau: ["TN"] },
+          ],
+        },
+      ],
+    };
+  }
+
+  const {
+    mutate: generateExam,
+    isPending,
+    data,
+    error,
+  } = useExamGenerationService();
+
 
   return (
     <div className="max-w-full mx-auto px-12">
@@ -320,6 +422,11 @@ export default function ExamMatrixTable() {
       >
         Thêm dòng mới +
       </Button>
+      <Button onClick={() => generateExam(mapToBackend())} disabled={isPending}>
+        Gửi dữ liệu sinh đề
+      </Button>
+      {error && <div className="text-red-500">Có lỗi: {error.message}</div>}
+      {data && <div className="text-green-600">Tạo đề thành công!</div>}
       <hr className="my-6" />
       <h3 className="font-bold mb-2">Exam Matrix JSON</h3>
       <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
