@@ -21,9 +21,9 @@ import { useGenerateSmartExamService } from "@/services/examGenerateServices";
 
 // Dữ liệu ảo cho bài học, bạn có thể thay bằng API nếu cần
 const LESSON_OPTIONS = [
-  { id: "bai1", name: "Hình học Oxyz" },
-  { id: "bai2", name: "Hàm số" },
-  { id: "bai3", name: "Tích phân" },
+  { id: "90", name: "Hình học Oxyz" },
+  { id: "88", name: "Hàm số" },
+  { id: "91", name: "Tích phân" },
 ];
 
 type DistributionLevel = {
@@ -233,17 +233,25 @@ export default function MatrixTemplate2() {
   function mapToBackend() {
     return {
       school,
-      grade: selectedGrade,
-      subject: selectedSubject,
+      // grade: selectedGrade ? parseInt(selectedGrade) : null,
+      grade: 12,
+      subject: selectedSubject || "Hoa_hoc",
       examTitle,
       duration: Number(duration),
+      outputFormat: "docx",
+      outputLink: "online",
       matrix: matrix.map((row) => ({
-        lessonID: row.lessonID,
-        total: calculateRowTotal(row),
-        distribution: [
-          { part: 1, levels: row.distribution.part1 },
-          { part: 2, levels: row.distribution.part2 },
-          { part: 3, levels: row.distribution.part3 },
+        lessonId: row.lessonID,
+        totalQuestions: calculateRowTotal(row),
+        parts: [
+          {
+            part: 1,
+            objectives: {
+              "Biết": row.distribution.part1.biet + row.distribution.part2.biet + row.distribution.part3.biet,
+              "Hiểu": row.distribution.part1.hieu + row.distribution.part2.hieu + row.distribution.part3.hieu,
+              "Vận_dụng": row.distribution.part1.vd + row.distribution.part2.vd + row.distribution.part3.vd,
+            },
+          },
         ],
       })),
     };
@@ -275,7 +283,7 @@ export default function MatrixTemplate2() {
       fieldErrors.duration = "Thời gian làm bài phải ít nhất 15 phút";
     }
 
-    // // Validate grade and subject selection
+    // Validate grade and subject selection
     // if (!selectedGrade) {
     //   validationErrors.push("Vui lòng chọn khối lớp");
     //   fieldErrors.grade = "Vui lòng chọn khối lớp";
@@ -558,7 +566,7 @@ export default function MatrixTemplate2() {
                     </SelectTrigger>
                     <SelectContent>
                       {LESSON_OPTIONS.map((item) => (
-                        <SelectItem key={item.id} value={item.name}>
+                        <SelectItem key={item.id} value={item.id}>
                           {item.name}
                         </SelectItem>
                       ))}
