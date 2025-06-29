@@ -54,8 +54,9 @@ export const PDF_API_ENDPOINTS = {
   TASKS_STATUS: `/tasks/status`,
 } as const;
 
-export const EXAM_GENERATION_ENDPOINTS = {
-  EXAM_GENERATION: `/exam/generate-exam`,
+export const EXAM_ENDPOINTS = {
+  GENERATE_EXAM: `/exam/generate-exam`,
+  GENERATE_SMART_EXAM: `/exam/generate-smart-exam`,
 } as const;
 
 export const LESSON_FRAMEWORK_ENDPOINTS = {

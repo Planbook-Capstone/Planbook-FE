@@ -17,6 +17,7 @@ import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "sonner";
+import { useGenerateSmartExamService } from "@/services/examGenerateServices";
 
 // Dữ liệu ảo cho bài học, bạn có thể thay bằng API nếu cần
 const LESSON_OPTIONS = [
@@ -57,6 +58,8 @@ export default function MatrixTemplate2() {
   const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
     enabled: !!selectedGrade,
   });
+
+  const { mutate, isPending } = useGenerateSmartExamService();
   // Nếu muốn chọn sách thì mở dòng dưới, còn không thì bỏ qua
   // const { data: books } = useBooksBySubjectService(selectedSubject, { enabled: !!selectedSubject });
 
@@ -361,8 +364,18 @@ export default function MatrixTemplate2() {
     // If validation passes, proceed with exam creation
     const examData = mapToBackend();
 
-    console.log("Creating exam with data:", examData);
-    toast.success("Đề thi đã được tạo thành công!");
+    mutate(examData, {
+      onSuccess: () => {
+        toast.success("Tạo đề thi thành công");
+      },
+      onError: (error) => {
+        toast.error("Tạo đề thi thất bại");
+        console.error(error);
+      },
+    });
+
+    // console.log("Creating exam with data:", examData);
+    // toast.success("Đề thi đã được tạo thành công!");
 
     // Here you would typically call an API to create the exam
     // Example: createExamAPI(examData);
@@ -741,6 +754,7 @@ export default function MatrixTemplate2() {
           type="button"
           className="px-8 py-3  text-white font-medium rounded-md"
           onClick={handleCreateExam}
+          disabled={isPending}
         >
           Tạo đề thi
         </Button>
