@@ -232,7 +232,7 @@ export default function MatrixTemplate2() {
   // Map ra JSON đúng format
   function mapToBackend() {
     return {
-      school,
+      school: school || "Trường THPT Nguyễn Huệ",
       // grade: selectedGrade ? parseInt(selectedGrade) : null,
       grade: 12,
       subject: selectedSubject || "Hoa_hoc",
@@ -247,9 +247,18 @@ export default function MatrixTemplate2() {
           {
             part: 1,
             objectives: {
-              "Biết": row.distribution.part1.biet + row.distribution.part2.biet + row.distribution.part3.biet,
-              "Hiểu": row.distribution.part1.hieu + row.distribution.part2.hieu + row.distribution.part3.hieu,
-              "Vận_dụng": row.distribution.part1.vd + row.distribution.part2.vd + row.distribution.part3.vd,
+              Biết:
+                row.distribution.part1.biet +
+                row.distribution.part2.biet +
+                row.distribution.part3.biet,
+              Hiểu:
+                row.distribution.part1.hieu +
+                row.distribution.part2.hieu +
+                row.distribution.part3.hieu,
+              Vận_dụng:
+                row.distribution.part1.vd +
+                row.distribution.part2.vd +
+                row.distribution.part3.vd,
             },
           },
         ],
@@ -543,9 +552,13 @@ export default function MatrixTemplate2() {
               <td className="border px-2 py-1 min-w-[180px]">
                 <div className="flex flex-col">
                   <Select
-                    value={row.lessonID}
+                    key={`lesson-select-${rowIdx}`}
+                    value={row.lessonID || "CLEAR_SELECTION"}
                     onValueChange={(val) => {
-                      handleMatrixChange(rowIdx, "lessonID", val);
+                      console.log(`Changing lesson for row ${rowIdx} to:`, val);
+                      // Handle clear selection
+                      const actualValue = val === "CLEAR_SELECTION" ? "" : val;
+                      handleMatrixChange(rowIdx, "lessonID", actualValue);
                       // Clear error when user selects a lesson
                       if (errors[`matrix_${rowIdx}_lesson`]) {
                         setErrors((prev) => ({
@@ -565,7 +578,20 @@ export default function MatrixTemplate2() {
                       <SelectValue placeholder="Chọn bài học" />
                     </SelectTrigger>
                     <SelectContent>
-                      {LESSON_OPTIONS.map((item) => (
+                      <SelectItem value="CLEAR_SELECTION">
+                        <span className="text-gray-500 italic">
+                          -- Chọn bài học --
+                        </span>
+                      </SelectItem>
+                      {LESSON_OPTIONS.filter((item) => {
+                        // Lọc ra các bài học đã được chọn ở các hàng khác
+                        const selectedLessons = matrix
+                          .map((row, index) =>
+                            index !== rowIdx ? row.lessonID : null
+                          )
+                          .filter(Boolean);
+                        return !selectedLessons.includes(item.id);
+                      }).map((item) => (
                         <SelectItem key={item.id} value={item.id}>
                           {item.name}
                         </SelectItem>
@@ -645,7 +671,7 @@ export default function MatrixTemplate2() {
                 <Button
                   size="sm"
                   type="button"
-                  className={`px-0 py-5 bg-transparent shadow-none hover:bg-transparent hover:shadow-none ${
+                  className={`px-0 py-5 bg-transparent shadow-none hover:bg-transparent hover:shadow-none group transition-colors duration-200 ${
                     matrix.length <= 1 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                   onClick={() => {
@@ -657,8 +683,10 @@ export default function MatrixTemplate2() {
                 >
                   <TrashIcon
                     className={`${
-                      matrix.length <= 1 ? "text-gray-400" : "text-neutral-600"
-                    }`}
+                      matrix.length <= 1
+                        ? "text-neutral-400"
+                        : "text-neutral-600 group-hover:text-red-500"
+                    } transition-colors duration-200`}
                   />
                 </Button>
               </td>
