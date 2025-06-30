@@ -8,6 +8,7 @@ export const getPageLabel = (pathname: string): string => {
     // Tools pages
     "/lesson-plan": "Tạo giáo án",
     "/exam": "Tạo bài kiểm tra",
+    "/exam-creation": "Tạo bài kiểm",
     "/grading-test": "Chấm điểm tự động",
     "/chats": "Tạo slide bài giảng",
     "/reports": "Báo cáo",
