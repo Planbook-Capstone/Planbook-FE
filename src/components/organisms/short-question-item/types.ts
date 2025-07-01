@@ -1,6 +1,7 @@
 export interface ShortQuestion {
-  id: string;
-  text: string;
+  id: string | number;
+  question?: string; // For API response
+  text?: string; // For backward compatibility
   answer: string;
   type: "short";
 }

@@ -14,8 +14,15 @@ export default function ShortQuestionItem({
   onUpdate,
   onDelete,
 }: ShortQuestionItemProps) {
+  // Normalize question text for both API and legacy formats
+  const getQuestionText = () => question.question || question.text || "";
+
   const handleQuestionTextChange = (text: string) => {
-    onUpdate({ ...question, text });
+    if (question.question !== undefined) {
+      onUpdate({ ...question, question: text });
+    } else {
+      onUpdate({ ...question, text });
+    }
   };
 
   const handleAnswerChange = (answer: string) => {
@@ -34,7 +41,7 @@ export default function ShortQuestionItem({
           <div className="w-full">
             <textarea
               className="w-full font-calsans border resize-none text-sm bg-transparent p-2 rounded-md"
-              value={question.text}
+              value={getQuestionText()}
               onChange={(e) => handleQuestionTextChange(e.target.value)}
               placeholder="Nhập câu hỏi tự luận..."
               rows={1}
@@ -76,7 +83,7 @@ export default function ShortQuestionItem({
           variant="outline"
           size="icon"
           className="p-2 text-gray-500 hover:text-red-500"
-          onClick={() => onDelete(question.id)}
+          onClick={() => onDelete(String(question.id))}
         >
           <Plus className="h-4 w-4 rotate-45" />
         </Button>
