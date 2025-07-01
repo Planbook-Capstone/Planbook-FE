@@ -1,8 +1,9 @@
 export interface Question {
-  id: string;
-  text: string;
-  options: string[];
+  id: string | number;
+  question: string;
+  options: string[] | { A: string; B: string; C: string; D: string };
   correctAnswer: number;
+  answer?: string; // For API response format
   type: "single" | "multiple" | "essay" | "no-answer";
 }
 

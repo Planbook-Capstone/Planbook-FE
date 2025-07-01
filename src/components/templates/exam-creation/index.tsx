@@ -18,6 +18,7 @@ interface ExamCreationTemplateProps {
   onQuestionUpdate?: (questions: Question[]) => void;
   onYesNoQuestionUpdate?: (yesNoQuestions: YesNoQuestion[]) => void;
   onShortQuestionUpdate?: (shortQuestions: ShortQuestion[]) => void;
+  examData?: any; // Data from API response when importing exam
 }
 
 export default function ExamCreationTemplate({
@@ -28,71 +29,87 @@ export default function ExamCreationTemplate({
   onQuestionUpdate,
   onYesNoQuestionUpdate,
   onShortQuestionUpdate,
+  examData,
 }: ExamCreationTemplateProps) {
+  // Parse examData and populate questions
+  React.useEffect(() => {
+    if (examData) {
+      console.log("=== EXAM DATA RECEIVED ===");
+      console.log("Full API Response:", examData);
+
+      // Extract parts from API response structure
+      const parts = examData?.data?.data?.parts || examData?.data?.parts || examData?.parts || examData;
+
+      if (Array.isArray(parts)) {
+        console.log("Extracted Parts:", parts);
+
+        // Parse Part I - Multiple Choice Questions
+        const part1 = parts.find((part: any) => part.part === "Phần I");
+        if (part1 && part1.questions) {
+          const multipleChoiceQuestions = part1.questions.map((q: any) => ({
+            id: String(q.id),
+            question: q.question,
+            options: q.options, // Keep original format {A, B, C, D}
+            correctAnswer: q.answer === "A" ? 0 : q.answer === "B" ? 1 : q.answer === "C" ? 2 : 3,
+            type: "single" as const
+          }));
+          console.log("✅ Parsed Multiple Choice Questions:", multipleChoiceQuestions);
+          setExamQuestions(multipleChoiceQuestions);
+        }
+
+        // Parse Part II - Yes/No Questions
+        const part2 = parts.find((part: any) => part.part === "Phần II");
+        if (part2 && part2.questions) {
+          const yesNoQuestions = part2.questions.map((q: any) => ({
+            id: String(q.id),
+            question: q.question,
+            statements: q.statements,
+            type: "yes-no" as const
+          }));
+          console.log("✅ Parsed Yes/No Questions:", yesNoQuestions);
+          setExamYesNoQuestions(yesNoQuestions);
+        }
+
+        // Parse Part III - Short Answer Questions
+        const part3 = parts.find((part: any) => part.part === "Phần III");
+        if (part3 && part3.questions) {
+          const shortQuestions = part3.questions.map((q: any) => ({
+            id: String(q.id),
+            question: q.question,
+            answer: q.answer,
+            type: "short" as const
+          }));
+          console.log("✅ Parsed Short Questions:", shortQuestions);
+          setExamShortQuestions(shortQuestions);
+        }
+
+        // Log exam metadata
+        const examInfo = examData?.data?.data || examData?.data || examData;
+        if (examInfo) {
+          console.log("📋 Exam Metadata:", {
+            subject: examInfo.subject,
+            grade: examInfo.grade,
+            duration: examInfo.duration_minutes,
+            school: examInfo.school,
+            atomicMasses: examInfo.atomic_masses
+          });
+        }
+      } else {
+        console.warn("⚠️ Parts not found or not an array:", parts);
+      }
+    }
+  }, [examData]);
+
   const [examQuestions, setExamQuestions] = useState<Question[]>(
-    questions.length > 0
-      ? questions
-      : [
-          {
-            id: "1",
-            text: "Nhúng thanh Fe vào dung dịch CuSO4. Sau một thời gian, quan sát thấy hiện tượng gì?",
-            options: [
-              "Thanh Fe có màu đỏ và dd nhạt dần màu xanh.",
-              "Thanh Fe có màu đỏ và dd dần có màu xanh.",
-              "Thanh Fe có màu trắng xám và dd nhạt dần màu xanh.",
-              "Thanh Fe có màu trắng và dd nhạt dần màu xanh.",
-            ],
-            correctAnswer: 1,
-            type: "single",
-          },
-        ]
+    examData?.data?.data?.parts[0]?.questions || []
   );
 
   const [examYesNoQuestions, setExamYesNoQuestions] = useState<YesNoQuestion[]>(
-    yesNoQuestions.length > 0
-      ? yesNoQuestions
-      : [
-          {
-            id: "2",
-            text: "Xét về cấu tạo nguyên tử Hydrogen (H), cho biết các phát biểu sau đúng hay sai:",
-            type: "yes-no",
-            options: [
-              {
-                id: "2a",
-                text: "Nguyên tử Hydrogen chỉ chứa proton và electron.",
-                isCorrect: true,
-              },
-              {
-                id: "2b",
-                text: "Hạt nhân của nguyên tử Hydrogen chứa cả proton và neutron.",
-                isCorrect: false,
-              },
-              {
-                id: "2c",
-                text: "Số proton trong hạt nhân nguyên tử Hydrogen bằng số electron trong lớp vỏ.",
-                isCorrect: true,
-              },
-              {
-                id: "2d",
-                text: "Hydrogen là nguyên tố phổ biến nhất trong vỏ Trái Đất.",
-                isCorrect: false,
-              },
-            ],
-          },
-        ]
+    examData?.data?.data?.parts[1]?.questions || []
   );
 
   const [examShortQuestions, setExamShortQuestions] = useState<ShortQuestion[]>(
-    shortQuestions.length > 0
-      ? shortQuestions
-      : [
-          {
-            id: "3",
-            text: "Viết phương trình hóa học của phản ứng giữa axit clohidric và natri hiđroxit.",
-            answer: "HCl + NaOH → NaCl + H2O.",
-            type: "short",
-          },
-        ]
+    examData?.data?.data?.parts[2]?.questions || []
   );
 
   const handleQuestionUpdate = (updatedQuestion: Question) => {
@@ -128,7 +145,7 @@ export default function ExamCreationTemplate({
   const handleAddQuestion = () => {
     const newQuestion: Question = {
       id: Date.now().toString(),
-      text: "",
+      question: "",
       options: ["", "", "", ""],
       correctAnswer: 0,
       type: "single",
@@ -157,15 +174,14 @@ export default function ExamCreationTemplate({
   const handleAddYesNoQuestion = () => {
     const newQuestion: YesNoQuestion = {
       id: Date.now().toString(),
-      text: "",
+      question: "",
       type: "yes-no",
-      options: [
-        {
-          id: Date.now().toString() + "a",
-          text: "",
-          isCorrect: false,
-        },
-      ],
+      statements: {
+        a: { text: "", answer: false },
+        b: { text: "", answer: false },
+        c: { text: "", answer: false },
+        d: { text: "", answer: false },
+      },
     };
     const newQuestions = [...examYesNoQuestions, newQuestion];
     setExamYesNoQuestions(newQuestions);
@@ -183,6 +199,8 @@ export default function ExamCreationTemplate({
     setExamShortQuestions(newQuestions);
     onShortQuestionUpdate?.(newQuestions);
   };
+
+  console.log(examData?.data?.data?.parts, "tran");
 
   return (
     <div className="grid grid-cols-5 min-h-screen ">
