@@ -12,36 +12,94 @@ export default function YesNoQuestionItem({
   onUpdate,
   onDelete,
 }: YesNoQuestionItemProps) {
+  // Normalize question data for both API and legacy formats
+  const getQuestionText = () => question.question || question.text || "";
+
+  // Convert API statements to options format for display
+  const getOptionsFromStatements = () => {
+    if (question.statements) {
+      return [
+        { id: "a", text: question.statements.a.text, isCorrect: question.statements.a.answer },
+        { id: "b", text: question.statements.b.text, isCorrect: question.statements.b.answer },
+        { id: "c", text: question.statements.c.text, isCorrect: question.statements.c.answer },
+        { id: "d", text: question.statements.d.text, isCorrect: question.statements.d.answer },
+      ];
+    }
+    return question.options || [];
+  };
+
+  const displayOptions = getOptionsFromStatements();
+
+  // Get statement letter labels
+  const getStatementLabel = (index: number) => {
+    const labels = ["a)", "b)", "c)", "d)"];
+    return labels[index] || `${index + 1})`;
+  };
+
   const handleQuestionTextChange = (text: string) => {
-    onUpdate({ ...question, text });
+    if (question.question !== undefined) {
+      onUpdate({ ...question, question: text });
+    } else {
+      onUpdate({ ...question, text });
+    }
   };
 
   const handleOptionTextChange = (optionId: string, text: string) => {
-    const newOptions = question.options.map((option) =>
-      option.id === optionId ? { ...option, text } : option
-    );
-    onUpdate({ ...question, options: newOptions });
+    if (question.statements) {
+      // Update statements format
+      const newStatements = { ...question.statements };
+      if (optionId in newStatements) {
+        newStatements[optionId as keyof typeof newStatements] = {
+          ...newStatements[optionId as keyof typeof newStatements],
+          text
+        };
+      }
+      onUpdate({ ...question, statements: newStatements });
+    } else {
+      // Update options format
+      const newOptions = question.options?.map((option) =>
+        option.id === optionId ? { ...option, text } : option
+      ) || [];
+      onUpdate({ ...question, options: newOptions });
+    }
   };
 
   const handleAnswerChange = (optionId: string, isCorrect: boolean) => {
-    const newOptions = question.options.map((option) =>
-      option.id === optionId ? { ...option, isCorrect } : option
-    );
-    onUpdate({ ...question, options: newOptions });
+    if (question.statements) {
+      // Update statements format
+      const newStatements = { ...question.statements };
+      if (optionId in newStatements) {
+        newStatements[optionId as keyof typeof newStatements] = {
+          ...newStatements[optionId as keyof typeof newStatements],
+          answer: isCorrect
+        };
+      }
+      onUpdate({ ...question, statements: newStatements });
+    } else {
+      // Update options format
+      const newOptions = question?.options?.map((option) =>
+        option.id === optionId ? { ...option, isCorrect } : option
+      ) || [];
+      onUpdate({ ...question, options: newOptions });
+    }
   };
 
   const addNewOption = () => {
-    const newOption: YesNoOption = {
-      id: Date.now().toString(),
-      text: "",
-      isCorrect: false,
-    };
-    const newOptions = [...question.options, newOption];
-    onUpdate({ ...question, options: newOptions });
+    // Only allow adding options for legacy format, not API statements format
+    if (!question.statements && question.options) {
+      const newOption: YesNoOption = {
+        id: Date.now().toString(),
+        text: "",
+        isCorrect: false,
+      };
+      const newOptions = [...question.options, newOption];
+      onUpdate({ ...question, options: newOptions });
+    }
   };
 
   const removeOption = (optionId: string) => {
-    if (question.options.length > 1) {
+    // Only allow removing options for legacy format, not API statements format
+    if (!question.statements && question.options && question.options.length > 1) {
       const newOptions = question.options.filter(
         (option) => option.id !== optionId
       );
@@ -61,7 +119,7 @@ export default function YesNoQuestionItem({
           <div className="w-full">
             <textarea
               className="w-full font-calsans border resize-none text-sm bg-transparent p-2 rounded-md"
-              value={question.text}
+              value={getQuestionText()}
               onChange={(e) => handleQuestionTextChange(e.target.value)}
               placeholder="Nhập câu hỏi đúng/sai..."
               rows={1}
@@ -71,7 +129,7 @@ export default function YesNoQuestionItem({
 
         {/* Sub-questions with True/False options */}
         <div className="space-y-3 ml-16 font-questrial">
-          {question.options.map((option, optionIndex) => (
+          {displayOptions?.map((option, optionIndex) => (
             <div
               key={option.id}
               className="space-y-2 border p-1.5 rounded-md bg-neutral-50"
@@ -92,7 +150,7 @@ export default function YesNoQuestionItem({
                   )}`}
                   rows={1}
                 />
-                {question.options.length > 1 && (
+                {displayOptions.length > 1 && !question.statements && (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -172,7 +230,7 @@ export default function YesNoQuestionItem({
           variant="outline"
           size="icon"
           className="p-2 text-gray-500 hover:text-red-500"
-          onClick={() => onDelete(question.id)}
+          onClick={() => onDelete(String(question.id))}
         >
           <Plus className="h-4 w-4 rotate-45" />
         </Button>
