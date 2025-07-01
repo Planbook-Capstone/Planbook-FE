@@ -14,12 +14,22 @@ export default function QuestionItem({
   onUpdate,
   onDelete,
 }: QuestionItemProps) {
+  // Normalize options to array format
+  const normalizeOptions = (options: string[] | { A: string; B: string; C: string; D: string }): string[] => {
+    if (Array.isArray(options)) {
+      return options;
+    }
+    return [options.A, options.B, options.C, options.D];
+  };
+
+  const normalizedOptions = normalizeOptions(question.options);
+
   const [selectedAnswer, setSelectedAnswer] = useState<number>(
     question.correctAnswer
   );
 
   const handleOptionChange = (optionIndex: number, value: string) => {
-    const newOptions = [...question.options];
+    const newOptions = [...normalizedOptions];
     newOptions[optionIndex] = value;
     onUpdate({ ...question, options: newOptions });
   };
@@ -31,7 +41,7 @@ export default function QuestionItem({
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(question.text);
+      await navigator.clipboard.writeText(question.question);
       toast.success("Coppy thành công");
       // Có thể hiển thị thông báo thành công ở đây nếu muốn
     } catch (err) {
@@ -52,9 +62,9 @@ export default function QuestionItem({
           <div className="w-full">
             <textarea
               className="w-full font-calsans border resize-none text-sm bg-transparent p-2 rounded-md"
-              value={question.text}
+              value={question?.question}
               onChange={(e: any) =>
-                onUpdate({ ...question, text: e.target.value })
+                onUpdate({ ...question, question: e.target.value })
               }
               placeholder="Nhập câu hỏi..."
               rows={1}
@@ -64,7 +74,7 @@ export default function QuestionItem({
 
         {/* Answer Options */}
         <div className="space-y-1 font-questrial">
-          {question.options.map((option, optionIndex) => (
+          {normalizedOptions.map((option, optionIndex) => (
             <div key={optionIndex} className="flex items-center gap-2">
               {/* Option Letter */}
               <div
@@ -117,7 +127,7 @@ export default function QuestionItem({
           variant="outline"
           size="icon"
           className="p-2 text-gray-500 hover:text-red-500"
-          onClick={() => onDelete(question.id)}
+          onClick={() => onDelete(String(question.id))}
         >
           <Plus className="h-4 w-4 rotate-45" />
         </Button>
