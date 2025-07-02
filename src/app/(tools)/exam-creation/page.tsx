@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import ExamCreationTemplate from "@/components/templates/exam-creation";
 import ExamFileImport from "@/components/organisms/exam-file-import";
 
@@ -33,6 +34,29 @@ export default function ExamCreationPage() {
     setHasData(true);
   };
 
+  const handleImageDrop = (questionId: string, imageSrc: string) => {
+    console.log('🖼️ Image dropped on question:', questionId, imageSrc);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    // Check if dropping an image asset onto a question
+    if (active.data.current?.type === 'image' && over.id.toString().includes('question') && over.id.toString().includes('image-drop')) {
+      console.log('🖼️ Dropping image:', active.data.current.content);
+      console.log('📍 Drop target:', over.id);
+
+      // Extract question ID from drop zone ID (format: question-{id}-image-drop)
+      const questionId = over.id.toString().replace('question-', '').replace('-image-drop', '');
+      console.log('🎯 Question ID:', questionId);
+
+      // Call the image drop handler
+      handleImageDrop(questionId, active.data.current.content);
+    }
+  };
+
   const documentInfo = {
     title: "Kiểm tra hoá cuối kì - THPT Trần Phú",
     description:
@@ -52,10 +76,13 @@ export default function ExamCreationPage() {
 
   // Show exam creation template when there's data
   return (
-    <ExamCreationTemplate
-      documentInfo={documentInfo}
-      onQuestionUpdate={handleQuestionUpdate}
-      examData={examData}
-    />
+    <DndContext onDragEnd={handleDragEnd}>
+      <ExamCreationTemplate
+        documentInfo={documentInfo}
+        onQuestionUpdate={handleQuestionUpdate}
+        examData={examData}
+        onImageDrop={handleImageDrop}
+      />
+    </DndContext>
   );
 }
