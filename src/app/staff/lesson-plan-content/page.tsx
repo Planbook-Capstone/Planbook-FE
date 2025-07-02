@@ -6,17 +6,32 @@ import { LessonPlanTemplate } from "@/types";
 import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
-import { ArrowLeft, FileText, Save, BookOpen } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function LessonPlanContentPage() {
+  const [templates] = useState<LessonPlanTemplate[]>([
+    getDefaultTemplate(),
+    {
+      ...getDefaultTemplate(),
+      id: "template-2",
+      name: "Template Toán Học",
+      description:
+        "Template chuyên dụng cho các môn toán học với cấu trúc bài tập và ví dụ",
+    },
+    {
+      ...getDefaultTemplate(),
+      id: "template-3",
+      name: "Template Ngữ Văn",
+      description:
+        "Template dành cho môn ngữ văn với phần phân tích văn bản và luyện tập",
+    },
+  ]);
   const [currentTemplate, setCurrentTemplate] = useState<
     LessonPlanTemplate | undefined
   >();
   const [showBuilder, setShowBuilder] = useState(false);
 
-  const handleCreateContent = () => {
-    // Load the template structure (read-only for staff)
-    const template = getDefaultTemplate();
+  const handleEditTemplate = (template: LessonPlanTemplate) => {
     setCurrentTemplate(template);
     setShowBuilder(true);
   };
@@ -58,74 +73,60 @@ export default function LessonPlanContentPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-calsans text-gray-900 mb-2">
-            Tạo Nội Dung Giáo Án
+            Chọn Template Giáo Án
           </h1>
           <p className="text-gray-600">
-            Thêm nội dung vào cấu trúc giáo án đã được thiết lập bởi Admin
+            Chọn template phù hợp để tạo nội dung giáo án chi tiết
           </p>
         </div>
 
-        {/* Main Content */}
+        {/* Templates List */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-calsans mb-2">Bắt Đầu Tạo Giáo Án</h2>
+              <h2 className="text-xl font-calsans mb-2">Danh Sách Template</h2>
               <p className="text-gray-600">
-                Sử dụng cấu trúc template có sẵn để tạo nội dung giáo án chi tiết
-              </p>
-            </div>
-            <Button 
-              onClick={handleCreateContent}
-              className="flex items-center gap-2"
-            >
-              <BookOpen className="w-4 h-4" />
-              Tạo Nội Dung
-            </Button>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <FileText className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="font-medium text-gray-900 mb-2">Cấu Trúc Có Sẵn</h3>
-              <p className="text-sm text-gray-600">
-                Sử dụng cấu trúc template đã được Admin thiết lập
-              </p>
-            </div>
-
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <BookOpen className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="font-medium text-gray-900 mb-2">Tập Trung Nội Dung</h3>
-              <p className="text-sm text-gray-600">
-                Chỉ cần tập trung vào việc tạo nội dung chất lượng
-              </p>
-            </div>
-
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Save className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="font-medium text-gray-900 mb-2">Lưu Tự Động</h3>
-              <p className="text-sm text-gray-600">
-                Hệ thống tự động lưu nháp trong quá trình làm việc
+                Chọn template để bắt đầu tạo nội dung giáo án
               </p>
             </div>
           </div>
 
-          {/* Instructions */}
-          <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
-            <h4 className="font-medium text-yellow-900 mb-2">Hướng dẫn sử dụng:</h4>
-            <ul className="text-sm text-yellow-800 space-y-1">
-              <li>• Click "Tạo Nội Dung" để bắt đầu</li>
-              <li>• Cấu trúc bước và tiêu đề đã được thiết lập sẵn</li>
-              <li>• Bạn chỉ cần thêm nội dung vào các từ khóa</li>
-              <li>• Sử dụng "Lưu nháp" để lưu tiến độ làm việc</li>
-              <li>• Click "Lưu" khi hoàn thành để xuất bản giáo án</li>
-            </ul>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {templates.map((template) => (
+              <div
+                key={template.id}
+                className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900 mb-1">
+                      {template.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {template.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-500 mb-3">
+                  {template.steps?.length || 0} bước • 0 từ khóa
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                    Có sẵn
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditTemplate(template)}
+                    className="text-xs"
+                  >
+                    Tạo nội dung
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -7,16 +7,22 @@ import { LessonPlanTemplate } from "@/types";
 import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
   Settings,
   FileText,
   Upload,
-  Edit,
-  Trash2,
   Eye,
   Download,
   Plus,
+  MoreVertical,
+  Trash2,
 } from "lucide-react";
 
 // Interface for uploaded files
@@ -30,26 +36,80 @@ interface UploadedFile {
 }
 
 export default function LessonPlanTemplatePage() {
+  const [templates, setTemplates] = useState<LessonPlanTemplate[]>([
+    getDefaultTemplate(),
+    {
+      ...getDefaultTemplate(),
+      id: "template-2",
+      name: "Template Toán Học",
+      description:
+        "Template chuyên dụng cho các môn toán học với cấu trúc bài tập và ví dụ",
+    },
+    {
+      ...getDefaultTemplate(),
+      id: "template-3",
+      name: "Template Ngữ Văn",
+      description:
+        "Template dành cho môn ngữ văn với phần phân tích văn bản và luyện tập",
+    },
+  ]);
   const [currentTemplate, setCurrentTemplate] = useState<
     LessonPlanTemplate | undefined
   >();
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    LessonPlanTemplate | undefined
+  >();
   const [showBuilder, setShowBuilder] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("template");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleEditTemplate = () => {
-    // Load the single default template
-    const template = getDefaultTemplate();
-    setCurrentTemplate(template);
+  const handleCreateTemplate = () => {
+    const newTemplate = getDefaultTemplate();
+    newTemplate.id = `template-${Date.now()}`;
+    newTemplate.name = "Template Mới";
+    newTemplate.description = "Mô tả template mới";
+    setCurrentTemplate(newTemplate);
+    setSelectedTemplate(undefined);
+    setIsEditing(true);
     setShowBuilder(true);
+  };
+
+  const handleEditTemplate = (template: LessonPlanTemplate) => {
+    setCurrentTemplate(template);
+    setSelectedTemplate(template);
+    setIsEditing(true);
+    setShowBuilder(true);
+  };
+
+  const handleDeleteTemplate = (templateId: string) => {
+    if (templates.length <= 1) {
+      toast.error("Không thể xóa template cuối cùng!");
+      return;
+    }
+
+    setTemplates((prev) => prev.filter((t) => t.id !== templateId));
+    toast.success("Đã xóa template!");
   };
 
   const handleSave = (template: LessonPlanTemplate) => {
     // TODO: Integrate with API
     console.log("Saving template:", template);
+
+    if (selectedTemplate) {
+      // Update existing template
+      setTemplates((prev) =>
+        prev.map((t) => (t.id === template.id ? template : t))
+      );
+    } else {
+      // Add new template
+      setTemplates((prev) => [...prev, template]);
+    }
+
     toast.success("Template đã được lưu thành công!");
     setShowBuilder(false);
+    setIsEditing(false);
   };
 
   const handleSaveDraft = (template: LessonPlanTemplate) => {
@@ -195,57 +255,84 @@ export default function LessonPlanTemplatePage() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-xl font-calsans mb-2">
-                    Template Giáo Án Hệ Thống
+                    Danh Sách Template Giáo Án
                   </h2>
                   <p className="text-gray-600">
-                    Cấu hình cấu trúc template duy nhất cho toàn bộ hệ thống
+                    Quản lý các template giáo án cho hệ thống
                   </p>
                 </div>
                 <Button
-                  onClick={handleEditTemplate}
+                  onClick={handleCreateTemplate}
                   className="flex items-center gap-2"
                 >
-                  <Edit className="w-4 h-4" />
-                  Chỉnh sửa Template
+                  <Plus className="w-4 h-4" />
+                  Tạo Template Mới
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <Settings className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="font-medium text-gray-900 mb-2">
-                    Template Thống Nhất
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Một template duy nhất cho toàn bộ hệ thống
-                  </p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {templates.map((template) => (
+                  <div
+                    key={template.id}
+                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 mb-1">
+                          {template.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {template.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 ml-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="p-1"
+                              title="Tùy chọn"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditTemplate(template)}
+                            >
+                              Chỉnh sửa
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteTemplate(template.id)}
+                              className="text-red-600"
+                            >
+                              Xóa
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
 
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <FileText className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="font-medium text-gray-900 mb-2">
-                    Cấu Trúc Linh Hoạt
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Tùy chỉnh các phần và trường thông tin theo nhu cầu
-                  </p>
-                </div>
+                    <div className="text-xs text-gray-500 mb-3">
+                      {template.steps?.length || 0} bước • 0 từ khóa
+                    </div>
 
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <Upload className="w-6 h-6 text-purple-600" />
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                        Không sử dụng
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditTemplate(template)}
+                        className="text-xs"
+                      >
+                        Xem chi tiết
+                      </Button>
+                    </div>
                   </div>
-                  <h3 className="font-medium text-gray-900 mb-2">
-                    Quản Lý Tập Trung
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Dễ dàng cập nhật và đồng bộ cho tất cả người dùng
-                  </p>
-                </div>
+                ))}
               </div>
             </div>
           </TabsContent>
