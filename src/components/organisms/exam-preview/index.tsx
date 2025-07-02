@@ -357,8 +357,8 @@ export default function ExamPreview({
   return (
     <div className="h-full flex flex-col bg-white font-questrial">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-3">
+      <div className="p-4 border-gray-200">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <h2 className="text-lg font-calsans text-gray-800">Xem trước</h2>
           </div>

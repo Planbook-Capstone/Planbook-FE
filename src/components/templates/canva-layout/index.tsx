@@ -78,15 +78,15 @@ function CanvaLayoutContent() {
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex h-full">
-        {/* Assets Panel - Flexible width */}
-        <div className="bg-white border-r border-gray-200 flex-shrink-0">
+      <div className="flex h-screen">
+        {/* Assets Panel - Sticky */}
+        <div className="bg-white border-r border-gray-200 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
           <AssetsPanel />
         </div>
 
-        {/* Canvas Area - Flexible */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="h-16 flex items-center px-4">
+        {/* Canvas Area - Scrollable */}
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+          <div className="h-16 flex items-center px-4 border-b border-gray-200 bg-white sticky top-0 z-10">
             <h1 className="text-xl font-calsans text-gray-800">Tạo bài kiểm tra</h1>
             <div className="ml-auto flex space-x-2">
               <button className="sm:hidden p-2 hover:bg-gray-100 rounded-lg">
@@ -97,7 +97,7 @@ function CanvaLayoutContent() {
               </button>
             </div>
           </div>
-          <div className="flex-1 p-2 sm:p-4">
+          <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
             <CanvasArea
               elements={canvasElements}
               onUpdateElement={updateElement}
@@ -106,8 +106,8 @@ function CanvaLayoutContent() {
           </div>
         </div>
 
-        {/* Preview Panel - Fixed width */}
-        <div className="w-80 bg-white border-l border-gray-200 flex-shrink-0">
+        {/* Preview Panel - Sticky */}
+        <div className="w-80 bg-white border-l border-gray-200 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
           <PreviewPanel elements={canvasElements} />
         </div>
       </div>
