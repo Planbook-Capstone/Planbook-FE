@@ -27,30 +27,44 @@ export default function ExamPreview({
   examTime = "90 phút",
   examDate = new Date().toLocaleDateString("vi-VN"),
 }: ExamPreviewProps) {
-  const convertImageToBuffer = async (
-    imageSrc: string
-  ): Promise<ArrayBuffer | null> => {
+  const convertImageToPNG = async (imageSrc: string): Promise<ArrayBuffer | null> => {
     try {
-      if (imageSrc.startsWith("data:")) {
-        // Base64 image
-        const base64Data = imageSrc.split(",")[1];
-        const binaryString = atob(base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes.buffer;
-      } else {
-        // URL image
-        const response = await fetch(imageSrc);
-        if (response.ok) {
-          return await response.arrayBuffer();
-        }
-      }
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const reader = new FileReader();
+              reader.onload = () => {
+                resolve(reader.result as ArrayBuffer);
+              };
+              reader.readAsArrayBuffer(blob);
+            } else {
+              resolve(null);
+            }
+          }, 'image/png');
+        };
+
+        img.onerror = () => {
+          console.error("Failed to load image:", imageSrc);
+          resolve(null);
+        };
+
+        // Handle CORS for external images
+        img.crossOrigin = 'anonymous';
+        img.src = imageSrc;
+      });
     } catch (error) {
-      console.error("Error converting image:", error);
+      console.error("Error converting image to PNG:", error);
+      return null;
     }
-    return null;
   };
 
   const handleExportDocx = async () => {
@@ -64,6 +78,7 @@ export default function ExamPreview({
         HeadingLevel,
         AlignmentType,
         ImageRun,
+        Media,
       } = await import("docx");
 
       const doc = new Document({
@@ -123,24 +138,37 @@ export default function ExamPreview({
 
                         // Add image if exists
                         if (question.illustrationImage) {
-                          const imageBuffer = await convertImageToBuffer(
-                            question.illustrationImage
-                          );
-                          if (imageBuffer) {
-                            questionParagraphs.push(
-                              new Paragraph({
-                                children: [
-                                  new ImageRun({
-                                    data: new Uint8Array(imageBuffer),
-                                    transformation: {
-                                      width: 300,
-                                      height: 200,
-                                    },
-                                    type: "png",
-                                  }),
-                                ],
-                              })
+                          try {
+                            console.log("🖼️ Processing image for DOCX:", question.illustrationImage.substring(0, 50));
+
+                            const imageBuffer = await convertImageToPNG(
+                              question.illustrationImage
                             );
+
+                            if (imageBuffer) {
+                              console.log("✅ Image buffer created, size:", imageBuffer.byteLength);
+
+                              questionParagraphs.push(
+                                new Paragraph({
+                                  children: [
+                                    new ImageRun({
+                                      data: new Uint8Array(imageBuffer),
+                                      transformation: {
+                                        width: 300,
+                                        height: 200,
+                                      },
+                                      type: "png",
+                                    }),
+                                  ],
+                                })
+                              );
+
+                              console.log("✅ Image added to DOCX");
+                            } else {
+                              console.error("❌ Failed to create image buffer");
+                            }
+                          } catch (error) {
+                            console.error("❌ Error adding image to question:", error);
                           }
                         }
 
@@ -354,8 +382,8 @@ export default function ExamPreview({
       </div>
 
       {/* Preview Content */}
-      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-        <div className="max-w-4xl mx-auto bg-white shadow-sm rounded-lg p-8">
+      <div className="flex-1 overflow-y-auto p-0">
+        <div className="max-w-4xl mx-auto  p-5">
           {/* Exam Header */}
           <div className="text-center mb-8 border-b pb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -389,7 +417,28 @@ export default function ExamPreview({
                           src={question.illustrationImage}
                           alt="Hình minh họa"
                           className="max-w-xs max-h-48 rounded border"
+                          onLoad={() => {
+                            console.log(
+                              "✅ Image loaded successfully:",
+                              question.illustrationImage
+                            );
+                          }}
+                          onError={(e) => {
+                            console.error(
+                              "❌ Image load error:",
+                              question.illustrationImage,
+                              e
+                            );
+                            e.currentTarget.style.display = "none";
+                          }}
                         />
+                      </div>
+                    )}
+                    {/* Debug: Show image data */}
+                    {question.illustrationImage && (
+                      <div className="text-xs text-gray-500 mb-2">
+                        🖼️ Image: {question.illustrationImage.substring(0, 50)}
+                        ...
                       </div>
                     )}
                     <div className="grid grid-cols-1 gap-1 ml-4">
