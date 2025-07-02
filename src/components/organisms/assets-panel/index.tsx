@@ -180,18 +180,18 @@ export default function AssetsPanel() {
 
   return (
     <div
-      className={`h-full flex flex-col font-questrial transition-all duration-300 ${
+      className={`h-full flex flex-col font-questrial transition-all duration-200 ease-in-out ${
         isCollapsed ? "w-12" : "w-full"
       }`}
     >
       {/* Header */}
-      <div className="p-4 border-gray-200 flex items-center justify-between">
+      <div className="p-4 border-gray-200 flex items-center justify-between ">
         {!isCollapsed && (
           <h2 className="text-lg font-calsans text-gray-800">Học liệu</h2>
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className=" hover:bg-gray-100 rounded-lg transition-colors"
+          className="cursor-pointer hover:bg-gray-100 rounded-lg transition-colors"
           title={isCollapsed ? "Mở rộng" : "Thu gọn"}
         >
           {isCollapsed ? <PanelRightClose /> : <PanelRightOpen />}
@@ -208,7 +208,7 @@ export default function AssetsPanel() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex-1 flex items-center justify-center space-x-2 py-3 px-2 text-sm font-medium
+                 cursor-pointer flex-1 flex items-center justify-center space-x-2 py-3 px-2 text-sm font-medium
                   transition-colors duration-200
                   ${
                     activeTab === tab.id
@@ -292,7 +292,7 @@ export default function AssetsPanel() {
 
       {/* Collapsed State - Show Icons Only */}
       {isCollapsed && (
-        <div className="flex-1 p-2 overflow-y-auto">
+        <div className="flex-1 p-1 mx-auto overflow-y-auto">
           <div className="flex flex-col space-y-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -304,7 +304,7 @@ export default function AssetsPanel() {
                     setIsCollapsed(false); // Expand when clicking on icon
                   }}
                   className={`
-                    p-2 rounded-lg transition-colors duration-200
+                   cursor-pointer p-2 rounded-full transition-colors duration-200
                     ${
                       activeTab === tab.id
                         ? "bg-blue-100 text-blue-600"
