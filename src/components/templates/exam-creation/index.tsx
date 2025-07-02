@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import DocumentInfoPanel, {
   DocumentInfo,
 } from "@/components/organisms/exam-document-panel";
+import AssetsPanel from "@/components/organisms/assets-panel";
 import ExamContent from "@/components/organisms/exam-content";
 import ExamSidebar from "@/components/organisms/exam-sidebar";
 import { Question } from "@/components/organisms/exam-question-item/types";
@@ -19,6 +20,7 @@ interface ExamCreationTemplateProps {
   onYesNoQuestionUpdate?: (yesNoQuestions: YesNoQuestion[]) => void;
   onShortQuestionUpdate?: (shortQuestions: ShortQuestion[]) => void;
   examData?: any; // Data from API response when importing exam
+  onImageDrop?: (questionId: string, imageSrc: string) => void;
 }
 
 export default function ExamCreationTemplate({
@@ -30,6 +32,7 @@ export default function ExamCreationTemplate({
   onYesNoQuestionUpdate,
   onShortQuestionUpdate,
   examData,
+  onImageDrop,
 }: ExamCreationTemplateProps) {
   // Parse examData and populate questions
   React.useEffect(() => {
@@ -200,12 +203,24 @@ export default function ExamCreationTemplate({
     onShortQuestionUpdate?.(newQuestions);
   };
 
+  const handleImageDropToQuestion = (questionId: string, imageSrc: string) => {
+    console.log('🖼️ Handling image drop to question:', questionId, imageSrc);
+
+    // Update the question with the image
+    const updatedQuestions = examQuestions.map((q) =>
+      q.id.toString() === questionId ? { ...q, illustrationImage: imageSrc } : q
+    );
+    setExamQuestions(updatedQuestions);
+    onQuestionUpdate?.(updatedQuestions);
+    onImageDrop?.(questionId, imageSrc);
+  };
+
   console.log(examData?.data?.data?.parts, "tran");
 
   return (
     <div className="grid grid-cols-5 min-h-screen ">
       <div className="col-span-1 sticky top-0 h-screen">
-        <DocumentInfoPanel documentInfo={documentInfo} />
+        <AssetsPanel />
       </div>
 
       <div className="col-span-3 border-l">
