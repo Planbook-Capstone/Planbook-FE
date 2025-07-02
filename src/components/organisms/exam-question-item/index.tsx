@@ -36,6 +36,8 @@ export default function QuestionItem({
     id: `question-${question.id}-image-drop`,
   });
 
+  console.log('🎯 Question drop zone ID:', `question-${question.id}-image-drop`, 'isOver:', isOver);
+
   const handleOptionChange = (optionIndex: number, value: string) => {
     const newOptions = [...normalizedOptions];
     newOptions[optionIndex] = value;
