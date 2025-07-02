@@ -159,6 +159,39 @@ export function LessonPlanTemplateBuilder({
           </div>
         </div>
 
+        {/* Template Info - For both Admin and Staff */}
+        {(mode === "admin" || mode === "staff") && (
+          <div className="bg-white rounded-lg border p-6 space-y-4">
+            <h2 className="text-lg font-medium text-gray-900">
+              Thông tin Template
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField label="Tên Template" htmlFor="template-name">
+                <Input
+                  id="template-name"
+                  value={template.name}
+                  onChange={(e) => updateTemplate({ name: e.target.value })}
+                  placeholder="Nhập tên template"
+                  className="w-full"
+                  disabled={mode === "staff"}
+                />
+              </FormField>
+              <FormField label="Mô tả Template" htmlFor="template-description">
+                <Input
+                  id="template-description"
+                  value={template.description}
+                  onChange={(e) =>
+                    updateTemplate({ description: e.target.value })
+                  }
+                  placeholder="Nhập mô tả template"
+                  className="w-full"
+                  disabled={mode === "staff"}
+                />
+              </FormField>
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons - Only for Admin */}
         {mode === "admin" && (
           <div className="flex justify-between items-center">
