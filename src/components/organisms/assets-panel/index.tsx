@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  PanelRightClose,
+  PanelRightOpen,
 } from "lucide-react";
 
 interface AssetItem {
@@ -100,28 +102,28 @@ export default function AssetsPanel() {
     if (!files) return;
 
     Array.from(files).forEach((file) => {
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const result = e.target?.result as string;
           const newAsset: AssetItem = {
             id: `uploaded-${Date.now()}-${Math.random()}`,
-            type: 'image',
+            type: "image",
             content: result,
-            preview: file.name
+            preview: file.name,
           };
-          setUploadedImages(prev => [...prev, newAsset]);
+          setUploadedImages((prev) => [...prev, newAsset]);
         };
         reader.readAsDataURL(file);
       }
     });
 
     // Reset input value to allow uploading the same file again
-    event.target.value = '';
+    event.target.value = "";
   };
 
   const removeUploadedImage = (imageId: string) => {
-    setUploadedImages(prev => prev.filter(img => img.id !== imageId));
+    setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
   };
 
   const sampleAssets: Record<string, AssetItem[]> = {
@@ -189,14 +191,10 @@ export default function AssetsPanel() {
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+          className=" hover:bg-gray-100 rounded-lg transition-colors"
           title={isCollapsed ? "Mở rộng" : "Thu gọn"}
         >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-gray-600" />
-          ) : (
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
-          )}
+          {isCollapsed ? <PanelRightClose /> : <PanelRightOpen />}
         </button>
       </div>
 
@@ -230,7 +228,7 @@ export default function AssetsPanel() {
       {/* Assets Grid */}
       {!isCollapsed && (
         <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
-          {activeTab === 'upload' ? (
+          {activeTab === "upload" ? (
             <div className="space-y-4">
               {/* Upload Area */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
@@ -276,7 +274,9 @@ export default function AssetsPanel() {
 
               {uploadedImages.length === 0 && (
                 <div className="text-center text-gray-400 py-8">
-                  <span className="text-sm">Chưa có hình ảnh nào được tải lên</span>
+                  <span className="text-sm">
+                    Chưa có hình ảnh nào được tải lên
+                  </span>
                 </div>
               )}
             </div>
