@@ -169,14 +169,16 @@ function KeywordItem({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SECTION">Phần chính</SelectItem>
-                    <SelectItem value="SUBSECTION">Phần con</SelectItem>
-                    <SelectItem value="LIST_ITEM">Dấu gạch</SelectItem>
+                    <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
+                    <SelectItem value="LIST_ITEM">
+                      Danh sách nội dung
+                    </SelectItem>
                     <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
                   </SelectContent>
                 </Select>
 
-                {keyword.nodeType === "PARAGRAPH" && (
+                {(keyword.nodeType === "PARAGRAPH" ||
+                  keyword.nodeType === "LIST_ITEM") && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -190,32 +192,34 @@ function KeywordItem({
               </div>
             </div>
 
-            {showContent && keyword.nodeType === "PARAGRAPH" && (
-              <div className="mt-3 space-y-3">
-                <FormField label="Nội dung" htmlFor={`content-${keyword.id}`}>
-                  <textarea
-                    id={`content-${keyword.id}`}
-                    placeholder="Nhập nội dung chi tiết cho từ khóa này"
-                    value={keyword.content}
-                    onChange={(e) => updateField("content", e.target.value)}
-                    className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </FormField>
+            {showContent &&
+              (keyword.nodeType === "PARAGRAPH" ||
+                keyword.nodeType === "LIST_ITEM") && (
+                <div className="mt-3 space-y-3">
+                  <FormField label="Nội dung" htmlFor={`content-${keyword.id}`}>
+                    <textarea
+                      id={`content-${keyword.id}`}
+                      placeholder="Nhập nội dung chi tiết cho từ khóa này"
+                      value={keyword.content}
+                      onChange={(e) => updateField("content", e.target.value)}
+                      className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </FormField>
 
-                <FormField
-                  label="AI Prompt (tùy chọn)"
-                  htmlFor={`prompt-${keyword.id}`}
-                >
-                  <textarea
-                    id={`prompt-${keyword.id}`}
-                    placeholder="Nhập prompt để AI hỗ trợ tạo nội dung"
-                    value={keyword.prompt || ""}
-                    onChange={(e) => updateField("prompt", e.target.value)}
-                    className="w-full min-h-[80px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </FormField>
-              </div>
-            )}
+                  <FormField
+                    label="AI Prompt (tùy chọn)"
+                    htmlFor={`prompt-${keyword.id}`}
+                  >
+                    <textarea
+                      id={`prompt-${keyword.id}`}
+                      placeholder="Nhập prompt để AI hỗ trợ tạo nội dung"
+                      value={keyword.prompt || ""}
+                      onChange={(e) => updateField("prompt", e.target.value)}
+                      className="w-full min-h-[80px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </FormField>
+                </div>
+              )}
           </div>
 
           {isExpanded && keyword.children && keyword.children.length > 0 && (
@@ -300,14 +304,16 @@ function KeywordItem({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SECTION">Phần chính</SelectItem>
-                      <SelectItem value="SUBSECTION">Phần con</SelectItem>
-                      <SelectItem value="LIST_ITEM">Dấu gạch</SelectItem>
+                      <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
+                      <SelectItem value="LIST_ITEM">
+                        Danh sách nội dung
+                      </SelectItem>
                       <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
                     </SelectContent>
                   </Select>
 
-                  {keyword.nodeType === "PARAGRAPH" && (
+                  {(keyword.nodeType === "PARAGRAPH" ||
+                    keyword.nodeType === "LIST_ITEM") && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -319,8 +325,8 @@ function KeywordItem({
                     </Button>
                   )}
 
-                  {(keyword.nodeType === "SECTION" ||
-                    keyword.nodeType === "SUBSECTION") && (
+                  {(keyword.nodeType === "SUBSECTION" ||
+                    keyword.nodeType === "LIST_ITEM") && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -344,32 +350,37 @@ function KeywordItem({
                 </div>
               </div>
 
-              {showContent && keyword.nodeType === "PARAGRAPH" && (
-                <div className="mt-3 space-y-3">
-                  <FormField label="Nội dung" htmlFor={`content-${keyword.id}`}>
-                    <textarea
-                      id={`content-${keyword.id}`}
-                      placeholder="Nhập nội dung chi tiết cho từ khóa này"
-                      value={keyword.content}
-                      onChange={(e) => updateField("content", e.target.value)}
-                      className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </FormField>
+              {showContent &&
+                (keyword.nodeType === "PARAGRAPH" ||
+                  keyword.nodeType === "LIST_ITEM") && (
+                  <div className="mt-3 space-y-3">
+                    <FormField
+                      label="Nội dung"
+                      htmlFor={`content-${keyword.id}`}
+                    >
+                      <textarea
+                        id={`content-${keyword.id}`}
+                        placeholder="Nhập nội dung chi tiết cho từ khóa này"
+                        value={keyword.content}
+                        onChange={(e) => updateField("content", e.target.value)}
+                        className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </FormField>
 
-                  <FormField
-                    label="AI Prompt (tùy chọn)"
-                    htmlFor={`prompt-${keyword.id}`}
-                  >
-                    <textarea
-                      id={`prompt-${keyword.id}`}
-                      placeholder="Nhập prompt để AI hỗ trợ tạo nội dung"
-                      value={keyword.prompt || ""}
-                      onChange={(e) => updateField("prompt", e.target.value)}
-                      className="w-full min-h-[80px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </FormField>
-                </div>
-              )}
+                    <FormField
+                      label="AI Prompt (tùy chọn)"
+                      htmlFor={`prompt-${keyword.id}`}
+                    >
+                      <textarea
+                        id={`prompt-${keyword.id}`}
+                        placeholder="Nhập prompt để AI hỗ trợ tạo nội dung"
+                        value={keyword.prompt || ""}
+                        onChange={(e) => updateField("prompt", e.target.value)}
+                        className="w-full min-h-[80px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </FormField>
+                  </div>
+                )}
             </div>
 
             {/* Children for admin mode */}
