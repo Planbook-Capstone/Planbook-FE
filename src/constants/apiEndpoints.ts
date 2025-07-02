@@ -37,6 +37,11 @@ export const API_ENDPOINTS = {
 
   // Forms (Lesson Plans)
   FORMS: "/forms",
+
+  // Lesson Plan Templates
+  LESSON_PLANS: "/lesson-plans",
+
+  LESSON_NODES: "/lesson-nodes",
 } as const;
 
 // PDF API Endpoints (Secondary API - Port 8000)

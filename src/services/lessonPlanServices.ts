@@ -19,3 +19,8 @@ export const useUpdateFormService = updateMutationHook(
   "forms",
   API_ENDPOINTS.FORMS
 );
+
+export const useLessonPlanService = createQueryHook(
+  "lesson-plan",
+  API_ENDPOINTS.LESSON_PLANS
+);
