@@ -46,7 +46,7 @@ export default function ExamContent({
           <h1 className="font-calsans text-lg pb-2">
             Phần I: Câu trắc nghiệm nhiều phương án lựa chọn
           </h1>
-          {questions.map((question, index) => (
+          {questions?.map((question, index) => (
             <QuestionItem
               key={question.id}
               question={question}
@@ -69,7 +69,7 @@ export default function ExamContent({
             <YesNoQuestionItem
               key={question.id}
               question={question}
-              index={questions.length + index}
+              index={questions?.length + index}
               onUpdate={onYesNoQuestionUpdate}
               onDelete={onYesNoQuestionDelete}
             />
