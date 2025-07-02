@@ -160,3 +160,85 @@ export type BookTypeResponse = {
 //   limit: number;
 //   totalPages: number;
 // }
+
+// Lesson Plan Template Types
+export interface LessonPlanKeyword {
+  id: string;
+  title: string;
+  content: string;
+  prompt?: string;
+  order: number;
+  children?: LessonPlanKeyword[];
+  nodeType?: "SECTION" | "SUBSECTION" | "LIST_ITEM" | "PARAGRAPH"; // Map với backend NodeType
+}
+
+export interface LessonPlanStep {
+  id: string;
+  title: string;
+  description?: string;
+  isRequired: boolean;
+  order: number;
+  keywords: LessonPlanKeyword[];
+  stepType:
+    | "general_info"
+    | "objectives"
+    | "equipment"
+    | "activities"
+    | "custom";
+  timeAllocation?: number; // in minutes
+  children?: LessonPlanStep[];
+}
+
+export interface LessonPlanActivity {
+  id: string;
+  title: string;
+  description?: string;
+  timeAllocation: number;
+  objectives: string[];
+  content: string;
+  expectedProducts: string[];
+  teacherActivities: string[];
+  studentActivities: string[];
+  order: number;
+}
+
+export interface LessonPlanTemplate {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  isDefault: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  steps: LessonPlanStep[];
+  metadata: {
+    subject?: string;
+    grade?: string;
+    educationLevel?: string;
+    framework?: string;
+  };
+}
+
+export interface LessonPlanInstance {
+  id: string;
+  templateId: string;
+  title: string;
+  subject: string;
+  grade: string;
+  duration: number;
+  teacherName: string;
+  schoolName: string;
+  createdAt: string;
+  updatedAt: string;
+  content: LessonPlanStepContent[];
+  status: "draft" | "completed" | "published";
+}
+
+export interface LessonPlanStepContent {
+  stepId: string;
+  keywordContents: {
+    keywordId: string;
+    value: string;
+  }[];
+}
