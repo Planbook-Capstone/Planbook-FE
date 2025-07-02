@@ -18,6 +18,7 @@ interface SidebarMenuProps {
   activeTab?: string;
   onTabChange?: (key: string) => void;
   defaultActiveKey?: string;
+  basePath?: string; // Add basePath prop to handle different routes
 }
 
 export function SidebarMenu({
@@ -25,6 +26,7 @@ export function SidebarMenu({
   activeTab,
   onTabChange,
   defaultActiveKey,
+  basePath = "/admin", // Default to admin path
 }: SidebarMenuProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -40,9 +42,8 @@ export function SidebarMenu({
       setInternalActiveKey(key);
     }
     onTabChange?.(key);
-    // if (key === "/") router.push("/admin");
-    // const newPath = pathname.replace(/\/$/, "") + "/" + key;
-    router.push(`/admin/${key}`);
+    // Dynamic routing based on basePath
+    router.push(`${basePath}/${key}`);
   };
 
   return (
