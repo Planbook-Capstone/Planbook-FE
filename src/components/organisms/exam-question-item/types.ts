@@ -5,6 +5,7 @@ export interface Question {
   correctAnswer: number;
   answer?: string; // For API response format
   type: "single" | "multiple" | "essay" | "no-answer";
+  illustrationImage?: string; // URL or path to illustration image
 }
 
 export interface QuestionItemProps {
