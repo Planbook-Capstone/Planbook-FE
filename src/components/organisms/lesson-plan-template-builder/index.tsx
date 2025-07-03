@@ -8,7 +8,7 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/input";
 import { StepSection } from "@/components/organisms/step-section";
 import { LessonPlanTemplate, LessonPlanStep } from "@/types";
-import { Plus, Save, ArrowLeft } from "lucide-react";
+import { Plus, Save, ArrowLeft, Download, Edit3 } from "lucide-react";
 import { useLessonPlanService } from "@/services/lessonPlanServices";
 import { toast } from "sonner";
 import { useLessonPlanNodeService } from "@/services/lessonPlanNodeServices";
@@ -140,7 +140,10 @@ export function LessonPlanTemplateBuilder({
   };
 
   // Process steps sequentially with nested keywords and children
-  const processTemplateSteps = async (steps: LessonPlanStep[], lessonPlanId: number) => {
+  const processTemplateSteps = async (
+    steps: LessonPlanStep[],
+    lessonPlanId: number
+  ) => {
     for (const step of steps) {
       console.log(`🔄 Processing step: ${step.title}`);
 
@@ -165,7 +168,11 @@ export function LessonPlanTemplateBuilder({
   };
 
   // Process keywords with nested children recursively
-  const processKeywords = async (keywords: any[], lessonPlanId: number, parentId: number) => {
+  const processKeywords = async (
+    keywords: any[],
+    lessonPlanId: number,
+    parentId: number
+  ) => {
     for (const keyword of keywords) {
       console.log(`🔄 Processing keyword: ${keyword.title}`);
 
@@ -184,47 +191,49 @@ export function LessonPlanTemplateBuilder({
 
       // If this keyword has children, process them recursively
       if (keyword.children && keyword.children.length > 0) {
-        console.log(`📂 Processing ${keyword.children.length} children for: ${keyword.title}`);
+        console.log(
+          `📂 Processing ${keyword.children.length} children for: ${keyword.title}`
+        );
         await processKeywords(keyword.children, lessonPlanId, keywordNodeId);
       }
     }
   };
 
   const handleSave = useCallback(async () => {
-    const payloadLessonplan = {
-      name: template.name,
-      description: template.description,
+    // Create JSON data to download
+    const jsonData = {
+      template: template,
+      exportDate: new Date().toISOString(),
+      version: "1.0",
     };
 
-    console.log("📋 Template steps:", template.steps);
+    // Create and download JSON file
+    const dataStr = JSON.stringify(jsonData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
 
-    lessonPlan(payloadLessonplan, {
-      onSuccess: async (res: any) => {
-        const lessonPlanId = res?.data?.data?.id || res?.data?.id;
-        console.log("🎯 Lesson Plan created with ID:", lessonPlanId);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${template.name.replace(/\s+/g, "_")}_${
+      new Date().toISOString().split("T")[0]
+    }.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
-        if (!lessonPlanId) {
-          toast.error("Không nhận được lessonPlanId từ response");
-          return;
-        }
+    toast.success("Đã tải file JSON thành công!");
 
-        toast.success("Lưu template thành công");
+    // Call onSave callback if provided and exit
+    if (onSave) {
+      onSave(template);
+    }
 
-        // Process all steps and their nested structure
-        try {
-          await processTemplateSteps(template.steps, lessonPlanId);
-          toast.success("🎉 Tạo tất cả nodes thành công!");
-        } catch (error) {
-          console.error("❌ Error processing template steps:", error);
-          toast.error("Lỗi khi tạo nodes");
-        }
-      },
-      onError: (error) => {
-        console.error("❌ Error saving lesson plan:", error);
-        toast.error("Lỗi khi lưu template");
-      },
-    });
-  }, [template, lessonPlan, lessonPlanNode]);
+    // Exit to main page
+    if (onExit) {
+      onExit();
+    }
+  }, [template, onSave, onExit]);
 
   const handleSaveDraft = useCallback(() => {
     if (onSaveDraft) {
@@ -263,43 +272,41 @@ export function LessonPlanTemplateBuilder({
           </div>
         </div>
 
-        {/* Template Info - For both Admin and Staff */}
-        {(mode === "admin" || mode === "staff") && (
+        {/* Template Info - Only for Staff */}
+        {mode === "staff" && (
           <div className="bg-white rounded-lg border p-6 space-y-4">
-            <h2 className="text-lg font-medium text-gray-900">
-              Thông tin Template
+            <h2 className="text-lg font-calsans text-gray-900">
+              Thông tin Mẫu
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField label="Tên Template" htmlFor="template-name">
+              <FormField label="Tên Mẫu" htmlFor="template-name">
                 <Input
                   id="template-name"
                   value={template.name}
                   onChange={(e: any) =>
                     updateTemplate({ name: e.target.value })
                   }
-                  placeholder="Nhập tên template"
+                  placeholder="Nhập tên mẫu"
                   className="w-full"
-                  disabled={mode === "staff"}
                 />
               </FormField>
-              <FormField label="Mô tả Template" htmlFor="template-description">
+              <FormField label="Mô tả Mẫu" htmlFor="template-description">
                 <Input
                   id="template-description"
                   value={template.description}
                   onChange={(e: any) =>
                     updateTemplate({ description: e.target.value })
                   }
-                  placeholder="Nhập mô tả template"
+                  placeholder="Nhập mô tả mẫu"
                   className="w-full"
-                  disabled={mode === "staff"}
                 />
               </FormField>
             </div>
           </div>
         )}
 
-        {/* Action Buttons - Only for Admin */}
-        {mode === "admin" && (
+        {/* Action Buttons - Only for Staff */}
+        {mode === "staff" && (
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <Button onClick={addStep}>
@@ -345,17 +352,19 @@ export function LessonPlanTemplateBuilder({
         </DragDropContext>
       </div>
 
-      {/* Bottom Action Bar */}
-      <div className="sticky bottom-0 left-0 right-0 bg-white border-t p-4 flex justify-end gap-3 z-50">
-        <Button variant="outline" onClick={handleSaveDraft}>
-          <Save className="w-4 h-4 mr-2" />
-          Lưu nháp
-        </Button>
-        <Button onClick={handleSave}>
-          <Save className="w-4 h-4 mr-2" />
-          Lưu template
-        </Button>
-      </div>
+      {/* Bottom Action Bar - Only for Staff */}
+      {mode === "staff" && (
+        <div className="sticky bottom-0 left-0 right-0 bg-white border-t p-4 flex justify-end gap-3 z-50">
+          <Button variant="outline" onClick={handleSaveDraft}>
+            <Save className="w-4 h-4 mr-2" />
+            Lưu nháp
+          </Button>
+          <Button onClick={handleSave}>
+            <Download className="w-4 h-4 mr-2" />
+            Lưu template
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

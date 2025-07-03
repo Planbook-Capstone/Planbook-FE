@@ -21,7 +21,7 @@ import {
   ChevronDown,
   ChevronRight,
   Hash,
-  FileText,
+  Edit3,
 } from "lucide-react";
 
 interface KeywordManagerProps {
@@ -30,7 +30,7 @@ interface KeywordManagerProps {
   onDelete: (keywordId: string) => void;
   onDragEnd: (result: any) => void;
   level?: number;
-  mode?: "admin" | "staff"; // admin: chỉnh sửa cấu trúc, staff: chỉnh sửa nội dung
+  mode?: "admin" | "staff"; // admin: chỉ xem, staff: chỉnh sửa tất cả
 }
 
 interface KeywordItemProps {
@@ -122,8 +122,8 @@ function KeywordItem({
   const bgColor =
     level === 0 ? "bg-white" : level === 1 ? "bg-blue-50" : "bg-green-50";
 
-  // For staff mode, render without drag and drop only at level 0 (step level)
-  if (mode === "staff" && level === 0) {
+  // For admin mode, render without drag and drop
+  if (mode === "admin") {
     return (
       <div className={indentClass}>
         <div className={`border rounded-lg ${borderColor} ${bgColor} mb-3`}>
@@ -150,51 +150,58 @@ function KeywordItem({
               </div>
 
               <div className="flex-1">
-                <Input
-                  placeholder="Nhập tiêu đề từ khóa"
-                  value={keyword.title}
-                  onChange={(e) => updateField("title", e.target.value)}
-                  className="border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
-                  disabled={false} // Staff có thể chỉnh sửa từ level 1
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Definition Type Dropdown */}
-                <Select
-                  value={keyword.nodeType || "LIST_ITEM"}
-                  onValueChange={(value) => updateField("nodeType", value)}
-                >
-                  <SelectTrigger className="w-40 h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
-                    <SelectItem value="LIST_ITEM">
-                      Danh sách nội dung
-                    </SelectItem>
-                    <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {(keyword.nodeType === "PARAGRAPH" ||
-                  keyword.nodeType === "LIST_ITEM") && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowContent(!showContent)}
-                    className="p-1"
-                    title="Chỉnh sửa nội dung"
-                  >
-                    <FileText className="w-3 h-3" />
-                  </Button>
+                {mode === "staff" ? (
+                  <Input
+                    placeholder="Nhập tiêu đề từ khóa"
+                    value={keyword.title}
+                    onChange={(e) => updateField("title", e.target.value)}
+                    className="border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
+                  />
+                ) : (
+                  <div className="px-3 py-2 text-sm font-medium text-gray-900">
+                    {keyword.title}
+                  </div>
                 )}
               </div>
+
+              {mode === "staff" && (
+                <div className="flex items-center gap-2">
+                  {/* Definition Type Dropdown */}
+                  <Select
+                    value={keyword.nodeType || "LIST_ITEM"}
+                    onValueChange={(value) => updateField("nodeType", value)}
+                  >
+                    <SelectTrigger className="w-40 h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
+                      <SelectItem value="LIST_ITEM">
+                        Danh sách nội dung
+                      </SelectItem>
+                      <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {((keyword.nodeType || "LIST_ITEM") === "PARAGRAPH" ||
+                    (keyword.nodeType || "LIST_ITEM") === "LIST_ITEM") && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowContent(!showContent)}
+                      className="p-1"
+                      title="Chỉnh sửa nội dung"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
 
             {showContent &&
-              (keyword.nodeType === "PARAGRAPH" ||
-                keyword.nodeType === "LIST_ITEM") && (
+              ((keyword.nodeType || "LIST_ITEM") === "PARAGRAPH" ||
+                (keyword.nodeType || "LIST_ITEM") === "LIST_ITEM") && (
                 <div className="mt-3 space-y-3">
                   <FormField label="Nội dung" htmlFor={`content-${keyword.id}`}>
                     <textarea
@@ -244,7 +251,7 @@ function KeywordItem({
     );
   }
 
-  // Admin mode with drag and drop
+  // Staff mode with drag and drop
   return (
     <Draggable draggableId={keyword.id} index={index}>
       {(provided, snapshot) => (
@@ -258,12 +265,14 @@ function KeywordItem({
           <div className={`border rounded-lg ${borderColor} ${bgColor} mb-3`}>
             <div className="p-3">
               <div className="flex items-center gap-3">
-                <div
-                  {...provided.dragHandleProps}
-                  className="cursor-grab active:cursor-grabbing"
-                >
-                  <GripVertical className="w-4 h-4 text-gray-400" />
-                </div>
+                {mode === "staff" && (
+                  <div
+                    {...provided.dragHandleProps}
+                    className="cursor-grab active:cursor-grabbing"
+                  >
+                    <GripVertical className="w-4 h-4 text-gray-400" />
+                  </div>
+                )}
 
                 {keyword.children && keyword.children.length > 0 && (
                   <Button
@@ -286,73 +295,81 @@ function KeywordItem({
                 </div>
 
                 <div className="flex-1">
-                  <Input
-                    placeholder="Nhập tiêu đề từ khóa"
-                    value={keyword.title}
-                    onChange={(e) => updateField("title", e.target.value)}
-                    className="border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
-                  />
+                  {mode === "staff" ? (
+                    <Input
+                      placeholder="Nhập tiêu đề từ khóa"
+                      value={keyword.title}
+                      onChange={(e) => updateField("title", e.target.value)}
+                      className="border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
+                    />
+                  ) : (
+                    <div className="px-3 py-2 text-sm font-medium text-gray-900">
+                      {keyword.title}
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {/* Definition Type Dropdown */}
-                  <Select
-                    value={keyword.nodeType || "LIST_ITEM"}
-                    onValueChange={(value) => updateField("nodeType", value)}
-                  >
-                    <SelectTrigger className="w-40 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
-                      <SelectItem value="LIST_ITEM">
-                        Danh sách nội dung
-                      </SelectItem>
-                      <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
-                    </SelectContent>
-                  </Select>
+                {mode === "staff" && (
+                  <div className="flex items-center gap-2">
+                    {/* Definition Type Dropdown */}
+                    <Select
+                      value={keyword.nodeType || "LIST_ITEM"}
+                      onValueChange={(value) => updateField("nodeType", value)}
+                    >
+                      <SelectTrigger className="w-40 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
+                        <SelectItem value="LIST_ITEM">
+                          Danh sách nội dung
+                        </SelectItem>
+                        <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  {(keyword.nodeType === "PARAGRAPH" ||
-                    keyword.nodeType === "LIST_ITEM") && (
+                    {((keyword.nodeType || "LIST_ITEM") === "PARAGRAPH" ||
+                      (keyword.nodeType || "LIST_ITEM") === "LIST_ITEM") && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowContent(!showContent)}
+                        className="p-1"
+                        title="Chỉnh sửa nội dung"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
+                    )}
+
+                    {((keyword.nodeType || "LIST_ITEM") === "SUBSECTION" ||
+                      (keyword.nodeType || "LIST_ITEM") === "LIST_ITEM") && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={addChild}
+                        className="p-1"
+                        title="Thêm mục con"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    )}
+
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setShowContent(!showContent)}
-                      className="p-1"
-                      title="Chỉnh sửa nội dung"
+                      onClick={onDelete}
+                      className="p-1 text-black hover:text-gray-700"
+                      title="Xóa"
                     >
-                      <FileText className="w-3 h-3" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
-                  )}
-
-                  {(keyword.nodeType === "SUBSECTION" ||
-                    keyword.nodeType === "LIST_ITEM") && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={addChild}
-                      className="p-1"
-                      title="Thêm mục con"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  )}
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onDelete}
-                    className="p-1 text-red-500 hover:text-red-700"
-                    title="Xóa"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
+                  </div>
+                )}
               </div>
 
               {showContent &&
-                (keyword.nodeType === "PARAGRAPH" ||
-                  keyword.nodeType === "LIST_ITEM") && (
+                ((keyword.nodeType || "LIST_ITEM") === "PARAGRAPH" ||
+                  (keyword.nodeType || "LIST_ITEM") === "LIST_ITEM") && (
                   <div className="mt-3 space-y-3">
                     <FormField
                       label="Nội dung"
@@ -437,7 +454,7 @@ export function KeywordManager({
       <div className="text-center py-8 text-gray-500">
         <Hash className="w-8 h-8 mx-auto mb-2 text-gray-300" />
         <p>
-          {mode === "admin"
+          {mode === "staff"
             ? 'Chưa có từ khóa nào. Nhấn "Thêm từ khóa" để bắt đầu.'
             : "Chưa có từ khóa nào được thiết lập."}
         </p>
