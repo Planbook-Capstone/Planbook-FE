@@ -208,6 +208,7 @@ export interface LessonPlanTemplate {
   description: string;
   version: string;
   isDefault: boolean;
+  isActive?: boolean;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

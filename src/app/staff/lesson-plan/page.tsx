@@ -1,32 +1,28 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { LessonPlanTemplateBuilder } from "@/components/organisms/lesson-plan-template-builder";
-// import { TemplateReferenceManager } from "@/components/organisms/template-reference-manager";
-import { LessonPlanTemplate } from "@/types";
-import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Upload,
+  Eye,
+  Download,
+  Trash2,
+  Plus,
+  MoreVertical,
+  Edit,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LessonPlanTemplateBuilder } from "@/components/organisms/lesson-plan-template-builder";
+import { LessonPlanTemplate } from "@/types";
+import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { toast } from "sonner";
-import {
-  Upload,
-  Eye,
-  Download,
-  Plus,
-  MoreVertical,
-  Trash2,
-} from "lucide-react";
-import * as pdfjsLib from "pdfjs-dist";
-
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 // Interface for uploaded files
 interface UploadedFile {
@@ -39,7 +35,7 @@ interface UploadedFile {
   thumbnail?: string; // Base64 thumbnail for PDFs
 }
 
-export default function LessonPlanTemplatePage() {
+export default function LessonPlanPage() {
   const [templates, setTemplates] = useState<LessonPlanTemplate[]>([
     { ...getDefaultTemplate(), isActive: true },
     {
@@ -59,55 +55,13 @@ export default function LessonPlanTemplatePage() {
       isActive: false,
     },
   ]);
-  const [currentTemplate, setCurrentTemplate] = useState<
-    LessonPlanTemplate | undefined
-  >();
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    LessonPlanTemplate | undefined
-  >();
-  const [showBuilder, setShowBuilder] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("template");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Function to generate PDF thumbnail
-  const generatePDFThumbnail = async (file: File): Promise<string | null> => {
-    try {
-      console.log("Generating thumbnail for:", file.name);
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-      const page = await pdf.getPage(1); // First page
-
-      const viewport = page.getViewport({ scale: 0.5 }); // Increase scale for better quality
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-
-      if (!context) {
-        console.error("Cannot get canvas context");
-        return null;
-      }
-
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      await page.render({
-        canvasContext: context,
-        viewport: viewport,
-      }).promise;
-
-      const thumbnail = canvas.toDataURL("image/jpeg", 0.8);
-      console.log(
-        "Thumbnail generated successfully, length:",
-        thumbnail.length
-      );
-      return thumbnail;
-    } catch (error) {
-      console.error("Error generating PDF thumbnail:", error);
-      return null;
-    }
-  };
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [currentTemplate, setCurrentTemplate] =
+    useState<LessonPlanTemplate | null>(null);
 
   // Filter templates based on search query
   const filteredTemplates = templates.filter(
@@ -119,60 +73,34 @@ export default function LessonPlanTemplatePage() {
   const handleCreateTemplate = () => {
     const newTemplate = getDefaultTemplate();
     newTemplate.id = `template-${Date.now()}`;
-    newTemplate.name = "Template Mới";
-    newTemplate.description = "Mô tả template mới";
+    newTemplate.name = "Mẫu Mới";
+    newTemplate.description = "Mô tả mẫu mới";
     setCurrentTemplate(newTemplate);
-    setSelectedTemplate(undefined);
-    setIsEditing(true);
     setShowBuilder(true);
   };
 
   const handleEditTemplate = (template: LessonPlanTemplate) => {
     setCurrentTemplate(template);
-    setSelectedTemplate(template);
-    setIsEditing(true);
     setShowBuilder(true);
   };
 
   const handleDeleteTemplate = (templateId: string) => {
     if (templates.length <= 1) {
-      toast.error("Không thể xóa template cuối cùng!");
+      toast.error("Không thể xóa mẫu cuối cùng!");
       return;
     }
-
     setTemplates((prev) => prev.filter((t) => t.id !== templateId));
-    toast.success("Đã xóa template!");
+    toast.success("Đã xóa mẫu!");
   };
 
-  const handleSave = (template: LessonPlanTemplate) => {
-    // TODO: Integrate with API
-    console.log("Saving template:", template);
-
-    if (selectedTemplate) {
-      // Update existing template
-      setTemplates((prev) =>
-        prev.map((t) => (t.id === template.id ? template : t))
-      );
-    } else {
-      // Add new template
-      setTemplates((prev) => [...prev, template]);
-    }
-
-    toast.success("Template đã được lưu thành công!");
-    setShowBuilder(false);
-    setIsEditing(false);
-  };
-
-  const handleSaveDraft = (template: LessonPlanTemplate) => {
-    // TODO: Integrate with API
-    console.log("Saving draft:", template);
-    toast.success("Nháp đã được lưu!");
-
-    // Save to localStorage for now
-    localStorage.setItem(
-      `lesson-plan-draft-${template.id}`,
-      JSON.stringify(template)
+  const handleActivateTemplate = (templateId: string) => {
+    setTemplates((prev) =>
+      prev.map((template) => ({
+        ...template,
+        isActive: template.id === templateId,
+      }))
     );
+    toast.success("Đã kích hoạt mẫu!");
   };
 
   // File management functions
@@ -226,47 +154,49 @@ export default function LessonPlanTemplatePage() {
     }
   };
 
-  const handleDeleteFile = (fileId: string) => {
-    setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
-    toast.success("Đã xóa file thành công!");
-  };
-
   const handleViewFile = (file: UploadedFile) => {
-    // Create blob URL and open in new tab
+    // Create a URL for the file and open it
     const url = URL.createObjectURL(file.file);
     window.open(url, "_blank");
-
-    // Clean up URL after a delay
+    // Clean up the URL after a delay
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  const handleDownloadFile = (file: UploadedFile) => {
-    const url = URL.createObjectURL(file.file);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = file.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success(`Đã tải xuống ${file.name}!`);
+  const handleDeleteFile = (fileId: string) => {
+    setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
+    toast.success("Đã xóa file!");
   };
 
-  const formatFileSize = (bytes: number) => {
+  const handleSave = (template: LessonPlanTemplate) => {
+    // Check if template exists, update or add
+    const existingIndex = templates.findIndex((t) => t.id === template.id);
+    if (existingIndex >= 0) {
+      setTemplates((prev) =>
+        prev.map((t) => (t.id === template.id ? template : t))
+      );
+    } else {
+      setTemplates((prev) => [...prev, template]);
+    }
+
+    toast.success("Mẫu đã được lưu thành công!");
+    setShowBuilder(false);
+  };
+
+  const handleSaveDraft = (template: LessonPlanTemplate) => {
+    toast.success("Nháp đã được lưu!");
+    localStorage.setItem(
+      `lesson-plan-content-draft-${template.id}`,
+      JSON.stringify(template)
+    );
+  };
+
+  // Utility functions
+  const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
-  const getFileIcon = (type: string) => {
-    if (type === "application/pdf") {
-      return "📄";
-    } else if (type.includes("word")) {
-      return "📝";
-    }
-    return "📄";
   };
 
   if (showBuilder) {
@@ -276,7 +206,7 @@ export default function LessonPlanTemplatePage() {
         onSave={handleSave}
         onSaveDraft={handleSaveDraft}
         onExit={() => setShowBuilder(false)}
-        mode="admin" // Admin mode - chỉ cấu hình cấu trúc template
+        mode="staff"
       />
     );
   }
@@ -287,7 +217,7 @@ export default function LessonPlanTemplatePage() {
         <div className="flex items-center justify-between mb-3">
           <TabsList className="rounded-full">
             <TabsTrigger value="template" className="rounded-full">
-              Cấu hình Template
+              Cấu hình Mẫu
             </TabsTrigger>
             <TabsTrigger value="references" className="rounded-full">
               Tài liệu tham khảo
@@ -297,11 +227,20 @@ export default function LessonPlanTemplatePage() {
           {/* Search Box */}
           <div className="flex items-center gap-4">
             <Input
-              placeholder="Tìm kiếm template..."
+              placeholder="Tìm kiếm mẫu..."
               className="w-80"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            {activeTab === "template" && (
+              <Button
+                onClick={handleCreateTemplate}
+                className="flex items-center gap-2 bg-neutral-800 text-white hover:bg-neutral-700"
+              >
+                <Plus className="w-4 h-4" />
+                Tạo Mẫu Mới
+              </Button>
+            )}
             {activeTab === "references" && (
               <Button
                 variant="outline"
@@ -328,48 +267,60 @@ export default function LessonPlanTemplatePage() {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h3
-                      className={`font-calsans text-base mb-1 ${
-                        template.isActive ? "text-white" : "text-gray-900"
-                      }`}
-                    >
+                    <h3 className="font-calsans text-lg mb-2">
                       {template.name}
                     </h3>
-                    <p
-                      className={`text-sm line-clamp-2 ${
-                        template.isActive ? "text-blue-100" : "text-gray-600"
-                      }`}
-                    >
+                    <p className="text-sm opacity-90 line-clamp-2">
                       {template.description}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 ml-2"></div>
-                </div>
-
-                <div
-                  className={`text-xs mb-3 ${
-                    template.isActive ? "text-white" : "text-gray-500"
-                  }`}
-                >
-                  {template.steps?.length || 0} bước • 0 từ khóa
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`h-8 w-8 p-0 ${
+                          template.isActive
+                            ? "text-white hover:bg-white/20"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleEditTemplate(template)}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Chỉnh sửa
+                      </DropdownMenuItem>
+                      {!template.isActive && (
+                        <DropdownMenuItem
+                          onClick={() => handleActivateTemplate(template.id)}
+                        >
+                          Kích hoạt
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteTemplate(template.id)}
+                        className="text-red-600"
+                      >
+                        Xóa
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
-                    Không sử dụng
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditTemplate(template)}
-                    className={`text-xs ${
-                      template.isActive
-                        ? "bg-neutral-800 text-white border-neutral-800 hover:bg-neutral-700"
-                        : ""
-                    }`}
-                  >
-                    Xem chi tiết
-                  </Button>
+                  <div className="text-xs opacity-75">
+                    {template.steps?.length || 0} bước
+                  </div>
+                  {template.isActive && (
+                    <span className="px-2 py-1 rounded-full text-xs bg-white/20 text-white">
+                      Đang sử dụng
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
