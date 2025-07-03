@@ -79,6 +79,12 @@ export type BookTypeResponse = {
   tokenCostPerQuery: number | null;
 };
 
+export type TagResponse = {
+  id: bigint;
+  name: string;
+  description: string | null;
+};
+
 // // User types
 // export interface User {
 //   id: string;
