@@ -1,5 +1,6 @@
 "use client";
 
+import { CreateMaterialTagModal } from "@/components/organisms/create-material-tag-form";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload } from "lucide-react";
@@ -13,6 +14,7 @@ export default function MaterialPage() {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h1 className="font-calsans text-base">Danh sách loại học liệu</h1>
+            <CreateMaterialTagModal />
           </div>
         </div>
       ),

@@ -6,7 +6,7 @@
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: "/login",
+    LOGIN: "auth-service-local/api/login",
     LOGIN_GOOGLE: "/login-google",
   },
 
@@ -42,6 +42,9 @@ export const API_ENDPOINTS = {
   LESSON_PLANS: "/lesson-plans",
 
   LESSON_NODES: "/lesson-nodes",
+
+  // Tags
+  TAGS: "/tags",
 } as const;
 
 // PDF API Endpoints (Secondary API - Port 8000)
