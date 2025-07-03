@@ -31,7 +31,7 @@ interface StepSectionProps {
   dragHandleProps?: any;
   onUpdate: (updates: Partial<LessonPlanStep>) => void;
   onDelete: () => void;
-  mode?: "admin" | "staff"; // admin: chỉ chỉnh sửa tiêu đề, staff: chỉ chỉnh sửa nội dung
+  mode?: "admin" | "staff"; // admin: chỉ xem, staff: chỉnh sửa tất cả
 }
 
 const STEP_TYPES = [
@@ -65,6 +65,7 @@ export function StepSection({
       title: "",
       content: "",
       order: step.keywords.length,
+      nodeType: "LIST_ITEM", // Set default nodeType to enable adding children
     };
 
     updateField("keywords", [...step.keywords, newKeyword]);
@@ -114,8 +115,8 @@ export function StepSection({
       {/* Header */}
       <div className="p-4 border-b bg-gray-50 rounded-t-lg">
         <div className="flex items-center gap-3">
-          {/* Drag Handle - Only for Admin */}
-          {mode === "admin" && (
+          {/* Drag Handle - Only for Staff */}
+          {mode === "staff" && (
             <div
               {...dragHandleProps}
               className="cursor-grab active:cursor-grabbing"
@@ -146,7 +147,7 @@ export function StepSection({
                 placeholder="Nhập tiêu đề bước"
                 value={step.title}
                 onChange={(e) => updateField("title", e.target.value)}
-                disabled={mode === "staff"} // Staff không thể chỉnh sửa tiêu đề
+                disabled={mode === "admin"} // Admin không thể chỉnh sửa tiêu đề
               />
             </FormField>
 
@@ -157,7 +158,7 @@ export function StepSection({
                 onCheckedChange={(checked) =>
                   updateField("isRequired", checked)
                 }
-                disabled={mode === "staff"} // Staff không thể chỉnh sửa required
+                disabled={mode === "admin"} // Admin không thể chỉnh sửa required
               />
               <label htmlFor={`required-${step.id}`} className="text-sm">
                 Bắt buộc
@@ -170,7 +171,7 @@ export function StepSection({
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {mode === "admin" && (
+            {mode === "staff" && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -179,12 +180,12 @@ export function StepSection({
                 Nâng cao
               </Button>
             )}
-            {mode === "admin" && (
+            {mode === "staff" && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onDelete}
-                className="text-red-500 hover:text-red-700"
+                className="text-black hover:text-gray-700"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -192,8 +193,8 @@ export function StepSection({
           </div>
         </div>
 
-        {/* Advanced Options - Only for Admin */}
-        {mode === "admin" && showAdvanced && (
+        {/* Advanced Options - Only for Staff */}
+        {mode === "staff" && showAdvanced && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
             <FormField label="Mô tả" htmlFor={`step-desc-${step.id}`}>
               <Input
@@ -231,8 +232,8 @@ export function StepSection({
       {/* Content */}
       {isExpanded && (
         <div className="p-4 space-y-4">
-          {/* Action Buttons - Only for Admin */}
-          {mode === "admin" && (
+          {/* Action Buttons - Only for Staff */}
+          {mode === "staff" && (
             <div className="flex gap-2">
               <Button size="sm" onClick={addKeyword}>
                 <Plus className="w-4 h-4 mr-2" />
