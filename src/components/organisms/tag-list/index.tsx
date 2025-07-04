@@ -16,7 +16,7 @@ export default function TagTable({ onSelectionChange }: TagTableProps) {
     <>
       <DataTable
         columns={tagColumns}
-        data={tags?.data?.content || []}
+        data={tags?.data || []}
         onSelectionChange={onSelectionChange}
       />
     </>
