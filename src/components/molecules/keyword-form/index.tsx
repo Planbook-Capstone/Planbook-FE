@@ -4,7 +4,7 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
 import { ResourceModal } from "@/components/molecules/resource-modal";
-import { Star, Plus, Image, Video, Link } from "lucide-react";
+import { Star, Plus, Image, Video, Link, Sparkles } from "lucide-react";
 
 interface Keyword {
   id: string;
@@ -99,15 +99,18 @@ export function KeywordForm({
                 {keyword.content}
               </p>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-2 border rounded-full items-center">
               <Input
-                placeholder="Nhập prompt..."
+                placeholder="Nhập yêu cầu thay đổi..."
                 value={promptValue}
                 onChange={(e) => setPromptValue(e.target.value)}
-                className="flex-1"
+                className="flex-1 border-none shadow-none focus-visible:ring-0"
               />
-              <Button size="sm" className="px-3">
-                <Star className="w-4 h-4" />
+              <Button
+                size="sm"
+                className="px-3 bg-transparent shadow-none hover:shadow-none"
+              >
+                <Sparkles className="w-4 h-4 text-neutral-800" />
               </Button>
             </div>
           </div>
