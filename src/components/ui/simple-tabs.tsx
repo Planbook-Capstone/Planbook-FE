@@ -16,20 +16,20 @@ interface TabsProps {
 export function Tabs({ tabs, defaultTab, className }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
 
-  const activeTabContent = tabs.find(tab => tab.id === activeTab)?.content;
+  const activeTabContent = tabs.find((tab) => tab.id === activeTab)?.content;
 
   return (
     <div className={cn("w-full", className)}>
       {/* Tab Headers */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border border-gray-200 rounded-full p-1">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "px-4 py-2 text-sm font-questrial transition-colors",
+              "w-full px-4 py-2 text-sm font-questrial transition-colors",
               activeTab === tab.id
-                ? "border-b-2 border-blue-500 text-blue-600"
+                ? "border rounded-full"
                 : "text-gray-500 hover:text-gray-700"
             )}
           >
@@ -39,9 +39,7 @@ export function Tabs({ tabs, defaultTab, className }: TabsProps) {
       </div>
 
       {/* Tab Content */}
-      <div className="mt-4">
-        {activeTabContent}
-      </div>
+      <div className="mt-4">{activeTabContent}</div>
     </div>
   );
 }
