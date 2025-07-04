@@ -1,12 +1,7 @@
-import React from "react";
+import React, { useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface ModalProps {
   isOpen: boolean;
@@ -32,34 +27,67 @@ export function Modal({
     xl: "max-w-4xl",
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
+  // Memoize the escape handler to prevent re-creation
+  const handleEscape = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  // Handle escape key and body scroll
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, handleEscape]);
+
+  if (!isOpen) return null;
+
+  const modalContent = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+
+      {/* Modal Content */}
+      <div
         className={cn(
-          "bg-white rounded-lg shadow-lg w-full mx-4 p-0",
+          "relative bg-white rounded-lg shadow-lg w-full mx-4 p-0",
           sizeClasses[size],
           className
         )}
-        showCloseButton={false}
       >
         {/* Header */}
         {title && (
-          <DialogHeader className="flex items-center flex-row justify-between px-6 pt-6 border-gray-200">
-            <DialogTitle className="text-lg font-calsans text-gray-900 font-normal">
+          <div className="flex items-center justify-between px-6 py-6 border-gray-200">
+            <h2 className="text-lg font-calsans text-gray-900 font-normal">
               {title}
-            </DialogTitle>
+            </h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-          </DialogHeader>
+          </div>
         )}
 
         {/* Content */}
         <div className="px-6 pb-6">{children}</div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
+
+  // Use portal to render modal at document body level
+  return typeof document !== "undefined"
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 }

@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
-import { ResourceModal } from "@/components/molecules/resource-modal";
-import { Star, Plus, Image, Video, Link } from "lucide-react";
+import {
+  ResourceModal,
+  ResourceData,
+} from "@/components/molecules/resource-modal";
+import { Star, Plus, Video, Link, Sparkles } from "lucide-react";
+import { Table } from "@/components/organisms/table";
+import { ImagePreview } from "@/components/molecules/image-preview";
+import { createFieldId } from "@/hooks/useStableId";
 
 interface Keyword {
   id: string;
@@ -17,7 +23,8 @@ interface Keyword {
     | "PARAGRAPH"
     | "CONTENT"
     | "INPUT"
-    | "REFERENCES";
+    | "REFERENCES"
+    | "TABLE";
   children?: Keyword[];
 }
 
@@ -30,13 +37,6 @@ interface KeywordFormProps {
   className?: string;
 }
 
-interface ResourceData {
-  type: "image" | "video" | "link";
-  url?: string;
-  file?: File;
-  description?: string;
-}
-
 export function KeywordForm({
   keyword,
   value,
@@ -45,12 +45,52 @@ export function KeywordForm({
   level = 0,
   className,
 }: KeywordFormProps) {
+  // Debug re-renders
+  // console.log("KeywordForm re-rendered", {
+  //   keywordId: keyword.id,
+  //   nodeType: keyword.nodeType,
+  //   valueLength: value?.length,
+  // });
+
   const [showResourceModal, setShowResourceModal] = useState(false);
   const [resourceData, setResourceData] = useState<ResourceData | null>(null);
   const [promptValue, setPromptValue] = useState("");
 
-  const handleResourceSubmit = (resource: ResourceData) => {
-    setResourceData(resource);
+  // Initialize resourceData from value on mount
+  useEffect(() => {
+    if (value && keyword.nodeType === "REFERENCES") {
+      try {
+        const parsedData = JSON.parse(value);
+        setResourceData(parsedData);
+      } catch (error) {
+        console.error("Error parsing resource data:", error);
+      }
+    }
+  }, [value, keyword.nodeType]);
+
+  const handleResourceSubmit = async (resource: ResourceData) => {
+    // Convert File to base64 for storage
+    if (resource.type === "image" && resource.file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        const resourceWithBase64 = {
+          ...resource,
+          file: {
+            name: resource.file!.name,
+            size: resource.file!.size,
+            type: resource.file!.type,
+            base64: base64,
+          },
+        };
+        setResourceData(resourceWithBase64);
+        onChange(JSON.stringify(resourceWithBase64));
+      };
+      reader.readAsDataURL(resource.file);
+    } else {
+      setResourceData(resource);
+      onChange(JSON.stringify(resource));
+    }
     setShowResourceModal(false);
   };
 
@@ -60,13 +100,8 @@ export function KeywordForm({
       case "SUBSECTION":
         return (
           <div style={{ paddingLeft: `${level * 24}px` }}>
-            <h3
-              className={cn(
-                "font-calsans text-gray-900 mb-2",
-                keyword.nodeType === "SECTION" ? "text-lg" : "text-base"
-              )}
-            >
-              {index + 1}. {keyword.title}
+            <h3 className={cn("font-calsans text-gray-900 mb-2 text-base")}>
+              {keyword.title}
             </h3>
             {keyword.content && (
               <p className="text-sm font-questrial text-gray-600 mb-4">
@@ -93,21 +128,28 @@ export function KeywordForm({
       case "CONTENT":
         return (
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
-            <h4 className="font-calsans text-gray-900">{keyword.title}</h4>
+            <h4 className="font-calsans text-gray-900 text-base">
+              {keyword.title}
+            </h4>
             {keyword.content && (
               <p className="text-sm font-questrial text-gray-600">
                 {keyword.content}
               </p>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-2 border rounded-full items-center">
               <Input
-                placeholder="Nhập prompt..."
+                placeholder="Nhập yêu cầu thay đổi..."
                 value={promptValue}
-                onChange={(e) => setPromptValue(e.target.value)}
-                className="flex-1"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPromptValue(e.target.value)
+                }
+                className="flex-1 border-none shadow-none focus-visible:ring-0"
               />
-              <Button size="sm" className="px-3">
-                <Star className="w-4 h-4" />
+              <Button
+                size="sm"
+                className="px-3 bg-transparent shadow-none hover:shadow-none"
+              >
+                <Sparkles className="w-4 h-4 text-neutral-800" />
               </Button>
             </div>
           </div>
@@ -116,11 +158,21 @@ export function KeywordForm({
       case "INPUT":
         return (
           <div style={{ paddingLeft: `${level * 24}px` }}>
-            <FormField label={keyword.title} htmlFor={`keyword-${keyword.id}`}>
+            <FormField
+              label={keyword.title}
+              htmlFor={createFieldId("keyword", keyword.title, keyword.id)}
+            >
               <Input
-                id={`keyword-${keyword.id}`}
+                id={createFieldId("keyword", keyword.title, keyword.id)}
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  console.log(
+                    "KeywordForm Input onChange:",
+                    keyword.id,
+                    e.target.value
+                  );
+                  onChange(e.target.value);
+                }}
                 placeholder={
                   keyword.content || `Nhập ${keyword.title.toLowerCase()}...`
                 }
@@ -132,7 +184,9 @@ export function KeywordForm({
       case "REFERENCES":
         return (
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
-            <h4 className="font-calsans text-gray-900">{keyword.title}</h4>
+            <h4 className="font-calsans text-gray-900 text-base">
+              {keyword.title}
+            </h4>
             {keyword.content && (
               <p className="text-sm font-questrial text-gray-600">
                 {keyword.content}
@@ -143,7 +197,7 @@ export function KeywordForm({
               <Button
                 variant="outline"
                 onClick={() => setShowResourceModal(true)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 font-questrial"
               >
                 <Plus className="w-4 h-4" />
                 Thêm học liệu
@@ -168,26 +222,37 @@ export function KeywordForm({
                       </div>
                     </FormField>
                   </div>
+                ) : resourceData.type === "image" && resourceData.file ? (
+                  <ImagePreview
+                    file={resourceData.file}
+                    onRemove={() => {
+                      setResourceData(null);
+                      onChange("");
+                    }}
+                    className="w-full max-w-xs"
+                  />
                 ) : (
                   <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-                    {resourceData.type === "image" ? (
-                      <Image className="w-8 h-8 text-blue-500" />
-                    ) : (
-                      <Video className="w-8 h-8 text-green-500" />
-                    )}
+                    <Video className="w-8 h-8 text-green-500" />
                     <span className="text-sm font-questrial">
                       {resourceData.file?.name || "Tài liệu đã upload"}
                     </span>
                   </div>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setResourceData(null)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  Xóa
-                </Button>
+                {/* Only show delete button for non-image resources */}
+                {resourceData.type !== "image" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setResourceData(null);
+                      onChange("");
+                    }}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Xóa
+                  </Button>
+                )}
               </div>
             )}
 
@@ -198,6 +263,46 @@ export function KeywordForm({
             />
           </div>
         );
+
+      case "TABLE": {
+        // Memoize parsed initial data to prevent re-parsing
+        const initialTableData = useMemo(() => {
+          if (!value) return undefined;
+          try {
+            return JSON.parse(value);
+          } catch (error) {
+            console.warn("Failed to parse table data:", error);
+            return undefined;
+          }
+        }, [value]);
+
+        // Stable callback for data changes
+        const handleTableDataChange = useCallback(
+          (data: any) => {
+            // Store table data in the form value as JSON
+            onChange(JSON.stringify(data));
+          },
+          [onChange]
+        );
+
+        return (
+          <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
+            <h4 className="font-calsans text-gray-900 text-base">
+              {keyword.title}
+            </h4>
+            {keyword.content && (
+              <p className="text-sm font-questrial text-gray-600">
+                {keyword.content}
+              </p>
+            )}
+            <Table
+              onDataChange={handleTableDataChange}
+              initialData={initialTableData}
+              className="mt-4"
+            />
+          </div>
+        );
+      }
 
       default:
         return null;

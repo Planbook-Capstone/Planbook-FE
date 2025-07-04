@@ -1,7 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
 import { LessonPlanKeyword } from "@/types";
 
-// Helper function to create flexible keywords
+// Helper function to create flexible keywords with deterministic IDs
 function createFlexibleKeyword(
   title: string,
   content: string = "",
@@ -12,10 +11,11 @@ function createFlexibleKeyword(
     | "SUBSECTION"
     | "CONTENT"
     | "INPUT"
-    | "REFERENCES" = "INPUT"
+    | "REFERENCES" = "INPUT",
+  id?: string
 ): LessonPlanKeyword {
   return {
-    id: uuidv4(),
+    id: id || `keyword-${title.toLowerCase().replace(/\s+/g, "-")}-${order}`,
     title,
     content,
     order,
@@ -53,38 +53,44 @@ export const flexibleChemistryTemplate = {
           "Nhập họ tên đầy đủ của giáo viên",
           1,
           [],
-          "INPUT"
+          "INPUT",
+          "keyword-teacher-name"
         ),
         createFlexibleKeyword(
           "Môn học",
           "Chọn môn học giảng dạy",
           2,
           [],
-          "INPUT"
+          "INPUT",
+          "keyword-subject"
         ),
         createFlexibleKeyword(
           "Lớp",
           "Nhập lớp giảng dạy (VD: 10A1, 11B2)",
           3,
           [],
-          "INPUT"
+          "INPUT",
+          "keyword-class"
         ),
         createFlexibleKeyword(
           "Thời gian",
           "Nhập thời gian thực hiện bài học",
           4,
           [],
-          "INPUT"
+          "INPUT",
+          "keyword-time"
         ),
         createFlexibleKeyword(
           "Địa điểm",
           "Nhập địa điểm thực hiện",
           5,
           [],
-          "INPUT"
+          "INPUT",
+          "keyword-location"
         ),
       ],
-      "SECTION"
+      "SECTION",
+      "section-general-info"
     ),
 
     // SECTION 2: Mục tiêu bài học

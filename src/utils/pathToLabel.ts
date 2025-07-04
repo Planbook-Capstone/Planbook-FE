@@ -7,6 +7,7 @@ export const getPageLabel = (pathname: string): string => {
   const pathMap: Record<string, string> = {
     // Tools pages
     "/lesson-plan": "Tạo giáo án",
+    "/lesson-plan-demo": "Lesson plan-demo",
     "/exam": "Tạo bài kiểm tra",
     "/exam-creation": "Tạo bài kiểm",
     "/grading-test": "Chấm điểm tự động",
@@ -99,6 +100,14 @@ export const getPageActions = (pathname: string) => {
     //     variant: "outline",
     //   },
     // ],
+    "/lesson-plan-demo": [
+      {
+        label: "Chỉnh sửa",
+        icon: "Edit",
+        onClick: () => console.log("Edit lesson plan demo"),
+        variant: "outline",
+      },
+    ],
     "/grading-test": [
       {
         label: "Báo cáo",
