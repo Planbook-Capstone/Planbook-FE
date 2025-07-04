@@ -6,7 +6,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { StepStatus } from "@/components/ui/step-indicator";
 import { Tabs } from "@/components/ui/simple-tabs";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
-import { Type, FileText, Upload, Trash2, RotateCcw } from "lucide-react";
+import { Type, FileText, Upload, Trash2, RotateCcw, Table } from "lucide-react";
 
 interface Step {
   id: string;
@@ -19,7 +19,7 @@ interface Step {
 
 interface ComponentItem {
   id: string;
-  type: "INPUT" | "CONTENT" | "REFERENCES" | "SUBSECTION";
+  type: "INPUT" | "CONTENT" | "REFERENCES" | "SUBSECTION" | "TABLE";
   label: string;
   icon: React.ReactNode;
   description: string;
@@ -69,6 +69,13 @@ const COMPONENT_PALETTE: ComponentItem[] = [
     label: "Phần con",
     icon: <FileText className="w-4 h-4" />,
     description: "Nhóm các trường con",
+  },
+  {
+    id: "table",
+    type: "TABLE",
+    label: "Bảng",
+    icon: <Table className="w-4 h-4" />,
+    description: "Bảng dữ liệu có thể chỉnh sửa",
   },
 ];
 

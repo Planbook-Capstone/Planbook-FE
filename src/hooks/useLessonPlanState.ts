@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { flexibleChemistryTemplate } from "@/data/flexible-lesson-templates";
 
 export function useLessonPlanState() {
@@ -9,11 +9,19 @@ export function useLessonPlanState() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get sorted nodes (SECTION nodes act as steps)
-  const sortedSteps = flexibleChemistryTemplate.nodes
-    .filter((node) => node.nodeType === "SECTION")
-    .sort((a, b) => a.order - b.order);
-  const currentStepData = sortedSteps[currentStep];
+  // Get sorted nodes (SECTION nodes act as steps) - memoized
+  const sortedSteps = useMemo(
+    () =>
+      flexibleChemistryTemplate.nodes
+        .filter((node) => node.nodeType === "SECTION")
+        .sort((a, b) => a.order - b.order),
+    []
+  );
+
+  const currentStepData = useMemo(
+    () => sortedSteps[currentStep],
+    [sortedSteps, currentStep]
+  );
 
   // Navigation functions
   const goToStep = (stepIndex: number) => {
@@ -46,13 +54,22 @@ export function useLessonPlanState() {
 
   // Form data management
   const updateStepFormData = (keywordId: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [currentStepData.id]: {
-        ...prev[currentStepData.id],
-        [keywordId]: value,
-      },
-    }));
+    console.log("updateStepFormData called:", {
+      keywordId,
+      value,
+      stepId: currentStepData.id,
+    });
+    setFormData((prev) => {
+      const newFormData = {
+        ...prev,
+        [currentStepData.id]: {
+          ...prev[currentStepData.id],
+          [keywordId]: value,
+        },
+      };
+      console.log("New formData:", newFormData);
+      return newFormData;
+    });
   };
 
   // Submit function
@@ -139,6 +156,7 @@ export function useLessonPlanState() {
     sortedSteps,
     currentStepData,
     formData: formData[currentStepData.id] || {},
+    allFormData: formData,
     completedSteps,
     isSubmitting,
     goToStep,

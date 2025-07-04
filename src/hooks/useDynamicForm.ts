@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { generateStableId } from "./useStableId";
 
 export interface DynamicComponent {
   id: string;
-  type: "INPUT" | "CONTENT" | "REFERENCES" | "SUBSECTION";
+  type: "INPUT" | "CONTENT" | "REFERENCES" | "SUBSECTION" | "TABLE";
   title: string;
   content?: string;
   placeholder?: string;
@@ -48,7 +48,11 @@ export function useDynamicForm() {
             : -1;
 
         const newComponent: DynamicComponent = {
-          id: uuidv4(),
+          id: generateStableId(
+            config.type,
+            config.title || "component",
+            maxOrder + 1
+          ),
           type: config.type,
           title: config.title,
           content: config.content,
@@ -75,7 +79,11 @@ export function useDynamicForm() {
 
       // Add to trash
       const trashedItem: TrashedItem = {
-        id: uuidv4(),
+        id: generateStableId(
+          "trash",
+          componentToTrash.title || "item",
+          componentToTrash.order
+        ),
         component: componentToTrash,
         deletedAt: new Date().toISOString(),
         originalStepId: componentToTrash.stepId,

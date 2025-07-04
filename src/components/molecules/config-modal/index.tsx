@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
@@ -11,12 +11,12 @@ interface ConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: {
-    type: "INPUT" | "CONTENT" | "REFERENCES" | "SUBSECTION";
+    type: "INPUT" | "CONTENT" | "REFERENCES" | "SUBSECTION" | "TABLE";
   } | null;
   onConfirm: (config: any) => void;
 }
 
-export function ConfigModal({
+export const ConfigModal = React.memo(function ConfigModal({
   isOpen,
   onClose,
   item,
@@ -29,7 +29,19 @@ export function ConfigModal({
     required: false,
   });
 
-  const handleSubmit = () => {
+  // Reset config when modal opens (not closes to avoid flickering)
+  useEffect(() => {
+    if (isOpen) {
+      setConfig({
+        title: "",
+        content: "",
+        placeholder: "",
+        required: false,
+      });
+    }
+  }, [isOpen]);
+
+  const handleSubmit = useCallback(() => {
     if (!config.title.trim()) return;
 
     onConfirm({
@@ -37,16 +49,8 @@ export function ConfigModal({
       type: item?.type,
     });
 
-    // Reset form
-    setConfig({
-      title: "",
-      content: "",
-      placeholder: "",
-      required: false,
-    });
-
     onClose();
-  };
+  }, [config, item?.type, onConfirm, onClose]);
 
   const getModalTitle = () => {
     switch (item?.type) {
@@ -58,6 +62,8 @@ export function ConfigModal({
         return "Cấu hình Học liệu";
       case "SUBSECTION":
         return "Cấu hình Phần con";
+      case "TABLE":
+        return "Cấu hình Bảng";
       default:
         return "Cấu hình";
     }
@@ -72,7 +78,7 @@ export function ConfigModal({
               <Input
                 placeholder="Nhập tiêu đề cho trường này"
                 value={config.title}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setConfig((prev) => ({ ...prev, title: e.target.value }))
                 }
               />
@@ -82,7 +88,7 @@ export function ConfigModal({
               <Textarea
                 placeholder="Mô tả chi tiết cho trường này"
                 value={config.content}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setConfig((prev) => ({ ...prev, content: e.target.value }))
                 }
                 rows={3}
@@ -98,7 +104,7 @@ export function ConfigModal({
               <Input
                 placeholder="Nhập tiêu đề cho nội dung"
                 value={config.title}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setConfig((prev) => ({ ...prev, title: e.target.value }))
                 }
               />
@@ -108,7 +114,7 @@ export function ConfigModal({
               <Textarea
                 placeholder="Nhập nội dung hoặc hướng dẫn"
                 value={config.content}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setConfig((prev) => ({ ...prev, content: e.target.value }))
                 }
                 rows={4}
@@ -124,7 +130,7 @@ export function ConfigModal({
               <Input
                 placeholder="Nhập tiêu đề cho học liệu"
                 value={config.title}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setConfig((prev) => ({ ...prev, title: e.target.value }))
                 }
               />
@@ -134,7 +140,7 @@ export function ConfigModal({
               <Textarea
                 placeholder="Mô tả loại học liệu cần thiết"
                 value={config.content}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setConfig((prev) => ({ ...prev, content: e.target.value }))
                 }
                 rows={3}
@@ -150,7 +156,7 @@ export function ConfigModal({
               <Input
                 placeholder="Nhập tiêu đề cho phần con"
                 value={config.title}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setConfig((prev) => ({ ...prev, title: e.target.value }))
                 }
               />
@@ -160,7 +166,33 @@ export function ConfigModal({
               <Textarea
                 placeholder="Mô tả cho phần con này"
                 value={config.content}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setConfig((prev) => ({ ...prev, content: e.target.value }))
+                }
+                rows={3}
+              />
+            </FormField>
+          </>
+        );
+
+      case "TABLE":
+        return (
+          <>
+            <FormField label="Tiêu đề">
+              <Input
+                placeholder="Nhập tiêu đề cho bảng"
+                value={config.title}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setConfig((prev) => ({ ...prev, title: e.target.value }))
+                }
+              />
+            </FormField>
+
+            <FormField label="Mô tả">
+              <Textarea
+                placeholder="Mô tả cho bảng dữ liệu này"
+                value={config.content}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setConfig((prev) => ({ ...prev, content: e.target.value }))
                 }
                 rows={3}
@@ -190,4 +222,4 @@ export function ConfigModal({
       </div>
     </Modal>
   );
-}
+});

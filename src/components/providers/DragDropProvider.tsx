@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 
 interface DragDropContextType {
@@ -41,68 +47,75 @@ export function DragDropProvider({
     position: null,
   });
 
-  const openConfigModal = (item: any, position: any) => {
+  const openConfigModal = useCallback((item: any, position: any) => {
     setConfigModal({
       isOpen: true,
       item,
       position,
     });
-  };
+  }, []);
 
-  const closeConfigModal = () => {
+  const closeConfigModal = useCallback(() => {
     setConfigModal({
       isOpen: false,
       item: null,
       position: null,
     });
-  };
+  }, []);
 
-  const onDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result;
+  const onDragEnd = useCallback(
+    (result: DropResult) => {
+      const { destination, source, draggableId } = result;
 
-    // No destination
-    if (!destination) return;
+      // No destination
+      if (!destination) return;
 
-    // Same position
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
+      // Same position
+      if (
+        destination.droppableId === source.droppableId &&
+        destination.index === source.index
+      ) {
+        return;
+      }
 
-    // Dragging from palette to form
-    if (
-      source.droppableId === "component-palette" &&
-      destination.droppableId.startsWith("form-")
-    ) {
-      const componentType = draggableId;
-      const position = {
-        stepId: destination.droppableId.replace("form-", ""),
-        index: destination.index,
-      };
+      // Dragging from palette to form
+      if (
+        source.droppableId === "component-palette" &&
+        destination.droppableId.startsWith("form-")
+      ) {
+        const componentType = draggableId;
+        const position = {
+          stepId: destination.droppableId.replace("form-", ""),
+          index: destination.index,
+        };
 
-      // Open config modal for the dropped item
-      openConfigModal({ type: componentType }, position);
-      return;
-    }
+        // Open config modal for the dropped item
+        openConfigModal({ type: componentType }, position);
+        return;
+      }
 
-    // Dragging to trash
-    if (destination.droppableId === "trash") {
-      onMoveToTrash(draggableId);
-      return;
-    }
+      // Dragging to trash
+      if (destination.droppableId === "trash") {
+        onMoveToTrash(draggableId);
+        return;
+      }
 
-    // Other drag operations (reordering, etc.)
-    console.log("Other drag operation:", result);
-  };
+      // Other drag operations (reordering, etc.)
+      console.log("Other drag operation:", result);
+    },
+    [openConfigModal, onMoveToTrash]
+  );
 
-  const contextValue: DragDropContextType = {
-    onDragEnd,
-    openConfigModal,
-    configModal,
-    closeConfigModal,
-  };
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({
+      onDragEnd,
+      openConfigModal,
+      configModal,
+      closeConfigModal,
+    }),
+    [onDragEnd, openConfigModal, configModal, closeConfigModal]
+  );
 
   return (
     <DragDropContextProvider.Provider value={contextValue}>
