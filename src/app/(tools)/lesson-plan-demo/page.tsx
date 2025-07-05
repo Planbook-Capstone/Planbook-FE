@@ -43,6 +43,16 @@ function LessonPlanContent() {
     canGoNext,
   } = useLessonPlanState();
 
+  // Get tree data from API
+  const treeQuery = useLessonPlanNodeTreeService("21")();
+  const apiSteps =
+    treeQuery?.data?.data?.sort(
+      (a: any, b: any) => a.orderIndex - b.orderIndex
+    ) || [];
+
+  // Use API steps if available, fallback to sortedSteps
+  const displaySteps = apiSteps.length > 0 ? apiSteps : sortedSteps;
+
   // Debug: Log allFormData changes
   React.useEffect(() => {
     console.log("Page - allFormData updated:", allFormData);
@@ -138,18 +148,17 @@ function LessonPlanContent() {
     closeConfigModal();
   };
 
+  const currentStepId = displaySteps[currentStep]?.id;
+
+  console.log(currentStepId,"currentStepId");
+
+  // Get children content for current step - only if currentStepId exists
+  // const childrenQuery = useLessonPlanNodeChildrenService(currentStepId || "")();
   // Get merged components for current step
   const mergedComponents = getMergedComponentsForStep(
     currentStepData?.id,
     currentStepData?.children || []
   );
-
-  const treeQuery = useLessonPlanNodeTreeService("21")();
-  const treeData = treeQuery?.data?.data?.sort(
-    (a: any, b: any) => a.orderIndex - b.orderIndex
-  ) || [];
-
-  console.log(treeData,"tran")
 
   return (
     <>
@@ -159,9 +168,9 @@ function LessonPlanContent() {
           <div className="bg-white border-b border-gray-200 px-6 py-4">
             <Steps
               current={currentStep}
-              items={treeData?.map((s:any) => ({
-                title: s.title,
-                description: s.content,
+              items={displaySteps.map((s: any) => ({
+                title: s?.title,
+                description: s?.content,
               }))}
               onChange={goToStep}
             />
@@ -171,7 +180,7 @@ function LessonPlanContent() {
         {/* Main Content */}
         <div className="flex-1 flex min-h-0">
           <LessonPlanSidebar
-            steps={sortedSteps}
+            steps={displaySteps}
             currentStep={currentStep}
             onStepChange={goToStep}
             onPrevious={goToPrevious}
@@ -189,7 +198,7 @@ function LessonPlanContent() {
             formData={formData}
             onFormDataChange={updateStepFormData}
             currentStep={currentStep}
-            totalSteps={sortedSteps.length}
+            totalSteps={displaySteps.length}
             onPrevious={goToPrevious}
             onNext={goToNext}
             canGoNext={canGoNext}
@@ -229,7 +238,7 @@ function LessonPlanContent() {
               />
 
               <LessonPlanPreviewSidebar
-                steps={sortedSteps}
+                steps={displaySteps}
                 formData={allFormData}
                 getMergedComponentsForStep={getMergedComponentsForStep}
                 isVisible={showPreviewSidebar}
