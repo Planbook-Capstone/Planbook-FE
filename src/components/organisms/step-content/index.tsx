@@ -50,7 +50,9 @@ export function StepContent({
 }: StepContentProps) {
   console.log(step, "nasgd");
   const { data } = useLessonPlanNodeChildrenService(step?.id || "")();
-  console.log(data?.data, "data");
+  console.log(data?.data[0], "data");
+
+  console.log(mergedComponents, "mergedComponents")
   return (
     <div className={cn("flex-1 flex flex-col min-h-0", className)}>
       {/* Step Header */}
@@ -116,9 +118,9 @@ export function StepContent({
                         "bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-4"
                     )}
                   >
-                    {mergedComponents.length > 0 ? (
+                    {data?.data.length > 0 ? (
                       <div className="space-y-8">
-                        {mergedComponents.map((keyword, index) => (
+                        {data?.data?.map((keyword:any, index:any) => (
                           <div key={keyword.id} className="relative group">
                             <KeywordForm
                               keyword={keyword}
