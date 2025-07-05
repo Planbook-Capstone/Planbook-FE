@@ -66,25 +66,20 @@ function CreateMaterialForm({
       console.log("Material form data:", data);
       console.log("Form errors:", errors);
 
-      // Prepare metadata JSON
-      const metadataJson = JSON.stringify({
-        type: getFileCategory(data.file as FileData | undefined),
-        name: data.name,
-        description: data.description,
-        url: "null", // Will be set by backend after file upload
-        tags: data.tags
-      });
+      const formData = new FormData();
+      formData.append("file", data.file as File);
+      formData.append(
+        "metadataJson",
+        JSON.stringify({
+          type: "test",
+          name: data.name,
+          description: data.description,
+          url: "null", // Will be set by backend after file upload
+          tagIds: data.tags,
+        })
+      );
 
-      // Prepare API payload
-      const payload = {
-        file: data.file, // The actual file
-        metadataJson: metadataJson
-      };
-
-      console.log("API Payload:", payload);
-
-      // Call API
-      await createMaterialMutation.mutateAsync(payload);
+      await createMaterialMutation.mutateAsync(formData);
 
       toast.success("Material đã được tạo thành công!");
       onSubmitProp?.(data);
@@ -129,9 +124,7 @@ function CreateMaterialForm({
           )}
         />
         {errors.name && (
-          <p className="text-red-500 text-sm">
-            {errors.name.message}
-          </p>
+          <p className="text-red-500 text-sm">{errors.name.message}</p>
         )}
       </div>
 
@@ -152,9 +145,7 @@ function CreateMaterialForm({
           )}
         />
         {errors.description && (
-          <p className="text-red-500 text-sm">
-            {errors.description.message}
-          </p>
+          <p className="text-red-500 text-sm">{errors.description.message}</p>
         )}
       </div>
 
@@ -208,7 +199,9 @@ function CreateMaterialForm({
                 {value.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {value.map((tagId: string) => {
-                      const tag = tags?.data?.find((t: TagResponse) => t.id.toString() === tagId);
+                      const tag = tags?.data?.find(
+                        (t: TagResponse) => t.id.toString() === tagId
+                      );
                       if (!tag) return null;
                       return (
                         <span
@@ -237,9 +230,7 @@ function CreateMaterialForm({
           }}
         />
         {errors.tags && (
-          <p className="text-red-500 text-sm">
-            {errors.tags.message}
-          </p>
+          <p className="text-red-500 text-sm">{errors.tags.message}</p>
         )}
       </div>
 
@@ -322,11 +313,7 @@ function CreateMaterialForm({
         >
           Hủy
         </Button>
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="min-w-[120px]"
-        >
+        <Button type="submit" disabled={isSubmitting} className="min-w-[120px]">
           {isSubmitting ? (
             <>
               <Upload className="h-4 w-4 animate-spin" />
