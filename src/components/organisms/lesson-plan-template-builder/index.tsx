@@ -9,9 +9,6 @@ import { Input } from "@/components/ui/input";
 import { StepSection } from "@/components/organisms/step-section";
 import { LessonPlanTemplate, LessonPlanStep } from "@/types";
 import { Plus, Save, ArrowLeft, Download, Edit3 } from "lucide-react";
-import { useLessonPlanService } from "@/services/lessonPlanServices";
-import { toast } from "sonner";
-import { useCreateLessonPlanNodeService } from "@/services/lessonPlanNodeServices";
 
 interface LessonPlanTemplateBuilderProps {
   initialTemplate?: LessonPlanTemplate;
@@ -28,9 +25,6 @@ export function LessonPlanTemplateBuilder({
   onExit,
   mode = "admin", // default to admin mode
 }: LessonPlanTemplateBuilderProps) {
-  const { mutate: lessonPlan } = useLessonPlanService();
-  const { mutate: lessonPlanNode } = useCreateLessonPlanNodeService();
-
   const [template, setTemplate] = useState<LessonPlanTemplate>(
     initialTemplate || {
       id: uuidv4(),
@@ -122,82 +116,7 @@ export function LessonPlanTemplateBuilder({
     [template.steps, updateTemplate]
   );
 
-  // Helper function to create lesson plan node and return promise
-  const createLessonPlanNode = (nodeData: any): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      lessonPlanNode(nodeData, {
-        onSuccess: (response: any) => {
-          const nodeId = response?.data?.data?.id || response?.data?.id;
-          console.log(`✅ Node created: ${nodeData.title} (ID: ${nodeId})`);
-          resolve({ ...response, id: nodeId });
-        },
-        onError: (error: any) => {
-          console.error(`❌ Failed to create node: ${nodeData.title}`, error);
-          reject(error);
-        },
-      });
-    });
-  };
 
-  // Process steps sequentially with nested keywords and children
-  const processTemplateSteps = async (
-    steps: LessonPlanStep[],
-    lessonPlanId: number
-  ) => {
-    for (const step of steps) {
-      console.log(`🔄 Processing step: ${step.title}`);
-
-      // Create step node (SECTION)
-      const stepNodeData = {
-        lessonPlanId: lessonPlanId,
-        title: step.title,
-        content: step.description || "",
-        parentId: null,
-        type: "SECTION",
-        orderIndex: step.order,
-      };
-
-      const stepResponse = await createLessonPlanNode(stepNodeData);
-      const stepNodeId = stepResponse.id;
-
-      // Process keywords for this step
-      if (step.keywords && step.keywords.length > 0) {
-        await processKeywords(step.keywords, lessonPlanId, stepNodeId);
-      }
-    }
-  };
-
-  // Process keywords with nested children recursively
-  const processKeywords = async (
-    keywords: any[],
-    lessonPlanId: number,
-    parentId: number
-  ) => {
-    for (const keyword of keywords) {
-      console.log(`🔄 Processing keyword: ${keyword.title}`);
-
-      // Create keyword node
-      const keywordNodeData = {
-        lessonPlanId: lessonPlanId,
-        title: keyword.title,
-        content: keyword.content || "",
-        parentId: parentId,
-        type: keyword.nodeType || "LIST_ITEM", // SUBSECTION, LIST_ITEM, PARAGRAPH
-        orderIndex: keyword.order,
-      };
-
-      const keywordResponse = await createLessonPlanNode(keywordNodeData);
-      const keywordNodeId = keywordResponse.id;
-
-      // If this keyword has children, process them recursively
-      if (keyword.children && keyword.children.length > 0) {
-        console.log(
-          `📂 Processing ${keyword.children.length} children for: ${keyword.title}`
-        );
-        await processKeywords(keyword.children, lessonPlanId, keywordNodeId);
-      }
-    }
-  };
 
   // const handleSave = useCallback(async () => {
   //   // Create JSON data to download
@@ -235,41 +154,11 @@ export function LessonPlanTemplateBuilder({
   //   }
   // }, [template, onSave, onExit]);
 
-  const handleSave = useCallback(async () => {
-    const payloadLessonplan = {
-      name: template.name,
-      description: template.description,
-    };
-
-    console.log("📋 Template steps:", template.steps);
-
-    lessonPlan(payloadLessonplan, {
-      onSuccess: async (res: any) => {
-        const lessonPlanId = res?.data?.data?.id || res?.data?.id;
-        console.log("🎯 Lesson Plan created with ID:", lessonPlanId);
-
-        if (!lessonPlanId) {
-          toast.error("Không nhận được lessonPlanId từ response");
-          return;
-        }
-
-        toast.success("Lưu template thành công");
-
-        // Process all steps and their nested structure
-        try {
-          await processTemplateSteps(template.steps, lessonPlanId);
-          toast.success("🎉 Tạo tất cả nodes thành công!");
-        } catch (error) {
-          console.error("❌ Error processing template steps:", error);
-          toast.error("Lỗi khi tạo nodes");
-        }
-      },
-      onError: (error) => {
-        console.error("❌ Error saving lesson plan:", error);
-        toast.error("Lỗi khi lưu template");
-      },
-    });
-  }, [template, lessonPlan, lessonPlanNode]);
+  const handleSave = useCallback(() => {
+    if (onSave) {
+      onSave(template);
+    }
+  }, [template, onSave]);
   const handleSaveDraft = useCallback(() => {
     if (onSaveDraft) {
       onSaveDraft(template);
