@@ -17,10 +17,11 @@ export interface DynamicComponent {
 
 export interface TrashedItem {
   id: string;
-  component: DynamicComponent;
+  component: DynamicComponent | any; // Allow both dynamic and static components
   deletedAt: string;
   originalStepId: string;
   originalOrder: number;
+  isStatic?: boolean; // Flag to identify static components
 }
 
 export function useDynamicForm() {
@@ -28,6 +29,7 @@ export function useDynamicForm() {
     DynamicComponent[]
   >([]);
   const [trashedItems, setTrashedItems] = useState<TrashedItem[]>([]);
+  const [hiddenStaticComponents, setHiddenStaticComponents] = useState<string[]>([]);
 
   // Add new component to a step
   const addComponent = useCallback(
@@ -68,48 +70,64 @@ export function useDynamicForm() {
     []
   );
 
-  // Move component to trash
+  // Move component to trash (handles both dynamic and static components)
   const moveToTrash = useCallback(
-    (componentId: string) => {
-      // Find component to trash
+    (componentId: string, staticComponent?: any) => {
+      // Handle dynamic components
       const componentToTrash = dynamicComponents.find(
         (comp) => comp.id === componentId
       );
-      if (!componentToTrash) return;
 
-      // Add to trash
-      const trashedItem: TrashedItem = {
-        id: generateStableId(
-          "trash",
-          componentToTrash.title || "item",
-          componentToTrash.order
-        ),
-        component: componentToTrash,
-        deletedAt: new Date().toISOString(),
-        originalStepId: componentToTrash.stepId,
-        originalOrder: componentToTrash.order,
-      };
+      if (componentToTrash) {
+        // Add dynamic component to trash
+        const trashedItem: TrashedItem = {
+          id: generateStableId(
+            "trash",
+            componentToTrash.title || "item",
+            componentToTrash.order
+          ),
+          component: componentToTrash,
+          deletedAt: new Date().toISOString(),
+          originalStepId: componentToTrash.stepId,
+          originalOrder: componentToTrash.order,
+          isStatic: false,
+        };
 
-      setTrashedItems((prevTrash) => [...prevTrash, trashedItem]);
+        setTrashedItems((prevTrash) => [...prevTrash, trashedItem]);
 
-      // Remove from components and update orders
-      setDynamicComponents((prev) => {
-        const remaining = prev.filter((comp) => comp.id !== componentId);
-        return remaining.map((comp) => {
-          if (
-            comp.stepId === componentToTrash.stepId &&
-            comp.order > componentToTrash.order
-          ) {
-            return { ...comp, order: comp.order - 1 };
-          }
-          return comp;
+        // Remove from components and update orders
+        setDynamicComponents((prev) => {
+          const remaining = prev.filter((comp) => comp.id !== componentId);
+          return remaining.map((comp) => {
+            if (
+              comp.stepId === componentToTrash.stepId &&
+              comp.order > componentToTrash.order
+            ) {
+              return { ...comp, order: comp.order - 1 };
+            }
+            return comp;
+          });
         });
-      });
+      } else if (staticComponent) {
+        // Handle static components - add to hidden list and trash
+        setHiddenStaticComponents((prev) => [...prev, componentId]);
+
+        const trashedItem: TrashedItem = {
+          id: generateStableId("trash", staticComponent.title || "item", Date.now()),
+          component: staticComponent,
+          deletedAt: new Date().toISOString(),
+          originalStepId: staticComponent.stepId || "unknown",
+          originalOrder: staticComponent.originalOrder || 0,
+          isStatic: true,
+        };
+
+        setTrashedItems((prevTrash) => [...prevTrash, trashedItem]);
+      }
     },
     [dynamicComponents]
   );
 
-  // Restore component from trash
+  // Restore component from trash (handles both dynamic and static components)
   const restoreFromTrash = useCallback(
     (trashedItemId: string) => {
       const itemToRestore = trashedItems.find(
@@ -117,40 +135,47 @@ export function useDynamicForm() {
       );
       if (!itemToRestore) return;
 
-      // Add back to components
-      setDynamicComponents((prevComps) => {
-        // Check if component already exists (prevent duplicates)
-        const exists = prevComps.some(
-          (comp) => comp.id === itemToRestore.component.id
-        );
-        if (exists) return prevComps;
-
-        // Get existing components for this step
-        const stepComponents = prevComps.filter(
-          (comp) => comp.stepId === itemToRestore.originalStepId
-        );
-        const otherComponents = prevComps.filter(
-          (comp) => comp.stepId !== itemToRestore.originalStepId
-        );
-
-        // Restore at the end (highest order + 1)
-        const maxOrder =
-          stepComponents.length > 0
-            ? Math.max(...stepComponents.map((comp) => comp.order))
-            : -1;
-
-        const restoredComponent = {
-          ...itemToRestore.component,
-          order: maxOrder + 1, // Always add at the end
-        };
-
-        return [...otherComponents, ...stepComponents, restoredComponent];
-      });
-
-      // Remove from trash
+      // Remove from trash first
       setTrashedItems((prev) =>
         prev.filter((item) => item.id !== trashedItemId)
       );
+
+      if (itemToRestore.isStatic) {
+        // Restore static component by removing from hidden list
+        setHiddenStaticComponents((prev) =>
+          prev.filter((id) => id !== itemToRestore.component.id)
+        );
+      } else {
+        // Add back dynamic component
+        setDynamicComponents((prevComps) => {
+          // Check if component already exists (prevent duplicates)
+          const exists = prevComps.some(
+            (comp) => comp.id === itemToRestore.component.id
+          );
+          if (exists) return prevComps;
+
+          // Get existing components for this step
+          const stepComponents = prevComps.filter(
+            (comp) => comp.stepId === itemToRestore.originalStepId
+          );
+          const otherComponents = prevComps.filter(
+            (comp) => comp.stepId !== itemToRestore.originalStepId
+          );
+
+          // Restore at the end (highest order + 1)
+          const maxOrder =
+            stepComponents.length > 0
+              ? Math.max(...stepComponents.map((comp) => comp.order))
+              : -1;
+
+          const restoredComponent = {
+            ...itemToRestore.component,
+            order: maxOrder + 1, // Always add at the end
+          };
+
+          return [...otherComponents, ...stepComponents, restoredComponent];
+        });
+      }
     },
     [trashedItems]
   );
@@ -170,12 +195,15 @@ export function useDynamicForm() {
     (stepId: string, staticChildren: any[] = []) => {
       const dynamicComps = getDynamicComponentsForStep(stepId);
 
-      // Convert static children to the same format
-      const staticComps = staticChildren.map((child, index) => ({
-        ...child,
-        isDynamic: false,
-        originalOrder: index,
-      }));
+      // Convert static children to the same format, filtering out hidden ones
+      const staticComps = staticChildren
+        .filter((child) => !hiddenStaticComponents.includes(child.id))
+        .map((child, index) => ({
+          ...child,
+          isDynamic: false,
+          originalOrder: index,
+          stepId: stepId, // Add stepId for trash functionality
+        }));
 
       // Convert dynamic components
       const dynamicCompsFormatted = dynamicComps.map((comp) => ({
@@ -206,7 +234,7 @@ export function useDynamicForm() {
         return 0;
       });
     },
-    [getDynamicComponentsForStep]
+    [getDynamicComponentsForStep, hiddenStaticComponents]
   );
 
   // Update component
@@ -274,6 +302,7 @@ export function useDynamicForm() {
     // State
     dynamicComponents,
     trashedItems,
+    hiddenStaticComponents,
 
     // Actions
     addComponent,

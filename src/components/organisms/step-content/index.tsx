@@ -26,7 +26,8 @@ interface StepContentProps {
   onNext?: () => void;
   canGoNext?: boolean;
   mergedComponents?: any[];
-  onDeleteComponent?: (componentId: string) => void;
+  onDeleteComponent?: (componentId: string, staticComponent?: any) => void;
+  isEditMode?: boolean;
   className?: string;
 }
 
@@ -43,6 +44,7 @@ export function StepContent({
   canGoNext = true,
   mergedComponents = [],
   onDeleteComponent,
+  isEditMode = false,
   className,
 }: StepContentProps) {
   return (
@@ -121,13 +123,25 @@ export function StepContent({
                                 onFormDataChange(keyword.id, value)
                               }
                               index={index}
+                              isEditMode={isEditMode}
+                              onDelete={onDeleteComponent}
                             />
-                            {keyword.isDynamic && (
-                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {(keyword.isDynamic || isEditMode) && (
+                              <div className={cn(
+                                "absolute top-2 right-2 transition-opacity",
+                                isEditMode
+                                  ? "opacity-100"
+                                  : "opacity-0 group-hover:opacity-100"
+                              )}>
                                 <button
-                                  onClick={() =>
-                                    onDeleteComponent?.(keyword.id)
-                                  }
+                                  onClick={() => {
+                                    if (keyword.isDynamic) {
+                                      onDeleteComponent?.(keyword.id);
+                                    } else {
+                                      // For static components, pass the component data
+                                      onDeleteComponent?.(keyword.id, keyword);
+                                    }
+                                  }}
                                   className="p-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-xs"
                                   title="Xóa component này"
                                 >

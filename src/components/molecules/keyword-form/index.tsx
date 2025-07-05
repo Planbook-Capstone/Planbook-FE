@@ -35,6 +35,8 @@ interface KeywordFormProps {
   index: number;
   level?: number;
   className?: string;
+  isEditMode?: boolean;
+  onDelete?: (keywordId: string, staticComponent?: any) => void;
 }
 
 export function KeywordForm({
@@ -44,6 +46,8 @@ export function KeywordForm({
   index,
   level = 0,
   className,
+  isEditMode = false,
+  onDelete,
 }: KeywordFormProps) {
   // Debug re-renders
   // console.log("KeywordForm re-rendered", {
@@ -94,11 +98,40 @@ export function KeywordForm({
     setShowResourceModal(false);
   };
 
+  // Wrapper component để hiển thị nút xóa
+  const renderWithDeleteButton = (content: React.ReactNode) => {
+    if (!isEditMode || !onDelete) {
+      return content;
+    }
+
+    return (
+      <div className="relative group">
+        {content}
+        <div className="absolute top-2 right-2 opacity-100">
+          <button
+            onClick={() => {
+              // For static components, pass the keyword data
+              if (!(keyword as any).isDynamic) {
+                onDelete(keyword.id, keyword);
+              } else {
+                onDelete(keyword.id);
+              }
+            }}
+            className="p-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-xs"
+            title="Xóa component này"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderByNodeType = () => {
     switch (keyword.nodeType) {
       case "SECTION":
       case "SUBSECTION":
-        return (
+        return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }}>
             <h3 className={cn("font-calsans text-gray-900 mb-2 text-base")}>
               {keyword.title}
@@ -118,6 +151,8 @@ export function KeywordForm({
                     onChange={() => {}}
                     index={childIndex}
                     level={level + 1}
+                    isEditMode={isEditMode}
+                    onDelete={onDelete}
                   />
                 ))}
               </div>
@@ -126,7 +161,7 @@ export function KeywordForm({
         );
 
       case "CONTENT":
-        return (
+        return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
             <h4 className="font-calsans text-gray-900 text-base">
               {keyword.title}
@@ -156,7 +191,7 @@ export function KeywordForm({
         );
 
       case "INPUT":
-        return (
+        return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }}>
             <FormField
               label={keyword.title}
@@ -182,7 +217,7 @@ export function KeywordForm({
         );
 
       case "REFERENCES":
-        return (
+        return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
             <h4 className="font-calsans text-gray-900 text-base">
               {keyword.title}
@@ -285,7 +320,7 @@ export function KeywordForm({
           [onChange]
         );
 
-        return (
+        return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
             <h4 className="font-calsans text-gray-900 text-base">
               {keyword.title}

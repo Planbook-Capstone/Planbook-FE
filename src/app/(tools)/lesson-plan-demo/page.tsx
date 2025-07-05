@@ -17,6 +17,7 @@ function LessonPlanContent() {
   const [showSteps, setShowSteps] = useState(true);
   const [showPreviewSidebar, setShowPreviewSidebar] = useState(false);
   const [previewSidebarWidth, setPreviewSidebarWidth] = useState(384); // 384px = w-96
+  const [isEditMode, setIsEditMode] = useState(false);
   const { setBreadcrumbs, setActions, setHideDefaultHeader } = useHeader();
 
   // Debug re-renders
@@ -72,14 +73,18 @@ function LessonPlanContent() {
     setShowPreviewSidebar(!showPreviewSidebar);
   }, [showPreviewSidebar]);
 
+  const handleToggleEditMode = useCallback(() => {
+    setIsEditMode(!isEditMode);
+  }, [isEditMode]);
+
   // Memoize actions to prevent re-creation
   const actions = useMemo(
     () => [
       {
-        label: "Chỉnh sửa",
+        label: isEditMode ? "Hoàn thành" : "Chỉnh sửa",
         icon: <Edit className="w-4 h-4" />,
-        onClick: () => console.log("Edit lesson plan demo"),
-        variant: "outline" as const,
+        onClick: handleToggleEditMode,
+        variant: isEditMode ? ("default" as const) : ("outline" as const),
       },
       {
         label: showSteps ? "Ẩn bước" : "Hiện bước",
@@ -94,7 +99,7 @@ function LessonPlanContent() {
         variant: "outline" as const,
       },
     ],
-    [showSteps, showPreviewSidebar, handleToggleSteps, handleTogglePreview]
+    [isEditMode, showSteps, showPreviewSidebar, handleToggleEditMode, handleToggleSteps, handleTogglePreview]
   );
 
   // Set up header using context - only run once
@@ -175,6 +180,7 @@ function LessonPlanContent() {
             canGoNext={canGoNext}
             mergedComponents={mergedComponents}
             onDeleteComponent={moveToTrash}
+            isEditMode={isEditMode}
           />
 
           {/* Doc Preview Sidebar */}
