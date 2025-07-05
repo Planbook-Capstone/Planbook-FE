@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { useLessonPlanNodeTreeService } from "@/services/lessonPlanNodeServices";
+import { flexibleChemistryTemplate } from "@/data/flexible-lesson-templates";
 
-export function useLessonPlanState(lessonPlanId?: string) {
+export function useLessonPlanState() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<
     Record<string, Record<string, string>>
@@ -9,20 +9,14 @@ export function useLessonPlanState(lessonPlanId?: string) {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get data from API
-  const treeQuery = useLessonPlanNodeTreeService(lessonPlanId || "21")();
-  const treeData = treeQuery?.data?.data;
-  const isLoading = treeQuery?.isLoading;
-  const error = treeQuery?.error;
-
   // Get sorted nodes (SECTION nodes act as steps) - memoized
-  const sortedSteps = useMemo(() => {
-    if (!treeData || !Array.isArray(treeData)) return [];
-
-    return treeData
-      .filter((node: any) => node.type === "SECTION")
-      .sort((a: any, b: any) => a.orderIndex - b.orderIndex);
-  }, [treeData]);
+  const sortedSteps = useMemo(
+    () =>
+      flexibleChemistryTemplate.nodes
+        .filter((node) => node.nodeType === "SECTION")
+        .sort((a, b) => a.order - b.order),
+    []
+  );
 
   const currentStepData = useMemo(
     () => sortedSteps[currentStep],
@@ -63,13 +57,13 @@ export function useLessonPlanState(lessonPlanId?: string) {
     console.log("updateStepFormData called:", {
       keywordId,
       value,
-      stepId: currentStepData?.id,
+      stepId: currentStepData.id,
     });
     setFormData((prev) => {
       const newFormData = {
         ...prev,
-        [currentStepData?.id]: {
-          ...prev[currentStepData?.id],
+        [currentStepData.id]: {
+          ...prev[currentStepData.id],
           [keywordId]: value,
         },
       };
@@ -90,16 +84,16 @@ export function useLessonPlanState(lessonPlanId?: string) {
 
       // Prepare export data
       const exportData = {
-        templateName: `Lesson Plan ${lessonPlanId || "21"}`,
-        templateId: lessonPlanId || "21",
+        templateName: flexibleChemistryTemplate.name,
+        templateId: flexibleChemistryTemplate.id,
         exportDate: new Date().toISOString(),
         totalSteps: sortedSteps.length,
         completedSteps: completedSteps.length + 1,
-        steps: sortedSteps.map((step: any, index: number) => ({
+        steps: sortedSteps.map((step, index) => ({
           stepNumber: index + 1,
           stepId: step.id,
           stepTitle: step.title,
-          stepType: step.type,
+          stepType: step.nodeType,
           stepDescription: step.content,
           children: step.children,
           formData: formData[step.id] || {},
@@ -129,7 +123,9 @@ export function useLessonPlanState(lessonPlanId?: string) {
       const url = URL.createObjectURL(dataBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `lesson-plan-${lessonPlanId || "21"}-${new Date().toISOString().split("T")[0]}.json`;
+      link.download = `lesson-plan-${flexibleChemistryTemplate.name
+        .toLowerCase()
+        .replace(/\s+/g, "-")}-${new Date().toISOString().split("T")[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -147,24 +143,22 @@ export function useLessonPlanState(lessonPlanId?: string) {
 
   // Validation
   const canGoNext = () => {
-    if (!currentStepData?.children || currentStepData?.children?.length === 0) {
+    if (!currentStepData.children || currentStepData.children.length === 0) {
       return true; // Allow skipping steps without children
     }
 
-    const currentStepFormData = formData[currentStepData?.id] || {};
-    return Object.keys(currentStepFormData)?.length > 0;
+    const currentStepFormData = formData[currentStepData.id] || {};
+    return Object.keys(currentStepFormData).length > 0;
   };
 
   return {
     currentStep,
     sortedSteps,
     currentStepData,
-    formData: currentStepData ? formData[currentStepData?.id] || {} : {},
+    formData: formData[currentStepData.id] || {},
     allFormData: formData,
     completedSteps,
     isSubmitting,
-    isLoading,
-    error,
     goToStep,
     goToPrevious,
     goToNext,
