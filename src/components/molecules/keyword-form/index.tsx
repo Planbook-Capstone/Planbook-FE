@@ -137,9 +137,7 @@ export function KeywordForm({
               </p>
             )}
             <div className="flex gap-2 border rounded-full items-center">
-            <div className="flex gap-2 border rounded-full items-center">
               <Input
-                placeholder="Nhập yêu cầu thay đổi..."
                 placeholder="Nhập yêu cầu thay đổi..."
                 value={promptValue}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -147,11 +145,6 @@ export function KeywordForm({
                 }
                 className="flex-1 border-none shadow-none focus-visible:ring-0"
               />
-              <Button
-                size="sm"
-                className="px-3 bg-transparent shadow-none hover:shadow-none"
-              >
-                <Sparkles className="w-4 h-4 text-neutral-800" />
               <Button
                 size="sm"
                 className="px-3 bg-transparent shadow-none hover:shadow-none"
