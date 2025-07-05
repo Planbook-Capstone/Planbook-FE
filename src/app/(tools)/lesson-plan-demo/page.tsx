@@ -12,7 +12,7 @@ import { useDynamicForm } from "@/hooks/useDynamicForm";
 import { useHeader } from "@/contexts/HeaderContext";
 import { LessonPlanPreviewSidebar } from "@/components/organisms/lesson-plan-preview-sidebar";
 import { ChevronLeft, Edit, Footprints, FileText } from "lucide-react";
-import { useLessonPlanNodeTreeService } from "@/services/lessonPlanNodeServices";
+
 
 function LessonPlanContent() {
   const [showSteps, setShowSteps] = useState(true);
@@ -41,17 +41,13 @@ function LessonPlanContent() {
     updateStepFormData,
     handleSubmit,
     canGoNext,
+    isLoadingChildren,
+    childrenError,
+    childrenData,
   } = useLessonPlanState();
 
-  // Get tree data from API
-  const treeQuery = useLessonPlanNodeTreeService("21")();
-  const apiSteps =
-    treeQuery?.data?.data?.sort(
-      (a: any, b: any) => a.orderIndex - b.orderIndex
-    ) || [];
-
-  // Use API steps if available, fallback to sortedSteps
-  const displaySteps = apiSteps.length > 0 ? apiSteps : sortedSteps;
+  // Use sortedSteps from useLessonPlanState (which already handles API calls)
+  const displaySteps = sortedSteps;
 
   // Debug: Log allFormData changes
   React.useEffect(() => {
@@ -142,23 +138,68 @@ function LessonPlanContent() {
   const { configModal, closeConfigModal } = useDragDrop();
 
   const handleConfigConfirm = (config: any) => {
+    console.log("🎯 handleConfigConfirm called:", {
+      config,
+      position: configModal.position,
+      currentStepId: currentStepData?.id
+    });
+
     if (configModal.position) {
+      console.log("🎯 Calling addComponent with:", config, configModal.position);
       addComponent(config, configModal.position);
+      console.log("🎯 addComponent completed");
+    } else {
+      console.warn("⚠️ No position in configModal");
     }
     closeConfigModal();
   };
 
-  const currentStepId = displaySteps[currentStep]?.id;
+  console.log("🔍 useLessonPlanState Debug:", {
+    currentStep,
+    currentStepId: currentStepData?.id,
+    isLoadingChildren,
+    childrenError,
+    childrenDataLength: childrenData?.length || 0,
+    hasCurrentStepData: !!currentStepData,
+    displayStepsLength: displaySteps.length
+  });
 
-  console.log(currentStepId,"currentStepId");
+  // Show loading if children are loading
+  if (isLoadingChildren && currentStepData?.id) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div>Đang tải dữ liệu children cho step {currentStep + 1}...</div>
+      </div>
+    );
+  }
 
-  // Get children content for current step - only if currentStepId exists
-  // const childrenQuery = useLessonPlanNodeChildrenService(currentStepId || "")();
-  // Get merged components for current step
+  // Show error if children failed to load
+  if (childrenError) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-red-600">Lỗi khi tải dữ liệu children: {childrenError}</div>
+      </div>
+    );
+  }
+
+  // Get merged components for current step using API children data
   const mergedComponents = getMergedComponentsForStep(
     currentStepData?.id,
-    currentStepData?.children || []
+    childrenData || []
   );
+
+  console.log("🔍 mergedComponents result:", {
+    currentStepId: currentStepData?.id,
+    currentStepIdType: typeof currentStepData?.id,
+    childrenDataLength: childrenData?.length || 0,
+    mergedComponentsLength: mergedComponents?.length || 0,
+    mergedComponents: mergedComponents?.map(c => ({
+      id: c.id,
+      title: c.title,
+      nodeType: c.nodeType,
+      isDynamic: c.isDynamic
+    }))
+  });
 
   return (
     <>
