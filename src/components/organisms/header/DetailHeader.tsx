@@ -28,7 +28,7 @@ export function DetailHeader({
   return (
     <div
       className={cn(
-        "flex items-center justify-between px-6 py-4 bg-white",
+        "flex items-center justify-between px-6 py-4 bg-white border-b-[1px] border-gray-200",
         className
       )}
     >

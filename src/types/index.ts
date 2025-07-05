@@ -175,7 +175,14 @@ export interface LessonPlanKeyword {
   prompt?: string;
   order: number;
   children?: LessonPlanKeyword[];
-  nodeType?: "SECTION" | "SUBSECTION" | "LIST_ITEM" | "PARAGRAPH"; // Map với backend NodeType
+  nodeType?:
+    | "SECTION"
+    | "SUBSECTION"
+    | "LIST_ITEM"
+    | "PARAGRAPH"
+    | "CONTENT"
+    | "INPUT"
+    | "REFERENCES"; // Map với backend NodeType
 }
 
 export interface LessonPlanStep {
