@@ -10,9 +10,12 @@ import {
   BarChart3,
   FileText,
   Plus,
+  Edit,
+  Footprints,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { getPageLabel, getPageActions } from "@/utils/pathToLabel";
+import { HeaderProvider, useHeader } from "@/contexts/HeaderContext";
 
 interface ToolLayoutProps {
   children: React.ReactNode;
@@ -26,12 +29,15 @@ const iconMap: Record<string, any> = {
   Download: <Download className="w-4 h-4" />,
   BarChart3: <BarChart3 className="w-4 h-4" />,
   FileText: <FileText className="w-4 h-4" />,
+  Edit: <Edit className="w-4 h-4" />,
+  Footprints: <Footprints className="w-4 h-4" />,
 };
 
-export default function ToolLayout({ children }: ToolLayoutProps) {
+function ToolLayoutContent({ children }: ToolLayoutProps) {
   const pathname = usePathname();
   const pageLabel = getPageLabel(pathname);
   const rawActions = getPageActions(pathname);
+  const { breadcrumbs, actions, hideDefaultHeader } = useHeader();
 
   // Convert string icons to React components
   const pageActions = rawActions.map((action) => ({
@@ -43,10 +49,11 @@ export default function ToolLayout({ children }: ToolLayoutProps) {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  return (
-    <Layout className="h-screen">
-      <DetailHeader
-        breadcrumbs={[
+  // Use context breadcrumbs and actions if available, otherwise use default
+  const finalBreadcrumbs =
+    breadcrumbs.length > 0
+      ? breadcrumbs
+      : [
           {
             label: "Quay lại",
             href: "/home",
@@ -57,9 +64,15 @@ export default function ToolLayout({ children }: ToolLayoutProps) {
             label: pageLabel,
             active: true,
           },
-        ]}
-        actions={pageActions}
-      />
+        ];
+
+  const finalActions = actions.length > 0 ? actions : pageActions;
+
+  return (
+    <Layout className="h-screen">
+      {!hideDefaultHeader && (
+        <DetailHeader breadcrumbs={finalBreadcrumbs} actions={finalActions} />
+      )}
       <Content className="h-full" style={{ height: "100%" }}>
         <div
           style={{
@@ -74,5 +87,13 @@ export default function ToolLayout({ children }: ToolLayoutProps) {
         </div>
       </Content>
     </Layout>
+  );
+}
+
+export default function ToolLayout({ children }: ToolLayoutProps) {
+  return (
+    <HeaderProvider>
+      <ToolLayoutContent>{children}</ToolLayoutContent>
+    </HeaderProvider>
   );
 }
