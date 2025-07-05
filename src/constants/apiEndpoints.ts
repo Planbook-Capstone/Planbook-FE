@@ -7,7 +7,7 @@ export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
     LOGIN: "/auth-service-local/api/login",
-    LOGIN_GOOGLE: "/login-google",
+    LOGIN_GOOGLE: "/auth-service-local/api/login-google",
   },
 
   // Academic Years
@@ -39,9 +39,14 @@ export const API_ENDPOINTS = {
   FORMS: "/forms",
 
   // Lesson Plan Templates
-  LESSON_PLANS: "/lesson-plans",
+  LESSON_PLANS: "/lesson-plan-service-local/api/lesson-plans",
 
-  LESSON_NODES: "/lesson-nodes",
+  LESSON_NODES: "/lesson-plan-service-local/api/lesson-nodes",
+  LESSON_NODES_TREE: (id: string) =>
+    `/lesson-plan-service-local/api/lesson-nodes/${id}/tree`,
+
+  LESSON_NODE_CHIDREN: (nodeId: string) =>
+    `/lesson-plan-service-local/api/lesson-nodes/${nodeId}/children`,
 
   // Tags
   TAGS: "/academic-resource-service-local/api/tags",
