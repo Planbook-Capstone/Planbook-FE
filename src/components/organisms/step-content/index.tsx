@@ -5,7 +5,6 @@ import { Steps, StepItem } from "@/components/ui/steps";
 import { Button } from "@/components/ui/Button";
 import { Droppable } from "@hello-pangea/dnd";
 import { FileText, ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
 
 interface Step {
   id: string;
@@ -48,11 +47,6 @@ export function StepContent({
   isEditMode = false,
   className,
 }: StepContentProps) {
-  console.log(step, "nasgd");
-  const { data } = useLessonPlanNodeChildrenService(step?.id || "")();
-  console.log(data?.data[0], "data");
-
-  console.log(mergedComponents, "mergedComponents")
   return (
     <div className={cn("flex-1 flex flex-col min-h-0", className)}>
       {/* Step Header */}
@@ -118,29 +112,27 @@ export function StepContent({
                         "bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-4"
                     )}
                   >
-                    {data?.data.length > 0 ? (
+                    {mergedComponents.length > 0 ? (
                       <div className="space-y-8">
-                        {data?.data?.map((keyword:any, index:any) => (
+                        {mergedComponents.map((keyword, index) => (
                           <div key={keyword.id} className="relative group">
                             <KeywordForm
                               keyword={keyword}
-                              value={formData[keyword.id] || ""}
+                              value={formData[keyword?.id] || ""}
                               onChange={(value) =>
-                                onFormDataChange(keyword.id, value)
+                                onFormDataChange(keyword?.id, value)
                               }
                               index={index}
                               isEditMode={isEditMode}
                               onDelete={onDeleteComponent}
                             />
                             {(keyword.isDynamic || isEditMode) && (
-                              <div
-                                className={cn(
-                                  "absolute top-2 right-2 transition-opacity",
-                                  isEditMode
-                                    ? "opacity-100"
-                                    : "opacity-0 group-hover:opacity-100"
-                                )}
-                              >
+                              <div className={cn(
+                                "absolute top-2 right-2 transition-opacity",
+                                isEditMode
+                                  ? "opacity-100"
+                                  : "opacity-0 group-hover:opacity-100"
+                              )}>
                                 <button
                                   onClick={() => {
                                     if (keyword.isDynamic) {
