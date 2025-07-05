@@ -199,42 +199,77 @@ export function LessonPlanTemplateBuilder({
     }
   };
 
+  // const handleSave = useCallback(async () => {
+  //   // Create JSON data to download
+  //   const jsonData = {
+  //     template: template,
+  //     exportDate: new Date().toISOString(),
+  //     version: "1.0",
+  //   };
+
+  //   // Create and download JSON file
+  //   const dataStr = JSON.stringify(jsonData, null, 2);
+  //   const dataBlob = new Blob([dataStr], { type: "application/json" });
+  //   const url = URL.createObjectURL(dataBlob);
+
+  //   const link = document.createElement("a");
+  //   link.href = url;
+  //   link.download = `${template.name.replace(/\s+/g, "_")}_${
+  //     new Date().toISOString().split("T")[0]
+  //   }.json`;
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  //   URL.revokeObjectURL(url);
+
+  //   toast.success("Đã tải file JSON thành công!");
+
+  //   // Call onSave callback if provided and exit
+  //   if (onSave) {
+  //     onSave(template);
+  //   }
+
+  //   // Exit to main page
+  //   if (onExit) {
+  //     onExit();
+  //   }
+  // }, [template, onSave, onExit]);
+
   const handleSave = useCallback(async () => {
-    // Create JSON data to download
-    const jsonData = {
-      template: template,
-      exportDate: new Date().toISOString(),
-      version: "1.0",
+    const payloadLessonplan = {
+      name: template.name,
+      description: template.description,
     };
 
-    // Create and download JSON file
-    const dataStr = JSON.stringify(jsonData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
+    console.log("📋 Template steps:", template.steps);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${template.name.replace(/\s+/g, "_")}_${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    lessonPlan(payloadLessonplan, {
+      onSuccess: async (res: any) => {
+        const lessonPlanId = res?.data?.data?.id || res?.data?.id;
+        console.log("🎯 Lesson Plan created with ID:", lessonPlanId);
 
-    toast.success("Đã tải file JSON thành công!");
+        if (!lessonPlanId) {
+          toast.error("Không nhận được lessonPlanId từ response");
+          return;
+        }
 
-    // Call onSave callback if provided and exit
-    if (onSave) {
-      onSave(template);
-    }
+        toast.success("Lưu template thành công");
 
-    // Exit to main page
-    if (onExit) {
-      onExit();
-    }
-  }, [template, onSave, onExit]);
-
+        // Process all steps and their nested structure
+        try {
+          await processTemplateSteps(template.steps, lessonPlanId);
+          toast.success("🎉 Tạo tất cả nodes thành công!");
+        } catch (error) {
+          console.error("❌ Error processing template steps:", error);
+          toast.error("Lỗi khi tạo nodes");
+        }
+      },
+      onError: (error) => {
+        console.error("❌ Error saving lesson plan:", error);
+        toast.error("Lỗi khi lưu template");
+      },
+    });
+  }, [template, lessonPlan, lessonPlanNode]);
   const handleSaveDraft = useCallback(() => {
     if (onSaveDraft) {
       onSaveDraft(template);
