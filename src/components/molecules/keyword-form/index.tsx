@@ -130,7 +130,8 @@ export function KeywordForm({
 
   const renderByNodeType = () => {
     switch (keyword.type) {
-      case "SECTION": <p>SUBSECTION</p>
+      case "SECTION":
+        <p>SUBSECTION</p>;
       case "SUBSECTION":
         return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }}>
@@ -157,6 +158,20 @@ export function KeywordForm({
                   />
                 ))}
               </div>
+            )}
+          </div>
+        );
+
+      case "LIST_ITEM":
+        return renderWithDeleteButton(
+          <div style={{ paddingLeft: `${level * 24}px` }}>
+            <h3 className={cn("font-calsans text-gray-900 mb-2 text-base")}>
+              {keyword.title}
+            </h3>
+            {keyword.content && (
+              <p className="text-sm font-questrial text-gray-600 mb-4">
+                {keyword.content}
+              </p>
             )}
           </div>
         );
@@ -341,7 +356,18 @@ export function KeywordForm({
       }
 
       default:
-        return <p>Lỗi không xác định</p>;
+        return (
+          <div style={{ paddingLeft: `${level * 24}px` }}>
+            <h3 className={cn("font-calsans text-gray-900 mb-2 text-base")}>
+              {keyword.title}
+            </h3>
+            {keyword.content && (
+              <p className="text-sm font-questrial text-gray-600 mb-4">
+                {keyword.content}
+              </p>
+            )}
+          </div>
+        );
     }
   };
 

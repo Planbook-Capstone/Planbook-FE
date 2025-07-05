@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { flexibleChemistryTemplate } from "@/data/flexible-lesson-templates";
+import { useLessonPlanNodeTreeService, useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
 
 export function useLessonPlanState() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -9,19 +9,66 @@ export function useLessonPlanState() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get sorted nodes (SECTION nodes act as steps) - memoized
-  const sortedSteps = useMemo(
-    () =>
-      flexibleChemistryTemplate.nodes
-        .filter((node) => node.nodeType === "SECTION")
-        .sort((a, b) => a.order - b.order),
-    []
-  );
+  const treeData = useLessonPlanNodeTreeService("21")();
+  // const apiSteps =
+  //   treeData?.data?.data?.sort(
+  //     (a: any, b: any) => a?.orderIndex - b?.orderIndex
+  //   ) || [];
 
-  const currentStepData = useMemo(
+  const sortedSteps = useMemo(() => {
+    return (
+      treeData?.data?.data?.sort(
+        (a: any, b: any) => a?.orderIndex - b?.orderIndex
+      ) || []
+    );
+  }, [treeData]);
+
+  // // Get sorted nodes (SECTION nodes act as steps) - memoized
+  // const sortedSteps = useMemo(
+  //   () =>
+  //     flexibleChemistryTemplate.nodes
+  //       .filter((node) => node.nodeType === "SECTION")
+  //       .sort((a, b) => a.order - b.order),
+  //   []
+  // );
+
+  // Get current step basic info from tree
+  const currentStepBasic = useMemo(
     () => sortedSteps[currentStep],
     [sortedSteps, currentStep]
   );
+
+  // Get children data for current step from API
+  const currentStepId = currentStepBasic?.id;
+  const childrenQuery = useLessonPlanNodeChildrenService(currentStepId || "")();
+
+  // Flatten children data like in main component
+  const flattenChildren = (children: any[]): any[] => {
+    const result: any[] = [];
+    children.forEach(child => {
+      result.push({
+        ...child,
+        nodeType: child.type, // Map API fields
+      });
+
+      if (child.children && child.children.length > 0) {
+        result.push(...flattenChildren(child.children));
+      }
+    });
+    return result;
+  };
+
+  const childrenData = childrenQuery?.data?.data ? flattenChildren(childrenQuery.data.data) : [];
+
+  // Create enhanced currentStepData with API children
+  const currentStepData = useMemo(() => {
+    if (!currentStepBasic) return null;
+
+    return {
+      ...currentStepBasic,
+      children: childrenData
+    };
+  }, [currentStepBasic, childrenData]);
 
   // Navigation functions
   const goToStep = (stepIndex: number) => {
@@ -39,13 +86,15 @@ export function useLessonPlanState() {
   const goToNext = () => {
     if (currentStep < sortedSteps.length - 1) {
       // Mark current step as completed if it has content
-      const currentStepFormData = formData[currentStepData.id] || {};
-      const hasContent = Object.values(currentStepFormData).some(
-        (value) => value.trim() !== ""
-      );
+      if (currentStepData?.id) {
+        const currentStepFormData = formData[currentStepData.id] || {};
+        const hasContent = Object.values(currentStepFormData).some(
+          (value) => value.trim() !== ""
+        );
 
-      if (hasContent && !completedSteps.includes(currentStep)) {
-        setCompletedSteps((prev) => [...prev, currentStep]);
+        if (hasContent && !completedSteps.includes(currentStep)) {
+          setCompletedSteps((prev) => [...prev, currentStep]);
+        }
       }
 
       setCurrentStep(currentStep + 1);
@@ -54,6 +103,11 @@ export function useLessonPlanState() {
 
   // Form data management
   const updateStepFormData = (keywordId: string, value: string) => {
+    if (!currentStepData?.id) {
+      console.warn("Cannot update form data: currentStepData.id is missing");
+      return;
+    }
+
     console.log("updateStepFormData called:", {
       keywordId,
       value,
@@ -84,12 +138,12 @@ export function useLessonPlanState() {
 
       // Prepare export data
       const exportData = {
-        templateName: flexibleChemistryTemplate.name,
-        templateId: flexibleChemistryTemplate.id,
+        templateName: "flexibleChemistryTemplate.name",
+        templateId: "flexibleChemistryTemplate.id",
         exportDate: new Date().toISOString(),
         totalSteps: sortedSteps.length,
         completedSteps: completedSteps.length + 1,
-        steps: sortedSteps.map((step, index) => ({
+        steps: sortedSteps.map((step: any, index: any) => ({
           stepNumber: index + 1,
           stepId: step.id,
           stepTitle: step.title,
@@ -101,10 +155,10 @@ export function useLessonPlanState() {
         })),
         summary: {
           completionPercentage: Math.round(
-            ((completedSteps.length + 1) / sortedSteps.length) * 100
+            ((completedSteps.length + 1) / sortedSteps?.length) * 100
           ),
           totalKeywords: sortedSteps.reduce(
-            (total, step) => total + (step.children?.length || 0),
+            (total: any, step: any) => total + (step.children?.length || 0),
             0
           ),
           filledKeywords: Object.values(formData).reduce(
@@ -123,9 +177,10 @@ export function useLessonPlanState() {
       const url = URL.createObjectURL(dataBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `lesson-plan-${flexibleChemistryTemplate.name
-        .toLowerCase()
-        .replace(/\s+/g, "-")}-${new Date().toISOString().split("T")[0]}.json`;
+      link.download = "lesson-plan";
+      // link.download = `lesson-plan-${flexibleChemistryTemplate.name
+      //   .toLowerCase()
+      //   .replace(/\s+/g, "-")}-${new Date().toISOString().split("T")[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -143,8 +198,8 @@ export function useLessonPlanState() {
 
   // Validation
   const canGoNext = () => {
-    if (!currentStepData.children || currentStepData.children.length === 0) {
-      return true; // Allow skipping steps without children
+    if (!currentStepData?.id || !currentStepData?.children || currentStepData?.children?.length === 0) {
+      return true; // Allow skipping steps without children or when data is loading
     }
 
     const currentStepFormData = formData[currentStepData.id] || {};
@@ -155,7 +210,7 @@ export function useLessonPlanState() {
     currentStep,
     sortedSteps,
     currentStepData,
-    formData: formData[currentStepData.id] || {},
+    formData: currentStepData?.id ? formData[currentStepData.id] || {} : {},
     allFormData: formData,
     completedSteps,
     isSubmitting,
@@ -165,5 +220,9 @@ export function useLessonPlanState() {
     updateStepFormData,
     handleSubmit,
     canGoNext: canGoNext(),
+    // Add loading states for debugging
+    isLoadingChildren: childrenQuery?.isLoading || false,
+    childrenError: childrenQuery?.isError || false,
+    childrenData,
   };
 }
