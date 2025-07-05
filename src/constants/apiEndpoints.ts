@@ -53,6 +53,8 @@ export const API_ENDPOINTS = {
 
   //ACADEMIC RESOURCE
   ACADEMIC_RESOURCE: "academic-resource-service-local/api/academic-resources",
+   //ACADEMIC RESOURCE SEARCH 
+   ACADEMIC_RESOURCE_SEARCH: "academic-resource-service-local/api/academic-resources/search",
   ACADEMIC_RESOURCE_UPLOAD:
     "/academic-resource-service-local/api/academic-resources/upload",
 } as const;

@@ -1,9 +1,18 @@
-import { createMutationHook, createQueryHook } from "@/hooks/react-query";
+import {
+  createMutationHook,
+  createQueryHook,
+  createQueryWithPathParamHook,
+} from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 export const useMaterialervice = createQueryHook(
   "materials",
   API_ENDPOINTS.ACADEMIC_RESOURCE
+);
+
+export const useMaterialSearchService = createQueryWithPathParamHook(
+  "materials",
+  API_ENDPOINTS.ACADEMIC_RESOURCE_SEARCH
 );
 
 export const useCreateMaterialService = createMutationHook(
