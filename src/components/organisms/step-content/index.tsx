@@ -5,6 +5,7 @@ import { Steps, StepItem } from "@/components/ui/steps";
 import { Button } from "@/components/ui/Button";
 import { Droppable } from "@hello-pangea/dnd";
 import { FileText, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
 
 interface Step {
   id: string;
@@ -47,6 +48,9 @@ export function StepContent({
   isEditMode = false,
   className,
 }: StepContentProps) {
+  console.log(step, "nasgd");
+  const { data } = useLessonPlanNodeChildrenService(step?.id || "")();
+  console.log(data?.data, "data");
   return (
     <div className={cn("flex-1 flex flex-col min-h-0", className)}>
       {/* Step Header */}
@@ -89,7 +93,7 @@ export function StepContent({
             </div>
           </div>
 
-          {step.content && (
+          {step?.content && (
             <p className="text-gray-600 font-questrial mt-2">{step.content}</p>
           )}
         </div>
@@ -101,7 +105,7 @@ export function StepContent({
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             {/* Content */}
             <div className="p-8">
-              <Droppable droppableId={`form-${step.id}`}>
+              <Droppable droppableId={`form-${step?.id}`}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
@@ -127,12 +131,14 @@ export function StepContent({
                               onDelete={onDeleteComponent}
                             />
                             {(keyword.isDynamic || isEditMode) && (
-                              <div className={cn(
-                                "absolute top-2 right-2 transition-opacity",
-                                isEditMode
-                                  ? "opacity-100"
-                                  : "opacity-0 group-hover:opacity-100"
-                              )}>
+                              <div
+                                className={cn(
+                                  "absolute top-2 right-2 transition-opacity",
+                                  isEditMode
+                                    ? "opacity-100"
+                                    : "opacity-0 group-hover:opacity-100"
+                                )}
+                              >
                                 <button
                                   onClick={() => {
                                     if (keyword.isDynamic) {
