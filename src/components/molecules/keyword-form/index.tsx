@@ -63,7 +63,7 @@ export function KeywordForm({
 
   // Initialize resourceData from value on mount
   useEffect(() => {
-    if (value && keyword.nodeType === "REFERENCES") {
+    if (value && keyword.type === "REFERENCES") {
       try {
         const parsedData = JSON.parse(value);
         setResourceData(parsedData);
@@ -71,7 +71,7 @@ export function KeywordForm({
         console.error("Error parsing resource data:", error);
       }
     }
-  }, [value, keyword.nodeType]);
+  }, [value, keyword.type]);
 
   const handleResourceSubmit = async (resource: ResourceData) => {
     // Convert File to base64 for storage
@@ -130,7 +130,7 @@ export function KeywordForm({
 
   const renderByNodeType = () => {
     switch (keyword.type) {
-      case "SECTION":
+      case "SECTION": <p>SUBSECTION</p>
       case "SUBSECTION":
         return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }}>
