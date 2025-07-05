@@ -34,7 +34,14 @@ export function useDynamicForm() {
   // Add new component to a step
   const addComponent = useCallback(
     (config: any, position: { stepId: string; index: number }) => {
+      console.log("🔧 addComponent called:", {
+        config,
+        position,
+        currentDynamicComponents: dynamicComponents.length
+      });
+
       setDynamicComponents((prev) => {
+        console.log("🔧 setDynamicComponents prev:", prev.length);
         // Get existing components for this step
         const stepComponents = prev.filter(
           (comp) => comp.stepId === position.stepId
@@ -64,10 +71,17 @@ export function useDynamicForm() {
           nodeType: config.type,
         };
 
-        return [...otherComponents, ...stepComponents, newComponent];
+        const result = [...otherComponents, ...stepComponents, newComponent];
+        console.log("🔧 addComponent result:", {
+          newComponent,
+          totalComponents: result.length,
+          stepComponents: stepComponents.length,
+          otherComponents: otherComponents.length
+        });
+        return result;
       });
     },
-    []
+    [dynamicComponents]
   );
 
   // Move component to trash (handles both dynamic and static components)
@@ -183,8 +197,10 @@ export function useDynamicForm() {
   // Get components for a specific step (dynamic only)
   const getDynamicComponentsForStep = useCallback(
     (stepId: string) => {
+      // Convert stepId to string for consistent comparison
+      const stepIdStr = String(stepId);
       return dynamicComponents
-        .filter((comp) => comp.stepId === stepId)
+        .filter((comp) => String(comp.stepId) === stepIdStr)
         .sort((a, b) => a.order - b.order);
     },
     [dynamicComponents]
@@ -193,7 +209,23 @@ export function useDynamicForm() {
   // Merge static children with dynamic components for a step
   const getMergedComponentsForStep = useCallback(
     (stepId: string, staticChildren: any[] = []) => {
-      const dynamicComps = getDynamicComponentsForStep(stepId);
+      // Convert stepId to string to ensure consistency
+      const stepIdStr = String(stepId);
+
+      console.log("🔍 getMergedComponentsForStep called:", {
+        originalStepId: stepId,
+        stepIdStr,
+        stepIdType: typeof stepId,
+        staticChildrenLength: staticChildren.length,
+        totalDynamicComponents: dynamicComponents.length
+      });
+
+      const dynamicComps = getDynamicComponentsForStep(stepIdStr);
+      console.log("🔍 dynamicComps for step:", {
+        stepIdStr,
+        dynamicCompsLength: dynamicComps.length,
+        dynamicComps: dynamicComps.map(c => ({ id: c.id, stepId: c.stepId, stepIdType: typeof c.stepId }))
+      });
 
       // Convert static children to the same format, filtering out hidden ones
       const staticComps = staticChildren
