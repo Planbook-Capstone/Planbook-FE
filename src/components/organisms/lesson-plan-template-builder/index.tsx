@@ -11,7 +11,7 @@ import { LessonPlanTemplate, LessonPlanStep } from "@/types";
 import { Plus, Save, ArrowLeft, Download, Edit3 } from "lucide-react";
 import { useLessonPlanService } from "@/services/lessonPlanServices";
 import { toast } from "sonner";
-import { useLessonPlanNodeService } from "@/services/lessonPlanNodeServices";
+import { useCreateLessonPlanNodeService } from "@/services/lessonPlanNodeServices";
 
 interface LessonPlanTemplateBuilderProps {
   initialTemplate?: LessonPlanTemplate;
@@ -29,7 +29,7 @@ export function LessonPlanTemplateBuilder({
   mode = "admin", // default to admin mode
 }: LessonPlanTemplateBuilderProps) {
   const { mutate: lessonPlan } = useLessonPlanService();
-  const { mutate: lessonPlanNode } = useLessonPlanNodeService();
+  const { mutate: lessonPlanNode } = useCreateLessonPlanNodeService();
 
   const [template, setTemplate] = useState<LessonPlanTemplate>(
     initialTemplate || {

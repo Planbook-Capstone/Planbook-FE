@@ -12,6 +12,7 @@ import { useDynamicForm } from "@/hooks/useDynamicForm";
 import { useHeader } from "@/contexts/HeaderContext";
 import { LessonPlanPreviewSidebar } from "@/components/organisms/lesson-plan-preview-sidebar";
 import { ChevronLeft, Edit, Footprints, FileText } from "lucide-react";
+import { useLessonPlanNodeTreeService } from "@/services/lessonPlanNodeServices";
 
 function LessonPlanContent() {
   const [showSteps, setShowSteps] = useState(true);
@@ -99,7 +100,14 @@ function LessonPlanContent() {
         variant: "outline" as const,
       },
     ],
-    [isEditMode, showSteps, showPreviewSidebar, handleToggleEditMode, handleToggleSteps, handleTogglePreview]
+    [
+      isEditMode,
+      showSteps,
+      showPreviewSidebar,
+      handleToggleEditMode,
+      handleToggleSteps,
+      handleTogglePreview,
+    ]
   );
 
   // Set up header using context - only run once
@@ -132,9 +140,16 @@ function LessonPlanContent() {
 
   // Get merged components for current step
   const mergedComponents = getMergedComponentsForStep(
-    currentStepData.id,
-    currentStepData.children || []
+    currentStepData?.id,
+    currentStepData?.children || []
   );
+
+  const treeQuery = useLessonPlanNodeTreeService("21")();
+  const treeData = treeQuery?.data?.data?.sort(
+    (a: any, b: any) => a.orderIndex - b.orderIndex
+  ) || [];
+
+  console.log(treeData,"tran")
 
   return (
     <>
@@ -144,7 +159,7 @@ function LessonPlanContent() {
           <div className="bg-white border-b border-gray-200 px-6 py-4">
             <Steps
               current={currentStep}
-              items={sortedSteps.map((s) => ({
+              items={treeData?.map((s:any) => ({
                 title: s.title,
                 description: s.content,
               }))}

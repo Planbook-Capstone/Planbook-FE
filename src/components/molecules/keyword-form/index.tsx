@@ -16,7 +16,7 @@ interface Keyword {
   id: string;
   title: string;
   content?: string;
-  nodeType:
+  type:
     | "SECTION"
     | "SUBSECTION"
     | "LIST_ITEM"
@@ -25,6 +25,7 @@ interface Keyword {
     | "INPUT"
     | "REFERENCES"
     | "TABLE";
+
   children?: Keyword[];
 }
 
@@ -55,7 +56,7 @@ export function KeywordForm({
   //   nodeType: keyword.nodeType,
   //   valueLength: value?.length,
   // });
-
+  console.log(keyword, "keyword");
   const [showResourceModal, setShowResourceModal] = useState(false);
   const [resourceData, setResourceData] = useState<ResourceData | null>(null);
   const [promptValue, setPromptValue] = useState("");
@@ -90,7 +91,7 @@ export function KeywordForm({
         setResourceData(resourceWithBase64);
         onChange(JSON.stringify(resourceWithBase64));
       };
-      reader.readAsDataURL(resource.file);
+      reader.readAsDataURL(resource?.file);
     } else {
       setResourceData(resource);
       onChange(JSON.stringify(resource));
@@ -128,7 +129,7 @@ export function KeywordForm({
   };
 
   const renderByNodeType = () => {
-    switch (keyword.nodeType) {
+    switch (keyword.type) {
       case "SECTION":
       case "SUBSECTION":
         return renderWithDeleteButton(
@@ -323,7 +324,7 @@ export function KeywordForm({
         return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
             <h4 className="font-calsans text-gray-900 text-base">
-              {keyword.title}
+              {keyword?.title}
             </h4>
             {keyword.content && (
               <p className="text-sm font-questrial text-gray-600">
@@ -340,7 +341,7 @@ export function KeywordForm({
       }
 
       default:
-        return null;
+        return <p>Lỗi không xác định</p>;
     }
   };
 
