@@ -44,6 +44,7 @@ function LessonPlanContent() {
     isLoadingChildren,
     childrenError,
     childrenData,
+    getChildrenForStep,
   } = useLessonPlanState();
 
   // Use sortedSteps from useLessonPlanState (which already handles API calls)
@@ -282,6 +283,7 @@ function LessonPlanContent() {
                 steps={displaySteps}
                 formData={allFormData}
                 getMergedComponentsForStep={getMergedComponentsForStep}
+                getApiChildrenForStep={getChildrenForStep}
                 isVisible={showPreviewSidebar}
                 onToggleVisibility={() =>
                   setShowPreviewSidebar(!showPreviewSidebar)
