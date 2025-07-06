@@ -216,10 +216,13 @@ export function LessonPlanPreviewSidebar({
         );
 
         // Get API children data for this step if available
-        const apiChildren = getApiChildrenForStep ? getApiChildrenForStep(step.id) : [];
+        const apiChildren = getApiChildrenForStep
+          ? getApiChildrenForStep(step.id)
+          : [];
 
         // Use API children if available, otherwise fall back to static children
-        const childrenToUse = apiChildren.length > 0 ? apiChildren : (step.children || []);
+        const childrenToUse =
+          apiChildren.length > 0 ? apiChildren : step.children || [];
 
         // Get merged components for this step
         const components = getMergedComponentsForStep
@@ -302,11 +305,11 @@ export function LessonPlanPreviewSidebar({
       }
 
       // Handle different component types
-      if (component.type === "TABLE" || component.nodeType === "TABLE") {
+      if (component.fieldType === "TABLE" || component.nodeType === "TABLE") {
         // Add table to document
         await addTableToDoc(component, stepData, documentChildren);
       } else if (
-        component.type === "REFERENCES" ||
+        component.fieldType === "REFERENCES" ||
         component.nodeType === "REFERENCES"
       ) {
         // Add references to document
@@ -377,7 +380,10 @@ export function LessonPlanPreviewSidebar({
             },
           })
         );
-      } else if (resourceData.type === "image" && (resourceData.file || resourceData.url)) {
+      } else if (
+        resourceData.type === "image" &&
+        (resourceData.file || resourceData.url)
+      ) {
         // Add image to document - handle both file and URL
         try {
           let imageBuffer: ArrayBuffer | null = null;
@@ -394,21 +400,24 @@ export function LessonPlanPreviewSidebar({
               if (response.ok) {
                 imageBuffer = await response.arrayBuffer();
                 // Try to determine image type from URL or content-type
-                const contentType = response.headers.get('content-type');
-                if (contentType?.includes('jpeg') || contentType?.includes('jpg')) {
+                const contentType = response.headers.get("content-type");
+                if (
+                  contentType?.includes("jpeg") ||
+                  contentType?.includes("jpg")
+                ) {
                   imageType = "jpg";
-                } else if (contentType?.includes('png')) {
+                } else if (contentType?.includes("png")) {
                   imageType = "png";
-                } else if (contentType?.includes('gif')) {
+                } else if (contentType?.includes("gif")) {
                   imageType = "gif";
                 } else {
                   // Fallback: try to guess from URL extension
                   const urlLower = resourceData.url.toLowerCase();
-                  if (urlLower.includes('.jpg') || urlLower.includes('.jpeg')) {
+                  if (urlLower.includes(".jpg") || urlLower.includes(".jpeg")) {
                     imageType = "jpg";
-                  } else if (urlLower.includes('.png')) {
+                  } else if (urlLower.includes(".png")) {
                     imageType = "png";
-                  } else if (urlLower.includes('.gif')) {
+                  } else if (urlLower.includes(".gif")) {
                     imageType = "gif";
                   }
                 }
@@ -453,7 +462,11 @@ export function LessonPlanPreviewSidebar({
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: `[Hình ảnh: ${resourceData.description || resourceData.url || "Không thể tải"}]`,
+                    text: `[Hình ảnh: ${
+                      resourceData.description ||
+                      resourceData.url ||
+                      "Không thể tải"
+                    }]`,
                     color: "666666",
                     size: 24,
                     italics: true,
@@ -715,9 +728,22 @@ export function LessonPlanPreviewSidebar({
       );
     });
   }, [formData, steps]);
-  // Helper function to get form data for a specific step and keyword
-  const getFieldValue = (stepId: string, keywordId: string): string => {
-    return formData[stepId]?.[keywordId] || "";
+  // Helper function to get form data by title (more flexible)
+  const getFieldValue = (stepId: string, keywordTitle: string): string => {
+    const stepData = formData[stepId];
+    if (!stepData) return "";
+
+    // Try to find by exact title match first
+    for (const [key, value] of Object.entries(stepData)) {
+      // Check if the key contains the title (case insensitive)
+      if (key.toLowerCase().includes(keywordTitle.toLowerCase()) ||
+          keywordTitle.toLowerCase().includes(key.toLowerCase())) {
+        return value as string;
+      }
+    }
+
+    // Fallback: try original keywordId format
+    return stepData[keywordTitle] || "";
   };
 
   // Helper function to generate keyword ID from title (matching the template pattern)
@@ -760,9 +786,14 @@ export function LessonPlanPreviewSidebar({
   ) => {
     try {
       const resourceDataStr = stepData[field.id];
-      if (!resourceDataStr) return null;
+      if (!resourceDataStr) {
+        console.log("No resource data for field:", field.id);
+        return null;
+      }
 
+      console.log("Resource data string:", resourceDataStr);
       const resourceData = JSON.parse(resourceDataStr);
+      console.log("Parsed resource data:", resourceData);
 
       if (resourceData.type === "link") {
         return (
@@ -784,7 +815,10 @@ export function LessonPlanPreviewSidebar({
             </div>
           </div>
         );
-      } else if (resourceData.type === "image" && (resourceData.file || resourceData.url)) {
+      } else if (
+        resourceData.type === "image" &&
+        (resourceData.file || resourceData.url)
+      ) {
         // Handle both uploaded files and URL images
         if (resourceData.file) {
           // Get image URL for preview (uploaded file)
@@ -817,6 +851,19 @@ export function LessonPlanPreviewSidebar({
                   <span className="text-gray-500">
                     ({(resourceData.file.size / 1024).toFixed(1)} KB)
                   </span>
+                  <button
+                    onClick={() => {
+                      if ("base64" in resourceData.file) {
+                        const link = document.createElement('a');
+                        link.href = resourceData.file.base64;
+                        link.download = resourceData.file.name;
+                        link.click();
+                      }
+                    }}
+                    className="text-blue-600 hover:underline text-xs"
+                  >
+                    Tải xuống
+                  </button>
                 </div>
               </div>
             </div>
@@ -833,13 +880,16 @@ export function LessonPlanPreviewSidebar({
                     className="w-full h-32 object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvaSBoaW5oIGFuaDwvdGV4dD48L3N2Zz4=";
+                      target.src =
+                        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvaSBoaW5oIGFuaDwvdGV4dD48L3N2Zz4=";
                     }}
                   />
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span>📷</span>
-                  <span>{resourceData.description || "Hình ảnh từ thư viện"}</span>
+                  <span>
+                    {resourceData.description || "Hình ảnh từ thư viện"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -885,14 +935,26 @@ export function LessonPlanPreviewSidebar({
         }
       }
 
-      // Use default table data if no user data
-      if (!tableData || !tableData.headers || !tableData.rows) {
+      // Use default RichTable format if no user data
+      if (!tableData || !tableData.rows) {
         tableData = {
-          headers: ["Header 1", "Header 2"],
           rows: [
-            ["Cell 1-1", "Cell 1-2"],
-            ["Cell 2-1", "Cell 2-2"],
+            {
+              id: "header-row",
+              cells: [
+                { id: "h1", content: "Cột 1", isHeader: true },
+                { id: "h2", content: "Cột 2", isHeader: true },
+              ],
+            },
+            {
+              id: "row-1",
+              cells: [
+                { id: "r1c1", content: "Nội dung ô 1" },
+                { id: "r1c2", content: "Nội dung ô 2" },
+              ],
+            },
           ],
+          columns: 2,
         };
       }
 
@@ -900,28 +962,24 @@ export function LessonPlanPreviewSidebar({
         <div className="ml-4 mt-2">
           <div className="border border-gray-300 rounded-sm overflow-hidden">
             <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="bg-gray-50">
-                  {tableData.headers.map((header: string, index: number) => (
-                    <th
-                      key={index}
-                      className="border-b border-gray-300 px-3 py-2 text-left font-calsans font-normal text-gray-900"
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
               <tbody>
-                {tableData.rows.map((row: string[], rowIndex: number) => (
-                  <tr key={rowIndex} className="hover:bg-gray-50">
-                    {row.map((cell: string, cellIndex: number) => (
-                      <td
-                        key={cellIndex}
-                        className="border-b border-gray-200 px-3 py-2 text-gray-700"
-                      >
-                        {cell}
-                      </td>
+                {tableData.rows.map((row: any, rowIndex: number) => (
+                  <tr key={row.id} className={row.cells[0]?.isHeader ? "bg-gray-50" : "hover:bg-gray-50"}>
+                    {row.cells.map((cell: any, cellIndex: number) => (
+                      cell.isHeader ? (
+                        <th
+                          key={cell.id}
+                          className="border-b border-gray-300 px-3 py-2 text-left font-calsans font-normal text-gray-900"
+                        >
+                          {cell.content}
+                        </th>
+                      ) : (
+                        <td
+                          key={cell.id}
+                          className="border-b border-gray-200 px-3 py-2 text-gray-700"
+                          dangerouslySetInnerHTML={{ __html: cell.content || "" }}
+                        />
+                      )
                     ))}
                   </tr>
                 ))}
@@ -962,9 +1020,10 @@ export function LessonPlanPreviewSidebar({
           </span>
 
           {/* Special handling for TABLE and REFERENCES components */}
-          {field.type === "TABLE" || field.nodeType === "TABLE"
+          {field.fieldType === "TABLE" || field.nodeType === "TABLE"
             ? renderTableComponent(field, stepData)
-            : field.type === "REFERENCES" || field.nodeType === "REFERENCES"
+            : field.fieldType === "REFERENCES" ||
+              field.nodeType === "REFERENCES"
             ? renderReferencesComponent(field, stepData)
             : (userValue || defaultContent) && (
                 <div className="ml-4 text-gray-700">
@@ -988,10 +1047,13 @@ export function LessonPlanPreviewSidebar({
   // Helper function to render all form data for a step
   const renderStepData = (step: any, stepData: Record<string, string>) => {
     // Get API children data for this step if available
-    const apiChildren = getApiChildrenForStep ? getApiChildrenForStep(step.id) : [];
+    const apiChildren = getApiChildrenForStep
+      ? getApiChildrenForStep(step.id)
+      : [];
 
     // Use API children if available, otherwise fall back to static children
-    const childrenToUse = apiChildren.length > 0 ? apiChildren : (step.children || []);
+    const childrenToUse =
+      apiChildren.length > 0 ? apiChildren : step.children || [];
 
     // Get merged components (static + dynamic) if function is available
     const components = getMergedComponentsForStep
@@ -1034,7 +1096,7 @@ export function LessonPlanPreviewSidebar({
     objectivesStep?.title,
     objectivesStep?.children?.length
   );
-console.log(formData,'formData');
+  console.log(formData, "formData");
   return (
     <div
       className={cn("h-full bg-white overflow-y-auto", className)}

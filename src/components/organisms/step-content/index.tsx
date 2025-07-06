@@ -127,12 +127,14 @@ export function StepContent({
                               onDelete={onDeleteComponent}
                             />
                             {(keyword.isDynamic || isEditMode) && (
-                              <div className={cn(
-                                "absolute top-2 right-2 transition-opacity",
-                                isEditMode
-                                  ? "opacity-100"
-                                  : "opacity-0 group-hover:opacity-100"
-                              )}>
+                              <div
+                                className={cn(
+                                  "absolute top-2 right-2 transition-opacity",
+                                  isEditMode
+                                    ? "opacity-100"
+                                    : "opacity-0 group-hover:opacity-100"
+                                )}
+                              >
                                 <button
                                   onClick={() => {
                                     if (keyword.isDynamic) {

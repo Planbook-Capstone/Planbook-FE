@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Upload, Link, Image, Video } from "lucide-react";
-import { useMaterialSearchService } from "@/services/materialServices";
 
 export interface ResourceData {
   type: "image" | "video" | "link";
@@ -45,29 +44,6 @@ export function ResourceModal({
   const [resourceType, setResourceType] = useState<"upload" | "link">("upload");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
-  const [selectedLibraryItem, setSelectedLibraryItem] = useState<any>(null);
-
-  const { data } = useMaterialSearchService("tagIds=1");
-  console.log(data?.data?.content, "hoclieu");
-
-  // Get materials from API
-  const materials = data?.data?.content || [];
-
-  const handleLibraryItemSelect = (item: any) => {
-    setSelectedLibraryItem(item);
-  };
-
-  const handleLibrarySubmit = () => {
-    if (selectedLibraryItem) {
-      onSubmit({
-        type: "image", // Assuming all library items are images for now
-        url: selectedLibraryItem.url,
-        description: selectedLibraryItem.description || selectedLibraryItem.name,
-      });
-      setSelectedLibraryItem(null);
-      onClose();
-    }
-  };
 
   const handleLinkSubmit = () => {
     if (linkData.url.trim()) {
@@ -130,90 +106,22 @@ export function ResourceModal({
       content: (
         <div className="space-y-4">
           <p className="text-sm text-gray-600 font-questrial">
-            Chọn từ thư viện học liệu có sẵn ({materials.length} tài liệu)
+            Chọn từ thư viện học liệu có sẵn
           </p>
-
-          {materials.length === 0 ? (
-            <div className="text-center py-8">
-              <Image className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 font-questrial">Chưa có học liệu nào</p>
+          <div className="grid grid-cols-3 gap-4">
+            {/* Placeholder for library items */}
+            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+              <Image className="w-8 h-8 text-gray-400" />
             </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-              {materials.map((item: any) => (
-                <div
-                  key={item.id}
-                  className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedLibraryItem?.id === item.id
-                      ? "border-blue-500 ring-2 ring-blue-200"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                  onClick={() => handleLibraryItemSelect(item)}
-                >
-                  <div className="aspect-video bg-gray-100 relative">
-                    {item.url ? (
-                      <img
-                        src={item.url}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                        onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                          // Fallback if image fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
-                          if (fallback) fallback.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className="fallback-icon hidden absolute inset-0 items-center justify-center bg-gray-100">
-                      <Image className="w-8 h-8 text-gray-400" />
-                    </div>
-
-                    {/* Selection indicator */}
-                    {selectedLibraryItem?.id === item.id && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs">✓</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-3 bg-white">
-                    <h4 className="font-medium text-sm truncate" title={item.name}>
-                      {item.name}
-                    </h4>
-                    {item.description && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2" title={item.description}>
-                        {item.description}
-                      </p>
-                    )}
-                    {item.tags && item.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {item.tags.slice(0, 2).map((tag: any) => (
-                          <span
-                            key={tag.id}
-                            className="px-2 py-1 bg-gray-100 text-xs rounded-full text-gray-600"
-                          >
-                            {tag.name}
-                          </span>
-                        ))}
-                        {item.tags.length > 2 && (
-                          <span className="text-xs text-gray-400">+{item.tags.length - 2}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+              <Video className="w-8 h-8 text-gray-400" />
             </div>
-          )}
-
+            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+              <Image className="w-8 h-8 text-gray-400" />
+            </div>
+          </div>
           <div className="flex justify-end">
-            <Button
-              onClick={handleLibrarySubmit}
-              disabled={!selectedLibraryItem}
-            >
-              Chọn {selectedLibraryItem ? `"${selectedLibraryItem.name}"` : ""}
-            </Button>
+            <Button onClick={onClose}>Chọn</Button>
           </div>
         </div>
       ),
@@ -311,7 +219,7 @@ export function ResourceModal({
                 <Input
                   placeholder="Nhập mô tả cho đường link"
                   value={linkData.description}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  onChange={(e) =>
                     setLinkData((prev) => ({
                       ...prev,
                       description: e.target.value,
@@ -324,7 +232,7 @@ export function ResourceModal({
                 <Input
                   placeholder="Nhập URL"
                   value={linkData.url}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  onChange={(e) =>
                     setLinkData((prev) => ({ ...prev, url: e.target.value }))
                   }
                 />

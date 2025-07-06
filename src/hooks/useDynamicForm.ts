@@ -29,7 +29,9 @@ export function useDynamicForm() {
     DynamicComponent[]
   >([]);
   const [trashedItems, setTrashedItems] = useState<TrashedItem[]>([]);
-  const [hiddenStaticComponents, setHiddenStaticComponents] = useState<string[]>([]);
+  const [hiddenStaticComponents, setHiddenStaticComponents] = useState<
+    string[]
+  >([]);
 
   // Add new component to a step
   const addComponent = useCallback(
@@ -37,7 +39,7 @@ export function useDynamicForm() {
       console.log("🔧 addComponent called:", {
         config,
         position,
-        currentDynamicComponents: dynamicComponents.length
+        currentDynamicComponents: dynamicComponents.length,
       });
 
       setDynamicComponents((prev) => {
@@ -76,7 +78,7 @@ export function useDynamicForm() {
           newComponent,
           totalComponents: result.length,
           stepComponents: stepComponents.length,
-          otherComponents: otherComponents.length
+          otherComponents: otherComponents.length,
         });
         return result;
       });
@@ -127,7 +129,11 @@ export function useDynamicForm() {
         setHiddenStaticComponents((prev) => [...prev, componentId]);
 
         const trashedItem: TrashedItem = {
-          id: generateStableId("trash", staticComponent.title || "item", Date.now()),
+          id: generateStableId(
+            "trash",
+            staticComponent.title || "item",
+            Date.now()
+          ),
           component: staticComponent,
           deletedAt: new Date().toISOString(),
           originalStepId: staticComponent.stepId || "unknown",
@@ -206,65 +212,72 @@ export function useDynamicForm() {
     [dynamicComponents]
   );
 
-  // Merge static children with dynamic components for a step
+  // Merge static children (tree structure) with dynamic components for a step
   const getMergedComponentsForStep = useCallback(
     (stepId: string, staticChildren: any[] = []) => {
-      // Convert stepId to string to ensure consistency
       const stepIdStr = String(stepId);
 
-      console.log("🔍 getMergedComponentsForStep called:", {
-        originalStepId: stepId,
-        stepIdStr,
-        stepIdType: typeof stepId,
-        staticChildrenLength: staticChildren.length,
-        totalDynamicComponents: dynamicComponents.length
-      });
+      // Helper: merge children recursively
+      function mergeChildren(staticNodes: any[], parentStepId: string) {
+        // Lấy danh sách id của tất cả children lồng bên trong
+        const allNestedIds = new Set<string>();
+        staticNodes.forEach((child) => {
+          if (Array.isArray(child.children)) {
+            child.children.forEach((desc) => {
+              if (desc && desc.id) allNestedIds.add(desc.id);
+            });
+          }
+        });
 
-      const dynamicComps = getDynamicComponentsForStep(stepIdStr);
-      console.log("🔍 dynamicComps for step:", {
-        stepIdStr,
-        dynamicCompsLength: dynamicComps.length,
-        dynamicComps: dynamicComps.map(c => ({ id: c.id, stepId: c.stepId, stepIdType: typeof c.stepId }))
-      });
+        // Static children (not hidden, không phải là con của node khác trong staticNodes)
+        const staticComps = staticNodes
+          .filter(
+            (child) =>
+              !hiddenStaticComponents.includes(child.id) &&
+              !allNestedIds.has(child.id)
+          )
+          .map((child, index) => {
+            // Merge children recursively
+            const mergedChild = {
+              ...child,
+              isDynamic: false,
+              originalOrder: index,
+              stepId: parentStepId,
+              children: child.children
+                ? mergeChildren(child.children, parentStepId)
+                : [],
+            };
+            return mergedChild;
+          });
 
-      // Convert static children to the same format, filtering out hidden ones
-      const staticComps = staticChildren
-        .filter((child) => !hiddenStaticComponents.includes(child.id))
-        .map((child, index) => ({
-          ...child,
-          isDynamic: false,
-          originalOrder: index,
-          stepId: stepId, // Add stepId for trash functionality
-        }));
+        // Dynamic components for this parent
+        const dynamicComps = getDynamicComponentsForStep(parentStepId).map(
+          (comp) => ({
+            id: comp.id,
+            title: comp.title,
+            content: comp.content || comp.placeholder,
+            nodeType: comp.type,
+            children: comp.children || [],
+            isDynamic: true,
+            order: comp.order,
+            type: comp.type,
+            stepId: parentStepId,
+          })
+        );
 
-      // Convert dynamic components
-      const dynamicCompsFormatted = dynamicComps.map((comp) => ({
-        id: comp.id,
-        title: comp.title,
-        content: comp.content || comp.placeholder,
-        nodeType: comp.type,
-        children: comp.children,
-        isDynamic: true,
-        order: comp.order,
-        type: comp.type, // Keep original type for identification
-      }));
+        // Merge: static first, then dynamic
+        return [...staticComps, ...dynamicComps].sort((a, b) => {
+          if (!a.isDynamic && b.isDynamic) return -1;
+          if (a.isDynamic && !b.isDynamic) return 1;
+          if (a.isDynamic && b.isDynamic) return a.order - b.order;
+          if (!a.isDynamic && !b.isDynamic)
+            return a.originalOrder - b.originalOrder;
+          return 0;
+        });
+      }
 
-      // Merge and sort by order
-      const allComponents = [...staticComps, ...dynamicCompsFormatted];
-
-      // Static components first, then dynamic components
-      return allComponents.sort((a, b) => {
-        // Static components always come first
-        if (!a.isDynamic && b.isDynamic) return -1;
-        if (a.isDynamic && !b.isDynamic) return 1;
-
-        // Within same type, sort by order
-        if (a.isDynamic && b.isDynamic) return a.order - b.order;
-        if (!a.isDynamic && !b.isDynamic)
-          return a.originalOrder - b.originalOrder;
-
-        return 0;
-      });
+      // Start merge from root staticChildren
+      return mergeChildren(staticChildren, stepIdStr);
     },
     [getDynamicComponentsForStep, hiddenStaticComponents]
   );
