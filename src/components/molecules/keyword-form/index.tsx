@@ -17,15 +17,8 @@ interface Keyword {
   id: string;
   title: string;
   content?: string;
-  type:
-    | "SECTION"
-    | "SUBSECTION"
-    | "LIST_ITEM"
-    | "PARAGRAPH"
-    | "CONTENT"
-    | "INPUT"
-    | "REFERENCES"
-    | "TABLE";
+  type: "SECTION" | "SUBSECTION" | "LIST_ITEM" | "PARAGRAPH";
+  fieldType: "INPUT" | "REFERENCES" | "TABLE" | undefined;
 
   children?: Keyword[];
 }
@@ -63,11 +56,15 @@ export function KeywordForm({
   const [promptValue, setPromptValue] = useState("");
 
   // Initialize resourceData from value on mount
+  // Only update resourceData if value is valid JSON and different from current
   useEffect(() => {
-    if (value && keyword.type === "REFERENCES") {
+    if (value && keyword.fieldType === "REFERENCES") {
       try {
         const parsedData = JSON.parse(value);
-        setResourceData(parsedData);
+        // Only set if different (avoid infinite loop)
+        if (JSON.stringify(parsedData) !== JSON.stringify(resourceData)) {
+          setResourceData(parsedData);
+        }
       } catch (error) {
         console.error("Error parsing resource data:", error);
       }
@@ -128,14 +125,14 @@ export function KeywordForm({
       </div>
     );
   };
-
+  console.log(keyword.fieldType || keyword.type);
   const renderByNodeType = () => {
-    switch (keyword.nodeType || keyword.type) {
+    switch (keyword.fieldType ? keyword.fieldType : keyword.type) {
       case "SECTION":
       case "SUBSECTION":
         return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }}>
-            <h3 className={cn("font-calsans text-gray-900 mb-2 text-base")}>
+            <h3 className={cn("font-calsans text-gray-900 mb-2 text-lg")}>
               {keyword.title}
             </h3>
             {keyword.content && (
@@ -173,10 +170,26 @@ export function KeywordForm({
                 {keyword.content}
               </p>
             )}
+            {keyword.children && keyword.children.length > 0 && (
+              <div className="space-y-4">
+                {keyword.children.map((child, childIndex) => (
+                  <KeywordForm
+                    key={child.id}
+                    keyword={child}
+                    value=""
+                    onChange={() => {}}
+                    index={childIndex}
+                    level={level + 1}
+                    isEditMode={isEditMode}
+                    onDelete={onDelete}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         );
 
-      case "CONTENT":
+      case "PARAGRAPH":
         return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
             <h4 className="font-calsans text-gray-900 text-base">
@@ -273,7 +286,8 @@ export function KeywordForm({
                       </div>
                     </FormField>
                   </div>
-                ) : resourceData.type === "image" && (resourceData.file || resourceData.url) ? (
+                ) : resourceData.type === "image" &&
+                  (resourceData.file || resourceData.url) ? (
                   // Handle both uploaded files and URL images
                   resourceData.file ? (
                     <ImagePreview
@@ -293,7 +307,8 @@ export function KeywordForm({
                         className="w-full h-48 object-cover rounded-lg border border-gray-200"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvaSBoaW5oIGFuaDwvdGV4dD48L3N2Zz4=";
+                          target.src =
+                            "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvaSBoaW5oIGFuaDwvdGV4dD48L3N2Zz4=";
                         }}
                       />
                       <Button
@@ -318,7 +333,9 @@ export function KeywordForm({
                   <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
                     <Video className="w-8 h-8 text-green-500" />
                     <span className="text-sm font-questrial">
-                      {resourceData.file?.name || resourceData.description || "Tài liệu đã upload"}
+                      {resourceData.file?.name ||
+                        resourceData.description ||
+                        "Tài liệu đã upload"}
                     </span>
                   </div>
                 )}
