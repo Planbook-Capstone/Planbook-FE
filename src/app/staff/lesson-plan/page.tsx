@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +23,8 @@ import { LessonPlanTemplateBuilder } from "@/components/organisms/lesson-plan-te
 import { LessonPlanTemplate } from "@/types";
 import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { toast } from "sonner";
+import { useLessonPlanService } from "@/services/lessonPlanServices";
+import { useCreateLessonPlanNodeService } from "@/services/lessonPlanNodeServices";
 
 // Interface for uploaded files
 interface UploadedFile {
@@ -36,6 +38,10 @@ interface UploadedFile {
 }
 
 export default function LessonPlanPage() {
+  // API hooks
+  const { mutate: lessonPlan } = useLessonPlanService();
+  const { mutate: lessonPlanNode } = useCreateLessonPlanNodeService();
+
   const [templates, setTemplates] = useState<LessonPlanTemplate[]>([
     { ...getDefaultTemplate(), isActive: true },
     {
@@ -62,6 +68,89 @@ export default function LessonPlanPage() {
   const [showBuilder, setShowBuilder] = useState(false);
   const [currentTemplate, setCurrentTemplate] =
     useState<LessonPlanTemplate | null>(null);
+
+  // Helper function to create lesson plan node and return promise
+  const createLessonPlanNode = useCallback(
+    (nodeData: any): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        lessonPlanNode(nodeData, {
+          onSuccess: (response: any) => {
+            const nodeId = response?.data?.data?.id || response?.data?.id;
+            console.log(`✅ Node created: ${nodeData.title} (ID: ${nodeId})`);
+            resolve({ ...response, id: nodeId });
+          },
+          onError: (error: any) => {
+            console.error(`❌ Failed to create node: ${nodeData.title}`, error);
+            reject(error);
+          },
+        });
+      });
+    },
+    [lessonPlanNode]
+  );
+
+  // Process keywords with nested children recursively
+  const processKeywords = useCallback(
+    async (keywords: any[], lessonPlanId: number, parentId: number) => {
+      for (const keyword of keywords) {
+        console.log(`Processing keyword: ${keyword.title}`);
+
+        // Create keyword node
+        const nodeType = keyword.nodeType || "LIST_ITEM";
+        const specialTypes = ["INPUT", "REFERENCES", "TABLE"];
+
+        const keywordNodeData = {
+          lessonPlanId: lessonPlanId,
+          title: keyword.title,
+          content: keyword.content || "",
+          parentId: parentId,
+          type: specialTypes.includes(nodeType) ? "PARAGRAPH" : nodeType,
+          fieldType: specialTypes.includes(nodeType) ? nodeType : undefined,
+          orderIndex: keyword.order,
+        };
+
+        const keywordResponse = await createLessonPlanNode(keywordNodeData);
+        const keywordNodeId = keywordResponse.id;
+
+        // If this keyword has children, process them recursively
+        if (keyword.children && keyword.children.length > 0) {
+          console.log(
+            `Processing ${keyword.children.length} children for: ${keyword.title}`
+          );
+          await processKeywords(keyword.children, lessonPlanId, keywordNodeId);
+        }
+      }
+    },
+    [createLessonPlanNode]
+  );
+
+  // Process steps sequentially with nested keywords and children
+  const processTemplateSteps = useCallback(
+    async (steps: any[], lessonPlanId: number) => {
+      for (const step of steps) {
+        console.log(`Processing step: ${step.title}`);
+
+        // Create step node (SECTION)
+        const stepNodeData = {
+          lessonPlanId: lessonPlanId,
+          title: step.title,
+          content: step.description || "",
+          parentId: null,
+          type: "SECTION",
+          orderIndex: step.order,
+        };
+
+        const stepResponse = await createLessonPlanNode(stepNodeData);
+        const stepNodeId = stepResponse.id;
+
+        // Process keywords for this step
+        if (step.keywords && step.keywords.length > 0) {
+          await processKeywords(step.keywords, lessonPlanId, stepNodeId);
+        }
+      }
+    },
+    [createLessonPlanNode, processKeywords]
+  );
 
   // Filter templates based on search query
   const filteredTemplates = templates.filter(
@@ -167,20 +256,58 @@ export default function LessonPlanPage() {
     toast.success("Đã xóa file!");
   };
 
-  const handleSave = (template: LessonPlanTemplate) => {
-    // Check if template exists, update or add
-    const existingIndex = templates.findIndex((t) => t.id === template.id);
-    if (existingIndex >= 0) {
-      setTemplates((prev) =>
-        prev.map((t) => (t.id === template.id ? template : t))
-      );
-    } else {
-      setTemplates((prev) => [...prev, template]);
-    }
+  const handleSave = useCallback(
+    async (template: LessonPlanTemplate) => {
+      const payloadLessonplan = {
+        name: template.name,
+        description: template.description,
+      };
 
-    toast.success("Mẫu đã được lưu thành công!");
-    setShowBuilder(false);
-  };
+      console.log("📋 Template steps:", template.steps);
+
+      lessonPlan(payloadLessonplan, {
+        onSuccess: async (res: any) => {
+          const lessonPlanId = res?.data?.data?.id || res?.data?.id;
+          console.log("Lesson Plan created with ID:", lessonPlanId);
+
+          if (!lessonPlanId) {
+            toast.error("Không nhận được lessonPlanId từ response");
+            return;
+          }
+
+          toast.success("Lưu template thành công");
+
+          // Process all steps and their nested structure
+          try {
+            await processTemplateSteps(template.steps, lessonPlanId);
+            toast.success("Tạo tất cả nodes thành công!");
+
+            // Update local templates after successful API call
+            const existingIndex = templates.findIndex(
+              (t) => t.id === template.id
+            );
+            if (existingIndex >= 0) {
+              setTemplates((prev) =>
+                prev.map((t) => (t.id === template.id ? template : t))
+              );
+            } else {
+              setTemplates((prev) => [...prev, template]);
+            }
+
+            setShowBuilder(false);
+          } catch (error) {
+            console.error("Error processing template steps:", error);
+            toast.error("Lỗi khi tạo nodes");
+          }
+        },
+        onError: (error) => {
+          console.error("Error saving lesson plan:", error);
+          toast.error("Lỗi khi lưu template");
+        },
+      });
+    },
+    [lessonPlan, processTemplateSteps, templates]
+  );
 
   const handleSaveDraft = (template: LessonPlanTemplate) => {
     toast.success("Nháp đã được lưu!");
@@ -202,7 +329,7 @@ export default function LessonPlanPage() {
   if (showBuilder) {
     return (
       <LessonPlanTemplateBuilder
-        initialTemplate={currentTemplate}
+        initialTemplate={currentTemplate || undefined}
         onSave={handleSave}
         onSaveDraft={handleSaveDraft}
         onExit={() => setShowBuilder(false)}
@@ -230,7 +357,9 @@ export default function LessonPlanPage() {
               placeholder="Tìm kiếm mẫu..."
               className="w-80"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSearchQuery(e.target.value)
+              }
             />
             {activeTab === "template" && (
               <Button
