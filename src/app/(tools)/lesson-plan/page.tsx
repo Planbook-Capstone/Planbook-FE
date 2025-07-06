@@ -22,13 +22,11 @@ function LessonPlanPage() {
 
   // Handle lesson selection - set lessonId to URL params
   const handleLessonSelect = (lessonId: string) => {
-    console.log("Selected lesson:", lessonId);
     // Update URL with lessonId parameter
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set("lessonId", lessonId);
     router.push(newUrl.pathname + newUrl.search);
   };
-  console.log(formById?.data?.formData);
   if (lessonId) {
     return (
       <div className="p-5">

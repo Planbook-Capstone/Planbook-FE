@@ -1,5 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
-import { useLessonPlanNodeTreeService, useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
+import {
+  useLessonPlanNodeTreeService,
+  useLessonPlanNodeChildrenService,
+} from "@/services/lessonPlanNodeServices";
 
 export function useLessonPlanState() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -14,7 +17,7 @@ export function useLessonPlanState() {
     Record<string, any[]>
   >({});
 
-  const treeData = useLessonPlanNodeTreeService("21")();
+  const treeData = useLessonPlanNodeTreeService("12")();
   // const apiSteps =
   //   treeData?.data?.data?.sort(
   //     (a: any, b: any) => a?.orderIndex - b?.orderIndex
@@ -50,7 +53,7 @@ export function useLessonPlanState() {
   // Flatten children data like in main component
   const flattenChildren = (children: any[]): any[] => {
     const result: any[] = [];
-    children.forEach(child => {
+    children.forEach((child) => {
       result.push({
         ...child,
         nodeType: child.type, // Map API fields
@@ -63,22 +66,26 @@ export function useLessonPlanState() {
     return result;
   };
 
-  const childrenData = childrenQuery?.data?.data ? flattenChildren(childrenQuery.data.data) : [];
+  const childrenData = childrenQuery?.data?.data
+    ? flattenChildren(childrenQuery.data.data)
+    : [];
 
   // Update cache when children data is loaded for current step
-  useEffect(() => {
-    if (currentStepId && childrenData.length > 0) {
-      console.log(`🔄 Caching children data for step ${currentStepId}:`, childrenData.length, 'items');
-      setStepChildrenCache(prev => {
-        const newCache = {
-          ...prev,
-          [currentStepId]: childrenData
-        };
-        console.log(`💾 Updated cache. Total cached steps:`, Object.keys(newCache).length);
-        return newCache;
-      });
-    }
-  }, [currentStepId, childrenData]);
+useEffect(() => {
+  if (
+    currentStepId &&
+    childrenData.length > 0 &&
+    // Only update cache if data is actually different
+    (stepChildrenCache[currentStepId]?.length !== childrenData.length ||
+      JSON.stringify(stepChildrenCache[currentStepId]) !== JSON.stringify(childrenData))
+  ) {
+    setStepChildrenCache((prev) => ({
+      ...prev,
+      [currentStepId]: childrenData,
+    }));
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [currentStepId, childrenData]);
 
   // Create enhanced currentStepData with API children
   const currentStepData = useMemo(() => {
@@ -86,18 +93,26 @@ export function useLessonPlanState() {
 
     return {
       ...currentStepBasic,
-      children: childrenData
+      children: childrenData,
     };
   }, [currentStepBasic, childrenData]);
 
   // Function to get children data for any step (from cache or current)
   const getChildrenForStep = (stepId: string) => {
     if (stepId === currentStepId) {
-      console.log(`📋 Getting current step children for ${stepId}:`, childrenData?.length || 0, 'items');
+      console.log(
+        `📋 Getting current step children for ${stepId}:`,
+        childrenData?.length || 0,
+        "items"
+      );
       return childrenData || [];
     }
     const cachedData = stepChildrenCache[stepId] || [];
-    console.log(`💾 Getting cached children for ${stepId}:`, cachedData.length, 'items');
+    console.log(
+      `💾 Getting cached children for ${stepId}:`,
+      cachedData.length,
+      "items"
+    );
     return cachedData;
   };
 
@@ -229,7 +244,11 @@ export function useLessonPlanState() {
 
   // Validation
   const canGoNext = () => {
-    if (!currentStepData?.id || !currentStepData?.children || currentStepData?.children?.length === 0) {
+    if (
+      !currentStepData?.id ||
+      !currentStepData?.children ||
+      currentStepData?.children?.length === 0
+    ) {
       return true; // Allow skipping steps without children or when data is loading
     }
 
