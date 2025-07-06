@@ -13,7 +13,6 @@ import { useHeader } from "@/contexts/HeaderContext";
 import { LessonPlanPreviewSidebar } from "@/components/organisms/lesson-plan-preview-sidebar";
 import { ChevronLeft, Edit, Footprints, FileText } from "lucide-react";
 
-
 function LessonPlanContent() {
   const [showSteps, setShowSteps] = useState(true);
   const [showPreviewSidebar, setShowPreviewSidebar] = useState(false);
@@ -142,11 +141,15 @@ function LessonPlanContent() {
     console.log("🎯 handleConfigConfirm called:", {
       config,
       position: configModal.position,
-      currentStepId: currentStepData?.id
+      currentStepId: currentStepData?.id,
     });
 
     if (configModal.position) {
-      console.log("🎯 Calling addComponent with:", config, configModal.position);
+      console.log(
+        "🎯 Calling addComponent with:",
+        config,
+        configModal.position
+      );
       addComponent(config, configModal.position);
       console.log("🎯 addComponent completed");
     } else {
@@ -160,9 +163,9 @@ function LessonPlanContent() {
     currentStepId: currentStepData?.id,
     isLoadingChildren,
     childrenError,
-    childrenDataLength: childrenData?.length || 0,
+    childrenData: childrenData,
     hasCurrentStepData: !!currentStepData,
-    displayStepsLength: displaySteps.length
+    displayStepsLength: displaySteps.length,
   });
 
   // Show loading if children are loading
@@ -178,7 +181,9 @@ function LessonPlanContent() {
   if (childrenError) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-red-600">Lỗi khi tải dữ liệu children: {childrenError}</div>
+        <div className="text-red-600">
+          Lỗi khi tải dữ liệu children: {childrenError}
+        </div>
       </div>
     );
   }
@@ -194,12 +199,14 @@ function LessonPlanContent() {
     currentStepIdType: typeof currentStepData?.id,
     childrenDataLength: childrenData?.length || 0,
     mergedComponentsLength: mergedComponents?.length || 0,
-    mergedComponents: mergedComponents?.map(c => ({
+    mergedComponents: mergedComponents?.map((c) => ({
       id: c.id,
       title: c.title,
-      nodeType: c.nodeType,
-      isDynamic: c.isDynamic
-    }))
+      type: c.nodeType,
+      fieldType: c.fieldType,
+      childern: c.children,
+      isDynamic: c.isDynamic,
+    })),
   });
 
   return (

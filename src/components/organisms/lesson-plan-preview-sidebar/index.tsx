@@ -216,10 +216,13 @@ export function LessonPlanPreviewSidebar({
         );
 
         // Get API children data for this step if available
-        const apiChildren = getApiChildrenForStep ? getApiChildrenForStep(step.id) : [];
+        const apiChildren = getApiChildrenForStep
+          ? getApiChildrenForStep(step.id)
+          : [];
 
         // Use API children if available, otherwise fall back to static children
-        const childrenToUse = apiChildren.length > 0 ? apiChildren : (step.children || []);
+        const childrenToUse =
+          apiChildren.length > 0 ? apiChildren : step.children || [];
 
         // Get merged components for this step
         const components = getMergedComponentsForStep
@@ -302,11 +305,11 @@ export function LessonPlanPreviewSidebar({
       }
 
       // Handle different component types
-      if (component.type === "TABLE" || component.nodeType === "TABLE") {
+      if (component.fieldType === "TABLE" || component.nodeType === "TABLE") {
         // Add table to document
         await addTableToDoc(component, stepData, documentChildren);
       } else if (
-        component.type === "REFERENCES" ||
+        component.fieldType === "REFERENCES" ||
         component.nodeType === "REFERENCES"
       ) {
         // Add references to document
@@ -377,7 +380,10 @@ export function LessonPlanPreviewSidebar({
             },
           })
         );
-      } else if (resourceData.type === "image" && (resourceData.file || resourceData.url)) {
+      } else if (
+        resourceData.type === "image" &&
+        (resourceData.file || resourceData.url)
+      ) {
         // Add image to document - handle both file and URL
         try {
           let imageBuffer: ArrayBuffer | null = null;
@@ -394,21 +400,24 @@ export function LessonPlanPreviewSidebar({
               if (response.ok) {
                 imageBuffer = await response.arrayBuffer();
                 // Try to determine image type from URL or content-type
-                const contentType = response.headers.get('content-type');
-                if (contentType?.includes('jpeg') || contentType?.includes('jpg')) {
+                const contentType = response.headers.get("content-type");
+                if (
+                  contentType?.includes("jpeg") ||
+                  contentType?.includes("jpg")
+                ) {
                   imageType = "jpg";
-                } else if (contentType?.includes('png')) {
+                } else if (contentType?.includes("png")) {
                   imageType = "png";
-                } else if (contentType?.includes('gif')) {
+                } else if (contentType?.includes("gif")) {
                   imageType = "gif";
                 } else {
                   // Fallback: try to guess from URL extension
                   const urlLower = resourceData.url.toLowerCase();
-                  if (urlLower.includes('.jpg') || urlLower.includes('.jpeg')) {
+                  if (urlLower.includes(".jpg") || urlLower.includes(".jpeg")) {
                     imageType = "jpg";
-                  } else if (urlLower.includes('.png')) {
+                  } else if (urlLower.includes(".png")) {
                     imageType = "png";
-                  } else if (urlLower.includes('.gif')) {
+                  } else if (urlLower.includes(".gif")) {
                     imageType = "gif";
                   }
                 }
@@ -453,7 +462,11 @@ export function LessonPlanPreviewSidebar({
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: `[Hình ảnh: ${resourceData.description || resourceData.url || "Không thể tải"}]`,
+                    text: `[Hình ảnh: ${
+                      resourceData.description ||
+                      resourceData.url ||
+                      "Không thể tải"
+                    }]`,
                     color: "666666",
                     size: 24,
                     italics: true,
@@ -784,7 +797,10 @@ export function LessonPlanPreviewSidebar({
             </div>
           </div>
         );
-      } else if (resourceData.type === "image" && (resourceData.file || resourceData.url)) {
+      } else if (
+        resourceData.type === "image" &&
+        (resourceData.file || resourceData.url)
+      ) {
         // Handle both uploaded files and URL images
         if (resourceData.file) {
           // Get image URL for preview (uploaded file)
@@ -833,13 +849,16 @@ export function LessonPlanPreviewSidebar({
                     className="w-full h-32 object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvaSBoaW5oIGFuaDwvdGV4dD48L3N2Zz4=";
+                      target.src =
+                        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvaSBoaW5oIGFuaDwvdGV4dD48L3N2Zz4=";
                     }}
                   />
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span>📷</span>
-                  <span>{resourceData.description || "Hình ảnh từ thư viện"}</span>
+                  <span>
+                    {resourceData.description || "Hình ảnh từ thư viện"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -962,9 +981,10 @@ export function LessonPlanPreviewSidebar({
           </span>
 
           {/* Special handling for TABLE and REFERENCES components */}
-          {field.type === "TABLE" || field.nodeType === "TABLE"
+          {field.fieldType === "TABLE" || field.nodeType === "TABLE"
             ? renderTableComponent(field, stepData)
-            : field.type === "REFERENCES" || field.nodeType === "REFERENCES"
+            : field.fieldType === "REFERENCES" ||
+              field.nodeType === "REFERENCES"
             ? renderReferencesComponent(field, stepData)
             : (userValue || defaultContent) && (
                 <div className="ml-4 text-gray-700">
@@ -988,10 +1008,13 @@ export function LessonPlanPreviewSidebar({
   // Helper function to render all form data for a step
   const renderStepData = (step: any, stepData: Record<string, string>) => {
     // Get API children data for this step if available
-    const apiChildren = getApiChildrenForStep ? getApiChildrenForStep(step.id) : [];
+    const apiChildren = getApiChildrenForStep
+      ? getApiChildrenForStep(step.id)
+      : [];
 
     // Use API children if available, otherwise fall back to static children
-    const childrenToUse = apiChildren.length > 0 ? apiChildren : (step.children || []);
+    const childrenToUse =
+      apiChildren.length > 0 ? apiChildren : step.children || [];
 
     // Get merged components (static + dynamic) if function is available
     const components = getMergedComponentsForStep
@@ -1034,7 +1057,7 @@ export function LessonPlanPreviewSidebar({
     objectivesStep?.title,
     objectivesStep?.children?.length
   );
-console.log(formData,'formData');
+  console.log(formData, "formData");
   return (
     <div
       className={cn("h-full bg-white overflow-y-auto", className)}
