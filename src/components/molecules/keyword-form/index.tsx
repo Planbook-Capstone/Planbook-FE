@@ -273,24 +273,56 @@ export function KeywordForm({
                       </div>
                     </FormField>
                   </div>
-                ) : resourceData.type === "image" && resourceData.file ? (
-                  <ImagePreview
-                    file={resourceData.file}
-                    onRemove={() => {
-                      setResourceData(null);
-                      onChange("");
-                    }}
-                    className="w-full max-w-xs"
-                  />
+                ) : resourceData.type === "image" && (resourceData.file || resourceData.url) ? (
+                  // Handle both uploaded files and URL images
+                  resourceData.file ? (
+                    <ImagePreview
+                      file={resourceData.file}
+                      onRemove={() => {
+                        setResourceData(null);
+                        onChange("");
+                      }}
+                      className="w-full max-w-xs"
+                    />
+                  ) : (
+                    // URL image from API
+                    <div className="relative w-full max-w-xs">
+                      <img
+                        src={resourceData.url}
+                        alt={resourceData.description || "Selected image"}
+                        className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvaSBoaW5oIGFuaDwvdGV4dD48L3N2Zz4=";
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setResourceData(null);
+                          onChange("");
+                        }}
+                        className="absolute top-2 right-2 bg-white/80 hover:bg-white text-red-600 hover:text-red-700 rounded-full p-1"
+                      >
+                        ✕
+                      </Button>
+                      {resourceData.description && (
+                        <p className="text-xs text-gray-600 mt-2 px-1">
+                          {resourceData.description}
+                        </p>
+                      )}
+                    </div>
+                  )
                 ) : (
                   <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
                     <Video className="w-8 h-8 text-green-500" />
                     <span className="text-sm font-questrial">
-                      {resourceData.file?.name || "Tài liệu đã upload"}
+                      {resourceData.file?.name || resourceData.description || "Tài liệu đã upload"}
                     </span>
                   </div>
                 )}
-                {/* Only show delete button for non-image resources */}
+                {/* Only show delete button for non-image resources or images without built-in delete */}
                 {resourceData.type !== "image" && (
                   <Button
                     variant="ghost"
