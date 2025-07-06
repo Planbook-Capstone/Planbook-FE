@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLessonPlanNodeTreeService, useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
 
 export function useLessonPlanState() {
@@ -8,6 +8,11 @@ export function useLessonPlanState() {
   >({});
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Cache for children data of all visited steps
+  const [stepChildrenCache, setStepChildrenCache] = useState<
+    Record<string, any[]>
+  >({});
 
   const treeData = useLessonPlanNodeTreeService("21")();
   // const apiSteps =
@@ -60,6 +65,21 @@ export function useLessonPlanState() {
 
   const childrenData = childrenQuery?.data?.data ? flattenChildren(childrenQuery.data.data) : [];
 
+  // Update cache when children data is loaded for current step
+  useEffect(() => {
+    if (currentStepId && childrenData.length > 0) {
+      console.log(`🔄 Caching children data for step ${currentStepId}:`, childrenData.length, 'items');
+      setStepChildrenCache(prev => {
+        const newCache = {
+          ...prev,
+          [currentStepId]: childrenData
+        };
+        console.log(`💾 Updated cache. Total cached steps:`, Object.keys(newCache).length);
+        return newCache;
+      });
+    }
+  }, [currentStepId, childrenData]);
+
   // Create enhanced currentStepData with API children
   const currentStepData = useMemo(() => {
     if (!currentStepBasic) return null;
@@ -69,6 +89,17 @@ export function useLessonPlanState() {
       children: childrenData
     };
   }, [currentStepBasic, childrenData]);
+
+  // Function to get children data for any step (from cache or current)
+  const getChildrenForStep = (stepId: string) => {
+    if (stepId === currentStepId) {
+      console.log(`📋 Getting current step children for ${stepId}:`, childrenData?.length || 0, 'items');
+      return childrenData || [];
+    }
+    const cachedData = stepChildrenCache[stepId] || [];
+    console.log(`💾 Getting cached children for ${stepId}:`, cachedData.length, 'items');
+    return cachedData;
+  };
 
   // Navigation functions
   const goToStep = (stepIndex: number) => {
@@ -224,5 +255,7 @@ export function useLessonPlanState() {
     isLoadingChildren: childrenQuery?.isLoading || false,
     childrenError: childrenQuery?.isError || false,
     childrenData,
+    // Function to get children for any step
+    getChildrenForStep,
   };
 }

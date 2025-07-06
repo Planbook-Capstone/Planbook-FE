@@ -22,6 +22,7 @@ interface LessonPlanPreviewSidebarProps {
     stepId: string,
     staticChildren?: any[]
   ) => any[];
+  getApiChildrenForStep?: (stepId: string) => any[];
   isVisible: boolean;
   onToggleVisibility: () => void;
   className?: string;
@@ -32,6 +33,7 @@ export function LessonPlanPreviewSidebar({
   steps,
   formData,
   getMergedComponentsForStep,
+  getApiChildrenForStep,
   isVisible,
   onToggleVisibility,
   className,
@@ -213,10 +215,16 @@ export function LessonPlanPreviewSidebar({
           })
         );
 
+        // Get API children data for this step if available
+        const apiChildren = getApiChildrenForStep ? getApiChildrenForStep(step.id) : [];
+
+        // Use API children if available, otherwise fall back to static children
+        const childrenToUse = apiChildren.length > 0 ? apiChildren : (step.children || []);
+
         // Get merged components for this step
         const components = getMergedComponentsForStep
-          ? getMergedComponentsForStep(step.id, step.children || [])
-          : step.children || [];
+          ? getMergedComponentsForStep(step.id, childrenToUse)
+          : childrenToUse;
 
         // Add step content
         await addStepContentToDoc(components, stepData, documentChildren, 0);
@@ -979,10 +987,16 @@ export function LessonPlanPreviewSidebar({
 
   // Helper function to render all form data for a step
   const renderStepData = (step: any, stepData: Record<string, string>) => {
+    // Get API children data for this step if available
+    const apiChildren = getApiChildrenForStep ? getApiChildrenForStep(step.id) : [];
+
+    // Use API children if available, otherwise fall back to static children
+    const childrenToUse = apiChildren.length > 0 ? apiChildren : (step.children || []);
+
     // Get merged components (static + dynamic) if function is available
     const components = getMergedComponentsForStep
-      ? getMergedComponentsForStep(step.id, step.children || [])
-      : step.children || [];
+      ? getMergedComponentsForStep(step.id, childrenToUse)
+      : childrenToUse;
 
     console.log(
       `Step ${step.title} components:`,
@@ -1020,7 +1034,7 @@ export function LessonPlanPreviewSidebar({
     objectivesStep?.title,
     objectivesStep?.children?.length
   );
-
+console.log(formData,'formData');
   return (
     <div
       className={cn("h-full bg-white overflow-y-auto", className)}
