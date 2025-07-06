@@ -23,6 +23,7 @@ import {
   Hash,
   Edit3,
 } from "lucide-react";
+import { RichTable } from "@/components/ui/rich-table";
 
 interface KeywordManagerProps {
   keywords: LessonPlanKeyword[];
@@ -167,21 +168,36 @@ function KeywordItem({
               {mode === "staff" && (
                 <div className="flex items-center gap-2">
                   {/* Definition Type Dropdown */}
-                  <Select
-                    value={keyword.nodeType || "LIST_ITEM"}
-                    onValueChange={(value) => updateField("nodeType", value)}
+                  <div
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <SelectTrigger className="w-40 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
-                      <SelectItem value="LIST_ITEM">
-                        Danh sách nội dung
-                      </SelectItem>
-                      <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={keyword.nodeType || "LIST_ITEM"}
+                      onValueChange={(value) => updateField("nodeType", value)}
+                    >
+                      <SelectTrigger className="w-40 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent
+                        className="z-[9999]"
+                        position="popper"
+                        sideOffset={4}
+                      >
+                        <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
+                        <SelectItem value="LIST_ITEM">
+                          Danh sách nội dung
+                        </SelectItem>
+                        <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
+                        <SelectItem value="INPUT">Ô nhập liệu</SelectItem>
+                        <SelectItem value="REFERENCES">
+                          Tài liệu tham khảo
+                        </SelectItem>
+                        <SelectItem value="TABLE">Bảng</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {((keyword.nodeType || "LIST_ITEM") === "PARAGRAPH" ||
                     (keyword.nodeType || "LIST_ITEM") === "LIST_ITEM") && (
@@ -312,21 +328,38 @@ function KeywordItem({
                 {mode === "staff" && (
                   <div className="flex items-center gap-2">
                     {/* Definition Type Dropdown */}
-                    <Select
-                      value={keyword.nodeType || "LIST_ITEM"}
-                      onValueChange={(value) => updateField("nodeType", value)}
+                    <div
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onMouseUp={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <SelectTrigger className="w-40 h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
-                        <SelectItem value="LIST_ITEM">
-                          Danh sách nội dung
-                        </SelectItem>
-                        <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Select
+                        value={keyword.nodeType || "LIST_ITEM"}
+                        onValueChange={(value) =>
+                          updateField("nodeType", value)
+                        }
+                      >
+                        <SelectTrigger className="w-40 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent
+                          className="z-[9999]"
+                          position="popper"
+                          sideOffset={4}
+                        >
+                          <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
+                          <SelectItem value="LIST_ITEM">
+                            Danh sách nội dung
+                          </SelectItem>
+                          <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
+                          <SelectItem value="INPUT">Ô nhập liệu</SelectItem>
+                          <SelectItem value="REFERENCES">
+                            Tài liệu tham khảo
+                          </SelectItem>
+                          <SelectItem value="TABLE">Bảng</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                     {((keyword.nodeType || "LIST_ITEM") === "PARAGRAPH" ||
                       (keyword.nodeType || "LIST_ITEM") === "LIST_ITEM") && (
@@ -398,6 +431,20 @@ function KeywordItem({
                     </FormField>
                   </div>
                 )}
+
+              {/* TABLE Section */}
+              {(keyword.nodeType || "LIST_ITEM") === "TABLE" && (
+                <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-blue-50">
+                  <div className="bg-white p-3 rounded border border-gray-300">
+                    <RichTable
+                      onChange={(data) => {
+                        updateField("content", JSON.stringify(data));
+                      }}
+                      className="bg-white"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Children for admin mode */}

@@ -182,7 +182,8 @@ export interface LessonPlanKeyword {
     | "PARAGRAPH"
     | "CONTENT"
     | "INPUT"
-    | "REFERENCES"; // Map với backend NodeType
+    | "REFERENCES"
+    | "TABLE"; // Map với backend NodeType
 }
 
 export interface LessonPlanStep {
