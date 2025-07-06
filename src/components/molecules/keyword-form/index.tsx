@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,10 @@ import {
   ResourceData,
 } from "@/components/molecules/resource-modal";
 import { Star, Plus, Video, Link, Sparkles } from "lucide-react";
-import { Table } from "@/components/organisms/table";
+
 import { ImagePreview } from "@/components/molecules/image-preview";
 import { createFieldId } from "@/hooks/useStableId";
+import { RichTable } from "@/components/ui/rich-table";
 
 interface Keyword {
   id: string;
@@ -129,9 +130,8 @@ export function KeywordForm({
   };
 
   const renderByNodeType = () => {
-    switch (keyword.type) {
+    switch (keyword.nodeType || keyword.type) {
       case "SECTION":
-        <p>SUBSECTION</p>;
       case "SUBSECTION":
         return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }}>
@@ -316,40 +316,30 @@ export function KeywordForm({
         );
 
       case "TABLE": {
-        // Memoize parsed initial data to prevent re-parsing
-        const initialTableData = useMemo(() => {
+        // Parse table data from value
+        const tableData = (() => {
           if (!value) return undefined;
           try {
             return JSON.parse(value);
-          } catch (error) {
-            console.warn("Failed to parse table data:", error);
+          } catch {
             return undefined;
           }
-        }, [value]);
-
-        // Stable callback for data changes
-        const handleTableDataChange = useCallback(
-          (data: any) => {
-            // Store table data in the form value as JSON
-            onChange(JSON.stringify(data));
-          },
-          [onChange]
-        );
+        })();
 
         return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
             <h4 className="font-calsans text-gray-900 text-base">
-              {keyword?.title}
+              {keyword.title}
             </h4>
             {keyword.content && (
               <p className="text-sm font-questrial text-gray-600">
                 {keyword.content}
               </p>
             )}
-            <Table
-              onDataChange={handleTableDataChange}
-              initialData={initialTableData}
-              className="mt-4"
+            <RichTable
+              data={tableData}
+              onChange={(data) => onChange(JSON.stringify(data))}
+              className="mt-2"
             />
           </div>
         );
