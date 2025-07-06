@@ -10,7 +10,7 @@ export const useMaterialervice = createQueryHook(
   API_ENDPOINTS.ACADEMIC_RESOURCE
 );
 
-export const useMaterialSearchService = createQueryWithPathParamHook(
+export const useMaterialSearchService = createQueryHook(
   "materials",
   API_ENDPOINTS.ACADEMIC_RESOURCE_SEARCH
 );

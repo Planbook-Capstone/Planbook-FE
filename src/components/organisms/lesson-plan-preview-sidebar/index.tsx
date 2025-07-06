@@ -22,6 +22,7 @@ interface LessonPlanPreviewSidebarProps {
     stepId: string,
     staticChildren?: any[]
   ) => any[];
+  getApiChildrenForStep?: (stepId: string) => any[];
   isVisible: boolean;
   onToggleVisibility: () => void;
   className?: string;
@@ -32,6 +33,7 @@ export function LessonPlanPreviewSidebar({
   steps,
   formData,
   getMergedComponentsForStep,
+  getApiChildrenForStep,
   isVisible,
   onToggleVisibility,
   className,
@@ -213,10 +215,16 @@ export function LessonPlanPreviewSidebar({
           })
         );
 
+        // Get API children data for this step if available
+        const apiChildren = getApiChildrenForStep ? getApiChildrenForStep(step.id) : [];
+
+        // Use API children if available, otherwise fall back to static children
+        const childrenToUse = apiChildren.length > 0 ? apiChildren : (step.children || []);
+
         // Get merged components for this step
         const components = getMergedComponentsForStep
-          ? getMergedComponentsForStep(step.id, step.children || [])
-          : step.children || [];
+          ? getMergedComponentsForStep(step.id, childrenToUse)
+          : childrenToUse;
 
         // Add step content
         await addStepContentToDoc(components, stepData, documentChildren, 0);
@@ -369,10 +377,48 @@ export function LessonPlanPreviewSidebar({
             },
           })
         );
-      } else if (resourceData.type === "image" && resourceData.file) {
-        // Add image to document
+      } else if (resourceData.type === "image" && (resourceData.file || resourceData.url)) {
+        // Add image to document - handle both file and URL
         try {
-          const imageBuffer = await convertFileToBuffer(resourceData.file);
+          let imageBuffer: ArrayBuffer | null = null;
+          let imageType: string = "png";
+
+          if (resourceData.file) {
+            // Handle uploaded file
+            imageBuffer = await convertFileToBuffer(resourceData.file);
+            imageType = getImageType(resourceData.file);
+          } else if (resourceData.url) {
+            // Handle URL image
+            try {
+              const response = await fetch(resourceData.url);
+              if (response.ok) {
+                imageBuffer = await response.arrayBuffer();
+                // Try to determine image type from URL or content-type
+                const contentType = response.headers.get('content-type');
+                if (contentType?.includes('jpeg') || contentType?.includes('jpg')) {
+                  imageType = "jpg";
+                } else if (contentType?.includes('png')) {
+                  imageType = "png";
+                } else if (contentType?.includes('gif')) {
+                  imageType = "gif";
+                } else {
+                  // Fallback: try to guess from URL extension
+                  const urlLower = resourceData.url.toLowerCase();
+                  if (urlLower.includes('.jpg') || urlLower.includes('.jpeg')) {
+                    imageType = "jpg";
+                  } else if (urlLower.includes('.png')) {
+                    imageType = "png";
+                  } else if (urlLower.includes('.gif')) {
+                    imageType = "gif";
+                  }
+                }
+              }
+            } catch (fetchError) {
+              console.error("Error fetching image from URL:", fetchError);
+              imageBuffer = null;
+            }
+          }
+
           if (imageBuffer) {
             // Calculate image dimensions to maintain aspect ratio
             const { width: originalWidth, height: originalHeight } =
@@ -393,7 +439,24 @@ export function LessonPlanPreviewSidebar({
                       width: finalWidth,
                       height: finalHeight,
                     },
-                    type: getImageType(resourceData.file),
+                    type: imageType,
+                  }),
+                ],
+                indent: {
+                  left: (level + 1) * 720,
+                },
+              })
+            );
+          } else {
+            // Add fallback text if image couldn't be loaded
+            documentChildren.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `[Hình ảnh: ${resourceData.description || resourceData.url || "Không thể tải"}]`,
+                    color: "666666",
+                    size: 24,
+                    italics: true,
                   }),
                 ],
                 indent: {
@@ -721,41 +784,67 @@ export function LessonPlanPreviewSidebar({
             </div>
           </div>
         );
-      } else if (resourceData.type === "image" && resourceData.file) {
-        // Get image URL for preview
-        const getImageUrl = () => {
-          if ("base64" in resourceData.file) {
-            return resourceData.file.base64;
-          } else if (resourceData.file instanceof File) {
-            return URL.createObjectURL(resourceData.file);
-          }
-          return null;
-        };
+      } else if (resourceData.type === "image" && (resourceData.file || resourceData.url)) {
+        // Handle both uploaded files and URL images
+        if (resourceData.file) {
+          // Get image URL for preview (uploaded file)
+          const getImageUrl = () => {
+            if ("base64" in resourceData.file) {
+              return resourceData.file.base64;
+            } else if (resourceData.file instanceof File) {
+              return URL.createObjectURL(resourceData.file);
+            }
+            return null;
+          };
 
-        const imageUrl = getImageUrl();
+          const imageUrl = getImageUrl();
 
-        return (
-          <div className="ml-4 text-gray-700">
-            <div className="space-y-2">
-              {imageUrl && (
-                <div className="border rounded-lg overflow-hidden max-w-xs">
-                  <img
-                    src={imageUrl}
-                    alt={resourceData.file.name}
-                    className="w-full h-32 object-cover"
-                  />
+          return (
+            <div className="ml-4 text-gray-700">
+              <div className="space-y-2">
+                {imageUrl && (
+                  <div className="border rounded-lg overflow-hidden max-w-xs">
+                    <img
+                      src={imageUrl}
+                      alt={resourceData.file.name}
+                      className="w-full h-32 object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-sm">
+                  <span>📷</span>
+                  <span>{resourceData.file.name}</span>
+                  <span className="text-gray-500">
+                    ({(resourceData.file.size / 1024).toFixed(1)} KB)
+                  </span>
                 </div>
-              )}
-              <div className="flex items-center gap-2 text-sm">
-                <span>📷</span>
-                <span>{resourceData.file.name}</span>
-                <span className="text-gray-500">
-                  ({(resourceData.file.size / 1024).toFixed(1)} KB)
-                </span>
               </div>
             </div>
-          </div>
-        );
+          );
+        } else if (resourceData.url) {
+          // Handle URL images from API
+          return (
+            <div className="ml-4 text-gray-700">
+              <div className="space-y-2">
+                <div className="border rounded-lg overflow-hidden max-w-xs">
+                  <img
+                    src={resourceData.url}
+                    alt={resourceData.description || "Selected image"}
+                    className="w-full h-32 object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5YTNhZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvaSBoaW5oIGFuaDwvdGV4dD48L3N2Zz4=";
+                    }}
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span>📷</span>
+                  <span>{resourceData.description || "Hình ảnh từ thư viện"}</span>
+                </div>
+              </div>
+            </div>
+          );
+        }
       } else if (resourceData.type === "video" && resourceData.file) {
         return (
           <div className="ml-4 text-gray-700">
@@ -898,10 +987,16 @@ export function LessonPlanPreviewSidebar({
 
   // Helper function to render all form data for a step
   const renderStepData = (step: any, stepData: Record<string, string>) => {
+    // Get API children data for this step if available
+    const apiChildren = getApiChildrenForStep ? getApiChildrenForStep(step.id) : [];
+
+    // Use API children if available, otherwise fall back to static children
+    const childrenToUse = apiChildren.length > 0 ? apiChildren : (step.children || []);
+
     // Get merged components (static + dynamic) if function is available
     const components = getMergedComponentsForStep
-      ? getMergedComponentsForStep(step.id, step.children || [])
-      : step.children || [];
+      ? getMergedComponentsForStep(step.id, childrenToUse)
+      : childrenToUse;
 
     console.log(
       `Step ${step.title} components:`,
@@ -939,7 +1034,7 @@ export function LessonPlanPreviewSidebar({
     objectivesStep?.title,
     objectivesStep?.children?.length
   );
-
+console.log(formData,'formData');
   return (
     <div
       className={cn("h-full bg-white overflow-y-auto", className)}
