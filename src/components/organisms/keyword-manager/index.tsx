@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { RichTable } from "@/components/ui/rich-table";
 
-
 interface KeywordManagerProps {
   keywords: LessonPlanKeyword[];
   onUpdate: (keywordId: string, updates: Partial<LessonPlanKeyword>) => void;
@@ -181,16 +180,22 @@ function KeywordItem({
                       <SelectTrigger className="w-40 h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="z-[9999]" position="popper" sideOffset={4}>
-                      <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
-                      <SelectItem value="LIST_ITEM">
-                        Danh sách nội dung
-                      </SelectItem>
-                      <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
-                      <SelectItem value="INPUT">Ô nhập liệu</SelectItem>
-                      <SelectItem value="REFERENCES">Tài liệu tham khảo</SelectItem>
-                      <SelectItem value="TABLE">Bảng</SelectItem>
-                    </SelectContent>
+                      <SelectContent
+                        className="z-[9999]"
+                        position="popper"
+                        sideOffset={4}
+                      >
+                        <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
+                        <SelectItem value="LIST_ITEM">
+                          Danh sách nội dung
+                        </SelectItem>
+                        <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
+                        <SelectItem value="INPUT">Ô nhập liệu</SelectItem>
+                        <SelectItem value="REFERENCES">
+                          Tài liệu tham khảo
+                        </SelectItem>
+                        <SelectItem value="TABLE">Bảng</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
 
@@ -330,21 +335,29 @@ function KeywordItem({
                     >
                       <Select
                         value={keyword.nodeType || "LIST_ITEM"}
-                        onValueChange={(value) => updateField("nodeType", value)}
+                        onValueChange={(value) =>
+                          updateField("nodeType", value)
+                        }
                       >
                         <SelectTrigger className="w-40 h-8 text-xs">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="z-[9999]" position="popper" sideOffset={4}>
-                        <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
-                        <SelectItem value="LIST_ITEM">
-                          Danh sách nội dung
-                        </SelectItem>
-                        <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
-                        <SelectItem value="INPUT">Ô nhập liệu</SelectItem>
-                        <SelectItem value="REFERENCES">Tài liệu tham khảo</SelectItem>
-                        <SelectItem value="TABLE">Bảng</SelectItem>
-                      </SelectContent>
+                        <SelectContent
+                          className="z-[9999]"
+                          position="popper"
+                          sideOffset={4}
+                        >
+                          <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
+                          <SelectItem value="LIST_ITEM">
+                            Danh sách nội dung
+                          </SelectItem>
+                          <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
+                          <SelectItem value="INPUT">Ô nhập liệu</SelectItem>
+                          <SelectItem value="REFERENCES">
+                            Tài liệu tham khảo
+                          </SelectItem>
+                          <SelectItem value="TABLE">Bảng</SelectItem>
+                        </SelectContent>
                       </Select>
                     </div>
 
@@ -422,11 +435,7 @@ function KeywordItem({
               {/* TABLE Section */}
               {(keyword.nodeType || "LIST_ITEM") === "TABLE" && (
                 <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-blue-50">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">📊 Cấu hình bảng mặc định:</h4>
                   <div className="bg-white p-3 rounded border border-gray-300">
-                    <p className="text-xs text-gray-600 mb-3">
-                      💡 <strong>Mô tả:</strong> Bảng bạn tạo ở đây sẽ hiện sẵn cho teacher ở trang lesson-plan-demo
-                    </p>
                     <RichTable
                       onChange={(data) => {
                         updateField("content", JSON.stringify(data));

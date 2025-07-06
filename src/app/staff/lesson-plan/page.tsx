@@ -96,12 +96,16 @@ export default function LessonPlanPage() {
         console.log(`Processing keyword: ${keyword.title}`);
 
         // Create keyword node
+        const nodeType = keyword.nodeType || "LIST_ITEM";
+        const specialTypes = ["INPUT", "REFERENCES", "TABLE"];
+
         const keywordNodeData = {
           lessonPlanId: lessonPlanId,
           title: keyword.title,
           content: keyword.content || "",
           parentId: parentId,
-          type: keyword.nodeType || "LIST_ITEM", // SUBSECTION, LIST_ITEM, PARAGRAPH
+          type: specialTypes.includes(nodeType) ? "PARAGRAPH" : nodeType,
+          fieldType: specialTypes.includes(nodeType) ? nodeType : undefined,
           orderIndex: keyword.order,
         };
 
