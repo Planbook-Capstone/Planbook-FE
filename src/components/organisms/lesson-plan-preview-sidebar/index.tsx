@@ -728,9 +728,22 @@ export function LessonPlanPreviewSidebar({
       );
     });
   }, [formData, steps]);
-  // Helper function to get form data for a specific step and keyword
-  const getFieldValue = (stepId: string, keywordId: string): string => {
-    return formData[stepId]?.[keywordId] || "";
+  // Helper function to get form data by title (more flexible)
+  const getFieldValue = (stepId: string, keywordTitle: string): string => {
+    const stepData = formData[stepId];
+    if (!stepData) return "";
+
+    // Try to find by exact title match first
+    for (const [key, value] of Object.entries(stepData)) {
+      // Check if the key contains the title (case insensitive)
+      if (key.toLowerCase().includes(keywordTitle.toLowerCase()) ||
+          keywordTitle.toLowerCase().includes(key.toLowerCase())) {
+        return value as string;
+      }
+    }
+
+    // Fallback: try original keywordId format
+    return stepData[keywordTitle] || "";
   };
 
   // Helper function to generate keyword ID from title (matching the template pattern)
@@ -773,9 +786,14 @@ export function LessonPlanPreviewSidebar({
   ) => {
     try {
       const resourceDataStr = stepData[field.id];
-      if (!resourceDataStr) return null;
+      if (!resourceDataStr) {
+        console.log("No resource data for field:", field.id);
+        return null;
+      }
 
+      console.log("Resource data string:", resourceDataStr);
       const resourceData = JSON.parse(resourceDataStr);
+      console.log("Parsed resource data:", resourceData);
 
       if (resourceData.type === "link") {
         return (
@@ -833,6 +851,19 @@ export function LessonPlanPreviewSidebar({
                   <span className="text-gray-500">
                     ({(resourceData.file.size / 1024).toFixed(1)} KB)
                   </span>
+                  <button
+                    onClick={() => {
+                      if ("base64" in resourceData.file) {
+                        const link = document.createElement('a');
+                        link.href = resourceData.file.base64;
+                        link.download = resourceData.file.name;
+                        link.click();
+                      }
+                    }}
+                    className="text-blue-600 hover:underline text-xs"
+                  >
+                    Tải xuống
+                  </button>
                 </div>
               </div>
             </div>
@@ -904,14 +935,26 @@ export function LessonPlanPreviewSidebar({
         }
       }
 
-      // Use default table data if no user data
-      if (!tableData || !tableData.headers || !tableData.rows) {
+      // Use default RichTable format if no user data
+      if (!tableData || !tableData.rows) {
         tableData = {
-          headers: ["Header 1", "Header 2"],
           rows: [
-            ["Cell 1-1", "Cell 1-2"],
-            ["Cell 2-1", "Cell 2-2"],
+            {
+              id: "header-row",
+              cells: [
+                { id: "h1", content: "Cột 1", isHeader: true },
+                { id: "h2", content: "Cột 2", isHeader: true },
+              ],
+            },
+            {
+              id: "row-1",
+              cells: [
+                { id: "r1c1", content: "Nội dung ô 1" },
+                { id: "r1c2", content: "Nội dung ô 2" },
+              ],
+            },
           ],
+          columns: 2,
         };
       }
 
@@ -919,28 +962,24 @@ export function LessonPlanPreviewSidebar({
         <div className="ml-4 mt-2">
           <div className="border border-gray-300 rounded-sm overflow-hidden">
             <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="bg-gray-50">
-                  {tableData.headers.map((header: string, index: number) => (
-                    <th
-                      key={index}
-                      className="border-b border-gray-300 px-3 py-2 text-left font-calsans font-normal text-gray-900"
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
               <tbody>
-                {tableData.rows.map((row: string[], rowIndex: number) => (
-                  <tr key={rowIndex} className="hover:bg-gray-50">
-                    {row.map((cell: string, cellIndex: number) => (
-                      <td
-                        key={cellIndex}
-                        className="border-b border-gray-200 px-3 py-2 text-gray-700"
-                      >
-                        {cell}
-                      </td>
+                {tableData.rows.map((row: any, rowIndex: number) => (
+                  <tr key={row.id} className={row.cells[0]?.isHeader ? "bg-gray-50" : "hover:bg-gray-50"}>
+                    {row.cells.map((cell: any, cellIndex: number) => (
+                      cell.isHeader ? (
+                        <th
+                          key={cell.id}
+                          className="border-b border-gray-300 px-3 py-2 text-left font-calsans font-normal text-gray-900"
+                        >
+                          {cell.content}
+                        </th>
+                      ) : (
+                        <td
+                          key={cell.id}
+                          className="border-b border-gray-200 px-3 py-2 text-gray-700"
+                          dangerouslySetInnerHTML={{ __html: cell.content || "" }}
+                        />
+                      )
                     ))}
                   </tr>
                 ))}
