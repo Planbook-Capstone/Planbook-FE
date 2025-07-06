@@ -75,7 +75,7 @@ const COMPONENT_PALETTE: ComponentItem[] = [
     type: "TABLE",
     label: "Bảng",
     icon: <Table className="w-4 h-4" />,
-    description: "Bảng dữ liệu có thể chỉnh sửa",
+    description: "Editor văn bản với hình ảnh",
   },
 ];
 
