@@ -1,4 +1,5 @@
 import AudioPreview from "@/components/molecules/audio-preview";
+import MediaPreview from "@/components/molecules/media-preview";
 import PreviewImage from "@/components/molecules/preview-image/page";
 import { useMaterialSearchService } from "@/services/materialServices";
 import { useTagService } from "@/services/tagServices";
@@ -31,12 +32,12 @@ function MaterialContent() {
           tag?.data?.map((item: TagResponse, index: number) => ({
             label: item.name || `Tab-${index}`,
             key: String(item.id || index), // key chính là id nếu có
-            children: `Nội dung của tag "${item.name}"`,
+            // children: `Nội dung của tag "${item.name}"`,
           })) || []
         }
       />
 
-      <div className="mt-4 grid grid-cols-5 ">
+      <div className="mt-4 grid grid-cols-5 gap-2 ">
         {/* Đang chọn tag ID: <strong>{activeTabId}</strong> */}
         {materials?.data?.content?.map((item: any, idx: any) => {
           const extension = item?.url?.split(".")?.pop();
@@ -55,13 +56,15 @@ function MaterialContent() {
             case "gif":
               return (
                 <div key={idx}>
-                  {/* <p className="mb-1 text-sm text-gray-600">Image preview:</p>
-                  <img
-                    src={item.url}
-                    alt="Preview"
-                    className="w-64 rounded border shadow"
-                  /> */}
                   <PreviewImage item={item} />
+                </div>
+              );
+            case "mp4":
+            case "webm":
+            case "ogg":
+              return (
+                <div key={idx}>
+                 <MediaPreview item={item}/>
                 </div>
               );
           }
