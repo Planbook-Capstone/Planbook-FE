@@ -44,6 +44,9 @@ function AudioPreview({ item }: Props) {
 
   return (
     <div className="cursor-pointer">
+      <div>
+        <p>{item?.name}</p>
+      </div>
       <div ref={waveformRef} />
     </div>
   );
