@@ -1,3 +1,5 @@
+import AudioPreview from "@/components/molecules/audio-preview";
+import PreviewImage from "@/components/molecules/preview-image/page";
 import { useMaterialSearchService } from "@/services/materialServices";
 import { useTagService } from "@/services/tagServices";
 import { TagResponse } from "@/types";
@@ -8,20 +10,16 @@ function MaterialContent() {
   const { data: tag } = useTagService();
   const [activeTabId, setActiveTabId] = useState<string>("");
 
-  // Set initial activeTabId when tags are loaded
   useEffect(() => {
     if (tag?.data?.length > 0 && !activeTabId) {
       setActiveTabId(tag.data[0].id);
-      console.log("Set initial tab ID:", tag.data[0].id);
     }
   }, [tag?.data, activeTabId]);
 
-  // Only call service when activeTabId is available
   const { data: materials } = useMaterialSearchService(activeTabId);
 
   const handleTabChange = (key: string) => {
     setActiveTabId(key);
-    console.log("Tab đang chọn có id:", key);
   };
 
   return (
@@ -38,10 +36,36 @@ function MaterialContent() {
         }
       />
 
-      {/* Ví dụ hiển thị ID tab đang chọn */}
-      <div className="mt-4 text-gray-500">
-        Đang chọn tag ID: <strong>{activeTabId}</strong>
-        {materials?.data?.content?.length}
+      <div className="mt-4 grid grid-cols-5 ">
+        {/* Đang chọn tag ID: <strong>{activeTabId}</strong> */}
+        {materials?.data?.content?.map((item: any, idx: any) => {
+          const extension = item?.url?.split(".")?.pop();
+
+          switch (extension) {
+            case "mp3":
+              return (
+                <div key={idx}>
+                  <AudioPreview item={item} />
+                </div>
+              );
+
+            case "png":
+            case "jpg":
+            case "jpeg":
+            case "gif":
+              return (
+                <div key={idx}>
+                  {/* <p className="mb-1 text-sm text-gray-600">Image preview:</p>
+                  <img
+                    src={item.url}
+                    alt="Preview"
+                    className="w-64 rounded border shadow"
+                  /> */}
+                  <PreviewImage item={item} />
+                </div>
+              );
+          }
+        })}
       </div>
     </div>
   );
