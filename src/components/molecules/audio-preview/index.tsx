@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
+
 interface Props {
   item: any;
 }
@@ -17,7 +18,6 @@ function AudioPreview({ item }: Props) {
       waveColor: "#ccc",
       progressColor: "#007bff",
       height: 60,
-      // responsive: true,
     });
 
     wavesurfer.current.load(item?.url);
@@ -26,27 +26,25 @@ function AudioPreview({ item }: Props) {
       setIsPlaying(false);
     });
 
+    // ✅ Gắn sự kiện click để toggle play/pause
+    const waveformEl = waveformRef.current;
+    const handleClick = () => {
+      if (wavesurfer.current) {
+        wavesurfer.current.playPause();
+        setIsPlaying((prev) => !prev);
+      }
+    };
+    waveformEl.addEventListener("click", handleClick);
+
     return () => {
       wavesurfer.current?.destroy();
+      waveformEl.removeEventListener("click", handleClick);
     };
   }, [item?.url]);
 
-  const togglePlay = () => {
-    if (!wavesurfer.current) return;
-
-    wavesurfer.current.playPause();
-    setIsPlaying(!isPlaying);
-  };
-
   return (
-    <div>
+    <div className="cursor-pointer">
       <div ref={waveformRef} />
-      <button
-        onClick={togglePlay}
-        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        {isPlaying ? "Pause" : "Play"}
-      </button>
     </div>
   );
 }
