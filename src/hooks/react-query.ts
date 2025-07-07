@@ -22,6 +22,45 @@ export const createQueryHook =
       ...options,
     });
 
+// Hook with dynamic query key - automatically refetches when dependencies change
+export const createDynamicQueryHook =
+  (baseQueryKey: string, url: string) =>
+  (
+    dependencies?: any[], // Array of dependencies to include in queryKey
+    options?: any,
+    params?: any
+  ): UseQueryResult<any, AxiosError<{ message: string }>> => {
+    const queryKey = dependencies
+      ? [baseQueryKey, ...dependencies]
+      : [baseQueryKey];
+
+    return useQuery({
+      queryKey,
+      queryFn: async () => (await api.get(url, { params })).data,
+      ...options,
+    });
+  };
+
+// Hook for search with automatic refetch when search params change
+export const createSearchQueryHook =
+  (baseQueryKey: string, url: string) =>
+  (
+    searchParams?: Record<string, any>, // Search parameters object
+    options?: any
+  ): UseQueryResult<any, AxiosError<{ message: string }>> => {
+    // Create queryKey from search params for automatic refetch
+    const queryKey = searchParams
+      ? [baseQueryKey, searchParams]
+      : [baseQueryKey];
+
+    return useQuery({
+      queryKey,
+      queryFn: async () => (await api.get(url, { params: searchParams })).data,
+      enabled: !!searchParams && Object.keys(searchParams).length > 0,
+      ...options,
+    });
+  };
+
 export const createQueryWithPathParamHook =
   (queryKey: string, url: string) =>
   (
