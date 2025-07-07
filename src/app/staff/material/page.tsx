@@ -8,6 +8,7 @@ import CreateMaterialModal from "@/components/organisms/create-material-modal";
 import { MaterialFormData } from "@/schemas/material.schema";
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import MaterialContent from "@/components/templates/material-content";
 
 export default function MaterialPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -49,9 +50,7 @@ export default function MaterialPage() {
 
           {/* Material List Content */}
           <div className="space-y-4">
-            <p className="text-gray-500 text-center py-8">
-              Chưa có material nào. Nhấn "Tạo Material" để thêm mới.
-            </p>
+            <MaterialContent />
           </div>
         </div>
       ),
