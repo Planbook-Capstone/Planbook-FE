@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
+import { toast } from "sonner";
 import {
   Image,
   Upload,
@@ -14,6 +15,11 @@ import {
   PanelRightClose,
   PanelRightOpen,
 } from "lucide-react";
+import {
+  useCreateMaterialInternalService,
+  useMaterialInternalService,
+  useMaterialSearchService,
+} from "@/services/materialServices";
 
 interface AssetItem {
   id: string;
@@ -82,7 +88,7 @@ function DraggableAsset({ asset }: DraggableAssetProps) {
             )}
           </div>
         )}
-        <span className="text-sm text-gray-600 text-center">
+        <span className="text-sm text-gray-600 text-center truncate max-w-20">
           {asset.preview}
         </span>
       </div>
@@ -96,13 +102,39 @@ export default function AssetsPanel() {
   );
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<AssetItem[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
 
+    setIsUploading(true);
+
     Array.from(files).forEach((file) => {
       if (file.type.startsWith("image/")) {
+        // Create FormData for API upload
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("name", file.name);
+        formData.append("type", "image");
+
+        // Call API to upload
+        createMaterialInternal(formData, {
+          onSuccess: (response) => {
+            console.log("Upload successful:", response);
+            setIsUploading(false);
+            toast.success(`Tải lên thành công: ${file.name}`);
+            // Refresh the materials list to show new upload
+            refetchMaterialInternal();
+          },
+          onError: (error) => {
+            console.error("Upload failed:", error);
+            setIsUploading(false);
+            toast.error(`Tải lên thất bại: ${file.name}`);
+          },
+        });
+
+        // Also add to local state for immediate preview
         const reader = new FileReader();
         reader.onload = (e) => {
           const result = e.target?.result as string;
@@ -126,57 +158,18 @@ export default function AssetsPanel() {
     setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
   };
 
-  const sampleAssets: Record<string, AssetItem[]> = {
-    images: [
-      {
-        id: "img-1",
-        type: "image",
-        content: "/images/illustration/bookRequestCard.svg",
-        preview: "Book Request",
-      },
-      {
-        id: "img-2",
-        type: "image",
-        content: "/images/illustration/folders.svg",
-        preview: "Folders",
-      },
-      {
-        id: "img-3",
-        type: "image",
-        content: "/images/illustration/interaction.svg",
-        preview: "Interaction",
-      },
-      {
-        id: "img-4",
-        type: "image",
-        content: "/images/illustration/packing.svg",
-        preview: "Packing",
-      },
-      {
-        id: "img-5",
-        type: "image",
-        content: "/images/illustration/phone.svg",
-        preview: "Phone",
-      },
-      {
-        id: "img-6",
-        type: "image",
-        content: "/images/logo/logoDark.svg",
-        preview: "Logo Dark",
-      },
-    ],
-    // shapes: [
-    //   { id: 'shape-1', type: 'shape', content: 'rectangle', preview: 'Rectangle' },
-    //   { id: 'shape-2', type: 'shape', content: 'circle', preview: 'Circle' },
-    //   { id: 'shape-3', type: 'shape', content: 'triangle', preview: 'Triangle' },
-    // ]
-  };
-
   const tabs = [
     { id: "images", label: "Images", icon: Image },
     { id: "upload", label: "Upload", icon: Upload },
     // { id: 'shapes', label: 'Shapes', icon: Square },
   ] as const;
+
+  const { data: materials } = useMaterialSearchService("1");
+
+  const { data: materialInternal, refetch: refetchMaterialInternal } =
+    useMaterialInternalService();
+
+  const { mutate: createMaterialInternal } = useCreateMaterialInternalService();
 
   return (
     <div
@@ -231,7 +224,13 @@ export default function AssetsPanel() {
           {activeTab === "upload" ? (
             <div className="space-y-4">
               {/* Upload Area */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+              <div
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  isUploading
+                    ? "border-blue-300 bg-blue-50"
+                    : "border-gray-300 hover:border-gray-400"
+                }`}
+              >
                 <input
                   type="file"
                   accept="image/*"
@@ -239,14 +238,23 @@ export default function AssetsPanel() {
                   onChange={handleFileUpload}
                   className="hidden"
                   id="file-upload"
+                  disabled={isUploading}
                 />
                 <label
                   htmlFor="file-upload"
-                  className="cursor-pointer flex flex-col items-center space-y-2"
+                  className={`flex flex-col items-center space-y-2 ${
+                    isUploading ? "cursor-not-allowed" : "cursor-pointer"
+                  }`}
                 >
-                  <Upload className="w-8 h-8 text-gray-400" />
+                  {isUploading ? (
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="w-8 h-8 text-gray-400" />
+                  )}
                   <span className="text-sm text-gray-600">
-                    Click để tải lên hình ảnh
+                    {isUploading
+                      ? "Đang tải lên..."
+                      : "Click để tải lên hình ảnh"}
                   </span>
                   <span className="text-xs text-gray-400">
                     Hỗ trợ: JPG, PNG, GIF
@@ -255,24 +263,23 @@ export default function AssetsPanel() {
               </div>
 
               {/* Uploaded Images Grid */}
-              {uploadedImages.length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3">
-                  {uploadedImages.map((asset) => (
-                    <div key={asset.id} className="relative group">
-                      <DraggableAsset asset={asset} />
-                      <button
-                        onClick={() => removeUploadedImage(asset.id)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                        title="Xóa hình ảnh"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
+              {materialInternal?.data?.content?.length > 0 ? (
+                <div className=" w-48 grid grid-cols-2 lg:grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3">
+                  {materialInternal?.data?.content?.map(
+                    (asset: any, idx: number) => {
+                      const assetItem: AssetItem = {
+                        type: "image",
+                        id: idx.toString(),
+                        content: asset?.url,
+                        preview: asset?.name,
+                      };
+                      return (
+                        <DraggableAsset key={asset?.id} asset={assetItem} />
+                      );
+                    }
+                  )}
                 </div>
-              )}
-
-              {uploadedImages.length === 0 && (
+              ) : (
                 <div className="text-center text-gray-400 py-8">
                   <span className="text-sm">
                     Chưa có hình ảnh nào được tải lên
@@ -282,9 +289,18 @@ export default function AssetsPanel() {
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3">
-              {sampleAssets[activeTab]?.map((asset) => (
+              {/* {sampleAssets[activeTab]?.map((asset) => (
                 <DraggableAsset key={asset.id} asset={asset} />
-              ))}
+              ))} */}
+              {materials?.data?.content?.map((asset: any) => {
+                const assetItem: AssetItem = {
+                  id: asset?.id,
+                  type: "image",
+                  content: asset?.url,
+                  preview: asset?.name,
+                };
+                return <DraggableAsset key={asset?.id} asset={assetItem} />;
+              })}
             </div>
           )}
         </div>

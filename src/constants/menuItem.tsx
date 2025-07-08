@@ -103,6 +103,13 @@ export const staffItems = [
     image: "/icons/book.svg",
     active: "/icons/book-active.svg",
   },
+  {
+    label: "Cấu hình",
+    key: "configuration",
+    icon: <SettingOutlined />,
+    image: "/icons/gear.svg",
+    active: "/icons/gear-active.svg",
+  },
 ];
 
 function getStaffItem(
