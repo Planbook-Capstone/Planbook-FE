@@ -17,7 +17,7 @@ interface Step {
 
 interface LessonPlanPreviewSidebarProps {
   steps: Step[];
-  formData: Record<string, Record<string, string>>;
+  formData: Record<string, Record<string, string>> | Record<string, string>;
   getMergedComponentsForStep?: (
     stepId: string,
     staticChildren?: any[]
@@ -39,6 +39,7 @@ export function LessonPlanPreviewSidebar({
   className,
   style,
 }: LessonPlanPreviewSidebarProps) {
+  console.log(JSON.stringify(formData), "formData nè");
   // Export to Word function
   const handleExportWord = async () => {
     try {
@@ -129,10 +130,8 @@ export function LessonPlanPreviewSidebar({
           children: [
             new TextRun({
               text: `TÊN BÀI DẠY: ${
-                getFieldValue(
-                  generalInfoStep?.id || "",
-                  "keyword-lesson-title"
-                ) || "…………………………………..."
+                getFieldValue(generalInfoStep?.id || "", "keyword-bai") ||
+                "…………………………………..."
               }`,
               size: 26,
               color: "000000",
@@ -708,25 +707,7 @@ export function LessonPlanPreviewSidebar({
       );
     }
   };
-  // Debug: Log formData changes
-  React.useEffect(() => {
-    console.log("Preview Sidebar - formData updated:", formData);
-    console.log("Preview Sidebar - steps:", steps);
 
-    // Log specific step data
-    if (Object.keys(formData).length > 0) {
-      Object.keys(formData).forEach((stepId) => {
-        console.log(`Step ${stepId} data:`, formData[stepId]);
-      });
-    }
-
-    // Log step IDs and titles for mapping
-    steps.forEach((step) => {
-      console.log(
-        `Step mapping: ID="${step.id}", Title="${step.title}", NodeType="${step.nodeType}"`
-      );
-    });
-  }, [formData, steps]);
   // Helper function to get form data by title (more flexible)
   const getFieldValue = (stepId: string, keywordTitle: string): string => {
     const stepData = formData[stepId];
@@ -745,6 +726,22 @@ export function LessonPlanPreviewSidebar({
 
     // Fallback: try original keywordId format
     return stepData[keywordTitle] || "";
+  };
+
+  // Get value by keyword or title (for formData in {stepId: {key, value, title?}} format)
+  // Example: formData = {"538": {key: "keyword-ten-gv", value: "đêứdwe"}, "539": {key: "keyword-ten-truong", title: "Tên Trường", value: "wswsw"}}
+  const getValueByKeyOrTitle = (search: string): string => {
+    for (const stepId in formData) {
+      const entry = formData[stepId];
+      if (!entry) continue;
+      if (
+        entry.key === search ||
+        (entry.title && entry.title.toLowerCase() === search.toLowerCase())
+      ) {
+        return entry.value;
+      }
+    }
+    return "";
   };
 
   // Helper function to generate keyword ID from title (matching the template pattern)
@@ -1089,10 +1086,8 @@ export function LessonPlanPreviewSidebar({
   };
 
   // Get general info step
-  const generalInfoStep = steps.find(
-    (step) =>
-      step.title?.toLowerCase().includes("thông tin") ||
-      (step.nodeType === "SECTION" && step.order <= 1)
+  const generalInfoStep = steps.find((step) =>
+    step.title?.toLowerCase().includes("thông tin")
   );
 
   // Get objectives step
@@ -1104,12 +1099,23 @@ export function LessonPlanPreviewSidebar({
     objectivesStep?.title,
     objectivesStep?.children?.length
   );
-  console.log(formData, "formData");
+  // Debug: Show formData as pretty JSON in the preview sidebar
+  // Remove or comment out in production if not needed
+  // console.log(formData, "formData");
+  const formDataJson = JSON.stringify(formData, null, 2);
   return (
     <div
       className={cn("h-full bg-white overflow-y-auto", className)}
       style={style}
     >
+      {/* Debug JSON Preview of formData */}
+      <div className="p-2 bg-gray-100 border-b border-gray-200 text-xs font-mono text-gray-700 max-h-64 overflow-auto rounded mb-2">
+        <div className="font-bold text-gray-800 mb-1">formData (JSON):</div>
+        <pre className="whitespace-pre-wrap break-all">{formDataJson}</pre>
+        <div className="mt-1 text-xs text-gray-500">
+          (Copy: <span className="select-all">{formDataJson}</span>)
+        </div>
+      </div>
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -1149,15 +1155,14 @@ export function LessonPlanPreviewSidebar({
             <div>
               Tên cơ sở giáo dục:{" "}
               {generalInfoStep
-                ? getFieldValue(generalInfoStep.id, "keyword-school-name") ||
+                ? getValueByKeyOrTitle("keyword-ten-truong") ||
                   "………………………………….."
                 : "………………………………….."}
             </div>
             <div>
               Họ và tên giáo viên:{" "}
               {generalInfoStep
-                ? getFieldValue(generalInfoStep.id, "keyword-teacher-name") ||
-                  "………………………………….."
+                ? getValueByKeyOrTitle("keyword-ten-gv") || "………………………………….."
                 : "………………………………….."}
             </div>
           </div>
@@ -1166,8 +1171,7 @@ export function LessonPlanPreviewSidebar({
             <div className="font-bold text-center">
               TÊN BÀI DẠY:{" "}
               {generalInfoStep
-                ? getFieldValue(generalInfoStep.id, "keyword-lesson-name") ||
-                  "………………………………….."
+                ? getValueByKeyOrTitle("keyword-bai") || "………………………………….."
                 : "………………………………….."}
             </div>
             <div>
@@ -1236,6 +1240,14 @@ export function LessonPlanPreviewSidebar({
               trình tổ chức các hoạt động học.
             </div>
           </div>
+        </div>
+
+        {/* JSON Preview */}
+        <div className="mt-6">
+          <div className="font-bold text-xs mb-1">Dữ liệu JSON:</div>
+          <pre className="bg-gray-100 rounded p-2 text-xs overflow-x-auto max-h-64 whitespace-pre-wrap">
+            {JSON.stringify(formData, null, 2)}
+          </pre>
         </div>
       </div>
     </div>
