@@ -123,13 +123,19 @@ export function StepContent({
                             <KeywordForm
                               keyword={keyword}
                               value={formData[keyword?.id]?.value || ""}
-                              onChange={(value) =>
+                              onChange={(value) => {
+                                console.log("StepContent onChange called:", {
+                                  keywordId: keyword?.id,
+                                  keywordTitle: keyword?.title,
+                                  keywordNodeType: keyword?.nodeType,
+                                  value: value?.substring(0, 100) + "...", // Truncate for readability
+                                });
                                 onFormDataChange(
                                   keyword?.id,
                                   keyword?.title,
                                   value
-                                )
-                              }
+                                );
+                              }}
                               index={index}
                               isEditMode={isEditMode}
                               onDelete={onDeleteComponent}

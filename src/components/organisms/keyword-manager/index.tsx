@@ -438,6 +438,10 @@ function KeywordItem({
                   <div className="bg-white p-3 rounded border border-gray-300">
                     <RichTable
                       onChange={(data) => {
+                        console.log("KeywordManager TABLE onChange called:", {
+                          keywordId: keyword.id,
+                          data,
+                        });
                         updateField("content", JSON.stringify(data));
                       }}
                       className="bg-white"

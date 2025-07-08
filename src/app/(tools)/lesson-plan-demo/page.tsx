@@ -135,6 +135,28 @@ function LessonPlanContent() {
     getMergedComponentsForStep,
   } = useDynamicForm();
 
+  // Transform allFormData to flat structure for preview sidebar
+  const transformedFormData = useMemo(() => {
+    const transformedData: Record<string, Record<string, string>> = {};
+
+    Object.keys(allFormData).forEach((stepId) => {
+      transformedData[stepId] = {};
+      const stepData = allFormData[stepId];
+
+      Object.keys(stepData).forEach((fieldId) => {
+        const fieldData = stepData[fieldId];
+        // Extract .value from {key, title, value} structure
+        transformedData[stepId][fieldId] =
+          typeof fieldData === "object" && fieldData && "value" in fieldData
+            ? (fieldData as any).value
+            : (fieldData as string);
+      });
+    });
+
+    console.log("Transformed formData for preview:", transformedData);
+    return transformedData;
+  }, [allFormData]);
+
   const { configModal, closeConfigModal } = useDragDrop();
 
   const handleConfigConfirm = (config: any) => {
@@ -272,7 +294,7 @@ function LessonPlanContent() {
 
               <LessonPlanPreviewSidebar
                 steps={displaySteps}
-                formData={formData}
+                formData={transformedFormData}
                 getMergedComponentsForStep={getMergedComponentsForStep}
                 getApiChildrenForStep={getChildrenForStep}
                 isVisible={showPreviewSidebar}

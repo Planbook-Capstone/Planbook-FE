@@ -162,8 +162,7 @@ export function LessonPlanPreviewSidebar({
             children: [
               new TextRun({
                 text: `Thời gian thực hiện: ${
-                  getFieldValue(generalInfoStep.id, "keyword-time") ||
-                  "(số tiết)"
+                  getValueByKeyOrTitle("keyword-thoi-gian") || "(số tiết)"
                 }`,
                 size: 26,
                 color: "000000",
@@ -311,7 +310,12 @@ export function LessonPlanPreviewSidebar({
       ) {
         // Add references to document
         await addReferencesToDoc(component, stepData, documentChildren, level);
-      } else if (content) {
+      } else if (
+        content &&
+        !content.startsWith('{"rows":') &&
+        !content.startsWith('{"type":')
+      ) {
+        // Only render content if it's not JSON data (TABLE or REFERENCES)
         documentChildren.push(
           new Paragraph({
             children: [
@@ -384,7 +388,7 @@ export function LessonPlanPreviewSidebar({
         // Add image to document - handle both file and URL
         try {
           let imageBuffer: ArrayBuffer | null = null;
-          let imageType: string = "png";
+          let imageType: "jpg" | "png" | "gif" | "bmp" = "png";
 
           if (resourceData.file) {
             // Handle uploaded file
@@ -593,19 +597,80 @@ export function LessonPlanPreviewSidebar({
     const { Table, TableRow, TableCell, WidthType } = await import("docx");
 
     try {
-      // Parse table data
-      const tableDataStr = stepData?.[component.id] || "";
-      let tableData = null;
+      // Parse table data - use same logic as preview sidebar
+      let tableDataStr = stepData?.[component.id] || "";
 
+      // If not found, try parent ID (for nested TABLE components)
+      if (!tableDataStr && component.parentId) {
+        tableDataStr = stepData?.[component.parentId] || "";
+      }
+
+      // If still not found, use component.content (for API data)
+      if (!tableDataStr && component.content) {
+        tableDataStr = component.content;
+      }
+
+      console.log("Word export TABLE data lookup:", {
+        componentId: component.id,
+        parentId: component.parentId,
+        foundData: !!tableDataStr,
+        dataSource:
+          tableDataStr === stepData?.[component.id]
+            ? "direct"
+            : tableDataStr === stepData?.[component.parentId]
+            ? "parent"
+            : "content",
+      });
+
+      let richTableData = null;
       if (tableDataStr) {
         try {
-          tableData = JSON.parse(tableDataStr);
+          richTableData = JSON.parse(tableDataStr);
         } catch (e) {
           console.log("Failed to parse table data for Word export:", e);
         }
       }
 
-      // Use default table data if no user data
+      // Convert RichTable format to Word export format
+      let tableData = null;
+      if (richTableData && richTableData.rows) {
+        // Extract headers from first row (isHeader: true)
+        const headerRow = richTableData.rows.find(
+          (row: any) =>
+            row.cells && row.cells.some((cell: any) => cell.isHeader)
+        );
+
+        const headers = headerRow
+          ? headerRow.cells.map((cell: any) => cell.content || "")
+          : ["Header 1", "Header 2"];
+
+        // Extract data rows (isHeader: false or undefined)
+        const dataRows = richTableData.rows
+          .filter(
+            (row: any) =>
+              row.cells && !row.cells.some((cell: any) => cell.isHeader)
+          )
+          .map((row: any) =>
+            row.cells.map((cell: any) => {
+              // Strip HTML tags from content
+              const content = cell.content || "";
+              return content.replace(/<[^>]*>/g, "");
+            })
+          );
+
+        tableData = {
+          headers,
+          rows: dataRows,
+        };
+
+        console.log("Converted RichTable to Word format:", {
+          originalRows: richTableData.rows.length,
+          headers: headers,
+          dataRows: dataRows.length,
+        });
+      }
+
+      // Use default table data if conversion failed
       if (!tableData || !tableData.headers || !tableData.rows) {
         tableData = {
           headers: ["Header 1", "Header 2"],
@@ -614,6 +679,7 @@ export function LessonPlanPreviewSidebar({
             ["Cell 2-1", "Cell 2-2"],
           ],
         };
+        console.log("Using default table data for Word export");
       }
 
       // Create table rows
@@ -727,19 +793,29 @@ export function LessonPlanPreviewSidebar({
     return stepData[keywordTitle] || "";
   };
 
-  // Get value by keyword or title (for formData in {stepId: {key, value, title?}} format)
-  // Example: formData = {"538": {key: "keyword-ten-gv", value: "đêứdwe"}, "539": {key: "keyword-ten-truong", title: "Tên Trường", value: "wswsw"}}
+  // Get value by keyword or title (for transformed formData)
   const getValueByKeyOrTitle = (search: string): string => {
+    // Search in transformed formData structure: {stepId: {fieldId: "value"}}
     for (const stepId in formData) {
-      const entry = formData[stepId];
-      if (!entry) continue;
-      if (
-        entry.key === search ||
-        (entry.title && entry.title.toLowerCase() === search.toLowerCase())
-      ) {
-        return entry.value;
+      const stepData = formData[stepId];
+      if (!stepData || typeof stepData !== "object") continue;
+
+      // Look for direct key match
+      if (stepData[search]) {
+        return stepData[search];
+      }
+
+      // Look for partial key match (e.g., search "keyword-ten-gv" in keys)
+      for (const fieldId in stepData) {
+        if (fieldId.includes(search) || search.includes(fieldId)) {
+          return stepData[fieldId];
+        }
       }
     }
+
+    console.log(`getValueByKeyOrTitle: No value found for "${search}"`);
+    console.log("Available formData:", formData);
+    console.log("Step 537 details:", formData["537"]);
     return "";
   };
 
@@ -782,9 +858,42 @@ export function LessonPlanPreviewSidebar({
     stepData: Record<string, string>
   ) => {
     try {
-      const resourceDataStr = stepData[field.id];
+      // Try to get resource data from stepData first, then fallback to field.content
+      let resourceDataStr = stepData[field.id] || "";
+
+      // If not found, try parent ID (for nested REFERENCES components)
+      if (!resourceDataStr && field.parentId) {
+        resourceDataStr = stepData[field.parentId] || "";
+      }
+
+      // If still not found, use field.content (for API data)
+      if (!resourceDataStr && field.content) {
+        resourceDataStr = field.content;
+      }
+
+      console.log("Preview sidebar renderReferencesComponent:");
+      console.log("- field.id:", field.id);
+      console.log("- field.parentId:", field.parentId);
+      console.log("- stepData keys:", Object.keys(stepData));
+      console.log(
+        "- resourceDataStr from field.id:",
+        stepData[field.id] || "NOT_FOUND"
+      );
+      console.log(
+        "- resourceDataStr from parentId:",
+        field.parentId ? stepData[field.parentId] || "NOT_FOUND" : "NO_PARENT"
+      );
+      console.log(
+        "- resourceDataStr from field.content:",
+        field.content?.substring(0, 100) + "..."
+      );
+      console.log(
+        "- final resourceDataStr:",
+        resourceDataStr.substring(0, 100) + "..."
+      );
+
       if (!resourceDataStr) {
-        console.log("No resource data for field:", field.id);
+        console.log("No resource data found for field:", field.id);
         return null;
       }
 
@@ -844,8 +953,13 @@ export function LessonPlanPreviewSidebar({
                 )}
                 <div className="flex items-center gap-2 text-sm">
                   <span>📷</span>
-                  <span>{resourceData.file.name}</span>
-                  <span className="text-gray-500">
+                  <span
+                    className="truncate max-w-[200px]"
+                    title={resourceData.file.name}
+                  >
+                    {resourceData.file.name}
+                  </span>
+                  <span className="text-gray-500 flex-shrink-0">
                     ({(resourceData.file.size / 1024).toFixed(1)} KB)
                   </span>
                   <button
@@ -897,8 +1011,13 @@ export function LessonPlanPreviewSidebar({
           <div className="ml-4 text-gray-700">
             <div className="flex items-center gap-2">
               <span>🎥</span>
-              <span>{resourceData.file.name}</span>
-              <span className="text-sm text-gray-500">
+              <span
+                className="truncate max-w-[200px]"
+                title={resourceData.file.name}
+              >
+                {resourceData.file.name}
+              </span>
+              <span className="text-sm text-gray-500 flex-shrink-0">
                 ({(resourceData.file.size / 1024 / 1024).toFixed(1)} MB)
               </span>
             </div>
@@ -920,8 +1039,40 @@ export function LessonPlanPreviewSidebar({
     stepData: Record<string, string>
   ) => {
     try {
-      // Try to parse table data from stepData
-      const tableDataStr = stepData?.[field.id] || "";
+      // Try to parse table data from stepData first, then fallback to field.content
+      let tableDataStr = stepData?.[field.id] || "";
+
+      // If not found, try parent ID (for nested TABLE components)
+      if (!tableDataStr && field.parentId) {
+        tableDataStr = stepData?.[field.parentId] || "";
+      }
+
+      // If still not found, use field.content (for API data)
+      if (!tableDataStr && field.content) {
+        tableDataStr = field.content;
+      }
+
+      console.log("Preview sidebar renderTableComponent:");
+      console.log("- field.id:", field.id);
+      console.log("- field.parentId:", field.parentId);
+      console.log("- stepData keys:", Object.keys(stepData));
+      console.log(
+        "- tableDataStr from field.id:",
+        stepData?.[field.id] || "NOT_FOUND"
+      );
+      console.log(
+        "- tableDataStr from parentId:",
+        field.parentId ? stepData?.[field.parentId] || "NOT_FOUND" : "NO_PARENT"
+      );
+      console.log(
+        "- tableDataStr from field.content:",
+        field.content?.substring(0, 100) + "..."
+      );
+      console.log(
+        "- final tableDataStr:",
+        tableDataStr.substring(0, 100) + "..."
+      );
+
       let tableData = null;
 
       if (tableDataStr) {
@@ -998,6 +1149,31 @@ export function LessonPlanPreviewSidebar({
     }
   };
 
+  // Helper function to check if should render header info
+  const shouldRenderHeaderInfo = (
+    field: any,
+    stepData: Record<string, string>
+  ) => {
+    // Hard-coded keys that should render header info
+    const headerKeys = [
+      "school_name",
+      "teacher_name",
+      "lesson_title",
+      "subject_grade",
+      "time",
+    ];
+
+    return (
+      headerKeys.includes(field.id) ||
+      (field.title &&
+        (field.title.toLowerCase().includes("tên cơ sở") ||
+          field.title.toLowerCase().includes("giáo viên") ||
+          field.title.toLowerCase().includes("tên bài") ||
+          field.title.toLowerCase().includes("môn học") ||
+          field.title.toLowerCase().includes("thời gian")))
+    );
+  };
+
   // Helper function to render nested field structure
   const renderField = (
     field: any,
@@ -1005,6 +1181,16 @@ export function LessonPlanPreviewSidebar({
     level: number = 0,
     index: number = 0
   ) => {
+    console.log("renderField called:", {
+      fieldId: field.id,
+      fieldType: field.fieldType,
+      nodeType: field.nodeType,
+      isDynamic: field.isDynamic,
+      stepDataType: typeof stepData,
+      stepDataKeys: Object.keys(stepData),
+      stepDataValue: stepData?.[field.id],
+    });
+
     const userValue = stepData?.[field.id] || "";
     const defaultContent = field.content || field.description || "";
 
@@ -1023,17 +1209,44 @@ export function LessonPlanPreviewSidebar({
               : `${field.title}:`}
           </span>
 
-          {/* Special handling for TABLE and REFERENCES components */}
-          {field.fieldType === "TABLE" || field.nodeType === "TABLE"
-            ? renderTableComponent(field, stepData)
-            : field.fieldType === "REFERENCES" ||
-              field.nodeType === "REFERENCES"
-            ? renderReferencesComponent(field, stepData)
-            : (userValue || defaultContent) && (
-                <div className="ml-4 text-gray-700">
-                  {userValue || defaultContent}
-                </div>
-              )}
+          {/* Special handling based on fieldType */}
+          {field.fieldType === "TABLE" || field.nodeType === "TABLE" ? (
+            (() => {
+              console.log("Calling renderTableComponent for field:", field.id);
+              return renderTableComponent(field, stepData);
+            })()
+          ) : field.fieldType === "REFERENCES" ||
+            field.nodeType === "REFERENCES" ? (
+            (() => {
+              console.log(
+                "Calling renderReferencesComponent for field:",
+                field.id
+              );
+              return renderReferencesComponent(field, stepData);
+            })()
+          ) : field.fieldType === "INPUT" ? (
+            <div className="ml-4 text-gray-700">
+              <span className="font-questrial">
+                {userValue || defaultContent || "Chưa nhập dữ liệu..."}
+              </span>
+            </div>
+          ) : field.nodeType === "PARAGRAPH" && !field.fieldType ? (
+            // Original paragraph type
+            <div className="ml-4 text-gray-700">
+              <span className="font-questrial">
+                {userValue || defaultContent || "Chưa có nội dung..."}
+              </span>
+            </div>
+          ) : (
+            // Fallback for other types - but don't show JSON data for parent components
+            (userValue || defaultContent) &&
+            !userValue?.startsWith('{"rows":') &&
+            !userValue?.startsWith('{"type":') && (
+              <div className="ml-4 text-gray-700">
+                {userValue || defaultContent}
+              </div>
+            )
+          )}
         </div>
 
         {/* Render children recursively */}
@@ -1107,14 +1320,6 @@ export function LessonPlanPreviewSidebar({
       className={cn("h-full bg-white overflow-y-auto", className)}
       style={style}
     >
-      {/* Debug JSON Preview of formData */}
-      <div className="p-2 bg-gray-100 border-b border-gray-200 text-xs font-mono text-gray-700 max-h-64 overflow-auto rounded mb-2">
-        <div className="font-bold text-gray-800 mb-1">formData (JSON):</div>
-        <pre className="whitespace-pre-wrap break-all">{formDataJson}</pre>
-        <div className="mt-1 text-xs text-gray-500">
-          (Copy: <span className="select-all">{formDataJson}</span>)
-        </div>
-      </div>
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -1153,35 +1358,23 @@ export function LessonPlanPreviewSidebar({
           <div className="space-y-1 text-xs">
             <div>
               Tên cơ sở giáo dục:{" "}
-              {generalInfoStep
-                ? getValueByKeyOrTitle("keyword-ten-truong") ||
-                  "………………………………….."
-                : "………………………………….."}
+              {(formData["537"] as any)?.[538] || "………………………………….."}
             </div>
             <div>
               Họ và tên giáo viên:{" "}
-              {generalInfoStep
-                ? getValueByKeyOrTitle("keyword-ten-gv") || "………………………………….."
-                : "………………………………….."}
+              {(formData["537"] as any)?.[539] || "………………………………….."}
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="font-bold text-center">
               TÊN BÀI DẠY:{" "}
-              {generalInfoStep
-                ? getValueByKeyOrTitle("keyword-bai") || "………………………………….."
-                : "………………………………….."}
+              {(formData["537"] as any)?.[540] || "………………………………….."}
             </div>
             <div>
               Môn học/Hoạt động giáo dục:{" "}
-              {generalInfoStep
-                ? getValueByKeyOrTitle("keyword-hoat-dong-giao-duc") || "………"
-                : "………"}
-              ; lớp:{" "}
-              {generalInfoStep
-                ? getValueByKeyOrTitle("keyword-lop") || "………"
-                : "………"}
+              {(formData["537"] as any)?.[541] || "………"}; lớp:{" "}
+              {(formData["537"] as any)?.[542] || "………"}
             </div>
             <div>
               Thời gian thực hiện:{" "}
@@ -1215,7 +1408,10 @@ export function LessonPlanPreviewSidebar({
                 <div className="font-bold">
                   {stepNumber}. {step.title}
                 </div>
-                {renderStepData(step, formData[step.id] || {})}
+                {renderStepData(
+                  step,
+                  (formData[step.id] as Record<string, string>) || {}
+                )}
               </div>
             );
           })}
@@ -1238,14 +1434,6 @@ export function LessonPlanPreviewSidebar({
               trình tổ chức các hoạt động học.
             </div>
           </div>
-        </div>
-
-        {/* JSON Preview */}
-        <div className="mt-6">
-          <div className="font-bold text-xs mb-1">Dữ liệu JSON:</div>
-          <pre className="bg-gray-100 rounded p-2 text-xs overflow-x-auto max-h-64 whitespace-pre-wrap">
-            {JSON.stringify(formData, null, 2)}
-          </pre>
         </div>
       </div>
     </div>

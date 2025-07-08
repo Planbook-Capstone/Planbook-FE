@@ -44,6 +44,14 @@ export function KeywordForm({
   isEditMode = false,
   onDelete,
 }: KeywordFormProps) {
+  // Debug: Log all KeywordForm renders
+  console.log("KeywordForm render:", {
+    keywordId: keyword.id,
+    keywordTitle: keyword.title,
+    nodeType: keyword.fieldType || keyword.type,
+    hasOnChange: typeof onChange === "function",
+    onChangeFunction: onChange.toString().substring(0, 100) + "...",
+  });
   // Debug re-renders
   // console.log("KeywordForm re-rendered", {
   //   keywordId: keyword.id,
@@ -89,7 +97,7 @@ export function KeywordForm({
         setResourceData(resourceWithBase64);
         onChange(JSON.stringify(resourceWithBase64));
       };
-      reader.readAsDataURL(resource?.file);
+      reader.readAsDataURL(resource.file as File);
     } else {
       setResourceData(resource);
       onChange(JSON.stringify(resource));
@@ -127,7 +135,18 @@ export function KeywordForm({
   };
   console.log(keyword.fieldType || keyword.type);
   const renderByNodeType = () => {
-    switch (keyword.fieldType ? keyword.fieldType : keyword.type) {
+    // Debug: Log which component is being rendered
+    const nodeType = keyword.fieldType ? keyword.fieldType : keyword.type;
+    if (nodeType === "TABLE") {
+      console.log("KeywordForm rendering TABLE component:", {
+        keywordId: keyword.id,
+        keywordTitle: keyword.title,
+        nodeType: nodeType,
+        hasOnChange: typeof onChange === "function",
+      });
+    }
+
+    switch (nodeType) {
       case "SECTION":
       case "SUBSECTION":
         return renderWithDeleteButton(
@@ -147,7 +166,15 @@ export function KeywordForm({
                     key={child.id}
                     keyword={child}
                     value=""
-                    onChange={() => {}}
+                    onChange={(childValue) => {
+                      console.log("SECTION child onChange:", {
+                        parentId: keyword.id,
+                        childId: child.id,
+                        childValue: childValue.substring(0, 100) + "...",
+                      });
+                      // Pass through to parent onChange
+                      onChange(childValue);
+                    }}
                     index={childIndex}
                     level={level + 1}
                     isEditMode={isEditMode}
@@ -177,7 +204,15 @@ export function KeywordForm({
                     key={child.id}
                     keyword={child}
                     value=""
-                    onChange={() => {}}
+                    onChange={(childValue) => {
+                      console.log("LIST_ITEM child onChange:", {
+                        parentId: keyword.id,
+                        childId: child.id,
+                        childValue: childValue.substring(0, 100) + "...",
+                      });
+                      // Pass through to parent onChange
+                      onChange(childValue);
+                    }}
                     index={childIndex}
                     level={level + 1}
                     isEditMode={isEditMode}
@@ -377,12 +412,35 @@ export function KeywordForm({
 
         return renderWithDeleteButton(
           <div style={{ paddingLeft: `${level * 24}px` }} className="space-y-3">
-            <h4 className="font-calsans text-gray-900 text-base">
+            <h4 className="font-calsans text-gray-900 text-lg flex items-center gap-2">
               {keyword.title}
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                Có thể chỉnh sửa
+              </span>
             </h4>
             <RichTable
               data={tableData}
-              onChange={(data) => onChange(JSON.stringify(data))}
+              onChange={(data) => {
+                console.log("TABLE onChange called:", {
+                  keywordId: keyword.id,
+                  data,
+                });
+                const jsonData = JSON.stringify(data);
+                console.log(
+                  "KeywordForm calling onChange with:",
+                  jsonData.substring(0, 100) + "..."
+                );
+                console.log(
+                  "onChange function:",
+                  onChange.toString().substring(0, 200) + "..."
+                );
+                try {
+                  onChange(jsonData);
+                  console.log("onChange called successfully");
+                } catch (error) {
+                  console.error("Error calling onChange:", error);
+                }
+              }}
               className="mt-2"
             />
           </div>

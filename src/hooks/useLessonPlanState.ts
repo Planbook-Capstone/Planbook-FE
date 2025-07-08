@@ -104,7 +104,7 @@ export function useLessonPlanState() {
     if (stepId === currentStepId) {
       console.log(
         `📋 Getting current step children for ${stepId}:`,
-        childrenData?.length || 0,
+        childrenData,
         "items"
       );
       return childrenData || [];
