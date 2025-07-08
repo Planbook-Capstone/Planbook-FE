@@ -28,7 +28,36 @@ export function generateStableId(
   content: string,
   index?: number
 ): string {
-  const hash = content
+  // Remove Vietnamese accents and normalize
+  const noDiacritics = content
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+
+  const hash = noDiacritics
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  const suffix = index !== undefined ? `-${index}` : "";
+  return `${prefix}-${hash}`;
+}
+
+export function generateComponentId(
+  prefix: string,
+  content: string,
+  index?: number
+): string {
+  // Remove Vietnamese accents and normalize
+  const noDiacritics = content
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+
+  const hash = noDiacritics
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "-")
     .replace(/-+/g, "-")
@@ -46,5 +75,5 @@ export function createFieldId(
   title: string,
   stepId: string
 ): string {
-  return generateStableId(`${type.toLowerCase()}-${stepId}`, title);
+  return generateStableId(`${type.toLowerCase()}`, title);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { generateStableId } from "./useStableId";
+import { generateComponentId, generateStableId } from "./useStableId";
 
 export interface DynamicComponent {
   id: string;
@@ -12,6 +12,7 @@ export interface DynamicComponent {
   order: number;
   stepId: string;
   children?: DynamicComponent[];
+  parentId?: string; // Add parentId for dynamic tree
   nodeType?: string;
 }
 
@@ -35,52 +36,56 @@ export function useDynamicForm() {
 
   // Add new component to a step
   const addComponent = useCallback(
-    (config: any, position: { stepId: string; index: number }) => {
-      console.log("🔧 addComponent called:", {
-        config,
-        position,
-        currentDynamicComponents: dynamicComponents.length,
-      });
-
+    (
+      config: any,
+      position: { stepId: string; index: number; parentId?: string }
+    ) => {
       setDynamicComponents((prev) => {
-        console.log("🔧 setDynamicComponents prev:", prev.length);
-        // Get existing components for this step
-        const stepComponents = prev.filter(
-          (comp) => comp.stepId === position.stepId
-        );
+        // Get existing components for this step and parent
+        const stepComponents = prev
+          .filter(
+            (comp) =>
+              comp.stepId === position.stepId &&
+              comp.parentId === (position.parentId || null)
+          )
+          .sort((a, b) => a.order - b.order);
         const otherComponents = prev.filter(
-          (comp) => comp.stepId !== position.stepId
+          (comp) =>
+            comp.stepId !== position.stepId ||
+            comp.parentId !== (position.parentId || null)
         );
 
-        // New component goes at the end (highest order + 1)
-        const maxOrder =
-          stepComponents.length > 0
-            ? Math.max(...stepComponents.map((comp) => comp.order))
-            : -1;
-
+        // Tạo component mới
         const newComponent: DynamicComponent = {
-          id: generateStableId(
+          id: generateComponentId(
             config.type,
             config.title || "component",
-            maxOrder + 1
+            Date.now() // unique enough for new
           ),
           type: config.type,
           title: config.title,
           content: config.content,
           placeholder: config.placeholder,
-          order: maxOrder + 1,
+          order: position.index, // sẽ cập nhật lại order bên dưới
           stepId: position.stepId,
           nodeType: config.type,
+          parentId: position.parentId || null,
         };
 
-        const result = [...otherComponents, ...stepComponents, newComponent];
-        console.log("🔧 addComponent result:", {
+        // Thêm vào đúng vị trí index
+        const newStepComponents = [
+          ...stepComponents.slice(0, position.index),
           newComponent,
-          totalComponents: result.length,
-          stepComponents: stepComponents.length,
-          otherComponents: otherComponents.length,
-        });
-        return result;
+          ...stepComponents.slice(position.index),
+        ];
+
+        // Cập nhật lại order cho toàn bộ stepComponents
+        const reordered = newStepComponents.map((comp, idx) => ({
+          ...comp,
+          order: idx,
+        }));
+
+        return [...otherComponents, ...reordered];
       });
     },
     [dynamicComponents]
@@ -201,12 +206,16 @@ export function useDynamicForm() {
   );
 
   // Get components for a specific step (dynamic only)
+  // Get dynamic components for a step and parent (tree)
   const getDynamicComponentsForStep = useCallback(
-    (stepId: string) => {
-      // Convert stepId to string for consistent comparison
+    (stepId: string, parentId: string | null = null) => {
       const stepIdStr = String(stepId);
       return dynamicComponents
-        .filter((comp) => String(comp.stepId) === stepIdStr)
+        .filter(
+          (comp) =>
+            String(comp.stepId) === stepIdStr &&
+            (comp.parentId ?? null) === parentId
+        )
         .sort((a, b) => a.order - b.order);
     },
     [dynamicComponents]
@@ -218,7 +227,11 @@ export function useDynamicForm() {
       const stepIdStr = String(stepId);
 
       // Helper: merge children recursively
-      function mergeChildren(staticNodes: any[], parentStepId: string) {
+      function mergeChildren(
+        staticNodes: any[],
+        parentStepId: string,
+        parentId: string | null = null
+      ) {
         // Lấy danh sách id của tất cả children lồng bên trong
         const allNestedIds = new Set<string>();
         staticNodes.forEach((child) => {
@@ -244,26 +257,29 @@ export function useDynamicForm() {
               originalOrder: index,
               stepId: parentStepId,
               children: child.children
-                ? mergeChildren(child.children, parentStepId)
+                ? mergeChildren(child.children, parentStepId, child.id)
                 : [],
             };
             return mergedChild;
           });
 
-        // Dynamic components for this parent
-        const dynamicComps = getDynamicComponentsForStep(parentStepId).map(
-          (comp) => ({
-            id: comp.id,
-            title: comp.title,
-            content: comp.content || comp.placeholder,
-            nodeType: comp.type,
-            children: comp.children || [],
-            isDynamic: true,
-            order: comp.order,
-            type: comp.type,
-            stepId: parentStepId,
-          })
-        );
+        // Dynamic components for this parent (tree)
+        const dynamicComps = getDynamicComponentsForStep(
+          parentStepId,
+          parentId
+        ).map((comp) => ({
+          id: comp.id,
+          title: comp.title,
+          content: comp.content || comp.placeholder,
+          nodeType: comp.type,
+          children: mergeChildren([], parentStepId, comp.id), // allow dynamic children in the future
+          isDynamic: true,
+          order: comp.order,
+          type: comp.type,
+          value: comp.value,
+          stepId: parentStepId,
+          parentId: comp.parentId ?? null,
+        }));
 
         // Merge: static first, then dynamic
         return [...staticComps, ...dynamicComps].sort((a, b) => {
@@ -277,7 +293,7 @@ export function useDynamicForm() {
       }
 
       // Start merge from root staticChildren
-      return mergeChildren(staticChildren, stepIdStr);
+      return mergeChildren(staticChildren, stepIdStr, null);
     },
     [getDynamicComponentsForStep, hiddenStaticComponents]
   );
