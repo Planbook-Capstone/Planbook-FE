@@ -39,7 +39,6 @@ export function LessonPlanPreviewSidebar({
   className,
   style,
 }: LessonPlanPreviewSidebarProps) {
-  console.log(JSON.stringify(formData), "formData nè");
   // Export to Word function
   const handleExportWord = async () => {
     try {

@@ -145,28 +145,12 @@ function LessonPlanContent() {
     });
 
     if (configModal.position) {
-      console.log(
-        "🎯 Calling addComponent with:",
-        config,
-        configModal.position
-      );
       addComponent(config, configModal.position);
-      console.log("🎯 addComponent completed");
     } else {
       console.warn("⚠️ No position in configModal");
     }
     closeConfigModal();
   };
-
-  console.log("🔍 useLessonPlanState Debug:", {
-    currentStep,
-    currentStepId: currentStepData?.id,
-    isLoadingChildren,
-    childrenError,
-    childrenData: childrenData,
-    hasCurrentStepData: !!currentStepData,
-    displayStepsLength: displaySteps.length,
-  });
 
   // Show loading if children are loading
   if (isLoadingChildren && currentStepData?.id) {

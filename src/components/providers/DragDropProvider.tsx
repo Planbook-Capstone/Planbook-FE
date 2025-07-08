@@ -65,7 +65,6 @@ export function DragDropProvider({
 
   const onDragEnd = useCallback(
     (result: DropResult) => {
-      console.log("🎯 DragDropProvider onDragEnd:", result);
       const { destination, source, draggableId } = result;
 
       // No destination
@@ -92,13 +91,6 @@ export function DragDropProvider({
           stepId: destination.droppableId.replace("form-", ""),
           index: destination.index,
         };
-
-        console.log("🎯 Opening config modal:", {
-          componentType,
-          position,
-          sourceId: source.droppableId,
-          destId: destination.droppableId
-        });
 
         // Open config modal for the dropped item
         openConfigModal({ type: componentType }, position);
