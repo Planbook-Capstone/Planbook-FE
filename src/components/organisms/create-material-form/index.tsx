@@ -256,7 +256,7 @@ function CreateMaterialForm({
                       console.log("Selected file:", {
                         name: file.name,
                         type: file.type,
-                        size: file.size
+                        size: file.size,
                       });
                       onChange(file);
                     }
