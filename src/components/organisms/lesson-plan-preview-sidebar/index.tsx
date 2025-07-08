@@ -1177,18 +1177,17 @@ export function LessonPlanPreviewSidebar({
             <div>
               Môn học/Hoạt động giáo dục:{" "}
               {generalInfoStep
-                ? getFieldValue(generalInfoStep.id, "keyword-subject") || "………"
+                ? getValueByKeyOrTitle("keyword-hoat-dong-giao-duc") || "………"
                 : "………"}
               ; lớp:{" "}
               {generalInfoStep
-                ? getFieldValue(generalInfoStep.id, "keyword-class") || "………"
+                ? getValueByKeyOrTitle("keyword-lop") || "………"
                 : "………"}
             </div>
             <div>
               Thời gian thực hiện:{" "}
               {generalInfoStep
-                ? getFieldValue(generalInfoStep.id, "keyword-time") ||
-                  "(số tiết)"
+                ? getValueByKeyOrTitle("keyword-thoi-gian") || "(số tiết)"
                 : "(số tiết)"}
             </div>
           </div>
