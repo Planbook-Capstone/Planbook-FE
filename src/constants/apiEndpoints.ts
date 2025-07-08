@@ -53,10 +53,14 @@ export const API_ENDPOINTS = {
 
   //ACADEMIC RESOURCE
   ACADEMIC_RESOURCE: "academic-resource-service-local/api/academic-resources",
-   //ACADEMIC RESOURCE SEARCH 
-   ACADEMIC_RESOURCE_SEARCH: "academic-resource-service-local/api/academic-resources/search",
+  //ACADEMIC RESOURCE SEARCH
+  ACADEMIC_RESOURCE_SEARCH:
+    "academic-resource-service-local/api/academic-resources/search",
   ACADEMIC_RESOURCE_UPLOAD:
     "/academic-resource-service-local/api/academic-resources/upload",
+
+  ACADEMIC_RESOURSE_INTERNAL:
+    "/academic-resource-service-local/api/academic-resources/internal",
 } as const;
 
 // PDF API Endpoints (Secondary API - Port 8000)
