@@ -42,10 +42,12 @@ const fileSchema = z
       "video/wmv",
       "video/webm",
       // Audio
-      "audio/mp3",
+      "audio/mpeg", // MP3 files
+      "audio/mp3",  // Some browsers might use this
       "audio/wav",
       "audio/ogg",
       "audio/m4a",
+      "audio/mp4",  // M4A files sometimes use this MIME type
       // Documents
       "application/pdf",
       "application/msword",

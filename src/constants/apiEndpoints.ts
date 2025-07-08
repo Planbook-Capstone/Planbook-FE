@@ -14,26 +14,26 @@ export const API_ENDPOINTS = {
   ACADEMIC_YEARS: "/academic-years",
 
   // Books
-  BOOKS: "/books",
-  BOOKS_BY_SUBJECT: "/books/by-subject",
+  BOOKS: "master-data-service-local/api/books",
+  BOOKS_BY_SUBJECT: "master-data-service-local/api/books/by-subject",
 
   // Book Types
   BOOK_TYPES: "/book-types",
 
   // Chapters
-  CHAPTERS: "/chapters",
-  CHAPTERS_BY_BOOK: "/chapters/by-book",
+  CHAPTERS: "master-data-service-local/api/chapters",
+  CHAPTERS_BY_BOOK: "master-data-service-local/api/chapters/by-book",
 
   // Grades
-  GRADES: "/grades",
+  GRADES: "master-data-service-local/api/grades",
 
   // Lessons
-  LESSONS: "/lessons",
-  LESSONS_BY_CHAPTER: "/lessons/by-chapter",
+  LESSONS: "master-data-service-local/api/lessons",
+  LESSONS_BY_CHAPTER: "master-data-service-local/api/lessons/by-chapter",
 
   // Subjects
-  SUBJECTS: "/subjects",
-  SUBJECTS_BY_GRADE: "/subjects/by-grade",
+  SUBJECTS: "master-data-service-local/api/subjects",
+  SUBJECTS_BY_GRADE: "master-data-service-local/api/subjects/by-grade",
 
   // Forms (Lesson Plans)
   FORMS: "/forms",
@@ -53,10 +53,14 @@ export const API_ENDPOINTS = {
 
   //ACADEMIC RESOURCE
   ACADEMIC_RESOURCE: "academic-resource-service-local/api/academic-resources",
-   //ACADEMIC RESOURCE SEARCH 
-   ACADEMIC_RESOURCE_SEARCH: "academic-resource-service-local/api/academic-resources/search",
+  //ACADEMIC RESOURCE SEARCH
+  ACADEMIC_RESOURCE_SEARCH:
+    "academic-resource-service-local/api/academic-resources/search",
   ACADEMIC_RESOURCE_UPLOAD:
     "/academic-resource-service-local/api/academic-resources/upload",
+
+  ACADEMIC_RESOURSE_INTERNAL:
+    "/academic-resource-service-local/api/academic-resources/internal",
 } as const;
 
 // PDF API Endpoints (Secondary API - Port 8000)
@@ -68,7 +72,10 @@ export const PDF_API_ENDPOINTS = {
   DELETE_TEXTBOOK: (id: string) => `/pdf/deleteTextBook/${id}`,
 
   // Quick analysis
-  QUICK_TEXTBOOK_ANALYSIS: "/pdf/quick-textbook-analysis",
+  QUICK_TEXTBOOK_ANALYSIS: "/pdf/import",
+
+  //SEARCH
+  RAG_QUERY: "pdf/rag-query",
 
   //Task-progress
   TASKS_STATUS: `/tasks/status`,
