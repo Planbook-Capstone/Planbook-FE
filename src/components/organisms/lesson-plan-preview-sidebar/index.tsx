@@ -106,11 +106,17 @@ export function LessonPlanPreviewSidebar({
         }),
         new Paragraph({ text: "" }), // Empty line
 
-        // Institution info
+        // Institution info - get from formData dynamically
         new Paragraph({
           children: [
             new TextRun({
-              text: "Tên cơ sở giáo dục: …………………………………...",
+              text: `Tên cơ sở giáo dục: ${
+                generalInfoStep?.id && formData[generalInfoStep.id]
+                  ? (formData[generalInfoStep.id] as any)?.[
+                      Object.keys(formData[generalInfoStep.id] || {})[0]
+                    ] || "…………………………………..."
+                  : "…………………………………..."
+              }`,
               size: 26,
               color: "000000",
             }),
@@ -119,7 +125,13 @@ export function LessonPlanPreviewSidebar({
         new Paragraph({
           children: [
             new TextRun({
-              text: "Họ và tên giáo viên: …………………………………...",
+              text: `Họ và tên giáo viên: ${
+                generalInfoStep?.id && formData[generalInfoStep.id]
+                  ? (formData[generalInfoStep.id] as any)?.[
+                      Object.keys(formData[generalInfoStep.id] || {})[1]
+                    ] || "…………………………………..."
+                  : "…………………………………..."
+              }`,
               size: 26,
               color: "000000",
             }),
@@ -129,8 +141,11 @@ export function LessonPlanPreviewSidebar({
           children: [
             new TextRun({
               text: `TÊN BÀI DẠY: ${
-                getFieldValue(generalInfoStep?.id || "", "keyword-bai") ||
-                "…………………………………..."
+                generalInfoStep?.id && formData[generalInfoStep.id]
+                  ? (formData[generalInfoStep.id] as any)?.[
+                      Object.keys(formData[generalInfoStep.id] || {})[2]
+                    ] || "…………………………………..."
+                  : "…………………………………..."
               }`,
               size: 26,
               color: "000000",
@@ -148,10 +163,17 @@ export function LessonPlanPreviewSidebar({
             children: [
               new TextRun({
                 text: `Môn học/Hoạt động giáo dục: ${
-                  getFieldValue(generalInfoStep.id, "keyword-subject") ||
-                  "Hóa học"
+                  generalInfoStep?.id && formData[generalInfoStep.id]
+                    ? (formData[generalInfoStep.id] as any)?.[
+                        Object.keys(formData[generalInfoStep.id] || {})[3]
+                      ] || "………"
+                    : "………"
                 }; lớp: ${
-                  getFieldValue(generalInfoStep.id, "keyword-grade") || "12"
+                  generalInfoStep?.id && formData[generalInfoStep.id]
+                    ? (formData[generalInfoStep.id] as any)?.[
+                        Object.keys(formData[generalInfoStep.id] || {})[4]
+                      ] || "………"
+                    : "………"
                 }`,
                 size: 26,
                 color: "000000",
@@ -162,7 +184,11 @@ export function LessonPlanPreviewSidebar({
             children: [
               new TextRun({
                 text: `Thời gian thực hiện: ${
-                  getValueByKeyOrTitle("keyword-thoi-gian") || "(số tiết)"
+                  generalInfoStep?.id && formData[generalInfoStep.id]
+                    ? (formData[generalInfoStep.id] as any)?.[
+                        Object.keys(formData[generalInfoStep.id] || {})[5]
+                      ] || "(số tiết)"
+                    : "(số tiết)"
                 }`,
                 size: 26,
                 color: "000000",
@@ -1405,8 +1431,10 @@ export function LessonPlanPreviewSidebar({
             </div>
             <div>
               Thời gian thực hiện:{" "}
-              {generalInfoStep
-                ? getValueByKeyOrTitle("keyword-thoi-gian") || "(số tiết)"
+              {generalInfoStepId
+                ? (formData[generalInfoStepId] as any)?.[
+                    Object.keys(formData[generalInfoStepId] || {})[5]
+                  ] || "(số tiết)"
                 : "(số tiết)"}
             </div>
           </div>
