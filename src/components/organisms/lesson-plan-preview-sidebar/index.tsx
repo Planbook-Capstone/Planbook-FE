@@ -59,7 +59,6 @@ export function LessonPlanPreviewSidebar({
       // Get general info step
       const generalInfoStep = steps.find(
         (step) =>
-          step.id === "keyword-thông-tin-chung-1" ||
           step.title?.toLowerCase().includes("thông tin") ||
           step.title?.toLowerCase().includes("chung")
       );
@@ -736,8 +735,10 @@ export function LessonPlanPreviewSidebar({
     // Try to find by exact title match first
     for (const [key, value] of Object.entries(stepData)) {
       // Check if the key contains the title (case insensitive)
-      if (key.toLowerCase().includes(keywordTitle.toLowerCase()) ||
-          keywordTitle.toLowerCase().includes(key.toLowerCase())) {
+      if (
+        key.toLowerCase().includes(keywordTitle.toLowerCase()) ||
+        keywordTitle.toLowerCase().includes(key.toLowerCase())
+      ) {
         return value as string;
       }
     }
@@ -854,7 +855,7 @@ export function LessonPlanPreviewSidebar({
                   <button
                     onClick={() => {
                       if ("base64" in resourceData.file) {
-                        const link = document.createElement('a');
+                        const link = document.createElement("a");
                         link.href = resourceData.file.base64;
                         link.download = resourceData.file.name;
                         link.click();
@@ -964,8 +965,13 @@ export function LessonPlanPreviewSidebar({
             <table className="w-full border-collapse text-sm">
               <tbody>
                 {tableData.rows.map((row: any, rowIndex: number) => (
-                  <tr key={row.id} className={row.cells[0]?.isHeader ? "bg-gray-50" : "hover:bg-gray-50"}>
-                    {row.cells.map((cell: any, cellIndex: number) => (
+                  <tr
+                    key={row.id}
+                    className={
+                      row.cells[0]?.isHeader ? "bg-gray-50" : "hover:bg-gray-50"
+                    }
+                  >
+                    {row.cells.map((cell: any, cellIndex: number) =>
                       cell.isHeader ? (
                         <th
                           key={cell.id}
@@ -977,10 +983,12 @@ export function LessonPlanPreviewSidebar({
                         <td
                           key={cell.id}
                           className="border-b border-gray-200 px-3 py-2 text-gray-700"
-                          dangerouslySetInnerHTML={{ __html: cell.content || "" }}
+                          dangerouslySetInnerHTML={{
+                            __html: cell.content || "",
+                          }}
                         />
                       )
-                    ))}
+                    )}
                   </tr>
                 ))}
               </tbody>

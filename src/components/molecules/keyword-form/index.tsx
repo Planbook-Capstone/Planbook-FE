@@ -380,11 +380,6 @@ export function KeywordForm({
             <h4 className="font-calsans text-gray-900 text-base">
               {keyword.title}
             </h4>
-            {keyword.content && (
-              <p className="text-sm font-questrial text-gray-600">
-                {keyword.content}
-              </p>
-            )}
             <RichTable
               data={tableData}
               onChange={(data) => onChange(JSON.stringify(data))}
