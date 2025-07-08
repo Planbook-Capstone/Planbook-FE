@@ -22,7 +22,18 @@ export const useMaterialSearchService = (tagIds?: string) => {
 };
 
 export const useCreateMaterialService = createMutationHook(
-  "materials",
+  "private-materials",
   API_ENDPOINTS.ACADEMIC_RESOURCE_UPLOAD
 );
+
+export const useCreateMaterialInternalService = createMutationHook(
+  "private-materials",
+  API_ENDPOINTS.ACADEMIC_RESOURSE_INTERNAL
+);
+
+export const useMaterialInternalService = createQueryHook(
+  "private-materials",
+  API_ENDPOINTS.ACADEMIC_RESOURSE_INTERNAL
+);
+
 // export const useUpdateBookStatus = patchMutationHook("books", API_ENDPOINTS.BOOKS);
