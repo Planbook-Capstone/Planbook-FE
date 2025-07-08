@@ -16,6 +16,8 @@ import {
 import { usePathname } from "next/navigation";
 import { getPageLabel, getPageActions } from "@/utils/pathToLabel";
 import { HeaderProvider, useHeader } from "@/contexts/HeaderContext";
+import { ChatButton } from "@/components/ui/chat-button";
+import ChatBox from "@/components/organisms/chat-box";
 
 interface ToolLayoutProps {
   children: React.ReactNode;
@@ -93,6 +95,14 @@ function ToolLayoutContent({ children }: ToolLayoutProps) {
 export default function ToolLayout({ children }: ToolLayoutProps) {
   return (
     <HeaderProvider>
+      <ChatBox
+        position="bottom-left"
+        size="md"
+        variant="default"
+        title="PlanBook AI Assistant"
+        placeholder="Nhập câu hỏi của bạn..."
+        showBadge={true}
+      />
       <ToolLayoutContent>{children}</ToolLayoutContent>
     </HeaderProvider>
   );

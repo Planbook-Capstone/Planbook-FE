@@ -249,10 +249,15 @@ function CreateMaterialForm({
               <div className="relative">
                 <Input
                   type="file"
-                  accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/avi,video/mov,video/wmv,video/webm,audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/mp4,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,.mp3,.wav,.ogg,.m4a"
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      console.log("Selected file:", {
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                      });
                       onChange(file);
                     }
                   }}
