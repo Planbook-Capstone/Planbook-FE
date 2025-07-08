@@ -27,6 +27,27 @@ export const createApiHooks = (
         ...options,
       });
 
+  // Search query hook factory with dynamic query key
+  const createSearchQueryHook =
+    (baseQueryKey: string, url: string) =>
+    (
+      searchParams?: Record<string, any>, // Search parameters object
+      options?: any
+    ): UseQueryResult<any, AxiosError<{ message: string }>> => {
+      // Create queryKey from search params for automatic refetch
+      const queryKey = searchParams
+        ? [`${instanceName}-${baseQueryKey}`, searchParams]
+        : [`${instanceName}-${baseQueryKey}`];
+
+      return useQuery({
+        queryKey,
+        queryFn: async () =>
+          (await axiosInstance.get(url, { params: searchParams })).data,
+        enabled: !!searchParams && Object.keys(searchParams).length > 0,
+        ...options,
+      });
+    };
+
   // Query with path param hook factory
   const createQueryWithPathParamHook =
     (queryKey: string, url: string) =>
@@ -137,6 +158,7 @@ export const createApiHooks = (
   return {
     createQueryHook,
     createQueryWithPathParamHook,
+    createSearchQueryHook,
     createMutationHook,
     createMutationUploadFilesHook,
     updateMutationHook,
@@ -167,6 +189,7 @@ export const {
   createMutationUploadFilesHook: createSecondaryMutationUploadFilesHook,
   updateMutationHook: updateSecondaryMutationHook,
   deleteMutationHook: deleteSecondaryMutationHook,
+  createSearchQueryHook: createSecondarySearchQueryHook,
 } = secondaryApiHooks;
 
 export const {
