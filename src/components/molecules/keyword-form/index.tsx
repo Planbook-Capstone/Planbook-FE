@@ -137,6 +137,16 @@ export function KeywordForm({
   const renderByNodeType = () => {
     // Debug: Log which component is being rendered
     const nodeType = keyword.fieldType ? keyword.fieldType : keyword.type;
+
+    console.log("KeywordForm renderByNodeType:", {
+      keywordId: keyword.id,
+      keywordTitle: keyword.title,
+      fieldType: keyword.fieldType,
+      type: keyword.type,
+      nodeType: nodeType,
+      hasOnChange: typeof onChange === "function",
+    });
+
     if (nodeType === "TABLE") {
       console.log("KeywordForm rendering TABLE component:", {
         keywordId: keyword.id,
@@ -263,14 +273,11 @@ export function KeywordForm({
             >
               <Input
                 id={createFieldId("keyword", keyword.title, keyword.id)}
-                value={value}
+                defaultValue=""
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  console.log(
-                    "KeywordForm Input onChange:",
-                    keyword.id,
-                    e.target.value
-                  );
-                  onChange(e.target.value);
+                  const newValue = e.target.value;
+                  console.log("INPUT onChange:", newValue);
+                  onChange(newValue);
                 }}
                 placeholder={
                   keyword.content || `Nhập ${keyword.title.toLowerCase()}...`
