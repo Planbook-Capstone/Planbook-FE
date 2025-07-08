@@ -170,7 +170,9 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
   const openRichEditor = useCallback(
     (cellId: string, currentContent: string) => {
       setEditingCell(cellId);
-      setEditingContent(currentContent);
+      // Strip HTML tags for editing
+      const plainText = currentContent.replace(/<[^>]*>/g, "");
+      setEditingContent(plainText);
     },
     []
   );
@@ -187,7 +189,9 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
 
         if (row) {
           console.log("Found row:", row.id);
-          updateCell(row.id, editingCell, content);
+          // Wrap content with <p> tags if not empty
+          const htmlContent = content.trim() ? `<p>${content}</p>` : "";
+          updateCell(row.id, editingCell, htmlContent);
         }
 
         setEditingCell(null);

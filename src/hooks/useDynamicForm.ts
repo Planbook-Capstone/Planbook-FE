@@ -72,11 +72,25 @@ export function useDynamicForm() {
           parentId: position.parentId || null,
         };
 
+        // Force add to end if index is too large (from palette drag)
+        const targetIndex =
+          position.index >= stepComponents.length
+            ? stepComponents.length
+            : position.index;
+
+        console.log("🎯 addComponent:", {
+          stepId: position.stepId,
+          originalIndex: position.index,
+          targetIndex: targetIndex,
+          existingCount: stepComponents.length,
+          newComponentTitle: config.title,
+        });
+
         // Thêm vào đúng vị trí index
         const newStepComponents = [
-          ...stepComponents.slice(0, position.index),
+          ...stepComponents.slice(0, targetIndex),
           newComponent,
-          ...stepComponents.slice(position.index),
+          ...stepComponents.slice(targetIndex),
         ];
 
         // Cập nhật lại order cho toàn bộ stepComponents
