@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import TypingIndicator from "@/components/ui/typing-indicator";
 import { Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRagSearchService } from "@/services/ragServices";
 
 export interface Message {
   id: string;
@@ -39,7 +40,32 @@ export default function ChatWindow({
   showMinimize = true,
 }: ChatWindowProps) {
   const [inputValue, setInputValue] = React.useState("");
+  const [currentQuery, setCurrentQuery] = React.useState<string>("");
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  // RAG Search Service - gọi API khi có query
+  const {
+    data: ragResponse,
+    isLoading: ragLoading,
+    error: ragError,
+  } = useRagSearchService(currentQuery || undefined);
+
+  // Console.log RAG response khi có data
+  React.useEffect(() => {
+    if (ragResponse) {
+      console.log("🤖 RAG Response:", ragResponse);
+      console.log("📝 Query:", currentQuery);
+      console.log("⏱️ Loading:", ragLoading);
+    }
+  }, [ragResponse, currentQuery, ragLoading]);
+
+  // Console.log RAG error
+  React.useEffect(() => {
+    if (ragError) {
+      console.error("❌ RAG Error:", ragError);
+      console.log("📝 Failed Query:", currentQuery);
+    }
+  }, [ragError, currentQuery]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,7 +78,13 @@ export default function ChatWindow({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !isLoading) {
+      // Gọi onSendMessage như bình thường
       onSendMessage(inputValue.trim());
+
+      // Đồng thời trigger RAG search để console.log response
+      setCurrentQuery(inputValue.trim());
+      console.log("🚀 Sending query to RAG:", inputValue.trim());
+
       setInputValue("");
     }
   };
@@ -142,8 +174,10 @@ export default function ChatWindow({
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setInputValue(e.target.value)
+            }
+            onKeyDown={handleKeyPress}
             placeholder={placeholder}
             disabled={isLoading}
             className="flex-1 text-sm font-questrial"
