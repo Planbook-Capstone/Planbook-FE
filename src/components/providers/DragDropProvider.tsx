@@ -89,8 +89,15 @@ export function DragDropProvider({
         const componentType = draggableId;
         const position = {
           stepId: destination.droppableId.replace("form-", ""),
-          index: destination.index,
+          index: 999999, // Force add to end - will be recalculated in addComponent
         };
+
+        console.log("🎯 Drag from palette:", {
+          componentType,
+          originalIndex: destination.index,
+          forcedIndex: position.index,
+          stepId: position.stepId,
+        });
 
         // Open config modal for the dropped item
         openConfigModal({ type: componentType }, position);

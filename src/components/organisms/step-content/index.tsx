@@ -116,20 +116,49 @@ export function StepContent({
                         "bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-4"
                     )}
                   >
+                    {(() => {
+                      console.log("StepContent mergedComponents:", {
+                        stepId: step?.id,
+                        stepTitle: step?.title,
+                        mergedComponentsLength: mergedComponents.length,
+                        mergedComponents: mergedComponents.map((c) => ({
+                          id: c.id,
+                          title: c.title,
+                          fieldType: c.fieldType,
+                          type: c.type,
+                          isDynamic: c.isDynamic,
+                        })),
+                      });
+                      return null;
+                    })()}
                     {mergedComponents.length > 0 ? (
                       <div className="space-y-8">
                         {mergedComponents.map((keyword, index) => (
                           <div key={keyword.id} className="relative group">
                             <KeywordForm
                               keyword={keyword}
-                              value={formData[keyword?.id]?.value || ""}
+                              value={(() => {
+                                const directValue = formData[keyword?.id];
+                                const extractedValue =
+                                  typeof directValue === "object"
+                                    ? (directValue as any)?.value || ""
+                                    : directValue || "";
+
+                                // Debug for static INPUT issue
+                                if (keyword?.fieldType === "INPUT") {
+                                  console.log("INPUT value binding debug:", {
+                                    keywordId: keyword?.id,
+                                    keywordTitle: keyword?.title,
+                                    directValue: directValue,
+                                    extractedValue: extractedValue,
+                                    formDataKeys: Object.keys(formData),
+                                    allFormData: formData,
+                                  });
+                                }
+
+                                return extractedValue;
+                              })()}
                               onChange={(value) => {
-                                console.log("StepContent onChange called:", {
-                                  keywordId: keyword?.id,
-                                  keywordTitle: keyword?.title,
-                                  keywordNodeType: keyword?.nodeType,
-                                  value: value?.substring(0, 100) + "...", // Truncate for readability
-                                });
                                 onFormDataChange(
                                   keyword?.id,
                                   keyword?.title,

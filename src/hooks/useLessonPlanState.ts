@@ -18,7 +18,7 @@ export function useLessonPlanState() {
     Record<string, any[]>
   >({});
 
-  const treeData = useLessonPlanNodeTreeService("11")();
+  const treeData = useLessonPlanNodeTreeService("12")();
   // const apiSteps =
   //   treeData?.data?.data?.sort(
   //     (a: any, b: any) => a?.orderIndex - b?.orderIndex
@@ -161,6 +161,13 @@ export function useLessonPlanState() {
       stepId: currentStepData.id,
     });
     setFormData((prev) => {
+      console.log("setFormData callback - prev state:", {
+        stepId: currentStepData.id,
+        prevStepData: prev[currentStepData.id],
+        keywordId: keywordId,
+        newValue: value,
+      });
+
       const newFormData = {
         ...prev,
         [currentStepData.id]: {
@@ -172,7 +179,14 @@ export function useLessonPlanState() {
           },
         },
       };
-      console.log("New formData:", newFormData);
+
+      console.log("setFormData callback - new state:", {
+        stepId: currentStepData.id,
+        newStepData: newFormData[currentStepData.id],
+        keywordId: keywordId,
+        finalValue: newFormData[currentStepData.id][keywordId].value,
+      });
+
       return newFormData;
     });
   };
