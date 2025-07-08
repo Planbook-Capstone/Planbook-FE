@@ -276,6 +276,7 @@ export function useDynamicForm() {
           isDynamic: true,
           order: comp.order,
           type: comp.type,
+          value: comp.value,
           stepId: parentStepId,
           parentId: comp.parentId ?? null,
         }));
