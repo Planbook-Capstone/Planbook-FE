@@ -51,7 +51,7 @@ function LessonPlanContent() {
 
   // Debug: Log allFormData changes
   React.useEffect(() => {
-    console.log("Page - allFormData updated:", allFormData);
+    console.log("Page - allFormData updated:", formData);
   }, [allFormData]);
 
   // Memoize breadcrumbs to prevent re-creation
@@ -135,6 +135,28 @@ function LessonPlanContent() {
     getMergedComponentsForStep,
   } = useDynamicForm();
 
+  // Transform allFormData to flat structure for preview sidebar
+  const transformedFormData = useMemo(() => {
+    const transformedData: Record<string, Record<string, string>> = {};
+
+    Object.keys(allFormData).forEach((stepId) => {
+      transformedData[stepId] = {};
+      const stepData = allFormData[stepId];
+
+      Object.keys(stepData).forEach((fieldId) => {
+        const fieldData = stepData[fieldId];
+        // Extract .value from {key, title, value} structure
+        transformedData[stepId][fieldId] =
+          typeof fieldData === "object" && fieldData && "value" in fieldData
+            ? (fieldData as any).value
+            : (fieldData as string);
+      });
+    });
+
+    console.log("Transformed formData for preview:", transformedData);
+    return transformedData;
+  }, [allFormData]);
+
   const { configModal, closeConfigModal } = useDragDrop();
 
   const handleConfigConfirm = (config: any) => {
@@ -145,28 +167,12 @@ function LessonPlanContent() {
     });
 
     if (configModal.position) {
-      console.log(
-        "🎯 Calling addComponent with:",
-        config,
-        configModal.position
-      );
       addComponent(config, configModal.position);
-      console.log("🎯 addComponent completed");
     } else {
       console.warn("⚠️ No position in configModal");
     }
     closeConfigModal();
   };
-
-  console.log("🔍 useLessonPlanState Debug:", {
-    currentStep,
-    currentStepId: currentStepData?.id,
-    isLoadingChildren,
-    childrenError,
-    childrenData: childrenData,
-    hasCurrentStepData: !!currentStepData,
-    displayStepsLength: displaySteps.length,
-  });
 
   // Show loading if children are loading
   if (isLoadingChildren && currentStepData?.id) {
@@ -288,7 +294,7 @@ function LessonPlanContent() {
 
               <LessonPlanPreviewSidebar
                 steps={displaySteps}
-                formData={allFormData}
+                formData={transformedFormData}
                 getMergedComponentsForStep={getMergedComponentsForStep}
                 getApiChildrenForStep={getChildrenForStep}
                 isVisible={showPreviewSidebar}

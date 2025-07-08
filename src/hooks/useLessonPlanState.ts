@@ -3,6 +3,7 @@ import {
   useLessonPlanNodeTreeService,
   useLessonPlanNodeChildrenService,
 } from "@/services/lessonPlanNodeServices";
+import { createFieldId } from "./useStableId";
 
 export function useLessonPlanState() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -17,7 +18,7 @@ export function useLessonPlanState() {
     Record<string, any[]>
   >({});
 
-  const treeData = useLessonPlanNodeTreeService("25")();
+  const treeData = useLessonPlanNodeTreeService("11")();
   // const apiSteps =
   //   treeData?.data?.data?.sort(
   //     (a: any, b: any) => a?.orderIndex - b?.orderIndex
@@ -71,21 +72,22 @@ export function useLessonPlanState() {
     : [];
 
   // Update cache when children data is loaded for current step
-useEffect(() => {
-  if (
-    currentStepId &&
-    childrenData.length > 0 &&
-    // Only update cache if data is actually different
-    (stepChildrenCache[currentStepId]?.length !== childrenData.length ||
-      JSON.stringify(stepChildrenCache[currentStepId]) !== JSON.stringify(childrenData))
-  ) {
-    setStepChildrenCache((prev) => ({
-      ...prev,
-      [currentStepId]: childrenData,
-    }));
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [currentStepId, childrenData]);
+  useEffect(() => {
+    if (
+      currentStepId &&
+      childrenData.length > 0 &&
+      // Only update cache if data is actually different
+      (stepChildrenCache[currentStepId]?.length !== childrenData.length ||
+        JSON.stringify(stepChildrenCache[currentStepId]) !==
+          JSON.stringify(childrenData))
+    ) {
+      setStepChildrenCache((prev) => ({
+        ...prev,
+        [currentStepId]: childrenData,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStepId, childrenData]);
 
   // Create enhanced currentStepData with API children
   const currentStepData = useMemo(() => {
@@ -102,17 +104,12 @@ useEffect(() => {
     if (stepId === currentStepId) {
       console.log(
         `📋 Getting current step children for ${stepId}:`,
-        childrenData?.length || 0,
+        childrenData,
         "items"
       );
       return childrenData || [];
     }
     const cachedData = stepChildrenCache[stepId] || [];
-    console.log(
-      `💾 Getting cached children for ${stepId}:`,
-      cachedData.length,
-      "items"
-    );
     return cachedData;
   };
 
@@ -148,7 +145,11 @@ useEffect(() => {
   };
 
   // Form data management
-  const updateStepFormData = (keywordId: string, value: string) => {
+  const updateStepFormData = (
+    keywordId: string,
+    keywordTitle: string,
+    value: string
+  ) => {
     if (!currentStepData?.id) {
       console.warn("Cannot update form data: currentStepData.id is missing");
       return;
@@ -164,7 +165,11 @@ useEffect(() => {
         ...prev,
         [currentStepData.id]: {
           ...prev[currentStepData.id],
-          [keywordId]: value,
+          [keywordId]: {
+            key: createFieldId("keyword", keywordTitle, keywordId),
+            title: keywordTitle,
+            value: value,
+          },
         },
       };
       console.log("New formData:", newFormData);
@@ -232,7 +237,6 @@ useEffect(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      console.log("📥 Exported lesson plan data:", exportData);
       alert("Đã tải xuống file kết quả lesson plan!");
     } catch (error) {
       console.error("Export error:", error);
