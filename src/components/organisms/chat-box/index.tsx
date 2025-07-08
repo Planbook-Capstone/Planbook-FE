@@ -17,7 +17,6 @@ export interface ChatBoxProps {
   placeholder?: string;
   showBadge?: boolean;
   showSettings?: boolean;
-  onSendMessage?: (message: string) => Promise<string> | string;
   initialMessages?: Message[];
   disabled?: boolean;
 }
@@ -45,14 +44,12 @@ export default function ChatBox({
   placeholder = "Nhập tin nhắn...",
   showBadge = true,
   showSettings = true,
-  onSendMessage,
   initialMessages = [],
   disabled = false,
 }: ChatBoxProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [position, setPosition] = React.useState<ChatPosition>(initialPosition);
   const [messages, setMessages] = React.useState<Message[]>(initialMessages);
-  const [isLoading, setIsLoading] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [showSettingsPanel, setShowSettingsPanel] = React.useState(false);
 
@@ -94,7 +91,7 @@ export default function ChatBox({
     setIsOpen(false);
   };
 
-  // Handle sending messages
+  // Handle sending messages - chỉ dùng RAG API thông qua ChatWindow
   const handleSendMessage = async (content: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -105,35 +102,8 @@ export default function ChatBox({
 
     setMessages((prev) => [...prev, userMessage]);
 
-    if (onSendMessage) {
-      setIsLoading(true);
-      try {
-        const response = await onSendMessage(content);
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: response,
-          sender: "bot",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botMessage]);
-
-        // Increase unread count if chat is closed
-        if (!isOpen) {
-          setUnreadCount((prev) => prev + 1);
-        }
-      } catch (error) {
-        console.error("Error sending message:", error);
-        const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.",
-          sender: "bot",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, errorMessage]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    // ChatWindow sẽ tự động gọi RAG API và thêm bot response
+    // Không cần xử lý gì thêm ở đây
   };
 
   // Add welcome message on first open
@@ -206,8 +176,8 @@ export default function ChatBox({
             onClose={handleClose}
             title={title}
             placeholder={placeholder}
-            isLoading={isLoading}
             showMinimize={false}
+            onAddMessage={(message) => setMessages((prev) => [...prev, message])}
           />
         </div>
       )}

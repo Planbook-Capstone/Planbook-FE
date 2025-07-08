@@ -17,9 +17,6 @@ import { usePathname } from "next/navigation";
 import { getPageLabel, getPageActions } from "@/utils/pathToLabel";
 import { HeaderProvider, useHeader } from "@/contexts/HeaderContext";
 import { ChatButton } from "@/components/ui/chat-button";
-import ChatBoxDemo, {
-  mockAIResponse,
-} from "@/components/examples/chat-box-demo";
 import ChatBox from "@/components/organisms/chat-box";
 
 interface ToolLayoutProps {
@@ -105,7 +102,6 @@ export default function ToolLayout({ children }: ToolLayoutProps) {
         title="PlanBook AI Assistant"
         placeholder="Nhập câu hỏi của bạn..."
         showBadge={true}
-        onSendMessage={mockAIResponse}
       />
       <ToolLayoutContent>{children}</ToolLayoutContent>
     </HeaderProvider>
