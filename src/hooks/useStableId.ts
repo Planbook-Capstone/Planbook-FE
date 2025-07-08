@@ -42,7 +42,7 @@ export function generateStableId(
     .replace(/^-|-$/g, "");
 
   const suffix = index !== undefined ? `-${index}` : "";
-  return `${prefix}-${hash}${suffix}`;
+  return `${prefix}-${hash}`;
 }
 
 /**
@@ -53,5 +53,5 @@ export function createFieldId(
   title: string,
   stepId: string
 ): string {
-  return generateStableId(`${type.toLowerCase()}-${stepId}`, title);
+  return generateStableId(`${type.toLowerCase()}`, title);
 }

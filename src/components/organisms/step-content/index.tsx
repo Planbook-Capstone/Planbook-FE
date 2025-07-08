@@ -17,7 +17,11 @@ interface Step {
 interface StepContentProps {
   step: Step;
   formData: Record<string, string>;
-  onFormDataChange: (keywordId: string, value: string) => void;
+  onFormDataChange: (
+    keywordId: string,
+    keywordTitle: string,
+    value: string
+  ) => void;
   currentStep: number;
   totalSteps: number;
   allSteps?: Step[];
@@ -118,9 +122,13 @@ export function StepContent({
                           <div key={keyword.id} className="relative group">
                             <KeywordForm
                               keyword={keyword}
-                              value={formData[keyword?.id] || ""}
+                              value={formData[keyword?.id]?.value || ""}
                               onChange={(value) =>
-                                onFormDataChange(keyword?.id, value)
+                                onFormDataChange(
+                                  keyword?.id,
+                                  keyword?.title,
+                                  value
+                                )
                               }
                               index={index}
                               isEditMode={isEditMode}

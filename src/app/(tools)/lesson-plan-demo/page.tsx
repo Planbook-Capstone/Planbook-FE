@@ -51,7 +51,7 @@ function LessonPlanContent() {
 
   // Debug: Log allFormData changes
   React.useEffect(() => {
-    console.log("Page - allFormData updated:", allFormData);
+    console.log("Page - allFormData updated:", formData);
   }, [allFormData]);
 
   // Memoize breadcrumbs to prevent re-creation
@@ -288,7 +288,7 @@ function LessonPlanContent() {
 
               <LessonPlanPreviewSidebar
                 steps={displaySteps}
-                formData={allFormData}
+                formData={formData}
                 getMergedComponentsForStep={getMergedComponentsForStep}
                 getApiChildrenForStep={getChildrenForStep}
                 isVisible={showPreviewSidebar}
