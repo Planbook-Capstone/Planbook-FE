@@ -74,6 +74,9 @@ export const PDF_API_ENDPOINTS = {
   // Quick analysis
   QUICK_TEXTBOOK_ANALYSIS: "/pdf/import",
 
+  //SEARCH
+  RAG_QUERY: "pdf/rag-query",
+
   //Task-progress
   TASKS_STATUS: `/tasks/status`,
 } as const;

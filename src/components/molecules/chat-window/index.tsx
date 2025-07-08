@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/Button";
 import TypingIndicator from "@/components/ui/typing-indicator";
 import { Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRagSearchService } from "@/services/ragServices";
 
 export interface Message {
   id: string;
   content: string;
   sender: "user" | "bot";
   timestamp: Date;
+  isHtml?: boolean; // Flag để render HTML content
 }
 
 export interface ChatWindowProps {
@@ -25,6 +27,7 @@ export interface ChatWindowProps {
   title?: string;
   isLoading?: boolean;
   showMinimize?: boolean;
+  onAddMessage?: (message: Message) => void; // Callback để thêm message mới
 }
 
 export default function ChatWindow({
@@ -37,9 +40,53 @@ export default function ChatWindow({
   title = "Trò chuyện với AI",
   isLoading = false,
   showMinimize = true,
+  onAddMessage,
 }: ChatWindowProps) {
   const [inputValue, setInputValue] = React.useState("");
+  const [currentQuery, setCurrentQuery] = React.useState<string>("");
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  // RAG Search Service - gọi API khi có query
+  const {
+    data: ragResponse,
+    isLoading: ragLoading,
+    error: ragError,
+  } = useRagSearchService(currentQuery || undefined);
+
+  // Handle RAG response và tạo bot message với HTML content
+  React.useEffect(() => {
+    if (ragResponse && currentQuery) {
+      console.log("🤖 RAG Response:", ragResponse);
+      console.log("📝 Query:", currentQuery);
+      console.log("⏱️ Loading:", ragLoading);
+
+      // Tạo bot message với HTML content từ response.answer
+      if (ragResponse.success && ragResponse.answer && onAddMessage) {
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: ragResponse.answer, // HTML content từ API
+          sender: "bot",
+          timestamp: new Date(),
+          isHtml: true, // Đánh dấu để render HTML
+        };
+
+        // Thêm bot message vào chat
+        onAddMessage(botMessage);
+        console.log("📨 Added bot message with HTML content");
+
+        // Reset query để tránh trigger lại
+        setCurrentQuery("");
+      }
+    }
+  }, [ragResponse, currentQuery, ragLoading, onAddMessage]);
+
+  // Console.log RAG error
+  React.useEffect(() => {
+    if (ragError) {
+      console.error("❌ RAG Error:", ragError);
+      console.log("📝 Failed Query:", currentQuery);
+    }
+  }, [ragError, currentQuery]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,7 +99,13 @@ export default function ChatWindow({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !isLoading) {
+      // Gọi onSendMessage như bình thường
       onSendMessage(inputValue.trim());
+
+      // Đồng thời trigger RAG search để console.log response
+      setCurrentQuery(inputValue.trim());
+      console.log("🚀 Sending query to RAG:", inputValue.trim());
+
       setInputValue("");
     }
   };
@@ -68,7 +121,7 @@ export default function ChatWindow({
     <div
       className={cn(
         "bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col",
-        "w-80 h-96",
+        "w-80 h-[500px]",
         className
       )}
     >
@@ -120,13 +173,20 @@ export default function ChatWindow({
                     : "bg-gray-100 text-gray-800 rounded-bl-sm"
                 )}
               >
-                {message.content}
+                {message.isHtml ? (
+                  <div
+                    className="prose prose-sm max-w-none text-inherit"
+                    dangerouslySetInnerHTML={{ __html: message.content }}
+                  />
+                ) : (
+                  message.content
+                )}
               </div>
             </div>
           ))
         )}
 
-        {isLoading && (
+        {ragLoading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 text-gray-800 px-3 py-2 rounded-lg rounded-bl-sm text-sm">
               <TypingIndicator variant="text" text="" size="sm" />
@@ -142,8 +202,10 @@ export default function ChatWindow({
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setInputValue(e.target.value)
+            }
+            onKeyDown={handleKeyPress}
             placeholder={placeholder}
             disabled={isLoading}
             className="flex-1 text-sm font-questrial"
