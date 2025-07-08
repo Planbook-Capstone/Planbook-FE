@@ -14,6 +14,7 @@ export interface Message {
   content: string;
   sender: "user" | "bot";
   timestamp: Date;
+  isHtml?: boolean; // Flag để render HTML content
 }
 
 export interface ChatWindowProps {
@@ -26,6 +27,7 @@ export interface ChatWindowProps {
   title?: string;
   isLoading?: boolean;
   showMinimize?: boolean;
+  onAddMessage?: (message: Message) => void; // Callback để thêm message mới
 }
 
 export default function ChatWindow({
@@ -38,6 +40,7 @@ export default function ChatWindow({
   title = "Trò chuyện với AI",
   isLoading = false,
   showMinimize = true,
+  onAddMessage,
 }: ChatWindowProps) {
   const [inputValue, setInputValue] = React.useState("");
   const [currentQuery, setCurrentQuery] = React.useState<string>("");
@@ -50,14 +53,32 @@ export default function ChatWindow({
     error: ragError,
   } = useRagSearchService(currentQuery || undefined);
 
-  // Console.log RAG response khi có data
+  // Handle RAG response và tạo bot message với HTML content
   React.useEffect(() => {
-    if (ragResponse) {
+    if (ragResponse && currentQuery) {
       console.log("🤖 RAG Response:", ragResponse);
       console.log("📝 Query:", currentQuery);
       console.log("⏱️ Loading:", ragLoading);
+
+      // Tạo bot message với HTML content từ response.answer
+      if (ragResponse.success && ragResponse.answer && onAddMessage) {
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: ragResponse.answer, // HTML content từ API
+          sender: "bot",
+          timestamp: new Date(),
+          isHtml: true, // Đánh dấu để render HTML
+        };
+
+        // Thêm bot message vào chat
+        onAddMessage(botMessage);
+        console.log("📨 Added bot message with HTML content");
+
+        // Reset query để tránh trigger lại
+        setCurrentQuery("");
+      }
     }
-  }, [ragResponse, currentQuery, ragLoading]);
+  }, [ragResponse, currentQuery, ragLoading, onAddMessage]);
 
   // Console.log RAG error
   React.useEffect(() => {
@@ -100,7 +121,7 @@ export default function ChatWindow({
     <div
       className={cn(
         "bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col",
-        "w-80 h-96",
+        "w-80 h-[500px]",
         className
       )}
     >
@@ -152,13 +173,20 @@ export default function ChatWindow({
                     : "bg-gray-100 text-gray-800 rounded-bl-sm"
                 )}
               >
-                {message.content}
+                {message.isHtml ? (
+                  <div
+                    className="prose prose-sm max-w-none text-inherit"
+                    dangerouslySetInnerHTML={{ __html: message.content }}
+                  />
+                ) : (
+                  message.content
+                )}
               </div>
             </div>
           ))
         )}
 
-        {isLoading && (
+        {ragLoading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 text-gray-800 px-3 py-2 rounded-lg rounded-bl-sm text-sm">
               <TypingIndicator variant="text" text="" size="sm" />

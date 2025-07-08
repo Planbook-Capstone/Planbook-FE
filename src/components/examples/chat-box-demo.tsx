@@ -88,7 +88,6 @@ export default function ChatBoxDemo() {
         title="PlanBook AI Assistant"
         placeholder="Nhập câu hỏi của bạn..."
         showBadge={true}
-        onSendMessage={mockAIResponse}
       />
     </div>
   );
