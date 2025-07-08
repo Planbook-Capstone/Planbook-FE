@@ -793,30 +793,33 @@ export function LessonPlanPreviewSidebar({
     return stepData[keywordTitle] || "";
   };
 
-  // Get value by keyword or title (for transformed formData)
-  const getValueByKeyOrTitle = (search: string): string => {
+  // Get value by keyword pattern (for transformed formData)
+  const getValueByKeyPattern = (pattern: string): string => {
     // Search in transformed formData structure: {stepId: {fieldId: "value"}}
     for (const stepId in formData) {
       const stepData = formData[stepId];
       if (!stepData || typeof stepData !== "object") continue;
 
-      // Look for direct key match
-      if (stepData[search]) {
-        return stepData[search];
-      }
-
-      // Look for partial key match (e.g., search "keyword-ten-gv" in keys)
+      // Look for key that contains the pattern
       for (const fieldId in stepData) {
-        if (fieldId.includes(search) || search.includes(fieldId)) {
+        if (fieldId.includes(pattern)) {
+          console.log(
+            `Found ${pattern} in fieldId: ${fieldId}, value: ${stepData[fieldId]}`
+          );
           return stepData[fieldId];
         }
       }
     }
 
-    console.log(`getValueByKeyOrTitle: No value found for "${search}"`);
-    console.log("Available formData:", formData);
-    console.log("Step 537 details:", formData["537"]);
+    console.log(
+      `getValueByKeyPattern: No value found for pattern "${pattern}"`
+    );
     return "";
+  };
+
+  // Legacy function for backward compatibility
+  const getValueByKeyOrTitle = (search: string): string => {
+    return getValueByKeyPattern(search);
   };
 
   // Helper function to generate keyword ID from title (matching the template pattern)
@@ -1302,6 +1305,9 @@ export function LessonPlanPreviewSidebar({
     step.title?.toLowerCase().includes("thông tin")
   );
 
+  // Get general info step ID for dynamic lookup
+  const generalInfoStepId = generalInfoStep?.id;
+
   // Get objectives step
   const objectivesStep = steps.find((step) =>
     step.title?.toLowerCase().includes("mục tiêu")
@@ -1358,23 +1364,44 @@ export function LessonPlanPreviewSidebar({
           <div className="space-y-1 text-xs">
             <div>
               Tên cơ sở giáo dục:{" "}
-              {(formData["537"] as any)?.[538] || "………………………………….."}
+              {generalInfoStepId
+                ? (formData[generalInfoStepId] as any)?.[
+                    Object.keys(formData[generalInfoStepId] || {})[0]
+                  ] || "………………………………….."
+                : "………………………………….."}
             </div>
             <div>
               Họ và tên giáo viên:{" "}
-              {(formData["537"] as any)?.[539] || "………………………………….."}
+              {generalInfoStepId
+                ? (formData[generalInfoStepId] as any)?.[
+                    Object.keys(formData[generalInfoStepId] || {})[1]
+                  ] || "………………………………….."
+                : "………………………………….."}
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="font-bold text-center">
               TÊN BÀI DẠY:{" "}
-              {(formData["537"] as any)?.[540] || "………………………………….."}
+              {generalInfoStepId
+                ? (formData[generalInfoStepId] as any)?.[
+                    Object.keys(formData[generalInfoStepId] || {})[2]
+                  ] || "………………………………….."
+                : "………………………………….."}
             </div>
             <div>
               Môn học/Hoạt động giáo dục:{" "}
-              {(formData["537"] as any)?.[541] || "………"}; lớp:{" "}
-              {(formData["537"] as any)?.[542] || "………"}
+              {generalInfoStepId
+                ? (formData[generalInfoStepId] as any)?.[
+                    Object.keys(formData[generalInfoStepId] || {})[3]
+                  ] || "………"
+                : "………"}
+              ; lớp:{" "}
+              {generalInfoStepId
+                ? (formData[generalInfoStepId] as any)?.[
+                    Object.keys(formData[generalInfoStepId] || {})[4]
+                  ] || "………"
+                : "………"}
             </div>
             <div>
               Thời gian thực hiện:{" "}
