@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import ExamCreationTemplate from "@/components/templates/exam-creation";
 import ExamFileImport from "@/components/organisms/exam-file-import";
+import CanvaLayout from "@/components/templates/canva-layout";
 
 export default function ExamCreationPage() {
   const [hasData, setHasData] = useState(false);
@@ -35,7 +36,7 @@ export default function ExamCreationPage() {
   };
 
   const handleImageDrop = (questionId: string, imageSrc: string) => {
-    console.log('🖼️ Image dropped on question:', questionId, imageSrc);
+    console.log("🖼️ Image dropped on question:", questionId, imageSrc);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -44,13 +45,20 @@ export default function ExamCreationPage() {
     if (!over) return;
 
     // Check if dropping an image asset onto a question
-    if (active.data.current?.type === 'image' && over.id.toString().includes('question') && over.id.toString().includes('image-drop')) {
-      console.log('🖼️ Dropping image:', active.data.current.content);
-      console.log('📍 Drop target:', over.id);
+    if (
+      active.data.current?.type === "image" &&
+      over.id.toString().includes("question") &&
+      over.id.toString().includes("image-drop")
+    ) {
+      console.log("🖼️ Dropping image:", active.data.current.content);
+      console.log("📍 Drop target:", over.id);
 
       // Extract question ID from drop zone ID (format: question-{id}-image-drop)
-      const questionId = over.id.toString().replace('question-', '').replace('-image-drop', '');
-      console.log('🎯 Question ID:', questionId);
+      const questionId = over.id
+        .toString()
+        .replace("question-", "")
+        .replace("-image-drop", "");
+      console.log("🎯 Question ID:", questionId);
 
       // Call the image drop handler
       handleImageDrop(questionId, active.data.current.content);
@@ -66,23 +74,18 @@ export default function ExamCreationPage() {
   };
 
   // Show file import interface when there's no data
-  if (!hasData) {
-    return (
-      <div className="w-full">
-        <ExamFileImport onSubmit={handleFileSubmit} />
-      </div>
-    );
-  }
+  // if (!hasData) {
+  //   return (
+  //     <div className="w-full">
+  //       <ExamFileImport onSubmit={handleFileSubmit} />
+  //     </div>
+  //   );
+  // }
 
   // Show exam creation template when there's data
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <ExamCreationTemplate
-        documentInfo={documentInfo}
-        onQuestionUpdate={handleQuestionUpdate}
-        examData={examData}
-        onImageDrop={handleImageDrop}
-      />
-    </DndContext>
+    <div className="h-screen w-full">
+      <CanvaLayout />
+    </div>
   );
 }

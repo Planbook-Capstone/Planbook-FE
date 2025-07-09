@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
-import AssetsPanel from '@/components/organisms/assets-panel';
-import CanvasArea from '@/components/organisms/canvas-area';
-import PreviewPanel from '@/components/organisms/preview-panel';
-import { ExamProvider, useExamContext } from '@/contexts/ExamContext';
+import React, { useState } from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import AssetsPanel from "@/components/organisms/assets-panel";
+import CanvasArea from "@/components/organisms/canvas-area";
+import PreviewPanel from "@/components/organisms/preview-panel";
+import { ExamProvider, useExamContext } from "@/contexts/ExamContext";
+import { useSearchParams } from "next/navigation";
 
 export interface CanvasElement {
   id: string;
-  type: 'image' | 'text' | 'shape';
+  type: "image" | "text" | "shape";
   content: string;
   position: { x: number; y: number };
   size: { width: number; height: number };
@@ -31,7 +37,7 @@ function CanvaLayoutContent() {
     if (over && active.data.current) {
       const assetData = active.data.current;
 
-      if (over.id === 'canvas-drop-zone') {
+      if (over.id === "canvas-drop-zone") {
         // Get the asset data from the dragged item
         if (assetData && !assetData.isCanvasElement) {
           // This is a new element being dragged from assets panel
@@ -39,21 +45,31 @@ function CanvaLayoutContent() {
             id: `element-${Date.now()}`,
             type: assetData.type,
             content: assetData.content,
-            position: { x: Math.random() * 200 + 50, y: Math.random() * 200 + 50 }, // Random position
+            position: {
+              x: Math.random() * 200 + 50,
+              y: Math.random() * 200 + 50,
+            }, // Random position
             size: {
-              width: assetData.type === 'text' ? 150 : 200,
-              height: assetData.type === 'text' ? 50 : 150
+              width: assetData.type === "text" ? 150 : 200,
+              height: assetData.type === "text" ? 50 : 150,
             },
-            style: assetData.style || {}
+            style: assetData.style || {},
           };
 
-          setCanvasElements(prev => [...prev, newElement]);
+          setCanvasElements((prev) => [...prev, newElement]);
         }
-      } else if (over.id && over.id.toString().includes('question-') && over.id.toString().includes('-image-drop')) {
+      } else if (
+        over.id &&
+        over.id.toString().includes("question-") &&
+        over.id.toString().includes("-image-drop")
+      ) {
         // Handle drop on question image area
-        if (assetData.type === 'image') {
+        if (assetData.type === "image") {
           // Extract question ID from drop zone ID
-          const questionId = over.id.toString().replace('question-', '').replace('-image-drop', '');
+          const questionId = over.id
+            .toString()
+            .replace("question-", "")
+            .replace("-image-drop", "");
 
           // Update question's illustration image using context
           updateQuestionImage(questionId, assetData.content);
@@ -65,16 +81,22 @@ function CanvaLayoutContent() {
   };
 
   const updateElement = (id: string, updates: Partial<CanvasElement>) => {
-    setCanvasElements(prev => 
-      prev.map(element => 
+    setCanvasElements((prev) =>
+      prev.map((element) =>
         element.id === id ? { ...element, ...updates } : element
       )
     );
   };
 
   const deleteElement = (id: string) => {
-    setCanvasElements(prev => prev.filter(element => element.id !== id));
+    setCanvasElements((prev) => prev.filter((element) => element.id !== id));
   };
+
+  const searchParams = useSearchParams();
+
+  const isPreviewing = searchParams.get("preview") === "true";
+
+  console.log(isPreviewing, "tran");
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -86,8 +108,10 @@ function CanvaLayoutContent() {
 
         {/* Canvas Area - Scrollable */}
         <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-          <div className="h-16 flex items-center px-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-            <h1 className="text-xl font-calsans text-gray-800">Tạo bài kiểm tra</h1>
+          <div className="h-16 flex items-center  border-gray-200 bg-white sticky top-0 z-10">
+            {/* <h1 className="text-xl font-calsans text-gray-800">
+              Tạo bài kiểm tra
+            </h1> */}
             <div className="ml-auto flex space-x-2">
               <button className="sm:hidden p-2 hover:bg-gray-100 rounded-lg">
                 Assets
@@ -107,9 +131,11 @@ function CanvaLayoutContent() {
         </div>
 
         {/* Preview Panel - Sticky */}
-        <div className="w-80 bg-white border-l border-gray-200 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
-          <PreviewPanel elements={canvasElements} />
-        </div>
+        {isPreviewing && (
+          <div className="w-80 bg-white border-l border-gray-200 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+            <PreviewPanel elements={canvasElements} />
+          </div>
+        )}
       </div>
 
       {/* Drag Overlay */}

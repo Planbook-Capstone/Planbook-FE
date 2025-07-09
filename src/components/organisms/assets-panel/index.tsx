@@ -220,7 +220,7 @@ export default function AssetsPanel() {
 
       {/* Assets Grid */}
       {!isCollapsed && (
-        <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
+        <div className="flex-1 p-2 sm:p-4 overflow-y-auto w-64">
           {activeTab === "upload" ? (
             <div className="space-y-4">
               {/* Upload Area */}
@@ -264,7 +264,7 @@ export default function AssetsPanel() {
 
               {/* Uploaded Images Grid */}
               {materialInternal?.data?.content?.length > 0 ? (
-                <div className=" w-48 grid grid-cols-2 lg:grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3">
+                <div className="  grid grid-cols-2 lg:grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3">
                   {materialInternal?.data?.content?.map(
                     (asset: any, idx: number) => {
                       const assetItem: AssetItem = {
