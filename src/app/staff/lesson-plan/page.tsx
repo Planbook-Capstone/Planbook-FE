@@ -105,7 +105,7 @@ export default function LessonPlanPage() {
           content: keyword.content || "",
           parentId: parentId,
           type: specialTypes.includes(nodeType) ? "PARAGRAPH" : nodeType,
-          fieldType: specialTypes.includes(nodeType) ? nodeType : undefined,
+          fieldType: keyword?.fieldType ?? null,
           orderIndex: keyword.order,
         };
 
@@ -326,7 +326,7 @@ export default function LessonPlanPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  if (showBuilder) {
+  if (!showBuilder) {
     return (
       <LessonPlanTemplateBuilder
         initialTemplate={currentTemplate || undefined}

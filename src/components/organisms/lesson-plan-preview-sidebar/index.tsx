@@ -39,6 +39,89 @@ export function LessonPlanPreviewSidebar({
   className,
   style,
 }: LessonPlanPreviewSidebarProps) {
+  // Debug: Check formData prop
+  console.log("🎯 LessonPlanPreviewSidebar props:", {
+    stepsCount: steps?.length || 0,
+    formDataType: typeof formData,
+    formDataKeys: formData ? Object.keys(formData) : "null/undefined",
+    formDataContent: formData,
+    hasSteps: !!steps,
+    hasFormData: !!formData,
+  });
+
+  // Debug: Watch formData changes
+  React.useEffect(() => {
+    console.log("🎯 FormData changed:", {
+      keys: Object.keys(formData || {}),
+      content: formData,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Debug specific step data with detailed structure
+    Object.keys(formData || {}).forEach((stepId) => {
+      const stepData = formData[stepId];
+      const step = steps?.find((s) => s.id === stepId);
+
+      console.log(`🎯 DETAILED Step ${stepId} (${step?.title}):`, {
+        stepData,
+        stepDataType: typeof stepData,
+        stepDataKeys: Object.keys(stepData || {}),
+        stepDataEntries: Object.entries(stepData || {}),
+        fieldValues: Object.entries(stepData || {}).map(([fieldId, value]) => ({
+          fieldId,
+          value,
+          valueType: typeof value,
+          hasTitle:
+            typeof value === "object" && value !== null && "title" in value,
+          hasValue:
+            typeof value === "object" && value !== null && "value" in value,
+        })),
+        // Debug template children for this step
+        templateChildren:
+          step?.children?.map((child) => ({
+            id: child.id,
+            title: child.title,
+            fieldType: child.fieldType,
+            nodeType: child.nodeType,
+          })) || [],
+      });
+
+      // Check if template children IDs match formData field IDs
+      if (step?.children) {
+        const templateFieldIds = step.children.map((c) => c.id);
+        const formDataFieldIds = Object.keys(stepData || {});
+        const missingInFormData = templateFieldIds.filter(
+          (id) => !formDataFieldIds.includes(id)
+        );
+        const extraInFormData = formDataFieldIds.filter(
+          (id) => !templateFieldIds.includes(id)
+        );
+
+        console.log(`🎯 Step ${stepId} ID MISMATCH ANALYSIS:`, {
+          templateFieldIds,
+          formDataFieldIds,
+          missingInFormData,
+          extraInFormData,
+          templateVsFormData: templateFieldIds.map((templateId) => ({
+            templateId,
+            hasFormData: formDataFieldIds.includes(templateId),
+            formDataValue: stepData[templateId] || "NOT_FOUND",
+          })),
+        });
+      }
+    });
+
+    // Also debug steps structure
+    console.log("🎯 Steps structure:", {
+      stepsCount: steps?.length,
+      stepsWithChildren: steps?.map((s) => ({
+        id: s.id,
+        title: s.title,
+        childrenCount: s.children?.length || 0,
+        hasChildren: (s.children?.length || 0) > 0,
+      })),
+    });
+  }, [formData, steps]);
   // Export to Word function
   const handleExportWord = async () => {
     try {
@@ -50,10 +133,6 @@ export function LessonPlanPreviewSidebar({
         TextRun,
         HeadingLevel,
         AlignmentType,
-        Table,
-        TableRow,
-        TableCell,
-        WidthType,
       } = await import("docx");
 
       // Get general info step
@@ -63,8 +142,43 @@ export function LessonPlanPreviewSidebar({
           step.title?.toLowerCase().includes("chung")
       );
 
+      // Helper: Get field value by Object.keys order (for preview sidebar)
+      const getFieldValueByOrder = (
+        stepId: string,
+        position: number
+      ): string => {
+        if (!formData[stepId]) return "";
+
+        const stepData = formData[stepId];
+        const keys = Object.keys(stepData);
+
+        if (keys[position]) {
+          const value =
+            (stepData as any)[keys[position]]?.value ||
+            (stepData as any)[keys[position]] ||
+            "";
+          console.log(`🎯 Preview order-based for position ${position}:`, {
+            key: keys[position],
+            value: value,
+          });
+          return value;
+        }
+
+        return "";
+      };
+
       const getFieldValue = (stepId: string, fieldId: string): string => {
-        return formData[stepId]?.[fieldId] || "";
+        const stepData = formData[stepId];
+        if (typeof stepData === "object" && stepData !== null) {
+          const fieldData = (stepData as any)[fieldId];
+          if (typeof fieldData === "object" && fieldData !== null) {
+            return (
+              fieldData.content || fieldData.value || fieldData.title || ""
+            );
+          }
+          return fieldData || "";
+        }
+        return "";
       };
 
       // Create document sections
@@ -111,10 +225,10 @@ export function LessonPlanPreviewSidebar({
           children: [
             new TextRun({
               text: `Tên cơ sở giáo dục: ${
-                generalInfoStep?.id && formData[generalInfoStep.id]
-                  ? (formData[generalInfoStep.id] as any)?.[
-                      Object.keys(formData[generalInfoStep.id] || {})[0]
-                    ] || "…………………………………..."
+                generalInfoStep?.id
+                  ? getGeneralInfoFieldByTitle(generalInfoStep.id, "trường") ||
+                    getGeneralInfoFieldByTitle(generalInfoStep.id, "cơ sở") ||
+                    "…………………………………..."
                   : "…………………………………..."
               }`,
               size: 26,
@@ -126,10 +240,13 @@ export function LessonPlanPreviewSidebar({
           children: [
             new TextRun({
               text: `Họ và tên giáo viên: ${
-                generalInfoStep?.id && formData[generalInfoStep.id]
-                  ? (formData[generalInfoStep.id] as any)?.[
-                      Object.keys(formData[generalInfoStep.id] || {})[1]
-                    ] || "…………………………………..."
+                generalInfoStep?.id
+                  ? getGeneralInfoFieldByTitle(
+                      generalInfoStep.id,
+                      "giáo viên"
+                    ) ||
+                    getGeneralInfoFieldByTitle(generalInfoStep.id, "tên") ||
+                    "…………………………………..."
                   : "…………………………………..."
               }`,
               size: 26,
@@ -141,10 +258,10 @@ export function LessonPlanPreviewSidebar({
           children: [
             new TextRun({
               text: `TÊN BÀI DẠY: ${
-                generalInfoStep?.id && formData[generalInfoStep.id]
-                  ? (formData[generalInfoStep.id] as any)?.[
-                      Object.keys(formData[generalInfoStep.id] || {})[2]
-                    ] || "…………………………………..."
+                generalInfoStep?.id
+                  ? getGeneralInfoFieldByTitle(generalInfoStep.id, "bài") ||
+                    getGeneralInfoFieldByTitle(generalInfoStep.id, "tên bài") ||
+                    "…………………………………..."
                   : "…………………………………..."
               }`,
               size: 26,
@@ -163,16 +280,21 @@ export function LessonPlanPreviewSidebar({
             children: [
               new TextRun({
                 text: `Môn học/Hoạt động giáo dục: ${
-                  generalInfoStep?.id && formData[generalInfoStep.id]
-                    ? (formData[generalInfoStep.id] as any)?.[
-                        Object.keys(formData[generalInfoStep.id] || {})[3]
-                      ] || "………"
+                  generalInfoStep?.id
+                    ? getGeneralInfoFieldByTitle(
+                        generalInfoStep.id,
+                        "môn học"
+                      ) ||
+                      getGeneralInfoFieldByTitle(
+                        generalInfoStep.id,
+                        "hoạt động"
+                      ) ||
+                      "………"
                     : "………"
                 }; lớp: ${
-                  generalInfoStep?.id && formData[generalInfoStep.id]
-                    ? (formData[generalInfoStep.id] as any)?.[
-                        Object.keys(formData[generalInfoStep.id] || {})[4]
-                      ] || "………"
+                  generalInfoStep?.id
+                    ? getGeneralInfoFieldByTitle(generalInfoStep.id, "lớp") ||
+                      "………"
                     : "………"
                 }`,
                 size: 26,
@@ -184,10 +306,13 @@ export function LessonPlanPreviewSidebar({
             children: [
               new TextRun({
                 text: `Thời gian thực hiện: ${
-                  generalInfoStep?.id && formData[generalInfoStep.id]
-                    ? (formData[generalInfoStep.id] as any)?.[
-                        Object.keys(formData[generalInfoStep.id] || {})[5]
-                      ] || "(số tiết)"
+                  generalInfoStep?.id
+                    ? getGeneralInfoFieldByTitle(
+                        generalInfoStep.id,
+                        "thời gian"
+                      ) ||
+                      getGeneralInfoFieldByTitle(generalInfoStep.id, "tiết") ||
+                      "(số tiết)"
                     : "(số tiết)"
                 }`,
                 size: 26,
@@ -220,7 +345,13 @@ export function LessonPlanPreviewSidebar({
       for (let i = 0; i < contentSteps.length; i++) {
         const step = contentSteps[i];
         const stepNumber = romanNumerals[i] || `${i + 1}`;
-        const stepData = formData[step.id] || {};
+
+        // Ensure stepData is always an object
+        const rawStepData = formData[step.id];
+        const stepData =
+          typeof rawStepData === "object" && rawStepData !== null
+            ? (rawStepData as Record<string, any>)
+            : {};
 
         // Step title
         documentChildren.push(
@@ -288,7 +419,7 @@ export function LessonPlanPreviewSidebar({
   // Helper function to add step content to document
   const addStepContentToDoc = async (
     components: any[],
-    stepData: Record<string, string>,
+    stepData: Record<string, any>, // Changed from string to any to support object format
     documentChildren: any[],
     level: number = 0
   ) => {
@@ -296,7 +427,21 @@ export function LessonPlanPreviewSidebar({
 
     for (let i = 0; i < components.length; i++) {
       const component = components[i];
-      const userValue = stepData?.[component.id] || "";
+
+      // Extract string value from both object and string formats
+      const rawValue = stepData?.[component.id];
+      const userValue = (() => {
+        if (typeof rawValue === "object" && rawValue !== null) {
+          // For object values, extract content/value/title
+          const objectValue = rawValue as any;
+          return (
+            objectValue.content || objectValue.value || objectValue.title || ""
+          );
+        }
+        // For string values, use as-is
+        return rawValue || "";
+      })();
+
       const defaultContent = component.content || component.description || "";
       const content = userValue || defaultContent;
 
@@ -373,14 +518,22 @@ export function LessonPlanPreviewSidebar({
   // Helper function to add references to document
   const addReferencesToDoc = async (
     component: any,
-    stepData: Record<string, string>,
+    stepData: Record<string, any>, // Changed to any to support object format
     documentChildren: any[],
     level: number = 0
   ) => {
     const { Paragraph, TextRun, ImageRun } = await import("docx");
 
+    // Extract string value from both object and string formats
+    const extractValue = (data: any): string => {
+      if (typeof data === "object" && data !== null) {
+        return data.content || data.value || data.title || "";
+      }
+      return data || "";
+    };
+
     // Get resource data from form data
-    const resourceDataStr = stepData[component.id];
+    const resourceDataStr = extractValue(stepData[component.id]);
     if (!resourceDataStr) return;
 
     try {
@@ -617,18 +770,26 @@ export function LessonPlanPreviewSidebar({
   // Helper function to add table to document
   const addTableToDoc = async (
     component: any,
-    stepData: Record<string, string>,
+    stepData: Record<string, any>, // Changed to any to support object format
     documentChildren: any[]
   ) => {
     const { Table, TableRow, TableCell, WidthType } = await import("docx");
 
     try {
+      // Extract string value from both object and string formats
+      const extractValue = (data: any): string => {
+        if (typeof data === "object" && data !== null) {
+          return data.content || data.value || data.title || "";
+        }
+        return data || "";
+      };
+
       // Parse table data - use same logic as preview sidebar
-      let tableDataStr = stepData?.[component.id] || "";
+      let tableDataStr = extractValue(stepData?.[component.id]);
 
       // If not found, try parent ID (for nested TABLE components)
       if (!tableDataStr && component.parentId) {
-        tableDataStr = stepData?.[component.parentId] || "";
+        tableDataStr = extractValue(stepData?.[component.parentId]);
       }
 
       // If still not found, use component.content (for API data)
@@ -799,100 +960,26 @@ export function LessonPlanPreviewSidebar({
     }
   };
 
-  // Helper function to get form data by title (more flexible)
-  const getFieldValue = (stepId: string, keywordTitle: string): string => {
-    const stepData = formData[stepId];
-    if (!stepData) return "";
-
-    // Try to find by exact title match first
-    for (const [key, value] of Object.entries(stepData)) {
-      // Check if the key contains the title (case insensitive)
-      if (
-        key.toLowerCase().includes(keywordTitle.toLowerCase()) ||
-        keywordTitle.toLowerCase().includes(key.toLowerCase())
-      ) {
-        return value as string;
-      }
-    }
-
-    // Fallback: try original keywordId format
-    return stepData[keywordTitle] || "";
-  };
-
-  // Get value by keyword pattern (for transformed formData)
-  const getValueByKeyPattern = (pattern: string): string => {
-    // Search in transformed formData structure: {stepId: {fieldId: "value"}}
-    for (const stepId in formData) {
-      const stepData = formData[stepId];
-      if (!stepData || typeof stepData !== "object") continue;
-
-      // Look for key that contains the pattern
-      for (const fieldId in stepData) {
-        if (fieldId.includes(pattern)) {
-          console.log(
-            `Found ${pattern} in fieldId: ${fieldId}, value: ${stepData[fieldId]}`
-          );
-          return stepData[fieldId];
-        }
-      }
-    }
-
-    console.log(
-      `getValueByKeyPattern: No value found for pattern "${pattern}"`
-    );
-    return "";
-  };
-
-  // Legacy function for backward compatibility
-  const getValueByKeyOrTitle = (search: string): string => {
-    return getValueByKeyPattern(search);
-  };
-
-  // Helper function to generate keyword ID from title (matching the template pattern)
-  const generateKeywordId = (title: string, order: number = 1): string => {
-    return `keyword-${title.toLowerCase().replace(/\s+/g, "-")}-${order}`;
-  };
-
-  // Helper function to find field value by trying multiple ID patterns
-  const findFieldValue = (stepId: string, title: string): string => {
-    const stepData = formData[stepId];
-    if (!stepData) return "";
-
-    // Try different patterns to find the field
-    const patterns = [
-      generateKeywordId(title, 1),
-      generateKeywordId(title, 2),
-      generateKeywordId(title, 3),
-      title.toLowerCase(),
-      title,
-    ];
-
-    for (const pattern of patterns) {
-      if (stepData[pattern]) {
-        return stepData[pattern];
-      }
-    }
-
-    // Search for keys that contain the title
-    const matchingKey = Object.keys(stepData).find((key) =>
-      key.toLowerCase().includes(title.toLowerCase())
-    );
-
-    return matchingKey ? stepData[matchingKey] : "";
-  };
-
   // Helper function to render References component
   const renderReferencesComponent = (
     field: any,
-    stepData: Record<string, string>
+    stepData: Record<string, any> // Changed to any to support object format
   ) => {
     try {
+      // Extract string value from both object and string formats
+      const extractValue = (data: any): string => {
+        if (typeof data === "object" && data !== null) {
+          return data.content || data.value || data.title || "";
+        }
+        return data || "";
+      };
+
       // Try to get resource data from stepData first, then fallback to field.content
-      let resourceDataStr = stepData[field.id] || "";
+      let resourceDataStr = extractValue(stepData[field.id]);
 
       // If not found, try parent ID (for nested REFERENCES components)
       if (!resourceDataStr && field.parentId) {
-        resourceDataStr = stepData[field.parentId] || "";
+        resourceDataStr = extractValue(stepData[field.parentId]);
       }
 
       // If still not found, use field.content (for API data)
@@ -1065,15 +1152,23 @@ export function LessonPlanPreviewSidebar({
   // Helper function to render Table component
   const renderTableComponent = (
     field: any,
-    stepData: Record<string, string>
+    stepData: Record<string, any> // Changed to any to support object format
   ) => {
     try {
+      // Extract string value from both object and string formats
+      const extractValue = (data: any): string => {
+        if (typeof data === "object" && data !== null) {
+          return data.content || data.value || data.title || "";
+        }
+        return data || "";
+      };
+
       // Try to parse table data from stepData first, then fallback to field.content
-      let tableDataStr = stepData?.[field.id] || "";
+      let tableDataStr = extractValue(stepData?.[field.id]);
 
       // If not found, try parent ID (for nested TABLE components)
       if (!tableDataStr && field.parentId) {
-        tableDataStr = stepData?.[field.parentId] || "";
+        tableDataStr = extractValue(stepData?.[field.parentId]);
       }
 
       // If still not found, use field.content (for API data)
@@ -1140,14 +1235,14 @@ export function LessonPlanPreviewSidebar({
           <div className="border border-gray-300 rounded-sm overflow-hidden">
             <table className="w-full border-collapse text-sm">
               <tbody>
-                {tableData.rows.map((row: any, rowIndex: number) => (
+                {tableData.rows.map((row: any) => (
                   <tr
                     key={row.id}
                     className={
                       row.cells[0]?.isHeader ? "bg-gray-50" : "hover:bg-gray-50"
                     }
                   >
-                    {row.cells.map((cell: any, cellIndex: number) =>
+                    {row.cells.map((cell: any) =>
                       cell.isHeader ? (
                         <th
                           key={cell.id}
@@ -1178,49 +1273,164 @@ export function LessonPlanPreviewSidebar({
     }
   };
 
-  // Helper function to check if should render header info
-  const shouldRenderHeaderInfo = (
-    field: any,
-    stepData: Record<string, string>
-  ) => {
-    // Hard-coded keys that should render header info
-    const headerKeys = [
-      "school_name",
-      "teacher_name",
-      "lesson_title",
-      "subject_grade",
-      "time",
-    ];
-
-    return (
-      headerKeys.includes(field.id) ||
-      (field.title &&
-        (field.title.toLowerCase().includes("tên cơ sở") ||
-          field.title.toLowerCase().includes("giáo viên") ||
-          field.title.toLowerCase().includes("tên bài") ||
-          field.title.toLowerCase().includes("môn học") ||
-          field.title.toLowerCase().includes("thời gian")))
-    );
-  };
-
   // Helper function to render nested field structure
   const renderField = (
     field: any,
-    stepData: Record<string, string>,
+    stepData: Record<string, any>, // Changed to any to support object format
     level: number = 0,
     index: number = 0
   ) => {
     console.log("renderField called:", {
       fieldId: field.id,
+      fieldTitle: field.title,
       fieldType: field.fieldType,
       nodeType: field.nodeType,
       isDynamic: field.isDynamic,
       stepDataType: typeof stepData,
       stepDataKeys: Object.keys(stepData),
       stepDataValue: stepData?.[field.id],
+      hasChildren: !!(field.children && field.children.length > 0),
+      childrenCount: field.children?.length || 0,
+      children:
+        field.children?.map((c) => ({
+          id: c.id,
+          title: c.title,
+          fieldType: c.fieldType,
+          nodeType: c.nodeType,
+        })) || [],
     });
 
-    const userValue = stepData?.[field.id] || "";
+    // Data extraction with nested data support
+    let rawValue = stepData?.[field.id];
+
+    // If not found by direct field ID, search for parent data to inherit
+    if (!rawValue) {
+      // For child INPUT fields, try to inherit from parent field
+      if (field.fieldType === "INPUT" && !field.children) {
+        console.log(
+          `🎯 Checking inheritance for child INPUT field: ${field.title} (${field.id})`
+        );
+
+        // Look for parent field data in same stepData
+        for (const [parentFieldId, parentValue] of Object.entries(stepData)) {
+          if (typeof parentValue === "object" && parentValue !== null) {
+            const parentObj = parentValue as any;
+
+            // Check if this parent field is related to our child field
+            const parentKeywords = ["Kiến thức", "Năng lực", "Phẩm chất"];
+            const childKeywords = [
+              "Nhận biết",
+              "Hiểu được",
+              "Phân biệt",
+              "Vận dụng",
+              "Phân tích",
+              "So sánh",
+              "Ứng dụng",
+              "Trách nhiệm",
+              "Trung thực",
+              "Chăm chỉ",
+              "Nhân ái",
+            ];
+
+            // Check if parent has relevant keyword and child has relevant keyword
+            const parentHasKeyword = parentKeywords.some((keyword) =>
+              parentObj.title?.includes(keyword)
+            );
+            const childHasKeyword = childKeywords.some((keyword) =>
+              field.title?.includes(keyword)
+            );
+
+            console.log(`🎯 Inheritance check for ${parentFieldId}:`, {
+              parentTitle: parentObj.title,
+              childTitle: field.title,
+              parentHasKeyword,
+              childHasKeyword,
+              parentKeywordMatches: parentKeywords.filter((k) =>
+                parentObj.title?.includes(k)
+              ),
+              childKeywordMatches: childKeywords.filter((k) =>
+                field.title?.includes(k)
+              ),
+            });
+
+            if (parentHasKeyword && childHasKeyword) {
+              // Child field inherits parent data
+              rawValue = {
+                ...parentObj,
+                inheritedFrom: parentFieldId,
+                originalTitle: parentObj.title,
+                childTitle: field.title,
+              };
+              console.log(
+                `🎯 Child field inheriting parent data: ${parentObj.title} (${parentFieldId}) → ${field.title} (${field.id})`
+              );
+              break;
+            }
+          }
+        }
+      }
+
+      // If still not found, try exact/partial title matching
+      if (!rawValue) {
+        for (const [stepKey, stepValue] of Object.entries(stepData)) {
+          if (typeof stepValue === "object" && stepValue !== null) {
+            const stepObj = stepValue as any;
+
+            // Method 1: Exact title match
+            if (stepObj.title && field.title && stepObj.title === field.title) {
+              rawValue = stepObj;
+              console.log(
+                `🎯 Found exact title match: ${stepObj.title} → ${field.title}`
+              );
+              break;
+            }
+
+            // Method 2: Partial title match
+            if (
+              stepObj.title &&
+              field.title &&
+              (stepObj.title.includes(field.title) ||
+                field.title.includes(stepObj.title))
+            ) {
+              rawValue = stepObj;
+              console.log(
+                `🎯 Found partial title match: ${stepObj.title} → ${field.title}`
+              );
+              break;
+            }
+
+            // Method 3: Nested field lookup
+            if (stepObj[field.id]) {
+              rawValue = stepObj[field.id];
+              console.log(`🎯 Found nested field data: ${stepKey}.${field.id}`);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Debug what we found
+    console.log(`🎯 Field ${field.id} (${field.title}):`, {
+      hasDirectData: !!stepData?.[field.id],
+      hasNestedData: !!rawValue,
+      rawValue,
+      stepDataKeys: Object.keys(stepData),
+      stepDataEntries: Object.entries(stepData),
+    });
+
+    const userValue = (() => {
+      if (typeof rawValue === "object" && rawValue !== null) {
+        // For object values, extract content/value/title
+        const objectValue = rawValue as any;
+        return (
+          objectValue.content || objectValue.value || objectValue.title || ""
+        );
+      }
+      // For string values, use as-is
+      return rawValue || "";
+    })();
+
     const defaultContent = field.content || field.description || "";
 
     return (
@@ -1290,8 +1500,49 @@ export function LessonPlanPreviewSidebar({
     );
   };
 
+  // Helper function to find step with both data and template children
+  const findStepWithDataAndTemplate = (targetStepId: string) => {
+    // First try exact step ID match
+    const exactStep = steps?.find((s) => s.id === targetStepId);
+    if (exactStep && exactStep.children && exactStep.children.length > 0) {
+      console.log(
+        `🎯 Found exact step match: ${targetStepId} with ${exactStep.children.length} children`
+      );
+      return exactStep;
+    }
+
+    // If exact match has no children, find step that contains the target fields
+    const formDataFieldIds = Object.keys(formData[targetStepId] || {});
+
+    for (const step of steps || []) {
+      if (step.children && step.children.length > 0) {
+        const templateFieldIds = step.children.map((c) => c.id);
+        const matchingFields = formDataFieldIds.filter((id) =>
+          templateFieldIds.includes(id)
+        );
+
+        if (matchingFields.length > 0) {
+          console.log(
+            `🎯 Found step with matching fields: ${step.id} (${step.title})`,
+            {
+              templateFieldIds,
+              formDataFieldIds,
+              matchingFields,
+            }
+          );
+          return step;
+        }
+      }
+    }
+
+    console.log(
+      `🎯 No step found with template children for data step: ${targetStepId}`
+    );
+    return exactStep; // Fallback to exact match even if no children
+  };
+
   // Helper function to render all form data for a step
-  const renderStepData = (step: any, stepData: Record<string, string>) => {
+  const renderStepData = (step: any, stepData: Record<string, any>) => {
     // Get API children data for this step if available
     const apiChildren = getApiChildrenForStep
       ? getApiChildrenForStep(step.id)
@@ -1326,13 +1577,159 @@ export function LessonPlanPreviewSidebar({
     );
   };
 
+  // Helper: Get field value by title matching (for preview sidebar)
+  const getGeneralInfoFieldByTitle = (
+    stepId: string,
+    targetTitle: string
+  ): string => {
+    if (!formData[stepId]) {
+      console.log(`🎯 Preview: No formData for stepId ${stepId}`);
+      return "";
+    }
+
+    const stepData = formData[stepId];
+    const templateStep = steps.find((s) => s.id === stepId);
+
+    console.log(`🎯 Preview getGeneralInfoFieldByTitle for "${targetTitle}":`, {
+      stepId,
+      stepTitle: templateStep?.title,
+      stepData: stepData,
+      stepDataKeys: Object.keys(stepData),
+      templateStepChildren: templateStep?.children?.map((c) => ({
+        id: c.id,
+        title: c.title,
+        fieldType: c.fieldType,
+      })),
+    });
+
+    // Method 1: Search in formData by title (if formData has title structure)
+    for (const [, fieldData] of Object.entries(stepData)) {
+      // Check if fieldData has title property
+      if (
+        typeof fieldData === "object" &&
+        fieldData !== null &&
+        "title" in fieldData
+      ) {
+        const fieldTitle = (fieldData as any).title?.toLowerCase() || "";
+        const searchTitle = targetTitle.toLowerCase();
+
+        console.log(
+          `🎯 Checking formData field "${
+            (fieldData as any).title
+          }" vs "${targetTitle}"`
+        );
+
+        if (
+          fieldTitle.includes(searchTitle) ||
+          searchTitle.includes(fieldTitle)
+        ) {
+          const value =
+            (fieldData as any).content || (fieldData as any).value || "";
+          console.log(
+            `🎯 Found formData title match: "${
+              (fieldData as any).title
+            }" = "${value}"`
+          );
+          return value;
+        }
+      }
+    }
+
+    // Method 2: Search in template children (fallback)
+    if (templateStep?.children) {
+      for (const child of templateStep.children) {
+        if (child.fieldType === "INPUT" && child.title) {
+          const childTitle = child.title.toLowerCase();
+          const searchTitle = targetTitle.toLowerCase();
+
+          console.log(
+            `🎯 Checking template child "${child.title}" vs "${targetTitle}"`
+          );
+
+          // Check if child title contains target title or vice versa
+          if (
+            childTitle.includes(searchTitle) ||
+            searchTitle.includes(childTitle)
+          ) {
+            // Get value from stepData using child.id
+            const fieldData = (stepData as any)[child.id];
+            const value =
+              fieldData?.content || fieldData?.value || fieldData || "";
+
+            console.log(
+              `🎯 Found template title match: "${child.title}" for "${targetTitle}" = "${value}"`
+            );
+            return value;
+          }
+        }
+      }
+    }
+
+    console.log(`🎯 No title match found for "${targetTitle}"`);
+    return "";
+  };
+
   // Get general info step
   const generalInfoStep = steps.find((step) =>
     step.title?.toLowerCase().includes("thông tin")
   );
 
-  // Get general info step ID for dynamic lookup
-  const generalInfoStepId = generalInfoStep?.id;
+  // Get general info step ID - find the one that has actual data AND template children
+  const findGeneralInfoStepWithData = (): string | undefined => {
+    console.log("🎯 Finding general info step with data and template...");
+
+    // Check all available stepIds in formData
+    for (const stepId of Object.keys(formData)) {
+      const step = steps.find((s) => s.id === stepId);
+      const hasData = !!formData[stepId];
+      const hasChildren = step?.children && step.children.length > 0;
+      const isGeneralInfo = step?.title?.toLowerCase().includes("thông tin");
+
+      console.log(`🎯 Checking stepId ${stepId}:`, {
+        stepTitle: step?.title,
+        hasData,
+        hasChildren,
+        childrenCount: step?.children?.length || 0,
+        isGeneralInfo,
+      });
+
+      // Prefer step that has both data and children and is general info
+      if (hasData && hasChildren && isGeneralInfo) {
+        console.log(`🎯 Found perfect match: ${stepId} (${step.title})`);
+        return stepId;
+      }
+    }
+
+    // Fallback: find any step with data and children (regardless of title)
+    for (const stepId of Object.keys(formData)) {
+      const step = steps.find((s) => s.id === stepId);
+      const hasData = !!formData[stepId];
+      const hasChildren = step?.children && step.children.length > 0;
+
+      if (hasData && hasChildren) {
+        console.log(`🎯 Found fallback match: ${stepId} (${step?.title})`);
+        return stepId;
+      }
+    }
+
+    console.log(
+      `🎯 No step found with both data and children. Available stepIds:`,
+      Object.keys(formData)
+    );
+    return generalInfoStep?.id; // Final fallback to template ID
+  };
+
+  const generalInfoStepId = findGeneralInfoStepWithData();
+
+  console.log("🎯 Final generalInfoStepId:", {
+    generalInfoStepId,
+    formDataKeys: Object.keys(formData),
+    allStepsWithChildren: steps.map((s) => ({
+      id: s.id,
+      title: s.title,
+      childrenCount: s.children?.length || 0,
+    })),
+  });
 
   // Get objectives step
   const objectivesStep = steps.find((step) =>
@@ -1346,7 +1743,6 @@ export function LessonPlanPreviewSidebar({
   // Debug: Show formData as pretty JSON in the preview sidebar
   // Remove or comment out in production if not needed
   // console.log(formData, "formData");
-  const formDataJson = JSON.stringify(formData, null, 2);
   return (
     <div
       className={cn("h-full bg-white overflow-y-auto", className)}
@@ -1391,17 +1787,17 @@ export function LessonPlanPreviewSidebar({
             <div>
               Tên cơ sở giáo dục:{" "}
               {generalInfoStepId
-                ? (formData[generalInfoStepId] as any)?.[
-                    Object.keys(formData[generalInfoStepId] || {})[0]
-                  ] || "………………………………….."
+                ? getGeneralInfoFieldByTitle(generalInfoStepId, "trường") ||
+                  getGeneralInfoFieldByTitle(generalInfoStepId, "cơ sở") ||
+                  "………………………………….."
                 : "………………………………….."}
             </div>
             <div>
               Họ và tên giáo viên:{" "}
               {generalInfoStepId
-                ? (formData[generalInfoStepId] as any)?.[
-                    Object.keys(formData[generalInfoStepId] || {})[1]
-                  ] || "………………………………….."
+                ? getGeneralInfoFieldByTitle(generalInfoStepId, "GV") ||
+                  getGeneralInfoFieldByTitle(generalInfoStepId, "họ tên") ||
+                  "………………………………….."
                 : "………………………………….."}
             </div>
           </div>
@@ -1410,31 +1806,29 @@ export function LessonPlanPreviewSidebar({
             <div className="font-bold text-center">
               TÊN BÀI DẠY:{" "}
               {generalInfoStepId
-                ? (formData[generalInfoStepId] as any)?.[
-                    Object.keys(formData[generalInfoStepId] || {})[2]
-                  ] || "………………………………….."
+                ? getGeneralInfoFieldByTitle(generalInfoStepId, "bài dạy") ||
+                  getGeneralInfoFieldByTitle(generalInfoStepId, "tên bài") ||
+                  "………………………………….."
                 : "………………………………….."}
             </div>
             <div>
               Môn học/Hoạt động giáo dục:{" "}
               {generalInfoStepId
-                ? (formData[generalInfoStepId] as any)?.[
-                    Object.keys(formData[generalInfoStepId] || {})[3]
-                  ] || "………"
+                ? getGeneralInfoFieldByTitle(generalInfoStepId, "môn học") ||
+                  getGeneralInfoFieldByTitle(generalInfoStepId, "hoạt động") ||
+                  "………"
                 : "………"}
               ; lớp:{" "}
               {generalInfoStepId
-                ? (formData[generalInfoStepId] as any)?.[
-                    Object.keys(formData[generalInfoStepId] || {})[4]
-                  ] || "………"
+                ? getGeneralInfoFieldByTitle(generalInfoStepId, "lớp") || "………"
                 : "………"}
             </div>
             <div>
               Thời gian thực hiện:{" "}
               {generalInfoStepId
-                ? (formData[generalInfoStepId] as any)?.[
-                    Object.keys(formData[generalInfoStepId] || {})[5]
-                  ] || "(số tiết)"
+                ? getGeneralInfoFieldByTitle(generalInfoStepId, "thời gian") ||
+                  getGeneralInfoFieldByTitle(generalInfoStepId, "tiết") ||
+                  "(số tiết)"
                 : "(số tiết)"}
             </div>
           </div>
@@ -1465,7 +1859,7 @@ export function LessonPlanPreviewSidebar({
                 </div>
                 {renderStepData(
                   step,
-                  (formData[step.id] as Record<string, string>) || {}
+                  (formData[step.id] as Record<string, any>) || {}
                 )}
               </div>
             );

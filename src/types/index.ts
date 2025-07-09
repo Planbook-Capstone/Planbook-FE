@@ -175,15 +175,8 @@ export interface LessonPlanKeyword {
   prompt?: string;
   order: number;
   children?: LessonPlanKeyword[];
-  nodeType?:
-    | "SECTION"
-    | "SUBSECTION"
-    | "LIST_ITEM"
-    | "PARAGRAPH"
-    | "CONTENT"
-    | "INPUT"
-    | "REFERENCES"
-    | "TABLE"; // Map với backend NodeType
+  nodeType?: "SECTION" | "SUBSECTION" | "LIST_ITEM" | "PARAGRAPH"; // Map với backend NodeType
+  fieldType?: "INPUT" | "REFERENCES" | "TABLE" | null; // Map với backend FieldType
 }
 
 export interface LessonPlanStep {
