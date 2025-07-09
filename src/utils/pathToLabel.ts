@@ -1,3 +1,5 @@
+import { useRouter, useSearchParams } from "next/navigation";
+
 /**
  * Utility function to convert pathname to readable label
  * @param pathname - The current pathname from usePathname()
@@ -84,22 +86,30 @@ export const getBreadcrumbs = (pathname: string) => {
  */
 export const getPageActions = (pathname: string) => {
   const cleanPath = pathname.split("?")[0];
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const isPreviewing = searchParams.get("preview") === "true";
+
+  const togglePreview = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (isPreviewing) {
+      params.delete("preview");
+    } else {
+      params.set("preview", "true");
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const actionsMap: Record<string, any[]> = {
-    // "/lesson-plan": [
-    //   {
-    //     label: "Tạo mới",
-    //     icon: "Plus",
-    //     onClick: () => console.log("Create new lesson plan"),
-    //     variant: "default",
-    //   },
-    //   {
-    //     label: "Cài đặt",
-    //     icon: "Settings",
-    //     onClick: () => console.log("Settings"),
-    //     variant: "outline",
-    //   },
-    // ],
+    "/exam-creation": [
+      {
+        label: isPreviewing ? "Ẩn xem trước" : "Xem trước",
+        icon: "FileText",
+        onClick: togglePreview,
+        variant: isPreviewing ? "default" : "outline",
+      },
+    ],
     "/lesson-plan-demo": [
       {
         label: "Chỉnh sửa",
