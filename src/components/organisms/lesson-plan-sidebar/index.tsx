@@ -216,6 +216,9 @@ export function LessonPlanSidebar({
                                       {item.component.title}
                                     </div>
                                     <div className="text-xs font-questrial text-red-600">
+                                      {item.component?.fieldType
+                                        ? `${item.component?.fieldType} của`
+                                        : null}{" "}
                                       {item.component.type} • Xóa lúc{" "}
                                       {new Date(
                                         item.deletedAt
