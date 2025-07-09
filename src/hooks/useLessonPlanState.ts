@@ -18,7 +18,7 @@ export function useLessonPlanState() {
     Record<string, any[]>
   >({});
 
-  const treeData = useLessonPlanNodeTreeService("13")();
+  const treeData = useLessonPlanNodeTreeService("1")();
   // const apiSteps =
   //   treeData?.data?.data?.sort(
   //     (a: any, b: any) => a?.orderIndex - b?.orderIndex

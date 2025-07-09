@@ -34,14 +34,6 @@ interface StepSectionProps {
   mode?: "admin" | "staff"; // admin: chỉ xem, staff: chỉnh sửa tất cả
 }
 
-const STEP_TYPES = [
-  { value: "general_info", label: "Thông tin chung" },
-  { value: "objectives", label: "Mục tiêu" },
-  { value: "equipment", label: "Thiết bị dạy học" },
-  { value: "activities", label: "Tiến trình dạy học" },
-  { value: "custom", label: "Tùy chỉnh" },
-];
-
 export function StepSection({
   step,
   dragHandleProps,
@@ -115,16 +107,6 @@ export function StepSection({
       {/* Header */}
       <div className="p-4 border-b bg-gray-50 rounded-t-lg">
         <div className="flex items-center gap-3">
-          {/* Drag Handle - Only for Staff */}
-          {mode === "staff" && (
-            <div
-              {...dragHandleProps}
-              className="cursor-grab active:cursor-grabbing"
-            >
-              <GripVertical className="w-5 h-5 text-gray-400" />
-            </div>
-          )}
-
           {/* Expand/Collapse */}
           <Button
             variant="ghost"
@@ -201,7 +183,7 @@ export function StepSection({
                 id={`step-desc-${step.id}`}
                 placeholder="Mô tả chi tiết về bước này"
                 value={step.description || ""}
-                onChange={(e) => updateField("description", e.target.value)}
+                onChange={(e:any) => updateField("description", e.target.value)}
               />
             </FormField>
 
@@ -216,7 +198,7 @@ export function StepSection({
                   type="number"
                   placeholder="0"
                   value={step.timeAllocation || ""}
-                  onChange={(e) =>
+                  onChange={(e:any) =>
                     updateField(
                       "timeAllocation",
                       parseInt(e.target.value) || undefined
