@@ -27,6 +27,7 @@ interface KeywordFormProps {
   keyword: Keyword;
   value: string;
   onChange: (value: string) => void;
+  onChildChange?: (childId: string, childTitle: string, value: string) => void;
   index: number;
   level?: number;
   className?: string;
@@ -38,6 +39,7 @@ export function KeywordForm({
   keyword,
   value,
   onChange,
+  onChildChange,
   index,
   level = 0,
   className,
@@ -50,6 +52,15 @@ export function KeywordForm({
     keywordTitle: keyword.title,
     nodeType: keyword.fieldType || keyword.type,
     hasOnChange: typeof onChange === "function",
+    hasOnChildChange: typeof onChildChange === "function",
+    hasChildren: !!(keyword.children && keyword.children.length > 0),
+    childrenCount: keyword.children?.length || 0,
+    children:
+      keyword.children?.map((c) => ({
+        id: c.id,
+        title: c.title,
+        fieldType: c.fieldType,
+      })) || [],
     onChangeFunction: onChange.toString().substring(0, 100) + "...",
   });
   // Debug re-renders
@@ -180,11 +191,29 @@ export function KeywordForm({
                       console.log("SECTION child onChange:", {
                         parentId: keyword.id,
                         childId: child.id,
+                        childTitle: child.title,
                         childValue: childValue.substring(0, 100) + "...",
+                        hasOnChildChange: !!onChildChange,
+                        onChildChangeType: typeof onChildChange,
                       });
-                      // Pass through to parent onChange
-                      onChange(childValue);
+
+                      // Call onChildChange with child's own ID and title
+                      if (onChildChange) {
+                        console.log("🎯 KeywordForm calling onChildChange:", {
+                          childId: child.id,
+                          childTitle: child.title,
+                          childValue: childValue.substring(0, 50) + "...",
+                        });
+                        onChildChange(child.id, child.title, childValue);
+                      } else {
+                        console.log(
+                          "🎯 KeywordForm fallback to parent onChange (onChildChange not available)"
+                        );
+                        // Fallback: call parent onChange (for backward compatibility)
+                        onChange(childValue);
+                      }
                     }}
+                    onChildChange={onChildChange} // Pass through onChildChange
                     index={childIndex}
                     level={level + 1}
                     isEditMode={isEditMode}
@@ -218,11 +247,32 @@ export function KeywordForm({
                       console.log("LIST_ITEM child onChange:", {
                         parentId: keyword.id,
                         childId: child.id,
+                        childTitle: child.title,
                         childValue: childValue.substring(0, 100) + "...",
+                        hasOnChildChange: !!onChildChange,
+                        onChildChangeType: typeof onChildChange,
                       });
-                      // Pass through to parent onChange
-                      onChange(childValue);
+
+                      // Call onChildChange with child's own ID and title
+                      if (onChildChange) {
+                        console.log(
+                          "🎯 KeywordForm LIST_ITEM calling onChildChange:",
+                          {
+                            childId: child.id,
+                            childTitle: child.title,
+                            childValue: childValue.substring(0, 50) + "...",
+                          }
+                        );
+                        onChildChange(child.id, child.title, childValue);
+                      } else {
+                        console.log(
+                          "🎯 KeywordForm LIST_ITEM fallback to parent onChange (onChildChange not available)"
+                        );
+                        // Fallback: call parent onChange (for backward compatibility)
+                        onChange(childValue);
+                      }
                     }}
+                    onChildChange={onChildChange} // Pass through onChildChange
                     index={childIndex}
                     level={level + 1}
                     isEditMode={isEditMode}

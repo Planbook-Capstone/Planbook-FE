@@ -135,9 +135,9 @@ function LessonPlanContent() {
     getMergedComponentsForStep,
   } = useDynamicForm();
 
-  // Transform allFormData to flat structure for preview sidebar
+  // Transform allFormData to include title for preview sidebar
   const transformedFormData = useMemo(() => {
-    const transformedData: Record<string, Record<string, string>> = {};
+    const transformedData: Record<string, Record<string, any>> = {};
 
     Object.keys(allFormData).forEach((stepId) => {
       transformedData[stepId] = {};
@@ -145,15 +145,30 @@ function LessonPlanContent() {
 
       Object.keys(stepData).forEach((fieldId) => {
         const fieldData = stepData[fieldId];
-        // Extract .value from {key, title, value} structure
-        transformedData[stepId][fieldId] =
-          typeof fieldData === "object" && fieldData && "value" in fieldData
-            ? (fieldData as any).value
-            : (fieldData as string);
+
+        // Check if fieldData has title and value structure
+        if (
+          typeof fieldData === "object" &&
+          fieldData &&
+          "value" in fieldData
+        ) {
+          // Preserve both title and content for title matching
+          transformedData[stepId][fieldId] = {
+            title: (fieldData as any).title || (fieldData as any).key || "",
+            content: (fieldData as any).value || "",
+            value: (fieldData as any).value || "", // Keep for backward compatibility
+          };
+        } else {
+          // Fallback for simple string values
+          transformedData[stepId][fieldId] = fieldData as string;
+        }
       });
     });
 
-    console.log("Transformed formData for preview:", transformedData);
+    console.log(
+      "Transformed formData for preview (with titles):",
+      transformedData
+    );
     return transformedData;
   }, [allFormData]);
 
