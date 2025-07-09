@@ -108,10 +108,10 @@ function CanvaLayoutContent() {
 
         {/* Canvas Area - Scrollable */}
         <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-          <div className="h-16 flex items-center px-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-            <h1 className="text-xl font-calsans text-gray-800">
+          <div className="h-16 flex items-center  border-gray-200 bg-white sticky top-0 z-10">
+            {/* <h1 className="text-xl font-calsans text-gray-800">
               Tạo bài kiểm tra
-            </h1>
+            </h1> */}
             <div className="ml-auto flex space-x-2">
               <button className="sm:hidden p-2 hover:bg-gray-100 rounded-lg">
                 Assets
