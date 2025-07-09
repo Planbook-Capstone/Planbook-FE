@@ -21,9 +21,9 @@ import { useGenerateSmartExamService } from "@/services/examGenerateServices";
 
 // Dữ liệu ảo cho bài học, bạn có thể thay bằng API nếu cần
 const LESSON_OPTIONS = [
-  { id: "90", name: "Hình học Oxyz" },
-  { id: "88", name: "Hàm số" },
-  { id: "91", name: "Tích phân" },
+  { id: "5", name: "Hình học Oxyz" },
+  { id: "4", name: "Hàm số" },
+  { id: "6", name: "Tích phân" },
 ];
 
 type DistributionLevel = {
@@ -247,18 +247,25 @@ export default function MatrixTemplate2() {
           {
             part: 1,
             objectives: {
-              Biết:
-                row.distribution.part1.biet +
-                row.distribution.part2.biet +
-                row.distribution.part3.biet,
-              Hiểu:
-                row.distribution.part1.hieu +
-                row.distribution.part2.hieu +
-                row.distribution.part3.hieu,
-              Vận_dụng:
-                row.distribution.part1.vd +
-                row.distribution.part2.vd +
-                row.distribution.part3.vd,
+              Biết: row.distribution.part1.biet,
+              Hiểu: row.distribution.part1.hieu,
+              Vận_dụng: row.distribution.part1.vd,
+            },
+          },
+          {
+            part: 2,
+            objectives: {
+              Biết: row.distribution.part2.biet,
+              Hiểu: row.distribution.part2.hieu,
+              Vận_dụng: row.distribution.part2.vd,
+            },
+          },
+          {
+            part: 3,
+            objectives: {
+              Biết: row.distribution.part3.biet,
+              Hiểu: row.distribution.part3.hieu,
+              Vận_dụng: row.distribution.part3.vd,
             },
           },
         ],
