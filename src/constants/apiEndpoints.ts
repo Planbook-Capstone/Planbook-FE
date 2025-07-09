@@ -48,6 +48,9 @@ export const API_ENDPOINTS = {
   LESSON_NODE_CHIDREN: (nodeId: string) =>
     `/lesson-plan-service-local/api/lesson-nodes/${nodeId}/children`,
 
+
+  LESSON_PLAN_GENERATION:"/lesson/generate-lesson-plan-content",
+
   // Tags
   TAGS: "/academic-resource-service-local/api/tags",
 
