@@ -133,69 +133,123 @@ export function StepContent({
                     })()}
                     {mergedComponents.length > 0 ? (
                       <div className="space-y-8">
-                        {mergedComponents.map((keyword, index) => (
-                          <div key={keyword.id} className="relative group">
-                            <KeywordForm
-                              keyword={keyword}
-                              value={(() => {
-                                const directValue = formData[keyword?.id];
-                                const extractedValue =
-                                  typeof directValue === "object"
-                                    ? (directValue as any)?.value || ""
-                                    : directValue || "";
+                        {mergedComponents.map((keyword, index) => {
+                          // Debug each keyword component
+                          console.log(
+                            `🎯 StepContent rendering keyword ${index}:`,
+                            {
+                              keywordId: keyword?.id,
+                              keywordTitle: keyword?.title,
+                              fieldType: keyword?.fieldType,
+                              nodeType: keyword?.nodeType,
+                              hasChildren: !!(
+                                keyword?.children && keyword.children.length > 0
+                              ),
+                              childrenCount: keyword?.children?.length || 0,
+                            }
+                          );
 
-                                // Debug for static INPUT issue
-                                if (keyword?.fieldType === "INPUT") {
-                                  console.log("INPUT value binding debug:", {
-                                    keywordId: keyword?.id,
-                                    keywordTitle: keyword?.title,
-                                    directValue: directValue,
-                                    extractedValue: extractedValue,
-                                    formDataKeys: Object.keys(formData),
-                                    allFormData: formData,
-                                  });
-                                }
+                          return (
+                            <div key={keyword.id} className="relative group">
+                              <KeywordForm
+                                keyword={keyword}
+                                value={(() => {
+                                  const directValue = formData[keyword?.id];
+                                  const extractedValue =
+                                    typeof directValue === "object"
+                                      ? (directValue as any)?.value || ""
+                                      : directValue || "";
 
-                                return extractedValue;
-                              })()}
-                              onChange={(value) => {
-                                onFormDataChange(
-                                  keyword?.id,
-                                  keyword?.title,
-                                  value
-                                );
-                              }}
-                              index={index}
-                              isEditMode={isEditMode}
-                              onDelete={onDeleteComponent}
-                            />
-                            {(keyword.isDynamic || isEditMode) && (
-                              <div
-                                className={cn(
-                                  "absolute top-2 right-2 transition-opacity",
-                                  isEditMode
-                                    ? "opacity-100"
-                                    : "opacity-0 group-hover:opacity-100"
-                                )}
-                              >
-                                <button
-                                  onClick={() => {
-                                    if (keyword.isDynamic) {
-                                      onDeleteComponent?.(keyword.id);
-                                    } else {
-                                      // For static components, pass the component data
-                                      onDeleteComponent?.(keyword.id, keyword);
+                                  // Debug for static INPUT issue
+                                  if (keyword?.fieldType === "INPUT") {
+                                    console.log("INPUT value binding debug:", {
+                                      keywordId: keyword?.id,
+                                      keywordTitle: keyword?.title,
+                                      directValue: directValue,
+                                      extractedValue: extractedValue,
+                                      formDataKeys: Object.keys(formData),
+                                      allFormData: formData,
+                                    });
+                                  }
+
+                                  return extractedValue;
+                                })()}
+                                onChange={(value) => {
+                                  console.log(
+                                    `🎯 StepContent onChange called:`,
+                                    {
+                                      keywordId: keyword?.id,
+                                      keywordTitle: keyword?.title,
+                                      value: value,
+                                      index: index,
                                     }
-                                  }}
-                                  className="p-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-xs"
-                                  title="Xóa component này"
+                                  );
+
+                                  onFormDataChange(
+                                    keyword?.id,
+                                    keyword?.title,
+                                    value
+                                  );
+                                }}
+                                onChildChange={(
+                                  childId,
+                                  childTitle,
+                                  childValue
+                                ) => {
+                                  console.log(
+                                    `🎯 StepContent onChildChange called:`,
+                                    {
+                                      parentId: keyword?.id,
+                                      parentTitle: keyword?.title,
+                                      childId: childId,
+                                      childTitle: childTitle,
+                                      childValue: childValue,
+                                      index: index,
+                                    }
+                                  );
+
+                                  // Call onFormDataChange with child's ID and title
+                                  onFormDataChange(
+                                    childId,
+                                    childTitle,
+                                    childValue
+                                  );
+                                }}
+                                index={index}
+                                isEditMode={isEditMode}
+                                onDelete={onDeleteComponent}
+                              />
+                              {(keyword.isDynamic || isEditMode) && (
+                                <div
+                                  className={cn(
+                                    "absolute top-2 right-2 transition-opacity",
+                                    isEditMode
+                                      ? "opacity-100"
+                                      : "opacity-0 group-hover:opacity-100"
+                                  )}
                                 >
-                                  ✕
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                                  <button
+                                    onClick={() => {
+                                      if (keyword.isDynamic) {
+                                        onDeleteComponent?.(keyword.id);
+                                      } else {
+                                        // For static components, pass the component data
+                                        onDeleteComponent?.(
+                                          keyword.id,
+                                          keyword
+                                        );
+                                      }
+                                    }}
+                                    className="p-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-xs"
+                                    title="Xóa component này"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="text-center py-12">
