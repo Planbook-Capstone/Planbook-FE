@@ -48,14 +48,14 @@ export function LessonPlanTemplateBuilder({
     }));
   }, []);
 
-  const updateTemplateMetadata = useCallback(
-    (field: string, value: string) => {
-      updateTemplate({
-        [field]: value,
-      });
-    },
-    [updateTemplate]
-  );
+  // const updateTemplateMetadata = useCallback(
+  //   (field: string, value: string) => {
+  //     updateTemplate({
+  //       [field]: value,
+  //     });
+  //   },
+  //   [updateTemplate]
+  // );
 
   const addStep = useCallback(() => {
     const newStep: LessonPlanStep = {
@@ -93,64 +93,28 @@ export function LessonPlanTemplateBuilder({
     [template.steps, updateTemplate]
   );
 
-  const onDragEnd = useCallback(
-    (result: any) => {
-      if (!result.destination) return;
+  // const onDragEnd = useCallback(
+  //   (result: any) => {
+  //     if (!result.destination) return;
 
-      const { source, destination, type } = result;
+  //     const { source, destination, type } = result;
 
-      if (type === "STEPS") {
-        const newSteps = Array.from(template.steps);
-        const [reorderedStep] = newSteps.splice(source.index, 1);
-        newSteps.splice(destination.index, 0, reorderedStep);
+  //     if (type === "STEPS") {
+  //       const newSteps = Array.from(template.steps);
+  //       const [reorderedStep] = newSteps.splice(source.index, 1);
+  //       newSteps.splice(destination.index, 0, reorderedStep);
 
-        // Update order property
-        const updatedSteps = newSteps.map((step, index) => ({
-          ...step,
-          order: index,
-        }));
+  //       // Update order property
+  //       const updatedSteps = newSteps.map((step, index) => ({
+  //         ...step,
+  //         order: index,
+  //       }));
 
-        updateTemplate({ steps: updatedSteps });
-      }
-    },
-    [template.steps, updateTemplate]
-  );
-
-  // const handleSave = useCallback(async () => {
-  //   // Create JSON data to download
-  //   const jsonData = {
-  //     template: template,
-  //     exportDate: new Date().toISOString(),
-  //     version: "1.0",
-  //   };
-
-  //   // Create and download JSON file
-  //   const dataStr = JSON.stringify(jsonData, null, 2);
-  //   const dataBlob = new Blob([dataStr], { type: "application/json" });
-  //   const url = URL.createObjectURL(dataBlob);
-
-  //   const link = document.createElement("a");
-  //   link.href = url;
-  //   link.download = `${template.name.replace(/\s+/g, "_")}_${
-  //     new Date().toISOString().split("T")[0]
-  //   }.json`;
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
-  //   URL.revokeObjectURL(url);
-
-  //   toast.success("Đã tải file JSON thành công!");
-
-  //   // Call onSave callback if provided and exit
-  //   if (onSave) {
-  //     onSave(template);
-  //   }
-
-  //   // Exit to main page
-  //   if (onExit) {
-  //     onExit();
-  //   }
-  // }, [template, onSave, onExit]);
+  //       updateTemplate({ steps: updatedSteps });
+  //     }
+  //   },
+  //   [template.steps, updateTemplate]
+  // );
 
   const handleSave = useCallback(() => {
     if (onSave) {
@@ -240,7 +204,7 @@ export function LessonPlanTemplateBuilder({
         )}
 
         {/* Main Content */}
-        <DragDropContext onDragEnd={onDragEnd}>
+        {/* <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="steps" type="STEPS">
             {(provided) => (
               <div
@@ -271,7 +235,20 @@ export function LessonPlanTemplateBuilder({
               </div>
             )}
           </Droppable>
-        </DragDropContext>
+        </DragDropContext> */}
+
+        <>
+          {template.steps.map((step, index) => (
+            <StepSection
+              key={step.id}
+              step={step}
+              // dragHandleProps={provided.dragHandleProps}
+              onUpdate={(updates) => updateStep(step.id, updates)}
+              onDelete={() => deleteStep(step.id)}
+              mode={mode}
+            />
+          ))}
+        </>
       </div>
 
       {/* Bottom Action Bar - Only for Staff */}

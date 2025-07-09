@@ -18,7 +18,7 @@ export function useLessonPlanState() {
     Record<string, any[]>
   >({});
 
-  const treeData = useLessonPlanNodeTreeService("12")();
+  const treeData = useLessonPlanNodeTreeService("1")();
   // const apiSteps =
   //   treeData?.data?.data?.sort(
   //     (a: any, b: any) => a?.orderIndex - b?.orderIndex
@@ -131,9 +131,23 @@ export function useLessonPlanState() {
       // Mark current step as completed if it has content
       if (currentStepData?.id) {
         const currentStepFormData = formData[currentStepData.id] || {};
-        const hasContent = Object.values(currentStepFormData).some(
-          (value) => value.trim() !== ""
-        );
+        const hasContent = Object.values(currentStepFormData).some((value) => {
+          // Handle both object and string values
+          if (typeof value === "object" && value !== null) {
+            // For object values, check content, value, or any string property
+            const objectValue = value as any;
+            const contentToCheck =
+              objectValue.content ||
+              objectValue.value ||
+              objectValue.title ||
+              "";
+            return (
+              typeof contentToCheck === "string" && contentToCheck.trim() !== ""
+            );
+          }
+          // For string values, use original logic
+          return typeof value === "string" && value.trim() !== "";
+        });
 
         if (hasContent && !completedSteps.includes(currentStep)) {
           setCompletedSteps((prev) => [...prev, currentStep]);

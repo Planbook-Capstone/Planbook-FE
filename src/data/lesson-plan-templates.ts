@@ -7,7 +7,8 @@ function createKeyword(
   content: string = "",
   order: number = 0,
   children: LessonPlanKeyword[] = [],
-  nodeType: "SECTION" | "SUBSECTION" | "LIST_ITEM" | "PARAGRAPH" = "LIST_ITEM"
+  nodeType: "SECTION" | "SUBSECTION" | "LIST_ITEM" | "PARAGRAPH" = "LIST_ITEM",
+  fieldType: "INPUT" | "REFERENCES" | "TABLE" | null
 ): LessonPlanKeyword {
   return {
     id: uuidv4(),
@@ -16,6 +17,7 @@ function createKeyword(
     order,
     children: children.length > 0 ? children : undefined,
     nodeType,
+    fieldType,
   };
 }
 

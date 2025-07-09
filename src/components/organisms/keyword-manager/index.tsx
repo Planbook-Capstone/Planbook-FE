@@ -24,6 +24,12 @@ import {
   Edit3,
 } from "lucide-react";
 import { RichTable } from "@/components/ui/rich-table";
+import {
+  LESSON_PLAN_FIELDTYPE,
+  LESSON_PLAN_TYPE,
+  LessonPlanFieldTypeLabel,
+  LessonPlanNodeTypeLabel,
+} from "@/constants/enum";
 
 interface KeywordManagerProps {
   keywords: LessonPlanKeyword[];
@@ -155,7 +161,7 @@ function KeywordItem({
                   <Input
                     placeholder="Nhập tiêu đề từ khóa"
                     value={keyword.title}
-                    onChange={(e) => updateField("title", e.target.value)}
+                    onChange={(e: any) => updateField("title", e.target.value)}
                     className="border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
                   />
                 ) : (
@@ -166,8 +172,8 @@ function KeywordItem({
               </div>
 
               {mode === "staff" && (
-                <div className="flex items-center gap-2">
-                  {/* Definition Type Dropdown */}
+                <div className="flex flex-row items-center gap-2">
+                  {/* Node Type Dropdown */}
                   <div
                     onMouseDown={(e) => e.stopPropagation()}
                     onMouseUp={(e) => e.stopPropagation()}
@@ -185,16 +191,46 @@ function KeywordItem({
                         position="popper"
                         sideOffset={4}
                       >
-                        <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
-                        <SelectItem value="LIST_ITEM">
-                          Danh sách nội dung
-                        </SelectItem>
-                        <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
-                        <SelectItem value="INPUT">Ô nhập liệu</SelectItem>
-                        <SelectItem value="REFERENCES">
-                          Tài liệu tham khảo
-                        </SelectItem>
-                        <SelectItem value="TABLE">Bảng</SelectItem>
+                        {Object.values(LESSON_PLAN_TYPE).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {LessonPlanNodeTypeLabel[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Field Type Dropdown */}
+                  <div
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onMouseUp={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Select
+                      value={keyword.fieldType ?? "none"} // Nếu null thì truyền "none"
+                      onValueChange={(value) =>
+                        updateField(
+                          "fieldType",
+                          value === "none"
+                            ? null
+                            : (value as LESSON_PLAN_FIELDTYPE)
+                        )
+                      }
+                    >
+                      <SelectTrigger className="w-40 h-8 text-xs">
+                        <SelectValue placeholder="Chọn loại trường" />
+                      </SelectTrigger>
+                      <SelectContent
+                        className="z-[9999]"
+                        position="popper"
+                        sideOffset={4}
+                      >
+                        <SelectItem value="none">Không chọn</SelectItem>
+                        {Object.values(LESSON_PLAN_FIELDTYPE).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {LessonPlanFieldTypeLabel[type]}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -243,6 +279,24 @@ function KeywordItem({
                   </FormField>
                 </div>
               )}
+
+            {/* TABLE Section for admin mode */}
+            {keyword.fieldType === "TABLE" && (
+              <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-blue-50">
+                <div className="bg-white p-3 rounded border border-gray-300">
+                  <RichTable
+                    onChange={(data) => {
+                      console.log("KeywordManager TABLE onChange called:", {
+                        keywordId: keyword.id,
+                        data,
+                      });
+                      updateField("content", JSON.stringify(data));
+                    }}
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {isExpanded && keyword.children && keyword.children.length > 0 && (
@@ -327,7 +381,7 @@ function KeywordItem({
 
                 {mode === "staff" && (
                   <div className="flex items-center gap-2">
-                    {/* Definition Type Dropdown */}
+                    {/* Node Type Dropdown */}
                     <div
                       onMouseDown={(e) => e.stopPropagation()}
                       onMouseUp={(e) => e.stopPropagation()}
@@ -347,16 +401,46 @@ function KeywordItem({
                           position="popper"
                           sideOffset={4}
                         >
-                          <SelectItem value="SUBSECTION">Phần phụ</SelectItem>
-                          <SelectItem value="LIST_ITEM">
-                            Danh sách nội dung
-                          </SelectItem>
-                          <SelectItem value="PARAGRAPH">Nội dung</SelectItem>
-                          <SelectItem value="INPUT">Ô nhập liệu</SelectItem>
-                          <SelectItem value="REFERENCES">
-                            Tài liệu tham khảo
-                          </SelectItem>
-                          <SelectItem value="TABLE">Bảng</SelectItem>
+                          {Object.values(LESSON_PLAN_TYPE).map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {LessonPlanNodeTypeLabel[type]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Field Type Dropdown */}
+                    <div
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onMouseUp={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Select
+                        value={keyword.fieldType ?? "none"} // Nếu null thì truyền "none"
+                        onValueChange={(value) =>
+                          updateField(
+                            "fieldType",
+                            value === "none"
+                              ? null
+                              : (value as LESSON_PLAN_FIELDTYPE)
+                          )
+                        }
+                      >
+                        <SelectTrigger className="w-40 h-8 text-xs">
+                          <SelectValue placeholder="Chọn loại trường" />
+                        </SelectTrigger>
+                        <SelectContent
+                          className="z-[9999]"
+                          position="popper"
+                          sideOffset={4}
+                        >
+                          <SelectItem value="none">Không chọn</SelectItem>
+                          {Object.values(LESSON_PLAN_FIELDTYPE).map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {LessonPlanFieldTypeLabel[type]}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -433,7 +517,7 @@ function KeywordItem({
                 )}
 
               {/* TABLE Section */}
-              {(keyword.nodeType || "LIST_ITEM") === "TABLE" && (
+              {keyword.fieldType === "TABLE" && (
                 <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-blue-50">
                   <div className="bg-white p-3 rounded border border-gray-300">
                     <RichTable
@@ -465,7 +549,7 @@ function KeywordItem({
                         ref={provided.innerRef}
                         className="space-y-2"
                       >
-                        {keyword.children.map((child, childIndex) => (
+                        {keyword?.children.map((child, childIndex) => (
                           <KeywordItem
                             key={child.id}
                             keyword={child}
