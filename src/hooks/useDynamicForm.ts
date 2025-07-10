@@ -68,7 +68,7 @@ export function useDynamicForm() {
           placeholder: config.placeholder,
           order: position.index, // sẽ cập nhật lại order bên dưới
           stepId: position.stepId,
-          nodeType: config.type,
+          fieldType: config.type,
           parentId: position.parentId || null,
         };
 

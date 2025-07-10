@@ -19,13 +19,6 @@ export function useLessonPlanState() {
 
   const treeData = useLessonPlanNodeTreeService("1")();
 
-  // Debug tree data
-  console.log("🌳 Tree Data Debug:", {
-    isLoading: treeData?.isLoading,
-    isError: treeData?.isError,
-    rawTreeData: treeData?.data?.data,
-  });
-
   const sortedSteps = useMemo(() => {
     const steps =
       treeData?.data?.data?.sort(
@@ -69,15 +62,6 @@ export function useLessonPlanState() {
   const childrenData = childrenQuery?.data?.data
     ? processChildren(childrenQuery.data.data)
     : [];
-
-  // Debug API response
-  console.log("🔍 API Response Debug:", {
-    currentStepId,
-    isLoading: childrenQuery?.isLoading,
-    isError: childrenQuery?.isError,
-    rawApiData: childrenQuery?.data?.data,
-    processedChildrenData: childrenData,
-  });
 
   // Update cache when children data is loaded for current step
   useEffect(() => {

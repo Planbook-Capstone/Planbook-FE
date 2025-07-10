@@ -18,6 +18,7 @@ interface DragDropContextType {
     position: any;
   };
   closeConfigModal: () => void;
+  addComponentDirectly?: (componentType: string, stepId: string) => void;
 }
 
 const DragDropContextProvider = createContext<DragDropContextType | null>(null);
@@ -34,12 +35,14 @@ interface DragDropProviderProps {
   children: React.ReactNode;
   onAddItem: (item: any, position: any) => void;
   onMoveToTrash: (itemId: string) => void;
+  onAddComponentDirectly?: (componentType: string, stepId: string) => void;
 }
 
 export function DragDropProvider({
   children,
   onAddItem,
   onMoveToTrash,
+  onAddComponentDirectly,
 }: DragDropProviderProps) {
   const [configModal, setConfigModal] = useState({
     isOpen: false,
@@ -99,8 +102,13 @@ export function DragDropProvider({
           stepId: position.stepId,
         });
 
-        // Open config modal for the dropped item
-        openConfigModal({ type: componentType }, position);
+        // Add component directly without modal
+        if (onAddComponentDirectly) {
+          onAddComponentDirectly(componentType, position.stepId);
+        } else {
+          // Fallback to modal if direct add function not provided
+          openConfigModal({ type: componentType }, position);
+        }
         return;
       }
 
@@ -123,8 +131,15 @@ export function DragDropProvider({
       openConfigModal,
       configModal,
       closeConfigModal,
+      addComponentDirectly: onAddComponentDirectly,
     }),
-    [onDragEnd, openConfigModal, configModal, closeConfigModal]
+    [
+      onDragEnd,
+      openConfigModal,
+      configModal,
+      closeConfigModal,
+      onAddComponentDirectly,
+    ]
   );
 
   return (

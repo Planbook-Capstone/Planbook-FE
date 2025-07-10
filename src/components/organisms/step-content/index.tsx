@@ -5,6 +5,7 @@ import { Steps, StepItem } from "@/components/ui/steps";
 import { Button } from "@/components/ui/Button";
 import { Droppable } from "@hello-pangea/dnd";
 import { FileText, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useComponentAdd } from "@/contexts/ComponentAddContext";
 
 interface Step {
   id: string;
@@ -44,6 +45,9 @@ export function StepContent({
   // State để lưu trữ data có thể thay đổi
   const [localData, setLocalData] = useState<any[]>([]);
 
+  // Get context để register function
+  const { addComponentRef } = useComponentAdd();
+
   // Sync với apiChildrenData khi thay đổi
   useEffect(() => {
     if (apiChildrenData && apiChildrenData.length > 0) {
@@ -78,6 +82,80 @@ export function StepContent({
     },
     [onDataChange, step?.id]
   );
+
+  // Function to add component directly to localData without modal
+  const addComponentToLocalData = useCallback(
+    (componentType: string) => {
+      const stepId = step?.id?.toString();
+      if (!stepId) return;
+
+      // Generate new component with unique ID
+      const newComponent = {
+        id: Date.now(), // Temporary ID for new components
+        lessonPlanId: 1,
+        parentId: step?.id || null,
+        title: getDefaultTitle(componentType),
+        content: "",
+        fieldType:
+          componentType === "INPUT"
+            ? "INPUT"
+            : componentType === "TABLE"
+            ? "TABLE"
+            : componentType === "REFERENCES"
+            ? "REFERENCES"
+            : null,
+        type: componentType === "SUBSECTION" ? "SUBSECTION" : "LIST_ITEM",
+        orderIndex: localData.length, // Add at the end
+        metadata: null,
+        status: "ACTIVE",
+        children: [],
+        nodeType: componentType === "SUBSECTION" ? "SUBSECTION" : "LIST_ITEM",
+      };
+
+      // Update localData by adding the new component
+      setLocalData((prevData) => {
+        const newData = [...prevData, newComponent];
+
+        console.log("🎯 StepContent: Adding new component:", {
+          componentType,
+          newComponent,
+          stepId,
+          newDataLength: newData.length,
+        });
+
+        // Notify parent component to save data
+        if (onDataChange && stepId) {
+          onDataChange(stepId, newData);
+        }
+
+        return newData;
+      });
+    },
+    [step?.id, localData.length, onDataChange]
+  );
+
+  // Register function với context
+  useEffect(() => {
+    addComponentRef.current = addComponentToLocalData;
+  }, [addComponentToLocalData, addComponentRef]);
+
+  // Helper function to get default title for component type
+  const getDefaultTitle = (type: string) => {
+    switch (type) {
+      case "INPUT":
+        return "Nội dung mới";
+      case "CONTENT":
+        return "Nội dung";
+      case "REFERENCES":
+        return "Tài liệu tham khảo";
+      case "SUBSECTION":
+        return "Phần mới";
+      case "TABLE":
+        return "Bảng";
+      default:
+        return "Component mới";
+    }
+  };
 
   // Function to render API children data directly
   const renderApiChildren = (

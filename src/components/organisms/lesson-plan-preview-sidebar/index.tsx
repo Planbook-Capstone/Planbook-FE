@@ -1433,6 +1433,9 @@ export function LessonPlanPreviewSidebar({
 
     const defaultContent = field.content || field.description || "";
 
+    // Check if this is a newly added component (temporary ID)
+    const isNewComponent = field.id > 1000000000; // Date.now() IDs are > 1 billion
+
     return (
       <div
         key={field.id}
@@ -1446,6 +1449,11 @@ export function LessonPlanPreviewSidebar({
               : level === 1
               ? `${String.fromCharCode(97 + index)}. ${field.title}:`
               : `${field.title}:`}
+            {isNewComponent && (
+              <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
+                Mới
+              </span>
+            )}
           </span>
 
           {/* Special handling based on fieldType */}
@@ -1466,7 +1474,11 @@ export function LessonPlanPreviewSidebar({
           ) : field.fieldType === "INPUT" ? (
             <div className="ml-4 text-gray-700">
               <span className="font-questrial">
-                {userValue || defaultContent || "Chưa nhập dữ liệu..."}
+                {userValue ||
+                  defaultContent ||
+                  (isNewComponent
+                    ? "Nội dung mới - chưa nhập dữ liệu..."
+                    : "Chưa nhập dữ liệu...")}
               </span>
             </div>
           ) : field.nodeType === "PARAGRAPH" && !field.fieldType ? (

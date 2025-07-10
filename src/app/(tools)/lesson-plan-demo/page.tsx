@@ -12,6 +12,10 @@ import { useDynamicForm } from "@/hooks/useDynamicForm";
 import { useHeader } from "@/contexts/HeaderContext";
 import { LessonPlanPreviewSidebar } from "@/components/organisms/lesson-plan-preview-sidebar";
 import { ChevronLeft, Edit, Footprints, FileText } from "lucide-react";
+import {
+  ComponentAddProvider,
+  useComponentAdd,
+} from "@/contexts/ComponentAddContext";
 
 function LessonPlanContent() {
   const [showSteps, setShowSteps] = useState(true);
@@ -72,6 +76,20 @@ function LessonPlanContent() {
     []
   );
 
+  // Function để lấy children data cho preview (bao gồm cả stepDataCache)
+  const getChildrenForPreview = useCallback(
+    (stepId: string) => {
+      const stepIdStr = stepId.toString();
+      // Trả về data từ cache nếu có, ngược lại trả về API data
+      if (stepDataCache[stepIdStr]) {
+        return stepDataCache[stepIdStr];
+      }
+      // Fallback to original API data
+      return getChildrenForStep(stepId);
+    },
+    [stepDataCache, getChildrenForStep]
+  );
+
   // Transform stepDataCache for preview sidebar
   const transformedFormData = useMemo(() => {
     const transformedData: Record<string, Record<string, any>> = {};
@@ -79,14 +97,18 @@ function LessonPlanContent() {
     // Helper function to extract data from children recursively
     const extractDataFromChildren = (children: any[], stepId: string) => {
       children.forEach((child) => {
-        if (child.fieldType && child.content) {
-          // Chỉ lấy fields có fieldType và có content (user đã nhập)
+        // Lấy tất cả fields có fieldType (kể cả content rỗng)
+        if (child.fieldType) {
           transformedData[stepId] = transformedData[stepId] || {};
           transformedData[stepId][child.id] = {
             id: child.id,
             title: child.title,
-            content: child.content, // ← Lấy từ stepDataCache
-            value: child.content, // Keep for backward compatibility
+            content: child.content || "", // Hiển thị cả content rỗng
+            value: child.content || "", // Keep for backward compatibility
+            fieldType: child.fieldType,
+            type: child.type,
+            nodeType: child.nodeType,
+            isDynamic: child.id > 1000000000, // Temporary IDs are > 1 billion (Date.now())
           };
         }
 
@@ -106,11 +128,13 @@ function LessonPlanContent() {
     });
 
     console.log(
-      "Transformed formData for preview (from stepDataCache):",
+      "🎯 Transformed formData for preview (from stepDataCache):",
       transformedData
     );
+    console.log("🎯 stepDataCache keys:", Object.keys(stepDataCache));
+    console.log("🎯 Current step ID:", currentStepData?.id);
     return transformedData;
-  }, [stepDataCache]);
+  }, [stepDataCache, currentStepData?.id]);
 
   // Use sortedSteps from useLessonPlanState (which already handles API calls)
   const displaySteps = sortedSteps;
@@ -119,6 +143,12 @@ function LessonPlanContent() {
   React.useEffect(() => {
     console.log("Page - allFormData updated:", formData);
   }, [allFormData]);
+
+  // Debug: Log stepDataCache changes
+  React.useEffect(() => {
+    console.log("🎯 stepDataCache updated:", stepDataCache);
+    console.log("🎯 transformedFormData will be recalculated");
+  }, [stepDataCache]);
 
   // Memoize breadcrumbs to prevent re-creation
   const breadcrumbs = useMemo(
@@ -322,7 +352,7 @@ function LessonPlanContent() {
                 steps={displaySteps}
                 formData={transformedFormData}
                 getMergedComponentsForStep={getMergedComponentsForStep}
-                getApiChildrenForStep={getChildrenForStep}
+                getApiChildrenForStep={getChildrenForPreview}
                 isVisible={showPreviewSidebar}
                 onToggleVisibility={() =>
                   setShowPreviewSidebar(!showPreviewSidebar)
@@ -346,6 +376,16 @@ function LessonPlanContent() {
 }
 
 export default function LessonPlanDemoPage() {
+  return (
+    <ComponentAddProvider>
+      <LessonPlanDemoPageContent />
+    </ComponentAddProvider>
+  );
+}
+
+function LessonPlanDemoPageContent() {
+  const { addComponentRef } = useComponentAdd();
+
   const handleAddItem = (item: any, position: any) => {
     console.log("Add item:", item, "at position:", position);
   };
@@ -354,10 +394,26 @@ export default function LessonPlanDemoPage() {
     console.log("Move to trash:", itemId);
   };
 
+  // Function to handle adding component directly (called from DragDropProvider)
+  const handleAddComponentDirectly = useCallback(
+    (componentType: string, stepId: string) => {
+      console.log("🎯 Adding component directly:", { componentType, stepId });
+
+      // Call StepContent's addComponentToLocalData function via ref
+      if (addComponentRef.current) {
+        addComponentRef.current(componentType);
+      } else {
+        console.warn("⚠️ addComponentToLocalData function not available");
+      }
+    },
+    [addComponentRef]
+  );
+
   return (
     <DragDropProvider
       onAddItem={handleAddItem}
       onMoveToTrash={handleMoveToTrash}
+      onAddComponentDirectly={handleAddComponentDirectly}
     >
       <LessonPlanContent />
     </DragDropProvider>
