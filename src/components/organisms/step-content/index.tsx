@@ -4,7 +4,7 @@ import { KeywordForm } from "@/components/molecules/keyword-form";
 import { Steps, StepItem } from "@/components/ui/steps";
 import { Button } from "@/components/ui/Button";
 import { Droppable } from "@hello-pangea/dnd";
-import { FileText, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { FileText, ChevronLeft, ChevronRight, Plus, Edit2 } from "lucide-react";
 import { useComponentAdd } from "@/contexts/ComponentAddContext";
 
 interface Step {
@@ -83,6 +83,34 @@ export function StepContent({
     [onDataChange, step?.id]
   );
 
+  // Function để update title và trigger re-render
+  const updateChildTitle = useCallback(
+    (childId: number, newTitle: string) => {
+      setLocalData((prevData) => {
+        const updateChildren = (children: any[]): any[] => {
+          return children.map((child) => {
+            if (child.id === childId) {
+              return { ...child, title: newTitle };
+            }
+            if (child.children && child.children.length > 0) {
+              return { ...child, children: updateChildren(child.children) };
+            }
+            return child;
+          });
+        };
+        const updatedData = updateChildren(prevData);
+
+        // Notify parent component để lưu data
+        if (onDataChange && step?.id) {
+          onDataChange(step.id.toString(), updatedData);
+        }
+
+        return updatedData;
+      });
+    },
+    [onDataChange, step?.id]
+  );
+
   // Function to add component directly to localData without modal
   const addComponentToLocalData = useCallback(
     (componentType: string) => {
@@ -128,6 +156,16 @@ export function StepContent({
           onDataChange(stepId, newData);
         }
 
+        // Auto-focus on the new component title after a short delay
+        setTimeout(() => {
+          const newComponentElement = document.querySelector(
+            `[data-component-id="${newComponent.id}"]`
+          );
+          if (newComponentElement) {
+            (newComponentElement as HTMLElement).click();
+          }
+        }, 100);
+
         return newData;
       });
     },
@@ -157,6 +195,88 @@ export function StepContent({
     }
   };
 
+  // Component để edit title inline
+  const EditableTitle = ({ child, level }: { child: any; level: number }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState(child.title);
+
+    // Update editValue when child.title changes
+    React.useEffect(() => {
+      setEditValue(child.title);
+    }, [child.title]);
+
+    const handleSave = () => {
+      if (editValue.trim() !== child.title && editValue.trim() !== "") {
+        console.log("🎯 Updating title:", {
+          childId: child.id,
+          oldTitle: child.title,
+          newTitle: editValue.trim(),
+        });
+        updateChildTitle(child.id, editValue.trim());
+      }
+      setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+      setEditValue(child.title);
+      setIsEditing(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSave();
+      } else if (e.key === "Escape") {
+        handleCancel();
+      }
+    };
+
+    if (isEditing) {
+      return (
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={handleSave}
+            onKeyDown={handleKeyDown}
+            className="font-medium text-gray-900 bg-white border border-blue-500 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+            autoFocus
+            placeholder="Nhập tiêu đề..."
+          />
+          <span className="text-xs text-gray-500">
+            Enter để lưu, Esc để hủy
+          </span>
+        </div>
+      );
+    }
+
+    // Check if this is a newly added component
+    const isNewComponent = child.id > 1000000000;
+
+    return (
+      <div
+        className="flex items-center gap-2 group cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2"
+        onClick={() => setIsEditing(true)}
+        title="Click để chỉnh sửa tiêu đề"
+        data-component-id={child.id}
+      >
+        <span className="font-medium text-gray-900 select-none">
+          {child.title}
+        </span>
+        {isNewComponent && (
+          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
+            Mới
+          </span>
+        )}
+        <Edit2 className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <span className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+          Click để chỉnh sửa
+        </span>
+      </div>
+    );
+  };
+
   // Function to render API children data directly
   const renderApiChildren = (
     children: any[],
@@ -168,8 +288,8 @@ export function StepContent({
         className="space-y-4"
         style={{ marginLeft: `${level * 20}px` }}
       >
-        {/* Render title */}
-        <div className="font-medium text-gray-900">{child.title}</div>
+        {/* Render editable title */}
+        <EditableTitle child={child} level={level} />
 
         {/* Render content based on fieldType */}
         {child.fieldType === "INPUT" && (
