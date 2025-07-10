@@ -236,7 +236,7 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
                     key={cell.id}
                     className={cn(
                       "border-r border-gray-200 p-3 min-w-[200px] relative group",
-                      cell.isHeader && "font-medium bg-gray-50"
+                      cell.isHeader && "font-medium bg-neutral-50"
                     )}
                   >
                     <div className="min-h-[40px] flex items-center justify-between font-questrial">
@@ -270,7 +270,7 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
                             onClick={() =>
                               openRichEditor(cell.id, cell.content)
                             }
-                            className="h-7 w-7 p-0  text-blue-600"
+                            className="h-7 w-7 p-0  text-neutral-600"
                             title="Rich Text Editor"
                           >
                             <Edit3 className="w-4 h-4" />
