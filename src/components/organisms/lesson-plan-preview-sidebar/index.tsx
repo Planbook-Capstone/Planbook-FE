@@ -125,17 +125,10 @@ export function LessonPlanPreviewSidebar({
   // Export to Word function
   const handleExportWord = async () => {
     try {
-      // Import docx library dynamically
-      const {
-        Document,
-        Packer,
-        Paragraph,
-        TextRun,
-        HeadingLevel,
-        AlignmentType,
-      } = await import("docx");
+      // Import docx generator
+      const { generateDocx } = await import("@/utils/docxGenerator");
 
-      // Get general info step
+      // Get general info step for header data
       const generalInfoStep = steps.find(
         (step) =>
           step.title?.toLowerCase().includes("thông tin") ||
@@ -157,10 +150,6 @@ export function LessonPlanPreviewSidebar({
             (stepData as any)[keys[position]]?.value ||
             (stepData as any)[keys[position]] ||
             "";
-          console.log(`🎯 Preview order-based for position ${position}:`, {
-            key: keys[position],
-            value: value,
-          });
           return value;
         }
 
@@ -181,233 +170,67 @@ export function LessonPlanPreviewSidebar({
         return "";
       };
 
-      // Create document sections
-      const documentChildren: any[] = [];
+      // Extract header information
+      const headerInfo = {
+        school: generalInfoStep ? getFieldValueByOrder(generalInfoStep.id, 0) || "Trường:....................." : "Trường:.....................",
+        department: generalInfoStep ? getFieldValueByOrder(generalInfoStep.id, 1) || "Tổ:.............................." : "Tổ:..............................",
+        subject: generalInfoStep ? getFieldValueByOrder(generalInfoStep.id, 2) || "Môn học/Hoạt động giáo dục: .........." : "Môn học/Hoạt động giáo dục: ..........",
+        grade: generalInfoStep ? getFieldValueByOrder(generalInfoStep.id, 3) || "lớp:........" : "lớp:........",
+        lessonTitle: generalInfoStep ? getFieldValueByOrder(generalInfoStep.id, 4) || "TÊN BÀI DẠY: ................................................" : "TÊN BÀI DẠY: ................................................",
+        duration: "Thời gian thực hiện: (số tiết)",
+        teacherName: generalInfoStep ? getFieldValueByOrder(generalInfoStep.id, 5) || "Họ và tên giáo viên:\n................................" : "Họ và tên giáo viên:\n................................"
+      };
 
-      // Header section - Phụ lục IV format
-      documentChildren.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "Phụ lục IV",
-              size: 26,
-              color: "000000",
-            }),
-          ],
-          alignment: AlignmentType.CENTER,
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "KHUNG KẾ HOẠCH BÀI DẠY",
-              bold: true,
-              size: 26,
-              color: "000000",
-            }),
-          ],
-          alignment: AlignmentType.CENTER,
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "(Kèm theo Công văn số 5512/BGDĐT-GDTrH ngày 18 tháng 12 năm 2020 của Bộ GDĐT)",
-              size: 24,
-              color: "000000",
-              italics: true,
-            }),
-          ],
-          alignment: AlignmentType.CENTER,
-        }),
-        new Paragraph({ text: "" }), // Empty line
+      // Convert steps to DemoNode format for generateDocx
+      const convertStepsToDemoNodes = (): any[] => {
+        const nodes: any[] = [];
+        let orderIndex = 0;
 
-        // Institution info - get from formData dynamically
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Tên cơ sở giáo dục: ${
-                generalInfoStep?.id
-                  ? getGeneralInfoFieldByTitle(generalInfoStep.id, "trường") ||
-                    getGeneralInfoFieldByTitle(generalInfoStep.id, "cơ sở") ||
-                    "…………………………………..."
-                  : "…………………………………..."
-              }`,
-              size: 26,
-              color: "000000",
-            }),
-          ],
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Họ và tên giáo viên: ${
-                generalInfoStep?.id
-                  ? getGeneralInfoFieldByTitle(
-                      generalInfoStep.id,
-                      "giáo viên"
-                    ) ||
-                    getGeneralInfoFieldByTitle(generalInfoStep.id, "tên") ||
-                    "…………………………………..."
-                  : "…………………………………..."
-              }`,
-              size: 26,
-              color: "000000",
-            }),
-          ],
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `TÊN BÀI DẠY: ${
-                generalInfoStep?.id
-                  ? getGeneralInfoFieldByTitle(generalInfoStep.id, "bài") ||
-                    getGeneralInfoFieldByTitle(generalInfoStep.id, "tên bài") ||
-                    "…………………………………..."
-                  : "…………………………………..."
-              }`,
-              size: 26,
-              color: "000000",
-              bold: true,
-            }),
-          ],
-        }),
-        new Paragraph({ text: "" }) // Empty line
-      );
+        steps.forEach((step) => {
+          if (!step.keywords || step.keywords.length === 0) return;
 
-      // General info section
-      if (generalInfoStep) {
-        documentChildren.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `Môn học/Hoạt động giáo dục: ${
-                  generalInfoStep?.id
-                    ? getGeneralInfoFieldByTitle(
-                        generalInfoStep.id,
-                        "môn học"
-                      ) ||
-                      getGeneralInfoFieldByTitle(
-                        generalInfoStep.id,
-                        "hoạt động"
-                      ) ||
-                      "………"
-                    : "………"
-                }; lớp: ${
-                  generalInfoStep?.id
-                    ? getGeneralInfoFieldByTitle(generalInfoStep.id, "lớp") ||
-                      "………"
-                    : "………"
-                }`,
-                size: 26,
-                color: "000000",
-              }),
-            ],
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `Thời gian thực hiện: ${
-                  generalInfoStep?.id
-                    ? getGeneralInfoFieldByTitle(
-                        generalInfoStep.id,
-                        "thời gian"
-                      ) ||
-                      getGeneralInfoFieldByTitle(generalInfoStep.id, "tiết") ||
-                      "(số tiết)"
-                    : "(số tiết)"
-                }`,
-                size: 26,
-                color: "000000",
-              }),
-            ],
-          }),
-          new Paragraph({ text: "" }), // Empty line
-          new Paragraph({ text: "" }) // Extra empty line
-        );
-      }
+          // Add step as section
+          const stepNode = {
+            id: step.id,
+            title: step.title || "",
+            content: "",
+            type: "SECTION",
+            fieldType: "INPUT",
+            orderIndex: orderIndex++,
+            status: "ACTIVE",
+            children: [],
+          };
 
-      // Add each step content
-      const contentSteps = steps.filter(
-        (step) => step.id !== generalInfoStep?.id
-      );
-      const romanNumerals = [
-        "I",
-        "II",
-        "III",
-        "IV",
-        "V",
-        "VI",
-        "VII",
-        "VIII",
-        "IX",
-        "X",
-      ];
+          // Add keywords as children
+          step.keywords.forEach((keyword) => {
+            const fieldValue = getFieldValue(step.id, keyword.id);
+            if (fieldValue) {
+              const keywordNode = {
+                id: keyword.id,
+                title: keyword.title || "",
+                content: fieldValue,
+                type: "PARAGRAPH",
+                fieldType: "INPUT",
+                orderIndex: orderIndex++,
+                status: "ACTIVE",
+                children: [],
+              };
+              stepNode.children.push(keywordNode);
+            }
+          });
 
-      for (let i = 0; i < contentSteps.length; i++) {
-        const step = contentSteps[i];
-        const stepNumber = romanNumerals[i] || `${i + 1}`;
+          if (stepNode.children.length > 0) {
+            nodes.push(stepNode);
+          }
+        });
 
-        // Ensure stepData is always an object
-        const rawStepData = formData[step.id];
-        const stepData =
-          typeof rawStepData === "object" && rawStepData !== null
-            ? (rawStepData as Record<string, any>)
-            : {};
+        return nodes;
+      };
 
-        // Step title
-        documentChildren.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `${stepNumber}. ${step.title}`,
-                bold: true,
-                size: 26,
-                color: "000000",
-              }),
-            ],
-            heading: HeadingLevel.HEADING_1,
-          })
-        );
+      const demoNodes = convertStepsToDemoNodes();
 
-        // Get API children data for this step if available
-        const apiChildren = getApiChildrenForStep
-          ? getApiChildrenForStep(step.id)
-          : [];
-
-        // Use API children if available, otherwise fall back to static children
-        const childrenToUse =
-          apiChildren.length > 0 ? apiChildren : step.children || [];
-
-        // Get merged components for this step
-        const components = getMergedComponentsForStep
-          ? getMergedComponentsForStep(step.id, childrenToUse)
-          : childrenToUse;
-
-        // Add step content
-        await addStepContentToDoc(components, stepData, documentChildren, 0);
-
-        documentChildren.push(new Paragraph({ text: "" })); // Empty line between steps
-      }
-
-      // Create document
-      const doc = new Document({
-        sections: [
-          {
-            properties: {},
-            children: documentChildren,
-          },
-        ],
-      });
-
-      // Generate and download
-      const blob = await Packer.toBlob(doc);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Giao_an_${new Date().getTime()}.docx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Use generateDocx with header info
+      await generateDocx(demoNodes, `Giao_an_${new Date().getTime()}.docx`, headerInfo);
 
       console.log("✅ Exported lesson plan to Word successfully");
     } catch (error) {
@@ -415,6 +238,9 @@ export function LessonPlanPreviewSidebar({
       alert("Có lỗi xảy ra khi xuất file Word. Vui lòng thử lại.");
     }
   };
+
+
+
 
   // Helper function to add step content to document
   const addStepContentToDoc = async (

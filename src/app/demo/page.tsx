@@ -1,9 +1,27 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { v4 as uuidv4 } from "uuid";
 import { useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
+import PreviewModal from "@/components/PreviewModal";
+import { generateDocx } from "@/utils/docxGenerator";
+import Sidebar from "@/components/demo/Sidebar";
+import Toolbar from "@/components/demo/Toolbar";
+import Canvas from "@/components/demo/Canvas";
+
+interface CellContent {
+  text?: string;
+  image?: {
+    url: string;
+    name?: string;
+  };
+}
+
+interface TableData {
+  headers: string[];
+  rows: (string | CellContent)[][];
+}
 
 interface DemoNode {
   id: string;
@@ -17,6 +35,7 @@ interface DemoNode {
   metadata?: any;
   status: "ACTIVE" | "DELETED";
   children: DemoNode[];
+  tableData?: TableData;
 }
 
 interface ComponentPaletteItem {
@@ -82,9 +101,10 @@ const COMPONENT_PALETTE: ComponentPaletteItem[] = [
 function DemoPage() {
   const [demoData, setDemoData] = useState<DemoNode[]>([]);
   const [trashData, setTrashData] = useState<DemoNode[]>([]);
-  const [images, setImages] = useState<any[]>([]);
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
   const [activeTab, setActiveTab] = useState<"components" | "images" | "trash">("components");
+  const [showPreview, setShowPreview] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Load data from API
   const childrenQuery = useLessonPlanNodeChildrenService("1")();
@@ -115,12 +135,12 @@ function DemoPage() {
     }
   }, [apiData]);
 
-  // Handle input changes
-  const handleInputChange = useCallback((nodeId: string, value: string | boolean) => {
+  // Handle content changes
+  const handleInputChange = useCallback((nodeId: string, value: string) => {
     const updateNodeContent = (nodeList: DemoNode[]): DemoNode[] => {
       return nodeList.map((node) => {
         if (node.id.toString() === nodeId) {
-          return { ...node, content: String(value) };
+          return { ...node, content: value };
         }
         if (node.children && node.children.length > 0) {
           return { ...node, children: updateNodeContent(node.children) };
@@ -130,6 +150,40 @@ function DemoPage() {
     };
 
     setDemoData((prev) => updateNodeContent(prev));
+  }, []);
+
+  // Handle title changes
+  const handleTitleChange = useCallback((nodeId: string, title: string) => {
+    const updateNodeTitle = (nodeList: DemoNode[]): DemoNode[] => {
+      return nodeList.map((node) => {
+        if (node.id.toString() === nodeId) {
+          return { ...node, title };
+        }
+        if (node.children && node.children.length > 0) {
+          return { ...node, children: updateNodeTitle(node.children) };
+        }
+        return node;
+      });
+    };
+
+    setDemoData((prev) => updateNodeTitle(prev));
+  }, []);
+
+  // Handle table data changes
+  const handleTableDataChange = useCallback((nodeId: string, tableData: TableData) => {
+    const updateNodeTableData = (nodeList: DemoNode[]): DemoNode[] => {
+      return nodeList.map((node) => {
+        if (node.id.toString() === nodeId) {
+          return { ...node, tableData };
+        }
+        if (node.children && node.children.length > 0) {
+          return { ...node, children: updateNodeTableData(node.children) };
+        }
+        return node;
+      });
+    };
+
+    setDemoData((prev) => updateNodeTableData(prev));
   }, []);
 
   // Add child to node with proper orderIndex
@@ -195,7 +249,16 @@ function DemoPage() {
         orderIndex: 0,
         metadata: { isNew: true },
         status: "ACTIVE",
-        children: []
+        children: [],
+        ...(componentType.type === "TABLE" && {
+          tableData: {
+            headers: ["Cột 1", "Cột 2"],
+            rows: [
+              ["", ""],
+              ["", ""]
+            ]
+          }
+        })
       };
 
       // Dropping to main canvas
@@ -324,530 +387,76 @@ function DemoPage() {
     }
   }, [trashData, addChildToNode, findParentExists, demoData]);
 
-  // Render field based on fieldType and type
-  const renderField = useCallback((node: DemoNode) => {
-    // Special rendering for SECTION and SUBSECTION - editable titles
-    if (node.type === "SECTION") {
-      return (
-        <div className="section-field">
-          <input
-            type="text"
-            className="text-xl font-bold text-gray-800 bg-transparent outline-none w-full "
-            value={node.title || ""}
-            onChange={(e) => {
-              // Update title directly
-              const updateNodeTitle = (nodeList: DemoNode[]): DemoNode[] => {
-                return nodeList.map((n) => {
-                  if (n.id.toString() === node.id.toString()) {
-                    return { ...n, title: e.target.value };
-                  }
-                  if (n.children && n.children.length > 0) {
-                    return { ...n, children: updateNodeTitle(n.children) };
-                  }
-                  return n;
-                });
-              };
-              setDemoData(prev => updateNodeTitle(prev));
-            }}
-            placeholder="Nhập tiêu đề section..."
-          />
-          {node.content && (
-            <div className="mt-2 text-gray-600 text-sm">{node.content}</div>
-          )}
-        </div>
-      );
+  // Handle download DOCX
+  const handleDownloadDocx = useCallback(async () => {
+    try {
+      const headerInfo = {
+        school: "Trường:.....................",
+        department: "Tổ:..............................",
+        subject: "Môn học/Hoạt động giáo dục: ..........",
+        grade: "lớp:........",
+        lessonTitle: "TÊN BÀI DẠY: ................................................",
+        duration: "Thời gian thực hiện: (số tiết)",
+        teacherName: "Họ và tên giáo viên:\n................................"
+      };
+      await generateDocx(demoData, "lesson-plan.docx", headerInfo);
+    } catch (error) {
+      console.error("Error generating DOCX:", error);
+      alert("Có lỗi xảy ra khi tạo file DOCX");
     }
+  }, [demoData]);
 
-    if (node.type === "SUBSECTION") {
-      return (
-        <div className="subsection-field">
-          <input
-            type="text"
-            className="text-lg font-semibold text-gray-700 bg-transparent outline-none w-full pb-1"
-            value={node.title || ""}
-            onChange={(e) => {
-              // Update title directly
-              const updateNodeTitle = (nodeList: DemoNode[]): DemoNode[] => {
-                return nodeList.map((n) => {
-                  if (n.id.toString() === node.id.toString()) {
-                    return { ...n, title: e.target.value };
-                  }
-                  if (n.children && n.children.length > 0) {
-                    return { ...n, children: updateNodeTitle(n.children) };
-                  }
-                  return n;
-                });
-              };
-              setDemoData(prev => updateNodeTitle(prev));
-            }}
-            placeholder="Nhập tiêu đề subsection..."
-          />
-          {node.content && (
-            <div className=" text-gray-600 text-sm">{node.content}</div>
-          )}
-        </div>
-      );
-    }
 
-    // Regular field rendering based on fieldType
-    switch (node.fieldType) {
-      case "INPUT":
-        return (
-          <textarea
-            className="w-full dotted-input text-blue-600 resize-none overflow-hidden min-h-[24px] border-none outline-none bg-transparent leading-tight"
-            placeholder="............................................"
-            value={node.content || ""}
-            rows={1}
-            onChange={(e) => {
-              handleInputChange(node.id.toString(), e.target.value);
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = "24px"; // Reset to min height
-              target.style.height = Math.max(24, target.scrollHeight) + "px";
-            }}
-          />
-        );
-      case "TABLE":
-        return (
-          <div className="field-table w-full">
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium">Cột 1</th>
-                    <th className="px-4 py-2 text-left font-medium">Cột 2</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        className="w-full border-none outline-none bg-transparent"
-                        placeholder="Nhập nội dung..."
-                        value={node.content || ""}
-                        onChange={(e) => handleInputChange(node.id.toString(), e.target.value)}
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        className="w-full border-none outline-none bg-transparent"
-                        placeholder="Nhập nội dung..."
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        className="w-full border-none outline-none bg-transparent"
-                        placeholder="Nhập nội dung..."
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        className="w-full border-none outline-none bg-transparent"
-                        placeholder="Nhập nội dung..."
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case "IMAGE":
-        return (
-          <div className="field-image w-full">
-            <div className="rounded-lg p-8 text-center bg-gray-50">
-              <div className="text-4xl mb-2">🖼️</div>
-              <p className="text-gray-500">Kéo hình ảnh vào đây hoặc click để chọn</p>
-            </div>
-          </div>
-        );
-      default:
-        return (
-          <div className="field-default">
-            <span className="text-gray-500 text-sm">
-              Không xác định fieldType: {node.fieldType}
-            </span>
-          </div>
-        );
-    }
-  }, [handleInputChange]);
 
-  // Get drop zone colors based on depth level
-  const getDropZoneColors = (depth: number) => {
-    const colors = [
-      { border: "border-blue-500", bg: "bg-blue-50" },      // Level 0 - Blue
-      { border: "border-green-500", bg: "bg-green-50" },    // Level 1 - Green
-      { border: "border-purple-500", bg: "bg-purple-50" },  // Level 2 - Purple
-    ];
-    return colors[depth % colors.length];
-  };
 
-  // Render node based on type
-  const renderNode = useCallback((node: DemoNode, depth: number = 0) => {
-    const isNewComponent = node.metadata?.isNew === true;
-    const isApiData = !isNewComponent;
-    const dropColors = getDropZoneColors(depth);
-
-    return (
-      <div className="relative group rounded-lg mb-2 bg-white px-2">
-        {/* Data source indicator - only show for new components */}
-        {isNewComponent && (
-          <div className="absolute top-2 right-8">
-            <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
-              Mới
-            </span>
-          </div>
-        )}
-
-        {/* Delete button - show when showDeleteButtons is true */}
-        {showDeleteButtons && (
-          <button
-            onClick={() => handleDeleteNode(node.id.toString())}
-            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-          >
-            ×
-          </button>
-        )}
-
-        {/* Title input - only show for non-Section/Subsection/ListItem types */}
-        {node.type !== "SECTION" && node.type !== "SUBSECTION" && node.type !== "LIST_ITEM" && (
-          <div className="mb-2">
-            <input
-              type="text"
-              className="font-medium text-gray-800 border-none outline-none bg-transparent w-full"
-              value={node.title}
-              onChange={(e) => {
-                // Update title in nested structure
-                const updateNodeTitle = (nodeList: DemoNode[]): DemoNode[] => {
-                  return nodeList.map((n) => {
-                    if (n.id.toString() === node.id.toString()) {
-                      return { ...n, title: e.target.value };
-                    }
-                    if (n.children && n.children.length > 0) {
-                      return { ...n, children: updateNodeTitle(n.children) };
-                    }
-                    return n;
-                  });
-                };
-                setDemoData(prev => updateNodeTitle(prev));
-              }}
-              placeholder="Nhập tiêu đề..."
-            />
-          </div>
-        )}
-
-        {/* Special rendering for LIST_ITEM with flex layout */}
-        {node.type === "LIST_ITEM" && (
-          <div className="flex items-start gap-3 flex-wrap">
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <input
-                type="text"
-                className="font-medium text-gray-800 border-none outline-none bg-transparent w-auto min-w-[80px]"
-                value={node.title}
-                onChange={(e) => {
-                  const updateNodeTitle = (nodeList: DemoNode[]): DemoNode[] => {
-                    return nodeList.map((n) => {
-                      if (n.id.toString() === node.id.toString()) {
-                        return { ...n, title: e.target.value };
-                      }
-                      if (n.children && n.children.length > 0) {
-                        return { ...n, children: updateNodeTitle(n.children) };
-                      }
-                      return n;
-                    });
-                  };
-                  setDemoData(prev => updateNodeTitle(prev));
-                }}
-                placeholder="Tiêu đề..."
-                size={Math.max(node.title?.length || 8, 8)}
-              />
-              <span className="text-gray-600">:</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              {renderField(node)}
-            </div>
-          </div>
-        )}
-
-        {/* Regular field rendering for non-LIST_ITEM types */}
-        {node.type !== "LIST_ITEM" && renderField(node)}
-
-        {/* Drop zone for this node */}
-        <Droppable droppableId={`node-${node.id}`}>
-          {(provided: any, snapshot: any) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className={`mt-0.5 min-h-[8px] rounded-lg transition-colors ${
-                snapshot.isDraggingOver
-                  ? `border-2 border-dashed ${dropColors.border} ${dropColors.bg} min-h-[30px]`
-                  : "border-0 bg-transparent"
-              }`}
-            >
-              {node.children && node.children.length > 0 ? (
-                <div className="mt-2">
-                  {node.children
-                    .sort((a, b) => a.orderIndex - b.orderIndex)
-                    .map(child => (
-                    <div key={child.id} className="ml-4">
-                      {renderNode(child, depth + 1)}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                snapshot.isDraggingOver && (
-                  <div className="flex items-center justify-center h-10 text-gray-400 text-sm">
-                    Thả vào đây để thêm con (Cấp {depth + 1})
-                  </div>
-                )
-              )}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </div>
-    );
-  }, [showDeleteButtons, handleDeleteNode, renderField, getDropZoneColors]);
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-screen bg-gray-50">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          {/* Sidebar Header */}
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">Demo Layout</h2>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200">
-            {(["components", "images", "trash"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-4 py-2 text-sm font-medium capitalize ${
-                  activeTab === tab
-                    ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                {tab === "components" && "🧩 Components"}
-                {tab === "images" && "🖼️ Images"}
-                {tab === "trash" && `🗑️ Trash (${trashData.length})`}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab Content */}
-          <div className="flex-1 p-4 overflow-y-auto">
-            {activeTab === "components" && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Kéo thả để thêm components
-                </h3>
-                <Droppable droppableId="component-palette" isDropDisabled>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className="space-y-3"
-                    >
-                      {COMPONENT_PALETTE.map((item, index) => (
-                        <Draggable
-                          key={item.id}
-                          draggableId={item.id}
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`p-3 border border-gray-200 rounded-lg cursor-move transition-colors ${
-                                snapshot.isDragging
-                                  ? "border-blue-500 bg-blue-100 shadow-lg"
-                                  : "hover:border-gray-300 hover:bg-gray-50"
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <span className="text-2xl">{item.icon}</span>
-                                <div>
-                                  <div className="font-medium text-gray-800">
-                                    {item.title}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {item.description}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-            )}
-
-            {activeTab === "images" && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Thư viện hình ảnh
-                </h3>
-                <div className="text-center text-gray-500 py-8">
-                  Chưa có hình ảnh nào
-                </div>
-              </div>
-            )}
-
-            {activeTab === "trash" && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Thùng rác ({trashData.length} items)
-                </h3>
-                {trashData.length === 0 ? (
-                  <div className="text-center text-gray-500 py-8">
-                    Thùng rác trống
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {trashData.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-3 border border-gray-200 rounded-lg bg-gray-50"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-800">
-                              {item.title}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {item.type}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleRestoreNode(item.id.toString())}
-                            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                          >
-                            Khôi phục
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+        <div className={`transition-all duration-300 ${sidebarCollapsed ? 'w-0' : 'w-80'} overflow-hidden`}>
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            trashData={trashData}
+            onRestoreNode={handleRestoreNode}
+            componentPalette={COMPONENT_PALETTE}
+          />
         </div>
 
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col">
           {/* Toolbar */}
-          <div className="bg-white border-b border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-semibold text-gray-800">
-                Dynamic Layout Demo
-              </h1>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowDeleteButtons(!showDeleteButtons)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    showDeleteButtons
-                      ? "bg-red-100 text-red-700 hover:bg-red-200"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {showDeleteButtons ? "Ẩn nút xóa" : "Hiện nút xóa"}
-                </button>
-                <button
-                  onClick={() => {
-                    console.log("Demo Data:", demoData);
-                    alert("Check console for data structure!");
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-                >
-                  Export JSON
-                </button>
-              </div>
-            </div>
-          </div>
+          <Toolbar
+            showDeleteButtons={showDeleteButtons}
+            onToggleDeleteButtons={() => setShowDeleteButtons(!showDeleteButtons)}
+            onShowPreview={() => setShowPreview(true)}
+            onExportJSON={() => {
+              console.log("Demo Data:", demoData);
+              alert("Check console for data structure!");
+            }}
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
 
           {/* Canvas */}
-          <div className="flex-1 p-1 overflow-y-auto">
-            <Droppable droppableId="demo-canvas">
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className={`min-h-full rounded-lg transition-colors ${
-                    snapshot.isDraggingOver
-                      ? "border-2 border-dashed border-blue-500 bg-blue-50"
-                      : "border-0 bg-transparent"
-                  }`}
-                >
-                  {demoData.length === 0 ? (
-                    <div className="flex items-center justify-center h-64 text-gray-500">
-                      <div className="text-center">
-                        <div className="text-4xl mb-4">📋</div>
-                        <p className="text-lg font-medium">Kéo components từ sidebar vào đây</p>
-                        <p className="text-sm">Bắt đầu tạo layout của bạn</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-3">
-                      {demoData
-                        .sort((a, b) => a.orderIndex - b.orderIndex)
-                        .map((node, index) => (
-                        <Draggable key={node.id} draggableId={node.id.toString()} index={index}>
-                          {(provided: any, snapshot: any) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={snapshot.isDragging ? "opacity-50" : ""}
-                            >
-                              {renderNode(node, 0)}
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                    </div>
-                  )}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </div>
-
-          {/* Trash Drop Zone */}
-          {/* <Droppable droppableId="trash">
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className={`m-4 p-4 rounded-lg transition-colors ${
-                  snapshot.isDraggingOver
-                    ? "border-2 border-dashed border-red-500 bg-red-50"
-                    : "border border-gray-300 bg-gray-100"
-                }`}
-              >
-                <div className="text-center text-gray-600">
-                  <span className="text-2xl">🗑️</span>
-                  <p className="text-sm">Kéo vào đây để xóa</p>
-                </div>
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable> */}
+          <Canvas
+            demoData={demoData}
+            showDeleteButtons={showDeleteButtons}
+            onDeleteNode={handleDeleteNode}
+            onUpdateNodeTitle={handleTitleChange}
+            onUpdateNodeContent={handleInputChange}
+            onUpdateTableData={handleTableDataChange}
+          />
         </div>
+
+        {/* Preview Modal */}
+        <PreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          data={demoData}
+          onDownload={handleDownloadDocx}
+        />
       </div>
     </DragDropContext>
   );
