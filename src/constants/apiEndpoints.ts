@@ -48,8 +48,7 @@ export const API_ENDPOINTS = {
   LESSON_NODE_CHIDREN: (nodeId: string) =>
     `/lesson-plan-service-local/api/lesson-nodes/${nodeId}/children`,
 
-
-  LESSON_PLAN_GENERATION:"/lesson/generate-lesson-plan-content",
+  LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
 
   // Tags
   TAGS: "/academic-resource-service-local/api/tags",
@@ -64,6 +63,9 @@ export const API_ENDPOINTS = {
 
   ACADEMIC_RESOURSE_INTERNAL:
     "/academic-resource-service-local/api/academic-resources/internal",
+
+  // External Tools
+  EXTERNAL_TOOLS: "external-tool-config-service/api/external-tools",
 } as const;
 
 // PDF API Endpoints (Secondary API - Port 8000)
