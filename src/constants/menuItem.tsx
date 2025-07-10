@@ -22,6 +22,9 @@ export const getLabel = (key?: Key, role?: string): string | undefined => {
   if (role === "staff") {
     return staffItems.find((item) => item.key === key)?.label;
   }
+  if (role === "tool-manager") {
+    return toolManagerItems.find((item) => item.key === key)?.label;
+  }
   return adminItems.find((item) => item.key === key)?.label;
 };
 export const adminItems = [
@@ -128,6 +131,49 @@ function getStaffItem(
 
 export const staffMenuItems: MenuItem[] = staffItems.map((item) =>
   getStaffItem(item.label, item.key, item.icon)
+);
+
+// Tool Manager menu items - focused on API management and revenue tracking
+export const toolManagerItems = [
+  {
+    label: "Dashboard",
+    key: "dashboard",
+    icon: <HomeOutlined />,
+    image: "/icons/home.svg",
+    active: "/icons/home-active.svg",
+  },
+  {
+    label: "API Tools",
+    key: "tools",
+    icon: <SettingOutlined />,
+    image: "/icons/gear.svg",
+    active: "/icons/gear-active.svg",
+  },
+  {
+    label: "Doanh thu",
+    key: "revenue",
+    icon: <HomeOutlined />,
+    image: "/icons/diamond.svg",
+    active: "/icons/diamond-active.svg",
+  },
+];
+
+function getToolManagerItem(
+  label: React.ReactNode,
+  key: React.Key,
+  icon?: React.ReactNode,
+  children?: MenuItem[]
+): MenuItem {
+  return {
+    key,
+    icon,
+    children,
+    label: <Link href={`/tool-manager/${key}`}> {label} </Link>,
+  } as MenuItem;
+}
+
+export const toolManagerMenuItems: MenuItem[] = toolManagerItems.map((item) =>
+  getToolManagerItem(item.label, item.key, item.icon)
 );
 
 export const userItems = [
