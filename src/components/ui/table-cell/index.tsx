@@ -3,10 +3,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "../input";
+import { ImageIcon, X } from "lucide-react";
+
+interface CellContent {
+  text?: string;
+  image?: {
+    url: string;
+    name?: string;
+  };
+}
 
 interface TableCellProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: string | CellContent;
+  onChange: (value: string | CellContent) => void;
   isHeader?: boolean;
   className?: string;
   placeholder?: string;
@@ -22,12 +31,22 @@ export function TableCell({
   disabled = false,
 }: TableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(value);
+  const [editValue, setEditValue] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Parse value to get text and image
+  const parsedValue = React.useMemo(() => {
+    if (typeof value === "string") {
+      return { text: value, image: null };
+    }
+    return { text: value?.text || "", image: value?.image || null };
+  }, [value]);
 
   useEffect(() => {
-    setEditValue(value);
-  }, [value]);
+    setEditValue(parsedValue.text);
+  }, [parsedValue.text]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -51,17 +70,90 @@ export function TableCell({
   };
 
   const handleSave = () => {
-    onChange(editValue);
+    // If there's no image, just return the text string for simplicity
+    if (!parsedValue.image) {
+      onChange(editValue);
+    } else {
+      const newValue: CellContent = {
+        text: editValue,
+        image: parsedValue.image,
+      };
+      onChange(newValue);
+    }
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditValue(value);
+    setEditValue(parsedValue.text);
     setIsEditing(false);
   };
 
   const handleBlur = () => {
     handleSave();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    if (disabled) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+
+    if (imageFile) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageUrl = event.target?.result as string;
+        const newValue: CellContent = {
+          text: parsedValue.text,
+          image: {
+            url: imageUrl,
+            name: imageFile.name,
+          },
+        };
+        onChange(newValue);
+      };
+      reader.readAsDataURL(imageFile);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageUrl = event.target?.result as string;
+        const newValue: CellContent = {
+          text: parsedValue.text,
+          image: {
+            url: imageUrl,
+            name: file.name,
+          },
+        };
+        onChange(newValue);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    // If removing image and only text remains, return just the text string
+    if (parsedValue.text) {
+      onChange(parsedValue.text);
+    } else {
+      onChange("");
+    }
   };
 
   if (isEditing) {
@@ -91,17 +183,71 @@ export function TableCell({
   return (
     <td
       className={cn(
-        "border border-gray-300 p-2 min-w-[120px] cursor-pointer hover:bg-gray-50 transition-colors font-questrial",
+        "border border-gray-300 p-2 min-w-[120px] cursor-pointer hover:bg-gray-50 transition-colors font-questrial relative",
         isHeader && "bg-gray-100 font-calsans",
         disabled && "cursor-not-allowed opacity-60",
+        isDragOver && "bg-blue-50 border-blue-300",
         className
       )}
       onDoubleClick={handleDoubleClick}
-      title={disabled ? "" : "Double-click để chỉnh sửa"}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      title={disabled ? "" : "Double-click để chỉnh sửa hoặc kéo hình ảnh vào"}
     >
-      <div className="text-sm text-gray-900">
-        {value || <span className="text-gray-400 italic">{placeholder}</span>}
+      <div className="space-y-2">
+        {/* Text content */}
+        {parsedValue.text && (
+          <div className="text-sm text-gray-900">
+            {parsedValue.text}
+          </div>
+        )}
+
+        {/* Image content */}
+        {parsedValue.image && (
+          <div className="relative group">
+            <img
+              src={parsedValue.image.url}
+              alt={parsedValue.image.name || "Cell image"}
+              className="max-w-full h-auto max-h-20 object-contain rounded"
+            />
+            {!disabled && (
+              <button
+                onClick={handleRemoveImage}
+                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Xóa hình ảnh"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!parsedValue.text && !parsedValue.image && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 italic text-sm">{placeholder}</span>
+            {!disabled && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="text-gray-400 hover:text-blue-500 transition-colors"
+                title="Thêm hình ảnh"
+              >
+                <ImageIcon className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
     </td>
   );
 }
