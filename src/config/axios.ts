@@ -43,7 +43,6 @@ const setupInterceptors = (axiosInstance: AxiosInstance) => {
 
         try {
           const newToken = await refreshAuthToken();
-          console.log("New token:", newToken);
 
           // Update both instances
           axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;

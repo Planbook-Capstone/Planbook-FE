@@ -121,7 +121,7 @@ export default function ChatBox({
   }, [isOpen, messages.length, initialMessages.length]);
 
   // Debug render condition
-  console.log("Render check - isOpen:", isOpen);
+  // console.log("Render check - isOpen:", isOpen);
 
   return (
     <div className={cn("relative", className)}>

@@ -47,29 +47,29 @@ export function KeywordForm({
   onDelete,
 }: KeywordFormProps) {
   // Debug: Log all KeywordForm renders
-  console.log("KeywordForm render:", {
-    keywordId: keyword.id,
-    keywordTitle: keyword.title,
-    nodeType: keyword.fieldType || keyword.type,
-    hasOnChange: typeof onChange === "function",
-    hasOnChildChange: typeof onChildChange === "function",
-    hasChildren: !!(keyword.children && keyword.children.length > 0),
-    childrenCount: keyword.children?.length || 0,
-    children:
-      keyword.children?.map((c) => ({
-        id: c.id,
-        title: c.title,
-        fieldType: c.fieldType,
-      })) || [],
-    onChangeFunction: onChange.toString().substring(0, 100) + "...",
-  });
+  // console.log("KeywordForm render:", {
+  //   keywordId: keyword.id,
+  //   keywordTitle: keyword.title,
+  //   nodeType: keyword.fieldType || keyword.type,
+  //   hasOnChange: typeof onChange === "function",
+  //   hasOnChildChange: typeof onChildChange === "function",
+  //   hasChildren: !!(keyword.children && keyword.children.length > 0),
+  //   childrenCount: keyword.children?.length || 0,
+  //   children:
+  //     keyword.children?.map((c) => ({
+  //       id: c.id,
+  //       title: c.title,
+  //       fieldType: c.fieldType,
+  //     })) || [],
+  //   onChangeFunction: onChange.toString().substring(0, 100) + "...",
+  // });
   // Debug re-renders
   // console.log("KeywordForm re-rendered", {
   //   keywordId: keyword.id,
   //   nodeType: keyword.nodeType,
   //   valueLength: value?.length,
   // });
-  console.log(keyword, "keyword");
+
   const [showResourceModal, setShowResourceModal] = useState(false);
   const [resourceData, setResourceData] = useState<ResourceData | null>(null);
   const [promptValue, setPromptValue] = useState("");
@@ -144,28 +144,28 @@ export function KeywordForm({
       </div>
     );
   };
-  console.log(keyword.fieldType || keyword.type);
+
   const renderByNodeType = () => {
     // Debug: Log which component is being rendered
     const nodeType = keyword.fieldType ? keyword.fieldType : keyword.type;
 
-    console.log("KeywordForm renderByNodeType:", {
-      keywordId: keyword.id,
-      keywordTitle: keyword.title,
-      fieldType: keyword.fieldType,
-      type: keyword.type,
-      nodeType: nodeType,
-      hasOnChange: typeof onChange === "function",
-    });
+    // console.log("KeywordForm renderByNodeType:", {
+    //   keywordId: keyword.id,
+    //   keywordTitle: keyword.title,
+    //   fieldType: keyword.fieldType,
+    //   type: keyword.type,
+    //   nodeType: nodeType,
+    //   hasOnChange: typeof onChange === "function",
+    // });
 
-    if (nodeType === "TABLE") {
-      console.log("KeywordForm rendering TABLE component:", {
-        keywordId: keyword.id,
-        keywordTitle: keyword.title,
-        nodeType: nodeType,
-        hasOnChange: typeof onChange === "function",
-      });
-    }
+    // if (nodeType === "TABLE") {
+    //   console.log("KeywordForm rendering TABLE component:", {
+    //     keywordId: keyword.id,
+    //     keywordTitle: keyword.title,
+    //     nodeType: nodeType,
+    //     hasOnChange: typeof onChange === "function",
+    //   });
+    // }
 
     switch (nodeType) {
       case "SECTION":
@@ -199,11 +199,11 @@ export function KeywordForm({
 
                       // Call onChildChange with child's own ID and title
                       if (onChildChange) {
-                        console.log("🎯 KeywordForm calling onChildChange:", {
-                          childId: child.id,
-                          childTitle: child.title,
-                          childValue: childValue.substring(0, 50) + "...",
-                        });
+                        // console.log("🎯 KeywordForm calling onChildChange:", {
+                        //   childId: child.id,
+                        //   childTitle: child.title,
+                        //   childValue: childValue.substring(0, 50) + "...",
+                        // });
                         onChildChange(child.id, child.title, childValue);
                       } else {
                         console.log(
