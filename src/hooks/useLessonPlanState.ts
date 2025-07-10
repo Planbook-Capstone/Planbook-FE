@@ -3,7 +3,6 @@ import {
   useLessonPlanNodeTreeService,
   useLessonPlanNodeChildrenService,
 } from "@/services/lessonPlanNodeServices";
-import { createFieldId } from "./useStableId";
 
 export function useLessonPlanState() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -19,17 +18,21 @@ export function useLessonPlanState() {
   >({});
 
   const treeData = useLessonPlanNodeTreeService("1")();
-  // const apiSteps =
-  //   treeData?.data?.data?.sort(
-  //     (a: any, b: any) => a?.orderIndex - b?.orderIndex
-  //   ) || [];
+
+  // Debug tree data
+  console.log("🌳 Tree Data Debug:", {
+    isLoading: treeData?.isLoading,
+    isError: treeData?.isError,
+    rawTreeData: treeData?.data?.data,
+  });
 
   const sortedSteps = useMemo(() => {
-    return (
+    const steps =
       treeData?.data?.data?.sort(
         (a: any, b: any) => a?.orderIndex - b?.orderIndex
-      ) || []
-    );
+      ) || [];
+    console.log("📋 Sorted Steps:", steps);
+    return steps;
   }, [treeData]);
 
   // // Get sorted nodes (SECTION nodes act as steps) - memoized
@@ -51,25 +54,30 @@ export function useLessonPlanState() {
   const currentStepId = currentStepBasic?.id;
   const childrenQuery = useLessonPlanNodeChildrenService(currentStepId || "")();
 
-  // Flatten children data like in main component
-  const flattenChildren = (children: any[]): any[] => {
-    const result: any[] = [];
-    children.forEach((child) => {
-      result.push({
-        ...child,
-        nodeType: child.type, // Map API fields
-      });
-
-      if (child.children && child.children.length > 0) {
-        result.push(...flattenChildren(child.children));
-      }
-    });
-    return result;
+  // Keep hierarchical structure instead of flattening
+  const processChildren = (children: any[]): any[] => {
+    return children.map((child) => ({
+      ...child,
+      nodeType: child.type, // Map API fields
+      children:
+        child.children && child.children.length > 0
+          ? processChildren(child.children)
+          : [],
+    }));
   };
 
   const childrenData = childrenQuery?.data?.data
-    ? flattenChildren(childrenQuery.data.data)
+    ? processChildren(childrenQuery.data.data)
     : [];
+
+  // Debug API response
+  console.log("🔍 API Response Debug:", {
+    currentStepId,
+    isLoading: childrenQuery?.isLoading,
+    isError: childrenQuery?.isError,
+    rawApiData: childrenQuery?.data?.data,
+    processedChildrenData: childrenData,
+  });
 
   // Update cache when children data is loaded for current step
   useEffect(() => {
@@ -158,51 +166,25 @@ export function useLessonPlanState() {
     }
   };
 
-  // Form data management
+  // Form data management - Simplified to just trigger re-render
   const updateStepFormData = (
-    keywordId: string,
-    keywordTitle: string,
+    fieldId: string, // Backend field ID (e.g., "3", "4", "5")
+    fieldTitle: string, // Field title from backend
     value: string
   ) => {
-    if (!currentStepData?.id) {
-      console.warn("Cannot update form data: currentStepData.id is missing");
-      return;
-    }
-
     console.log("updateStepFormData called:", {
-      keywordId,
+      fieldId,
+      fieldTitle,
       value,
-      stepId: currentStepData.id,
+      stepId: currentStepData?.id,
     });
-    setFormData((prev) => {
-      console.log("setFormData callback - prev state:", {
-        stepId: currentStepData.id,
-        prevStepData: prev[currentStepData.id],
-        keywordId: keywordId,
-        newValue: value,
-      });
 
-      const newFormData = {
-        ...prev,
-        [currentStepData.id]: {
-          ...prev[currentStepData.id],
-          [keywordId]: {
-            key: createFieldId("keyword", keywordTitle, keywordId),
-            title: keywordTitle,
-            value: value,
-          },
-        },
-      };
-
-      console.log("setFormData callback - new state:", {
-        stepId: currentStepData.id,
-        newStepData: newFormData[currentStepData.id],
-        keywordId: keywordId,
-        finalValue: newFormData[currentStepData.id][keywordId].value,
-      });
-
-      return newFormData;
-    });
+    // Trigger re-render by updating a dummy state
+    // The actual value is already saved in child.content by StepContent
+    setFormData((prev) => ({
+      ...prev,
+      _lastUpdate: { value: Date.now().toString() }, // Dummy field to trigger re-render
+    }));
   };
 
   // Submit function
@@ -292,8 +274,8 @@ export function useLessonPlanState() {
     currentStep,
     sortedSteps,
     currentStepData,
-    formData: currentStepData?.id ? formData[currentStepData.id] || {} : {},
-    allFormData: formData,
+    formData: {}, // Không cần nữa vì dữ liệu lưu trong apiChildren
+    allFormData: formData, // Giữ lại cho preview sidebar
     completedSteps,
     isSubmitting,
     goToStep,

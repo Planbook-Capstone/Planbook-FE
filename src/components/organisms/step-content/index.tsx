@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { KeywordForm } from "@/components/molecules/keyword-form";
 import { Steps, StepItem } from "@/components/ui/steps";
@@ -16,12 +16,6 @@ interface Step {
 
 interface StepContentProps {
   step: Step;
-  formData: Record<string, string>;
-  onFormDataChange: (
-    keywordId: string,
-    keywordTitle: string,
-    value: string
-  ) => void;
   currentStep: number;
   totalSteps: number;
   allSteps?: Step[];
@@ -29,31 +23,141 @@ interface StepContentProps {
   onPrevious?: () => void;
   onNext?: () => void;
   canGoNext?: boolean;
-  mergedComponents?: any[];
+  apiChildrenData?: any[];
   onDeleteComponent?: (componentId: string, staticComponent?: any) => void;
   isEditMode?: boolean;
   className?: string;
+  onDataChange?: (stepId: string, updatedData: any[]) => void; // Callback để lưu data
 }
 
 export function StepContent({
   step,
-  formData,
-  onFormDataChange,
   currentStep,
   totalSteps,
-  allSteps = [],
-  onStepChange,
   onPrevious,
   onNext,
   canGoNext = true,
-  mergedComponents = [],
-  onDeleteComponent,
-  isEditMode = false,
+  apiChildrenData = [], // API children data from backend
   className,
+  onDataChange,
 }: StepContentProps) {
+  // State để lưu trữ data có thể thay đổi
+  const [localData, setLocalData] = useState<any[]>([]);
 
-  console.log(formData,"form");
-  console.log(mergedComponents,"merged")
+  // Sync với apiChildrenData khi thay đổi
+  useEffect(() => {
+    if (apiChildrenData && apiChildrenData.length > 0) {
+      setLocalData([...apiChildrenData]); // Clone để tránh mutate trực tiếp
+    }
+  }, [apiChildrenData]);
+
+  // Function để update content và trigger re-render
+  const updateChildContent = useCallback(
+    (childId: number, newValue: string) => {
+      setLocalData((prevData) => {
+        const updateChildren = (children: any[]): any[] => {
+          return children.map((child) => {
+            if (child.id === childId) {
+              return { ...child, content: newValue };
+            }
+            if (child.children && child.children.length > 0) {
+              return { ...child, children: updateChildren(child.children) };
+            }
+            return child;
+          });
+        };
+        const updatedData = updateChildren(prevData);
+
+        // Notify parent component để lưu data
+        if (onDataChange && step?.id) {
+          onDataChange(step.id.toString(), updatedData);
+        }
+
+        return updatedData;
+      });
+    },
+    [onDataChange, step?.id]
+  );
+
+  // Function to render API children data directly
+  const renderApiChildren = (
+    children: any[],
+    level: number = 0
+  ): React.ReactNode => {
+    return children.map((child, index) => (
+      <div
+        key={child.id}
+        className="space-y-4"
+        style={{ marginLeft: `${level * 20}px` }}
+      >
+        {/* Render title */}
+        <div className="font-medium text-gray-900">{child.title}</div>
+
+        {/* Render content based on fieldType */}
+        {child.fieldType === "INPUT" && (
+          <div className="ml-4">
+            <textarea
+              value={child.content || ""}
+              onChange={(e) => {
+                console.log("Input changed:", e.target.value);
+                updateChildContent(child.id, e.target.value);
+              }}
+              placeholder="Nhập nội dung..."
+              className="w-full p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows={3}
+            />
+          </div>
+        )}
+
+        {child.fieldType === "TABLE" && (
+          <div className="ml-4">
+            <div className="p-4 border border-gray-200 rounded-md bg-gray-50">
+              <p className="text-sm text-gray-600">
+                Table component - ID: {child.id}
+              </p>
+              <textarea
+                value={child.content || ""}
+                onChange={(e) => {
+                  updateChildContent(child.id, e.target.value);
+                }}
+                placeholder="Nhập dữ liệu bảng (JSON format)..."
+                className="w-full mt-2 p-2 border border-gray-300 rounded text-sm"
+                rows={4}
+              />
+            </div>
+          </div>
+        )}
+
+        {child.fieldType === "REFERENCES" && (
+          <div className="ml-4">
+            <div className="p-4 border border-gray-200 rounded-md bg-gray-50">
+              <p className="text-sm text-gray-600">
+                References component - ID: {child.id}
+              </p>
+              <textarea
+                value={child.content || ""}
+                onChange={(e) => {
+                  updateChildContent(child.id, e.target.value);
+                }}
+                placeholder="Nhập tài liệu tham khảo..."
+                className="w-full mt-2 p-2 border border-gray-300 rounded text-sm"
+                rows={3}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Render children recursively */}
+        {child.children && child.children.length > 0 && (
+          <div className="space-y-2">
+            {renderApiChildren(child.children, level + 1)}
+          </div>
+        )}
+      </div>
+    ));
+  };
+
+  console.log("localData:", localData);
 
   return (
     <div className={cn("flex-1 flex flex-col min-h-0", className)}>
@@ -120,164 +224,14 @@ export function StepContent({
                         "bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-4"
                     )}
                   >
-                    {/* {(() => {
-                      // console.log("StepContent mergedComponents:", {
-                      //   stepId: step?.id,
-                      //   stepTitle: step?.title,
-                      //   mergedComponentsLength: mergedComponents.length,
-                      //   mergedComponents: mergedComponents.map((c) => ({
-                      //     id: c.id,
-                      //     title: c.title,
-                      //     fieldType: c.fieldType,
-                      //     type: c.type,
-                      //     isDynamic: c.isDynamic,
-                      //   })),
-                      // });
-                      return null;
-                    })()} */}
-                    {mergedComponents.length > 0 ? (
-                      <div className="space-y-8">
-                        {mergedComponents.map((keyword, index) => {
-                          // Debug each keyword component
-                          // console.log(
-                          //   `🎯 StepContent rendering keyword ${index}:`,
-                          //   {
-                          //     keywordId: keyword?.id,
-                          //     keywordTitle: keyword?.title,
-                          //     fieldType: keyword?.fieldType,
-                          //     nodeType: keyword?.nodeType,
-                          //     hasChildren: !!(
-                          //       keyword?.children && keyword.children.length > 0
-                          //     ),
-                          //     childrenCount: keyword?.children?.length || 0,
-                          //   }
-                          // );
-
-                          return (
-                            <div key={keyword.id} className="relative group">
-                              <KeywordForm
-                                keyword={keyword}
-                                value={(() => {
-                                  const directValue = formData[keyword?.id];
-                                  const extractedValue =
-                                    typeof directValue === "object"
-                                      ? (directValue as any)?.value || ""
-                                      : directValue || "";
-
-                                  // Debug for static INPUT issue
-                                  if (keyword?.fieldType === "INPUT") {
-                                    console.log("INPUT value binding debug:", {
-                                      keywordId: keyword?.id,
-                                      keywordTitle: keyword?.title,
-                                      directValue: directValue,
-                                      extractedValue: extractedValue,
-                                      formDataKeys: Object.keys(formData),
-                                      allFormData: formData,
-                                    });
-                                  }
-
-                                  return extractedValue;
-                                })()}
-                                onChange={(value) => {
-                                  console.log(
-                                    `🎯 StepContent onChange called:`,
-                                    {
-                                      keywordId: keyword?.id,
-                                      keywordTitle: keyword?.title,
-                                      value: value,
-                                      index: index,
-                                    }
-                                  );
-
-                                  onFormDataChange(
-                                    keyword?.id,
-                                    keyword?.title,
-                                    value
-                                  );
-                                }}
-                                onChildChange={(
-                                  childId,
-                                  childTitle,
-                                  childValue
-                                ) => {
-                                  console.log(
-                                    `🎯 StepContent onChildChange called:`,
-                                    {
-                                      parentId: keyword?.id,
-                                      parentTitle: keyword?.title,
-                                      childId: childId,
-                                      childTitle: childTitle,
-                                      childValue: childValue,
-                                      index: index,
-                                    }
-                                  );
-
-                                  // Call onFormDataChange with child's ID and title
-                                  onFormDataChange(
-                                    childId,
-                                    childTitle,
-                                    childValue
-                                  );
-                                }}
-                                index={index}
-                                isEditMode={isEditMode}
-                                onDelete={onDeleteComponent}
-                              />
-                              {(keyword.isDynamic || isEditMode) && (
-                                <div
-                                  className={cn(
-                                    "absolute top-2 right-2 transition-opacity",
-                                    isEditMode
-                                      ? "opacity-100"
-                                      : "opacity-0 group-hover:opacity-100"
-                                  )}
-                                >
-                                  <button
-                                    onClick={() => {
-                                      if (keyword.isDynamic) {
-                                        onDeleteComponent?.(keyword.id);
-                                      } else {
-                                        // For static components, pass the component data
-                                        onDeleteComponent?.(
-                                          keyword.id,
-                                          keyword
-                                        );
-                                      }
-                                    }}
-                                    className="p-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-xs"
-                                    title="Xóa component này"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                    {/* Render API children data directly */}
+                    {localData.length > 0 ? (
+                      <div className="space-y-6">
+                        {renderApiChildren(localData)}
                       </div>
                     ) : (
-                      <div className="text-center py-12">
-                        {snapshot.isDraggingOver ? (
-                          <div className="text-blue-600">
-                            <Plus className="w-16 h-16 mx-auto mb-4" />
-                            <h3 className="text-lg font-calsans mb-2">
-                              Thả component vào đây
-                            </h3>
-                            <p className="font-questrial">
-                              Component sẽ được thêm vào step này
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="text-gray-400">
-                            <FileText className="w-16 h-16 mx-auto mb-4" />
-                            <h3 className="text-lg font-calsans text-gray-900 mb-2">
-                              Chưa có nội dung
-                            </h3>
-                            <p className="text-gray-500 font-questrial">
-                              Kéo component từ sidebar để thêm vào step này
-                            </p>
-                          </div>
-                        )}
+                      <div className="text-center py-12 text-gray-500">
+                        <p>Không có dữ liệu để hiển thị</p>
                       </div>
                     )}
                     {provided.placeholder}

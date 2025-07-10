@@ -46,6 +46,72 @@ function LessonPlanContent() {
     getChildrenForStep,
   } = useLessonPlanState();
 
+  // State để lưu dữ liệu persistent cho tất cả steps (PHẢI ở trên early returns)
+  const [stepDataCache, setStepDataCache] = useState<Record<string, any[]>>({});
+
+  // Use API children data directly instead of merged components
+  const apiChildren = childrenData || [];
+
+  // Get cached data cho step hiện tại hoặc dùng API data
+  const currentStepApiChildren = useMemo(() => {
+    const stepId = currentStepData?.id?.toString();
+    if (stepId && stepDataCache[stepId]) {
+      return stepDataCache[stepId]; // Dùng cached data nếu có
+    }
+    return apiChildren; // Dùng API data nếu chưa có cache
+  }, [currentStepData?.id, stepDataCache, apiChildren]);
+
+  // Callback để lưu data khi user nhập
+  const handleStepDataChange = useCallback(
+    (stepId: string, updatedData: any[]) => {
+      setStepDataCache((prev) => ({
+        ...prev,
+        [stepId]: updatedData,
+      }));
+    },
+    []
+  );
+
+  // Transform stepDataCache for preview sidebar
+  const transformedFormData = useMemo(() => {
+    const transformedData: Record<string, Record<string, any>> = {};
+
+    // Helper function to extract data from children recursively
+    const extractDataFromChildren = (children: any[], stepId: string) => {
+      children.forEach((child) => {
+        if (child.fieldType && child.content) {
+          // Chỉ lấy fields có fieldType và có content (user đã nhập)
+          transformedData[stepId] = transformedData[stepId] || {};
+          transformedData[stepId][child.id] = {
+            id: child.id,
+            title: child.title,
+            content: child.content, // ← Lấy từ stepDataCache
+            value: child.content, // Keep for backward compatibility
+          };
+        }
+
+        // Recursive cho children
+        if (child.children && child.children.length > 0) {
+          extractDataFromChildren(child.children, stepId);
+        }
+      });
+    };
+
+    // Lấy data từ tất cả steps trong cache
+    Object.keys(stepDataCache).forEach((stepId) => {
+      const stepData = stepDataCache[stepId];
+      if (stepData && stepData.length > 0) {
+        extractDataFromChildren(stepData, stepId);
+      }
+    });
+
+    console.log(
+      "Transformed formData for preview (from stepDataCache):",
+      transformedData
+    );
+    return transformedData;
+  }, [stepDataCache]);
+
   // Use sortedSteps from useLessonPlanState (which already handles API calls)
   const displaySteps = sortedSteps;
 
@@ -135,43 +201,6 @@ function LessonPlanContent() {
     getMergedComponentsForStep,
   } = useDynamicForm();
 
-  // Transform allFormData to include title for preview sidebar
-  const transformedFormData = useMemo(() => {
-    const transformedData: Record<string, Record<string, any>> = {};
-
-    Object.keys(allFormData).forEach((stepId) => {
-      transformedData[stepId] = {};
-      const stepData = allFormData[stepId];
-
-      Object.keys(stepData).forEach((fieldId) => {
-        const fieldData = stepData[fieldId];
-
-        // Check if fieldData has title and value structure
-        if (
-          typeof fieldData === "object" &&
-          fieldData &&
-          "value" in fieldData
-        ) {
-          // Preserve both title and content for title matching
-          transformedData[stepId][fieldId] = {
-            title: (fieldData as any).title || (fieldData as any).key || "",
-            content: (fieldData as any).value || "",
-            value: (fieldData as any).value || "", // Keep for backward compatibility
-          };
-        } else {
-          // Fallback for simple string values
-          transformedData[stepId][fieldId] = fieldData as string;
-        }
-      });
-    });
-
-    // console.log(
-    //   "Transformed formData for preview (with titles):",
-    //   transformedData
-    // );
-    return transformedData;
-  }, [allFormData]);
-
   const { configModal, closeConfigModal } = useDragDrop();
 
   const handleConfigConfirm = (config: any) => {
@@ -209,14 +238,9 @@ function LessonPlanContent() {
     );
   }
 
-  // Get merged components for current step using API children data
-  const mergedComponents = getMergedComponentsForStep(
-    currentStepData?.id,
-    childrenData || []
-  );
-  
   console.log(formData, "form");
-  console.log(mergedComponents, "merged");
+  console.log("currentStepApiChildren:", currentStepApiChildren);
+  console.log("stepDataCache:", stepDataCache);
 
   return (
     <>
@@ -253,16 +277,15 @@ function LessonPlanContent() {
 
           <StepContent
             step={currentStepData}
-            formData={formData}
-            onFormDataChange={updateStepFormData}
             currentStep={currentStep}
             totalSteps={displaySteps.length}
             onPrevious={goToPrevious}
             onNext={goToNext}
             canGoNext={canGoNext}
-            mergedComponents={mergedComponents}
+            apiChildrenData={currentStepApiChildren}
             onDeleteComponent={moveToTrash}
             isEditMode={isEditMode}
+            onDataChange={handleStepDataChange}
           />
 
           {/* Doc Preview Sidebar */}
