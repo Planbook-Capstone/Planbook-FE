@@ -1280,25 +1280,25 @@ export function LessonPlanPreviewSidebar({
     level: number = 0,
     index: number = 0
   ) => {
-    console.log("renderField called:", {
-      fieldId: field.id,
-      fieldTitle: field.title,
-      fieldType: field.fieldType,
-      nodeType: field.nodeType,
-      isDynamic: field.isDynamic,
-      stepDataType: typeof stepData,
-      stepDataKeys: Object.keys(stepData),
-      stepDataValue: stepData?.[field.id],
-      hasChildren: !!(field.children && field.children.length > 0),
-      childrenCount: field.children?.length || 0,
-      children:
-        field.children?.map((c) => ({
-          id: c.id,
-          title: c.title,
-          fieldType: c.fieldType,
-          nodeType: c.nodeType,
-        })) || [],
-    });
+    // console.log("renderField called:", {
+    //   fieldId: field.id,
+    //   fieldTitle: field.title,
+    //   fieldType: field.fieldType,
+    //   nodeType: field.nodeType,
+    //   isDynamic: field.isDynamic,
+    //   stepDataType: typeof stepData,
+    //   stepDataKeys: Object.keys(stepData),
+    //   stepDataValue: stepData?.[field.id],
+    //   hasChildren: !!(field.children && field.children.length > 0),
+    //   childrenCount: field.children?.length || 0,
+    //   children:
+    //     field.children?.map((c) => ({
+    //       id: c.id,
+    //       title: c.title,
+    //       fieldType: c.fieldType,
+    //       nodeType: c.nodeType,
+    //     })) || [],
+    // });
 
     // Data extraction with nested data support
     let rawValue = stepData?.[field.id];
@@ -1557,12 +1557,6 @@ export function LessonPlanPreviewSidebar({
       ? getMergedComponentsForStep(step.id, childrenToUse)
       : childrenToUse;
 
-    console.log(
-      `Step ${step.title} components:`,
-      components.length,
-      components
-    );
-
     // If no components, show no data message
     if (components.length === 0) {
       return <div className="text-gray-500 italic">Chưa có dữ liệu...</div>;
@@ -1685,14 +1679,6 @@ export function LessonPlanPreviewSidebar({
       const hasChildren = step?.children && step.children.length > 0;
       const isGeneralInfo = step?.title?.toLowerCase().includes("thông tin");
 
-      console.log(`🎯 Checking stepId ${stepId}:`, {
-        stepTitle: step?.title,
-        hasData,
-        hasChildren,
-        childrenCount: step?.children?.length || 0,
-        isGeneralInfo,
-      });
-
       // Prefer step that has both data and children and is general info
       if (hasData && hasChildren && isGeneralInfo) {
         console.log(`🎯 Found perfect match: ${stepId} (${step.title})`);
@@ -1720,16 +1706,6 @@ export function LessonPlanPreviewSidebar({
   };
 
   const generalInfoStepId = findGeneralInfoStepWithData();
-
-  console.log("🎯 Final generalInfoStepId:", {
-    generalInfoStepId,
-    formDataKeys: Object.keys(formData),
-    allStepsWithChildren: steps.map((s) => ({
-      id: s.id,
-      title: s.title,
-      childrenCount: s.children?.length || 0,
-    })),
-  });
 
   // Get objectives step
   const objectivesStep = steps.find((step) =>
