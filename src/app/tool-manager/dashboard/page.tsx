@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
@@ -35,15 +35,40 @@ import {
   Cell,
 } from "recharts";
 import ToolManagerHeader from "@/components/organisms/header/ToolManagerHeader";
+import {
+  useExternalToolsService,
+  useCreateExternalToolService,
+  useUpdateExternalToolService,
+  useDeleteExternalToolService,
+} from "@/services/externalToolsServices";
 
 // Mock current user (tool-manager)
 const CURRENT_USER_ID = "uuid-4"; // Phạm Thị Tool Manager
 
 export default function ToolManagerDashboardPage() {
-  // State management
-  const [tools, setTools] = useState<ExternalToolConfig[]>(
-    mockExternalToolConfigs.filter((tool) => tool.ownerId === CURRENT_USER_ID)
+  // API calls with number parameters (not strings)
+  const {
+    data: externalToolsData,
+    isLoading: isLoadingTools,
+    error: apiError,
+  } = useExternalToolsService(
+    {
+      retry: 1, // Only retry once
+      staleTime: 0, // Don't use stale data
+    },
+    {
+      offset: 1, // Number instead of string
+      pageSize: 10, // Number instead of string
+      sortBy: "createdAt",
+      sortDirection: "desc",
+    }
   );
+  const createToolMutation = useCreateExternalToolService();
+  const updateToolMutation = useUpdateExternalToolService();
+  const deleteToolMutation = useDeleteExternalToolService();
+
+  // State management
+  const [tools, setTools] = useState<ExternalToolConfig[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -59,8 +84,44 @@ export default function ToolManagerDashboardPage() {
     clientId: "",
     clientSecret: "",
     description: "",
+    tokenCostPerQuery: 0,
+    inputJson: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // Set tools data from API with error handling
+  useEffect(() => {
+    console.log("🔧 External Tools API Response:", {
+      data: externalToolsData,
+      loading: isLoadingTools,
+      error: apiError,
+    });
+
+    if (externalToolsData?.data?.content) {
+      console.log("✅ Using API data");
+      // API returns data.content array, not data directly
+      const apiTools = externalToolsData.data.content;
+      console.log("API Tools:", apiTools);
+
+      setTools(apiTools);
+    } else if (apiError) {
+      console.log("❌ API Error, using mock data:", apiError);
+      // Fallback to mock data if API fails
+      setTools(
+        mockExternalToolConfigs.filter(
+          (tool) => tool.ownerId === CURRENT_USER_ID
+        )
+      );
+    } else if (!isLoadingTools) {
+      console.log("⚠️ No data received, using mock data");
+      // Fallback to mock data if no data
+      setTools(
+        mockExternalToolConfigs.filter(
+          (tool) => tool.ownerId === CURRENT_USER_ID
+        )
+      );
+    }
+  }, [externalToolsData, apiError, isLoadingTools]);
 
   // Revenue data for current user's tools
   const userRevenueData = useMemo(() => {
@@ -137,6 +198,16 @@ export default function ToolManagerDashboardPage() {
     }
   };
 
+  const validateJson = (jsonString: string): boolean => {
+    if (!jsonString.trim()) return true; // Optional field
+    try {
+      JSON.parse(jsonString);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
@@ -164,6 +235,10 @@ export default function ToolManagerDashboardPage() {
       errors.clientSecret = "Client Secret là bắt buộc";
     }
 
+    if (formData.inputJson.trim() && !validateJson(formData.inputJson)) {
+      errors.inputJson = "Input JSON không đúng định dạng";
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -172,41 +247,61 @@ export default function ToolManagerDashboardPage() {
   const handleCreateTool = () => {
     if (!validateForm()) return;
 
-    const newTool: ExternalToolConfig = {
-      id: `tool-uuid-${Date.now()}`,
+    const newTool = {
       name: formData.name.trim(),
       apiUrl: formData.apiUrl.trim(),
       tokenUrl: formData.tokenUrl.trim(),
       clientId: formData.clientId.trim(),
       clientSecret: formData.clientSecret.trim(),
       description: formData.description.trim(),
-      ownerId: CURRENT_USER_ID,
+      tokenCostPerQuery: formData.tokenCostPerQuery,
+      inputJson: formData.inputJson.trim(),
     };
 
-    setTools((prev) => [...prev, newTool]);
-    setIsCreateModalOpen(false);
-    resetForm();
+    console.log("🚀 Creating tool:", newTool);
+
+    createToolMutation.mutate(newTool, {
+      onSuccess: (response) => {
+        console.log("✅ Tool created successfully:", response);
+        setIsCreateModalOpen(false);
+        resetForm();
+      },
+      onError: (error) => {
+        console.error("❌ Error creating tool:", error);
+      },
+    });
   };
 
   const handleEditTool = () => {
     if (!validateForm() || !selectedTool) return;
 
-    const updatedTool: ExternalToolConfig = {
-      ...selectedTool,
+    const updatedTool = {
       name: formData.name.trim(),
       apiUrl: formData.apiUrl.trim(),
       tokenUrl: formData.tokenUrl.trim(),
       clientId: formData.clientId.trim(),
       clientSecret: formData.clientSecret.trim(),
       description: formData.description.trim(),
+      tokenCostPerQuery: formData.tokenCostPerQuery,
+      inputJson: formData.inputJson.trim(),
     };
 
-    setTools((prev) =>
-      prev.map((t) => (t.id === selectedTool.id ? updatedTool : t))
+    console.log("🔄 Updating tool:", updatedTool);
+
+    updateToolMutation.mutate(
+      { id: selectedTool.id!, data: updatedTool },
+      {
+        onSuccess: (response) => {
+          console.log("✅ Tool updated successfully:", response);
+          setIsEditModalOpen(false);
+          setSelectedTool(null);
+          resetForm();
+        },
+        onError: (error) => {
+          console.error("❌ Error updating tool:", error);
+        },
+      }
     );
-    setIsEditModalOpen(false);
-    setSelectedTool(null);
-    resetForm();
   };
 
   const handleViewTool = (tool: ExternalToolConfig) => {
@@ -223,13 +318,15 @@ export default function ToolManagerDashboardPage() {
       clientId: tool.clientId,
       clientSecret: tool.clientSecret,
       description: tool.description || "",
+      tokenCostPerQuery: (tool as any).tokenCostPerQuery || 0,
+      inputJson: (tool as any).inputJson || "",
     });
     setIsEditModalOpen(true);
   };
 
   const handleDeleteTool = (tool: ExternalToolConfig) => {
     if (confirm(`Bạn có chắc chắn muốn xóa API "${tool.name}"?`)) {
-      setTools((prev) => prev.filter((t) => t.id !== tool.id));
+      deleteToolMutation.mutate(tool.id!);
     }
   };
 
@@ -241,6 +338,8 @@ export default function ToolManagerDashboardPage() {
       clientId: "",
       clientSecret: "",
       description: "",
+      tokenCostPerQuery: 0,
+      inputJson: "",
     });
     setFormErrors({});
   };
@@ -329,30 +428,9 @@ export default function ToolManagerDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header with Account */}
-      <ToolManagerHeader />
-
-      {/* Page Header */}
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div>
-                <h1 className="text-xl font-calsans text-gray-900">
-                  Dashboard Tool Manager
-                </h1>
-                <p className="text-gray-600 font-questrial text-base">
-                  Quản lý API tích hợp và theo dõi doanh thu
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="bg-white">
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto py-8">
+      <div className="w-full">
         {/* Revenue Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Card đầu với background image */}
@@ -407,32 +485,46 @@ export default function ToolManagerDashboardPage() {
               Doanh thu theo tháng
             </h2>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={monthlyChartData}
-                  margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis width={100} />
-                  <Tooltip
-                    formatter={(value: any) => [
-                      new Intl.NumberFormat("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                      }).format(value),
-                      "Doanh thu",
-                    ]}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="amount"
-                    stroke="#3B82F6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3B82F6" }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {totalRevenue === 0 || monthlyChartData.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                    <p className="font-questrial text-lg">
+                      Chưa có dữ liệu doanh thu
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Doanh thu sẽ hiển thị khi có giao dịch
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={monthlyChartData}
+                    margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis width={100} />
+                    <Tooltip
+                      formatter={(value: any) => [
+                        new Intl.NumberFormat("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                        }).format(value),
+                        "Doanh thu",
+                      ]}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="amount"
+                      stroke="#3B82F6"
+                      strokeWidth={2}
+                      dot={{ fill: "#3B82F6" }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -442,26 +534,40 @@ export default function ToolManagerDashboardPage() {
               Doanh thu theo API
             </h2>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={toolRevenueData}
-                  margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis width={100} />
-                  <Tooltip
-                    formatter={(value: any) => [
-                      new Intl.NumberFormat("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                      }).format(value),
-                      "Doanh thu",
-                    ]}
-                  />
-                  <Bar dataKey="amount" fill="#330BA2" />
-                </BarChart>
-              </ResponsiveContainer>
+              {totalRevenue === 0 || toolRevenueData.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                    <p className="font-questrial text-lg">
+                      Chưa có dữ liệu doanh thu
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Doanh thu sẽ hiển thị khi có giao dịch
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={toolRevenueData}
+                    margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis width={100} />
+                    <Tooltip
+                      formatter={(value: any) => [
+                        new Intl.NumberFormat("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                        }).format(value),
+                        "Doanh thu",
+                      ]}
+                    />
+                    <Bar dataKey="amount" fill="#330BA2" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
@@ -494,7 +600,7 @@ export default function ToolManagerDashboardPage() {
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-calsans">Tạo API mới</DialogTitle>
+            <DialogTitle>Tạo API mới</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
@@ -578,6 +684,46 @@ export default function ToolManagerDashboardPage() {
                       }))
                     }
                     placeholder="Nhập Client Secret"
+                  />
+                </FormField>
+              </div>
+              <div className="md:col-span-2">
+                <FormField
+                  label="Token Cost Per Query"
+                  htmlFor="tokenCostPerQuery"
+                >
+                  <Input
+                    id="tokenCostPerQuery"
+                    type="number"
+                    value={formData.tokenCostPerQuery}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        tokenCostPerQuery: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    placeholder="8"
+                  />
+                </FormField>
+              </div>
+              <div className="md:col-span-2">
+                <FormField
+                  label="Input JSON"
+                  htmlFor="inputJson"
+                  error={formErrors.inputJson}
+                >
+                  <Textarea
+                    id="inputJson"
+                    value={formData.inputJson}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        inputJson: e.target.value,
+                      }))
+                    }
+                    placeholder='{"className": "SE1705"}'
+                    rows={3}
+                    className="resize-y"
                   />
                 </FormField>
               </div>
@@ -779,6 +925,46 @@ export default function ToolManagerDashboardPage() {
                       }))
                     }
                     placeholder="Nhập Client Secret mới"
+                  />
+                </FormField>
+              </div>
+              <div className="md:col-span-2">
+                <FormField
+                  label="Token Cost Per Query"
+                  htmlFor="edit-tokenCostPerQuery"
+                >
+                  <Input
+                    id="edit-tokenCostPerQuery"
+                    type="number"
+                    value={formData.tokenCostPerQuery}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        tokenCostPerQuery: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    placeholder="8"
+                  />
+                </FormField>
+              </div>
+              <div className="md:col-span-2">
+                <FormField
+                  label="Input JSON"
+                  htmlFor="edit-inputJson"
+                  error={formErrors.inputJson}
+                >
+                  <Textarea
+                    id="edit-inputJson"
+                    value={formData.inputJson}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        inputJson: e.target.value,
+                      }))
+                    }
+                    placeholder='{"className": "SE1705"}'
+                    rows={3}
+                    className="resize-y"
                   />
                 </FormField>
               </div>

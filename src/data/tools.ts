@@ -13,6 +13,16 @@ export interface ExternalToolConfig {
 export const mockExternalToolConfigs: ExternalToolConfig[] = [
   {
     id: "tool-uuid-1",
+    name: "AI-Writer",
+    apiUrl: "https://api.aiwriter.com/generate",
+    tokenUrl: "https://api.aiwriter.com/token",
+    clientId: "ai-client",
+    clientSecret: "super-secret",
+    description: "Tích hợp AI để tạo văn bản",
+    ownerId: "uuid-4", // tool-manager 1
+  },
+  {
+    id: "tool-uuid-2",
     name: "OpenAI GPT API",
     apiUrl: "https://api.openai.com/v1",
     tokenUrl: "https://api.openai.com/v1/auth/token",
