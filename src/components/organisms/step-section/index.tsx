@@ -103,21 +103,21 @@ export function StepSection({
   );
 
   return (
-    <div className="border rounded-lg bg-white shadow-sm">
+    <div className="border rounded-lg bg-white">
       {/* Header */}
-      <div className="p-4 border-b bg-gray-50 rounded-t-lg">
-        <div className="flex items-center gap-3">
+      <div className="p-4 rounded-t-lg relative">
+        <div className="flex items-center gap-3 sticky top-0">
           {/* Expand/Collapse */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1"
+            className="p-1 rounded-full"
           >
             {isExpanded ? (
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-5 h-5" />
             ) : (
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             )}
           </Button>
 
@@ -167,9 +167,9 @@ export function StepSection({
                 variant="ghost"
                 size="sm"
                 onClick={onDelete}
-                className="text-black hover:text-gray-700"
+                className="text-white hover:text-gray-700 bg-neutral-800"
               >
-                <Trash2 className="w-4 h-4" />
+                Xoá bước
               </Button>
             )}
           </div>
@@ -183,7 +183,9 @@ export function StepSection({
                 id={`step-desc-${step.id}`}
                 placeholder="Mô tả chi tiết về bước này"
                 value={step.description || ""}
-                onChange={(e:any) => updateField("description", e.target.value)}
+                onChange={(e: any) =>
+                  updateField("description", e.target.value)
+                }
               />
             </FormField>
 
@@ -198,7 +200,7 @@ export function StepSection({
                   type="number"
                   placeholder="0"
                   value={step.timeAllocation || ""}
-                  onChange={(e:any) =>
+                  onChange={(e: any) =>
                     updateField(
                       "timeAllocation",
                       parseInt(e.target.value) || undefined
@@ -213,17 +215,7 @@ export function StepSection({
 
       {/* Content */}
       {isExpanded && (
-        <div className="p-4 space-y-4">
-          {/* Action Buttons - Only for Staff */}
-          {mode === "staff" && (
-            <div className="flex gap-2">
-              <Button size="sm" onClick={addKeyword}>
-                <Plus className="w-4 h-4 mr-2" />
-                Thêm từ khóa
-              </Button>
-            </div>
-          )}
-
+        <div className="p-4">
           {/* Keywords */}
           <KeywordManager
             keywords={step.keywords}
@@ -232,6 +224,20 @@ export function StepSection({
             onDragEnd={onKeywordDragEnd}
             mode={mode}
           />
+
+          {/* Action Buttons - Only for Staff */}
+          {mode === "staff" && (
+            <div className="flex gap-2 w-full">
+              <Button
+                size="sm"
+                onClick={addKeyword}
+                className="w-full h-10 bg-neutral-50 border-neutral-400 border border-dashed text-neutral-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Thêm từ khóa
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
