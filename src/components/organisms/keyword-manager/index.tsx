@@ -122,12 +122,12 @@ function KeywordItem({
   const indentClass = level > 0 ? `ml-${level * 6}` : "";
   const borderColor =
     level === 0
-      ? "border-gray-200"
+      ? "border-sky-200"
       : level === 1
-      ? "border-blue-200"
-      : "border-green-200";
+      ? "border-indigo-200"
+      : "border-cyan-200";
   const bgColor =
-    level === 0 ? "bg-white" : level === 1 ? "bg-blue-50" : "bg-green-50";
+    level === 0 ? "bg-sky-50" : level === 1 ? "bg-indigo-50" : "bg-cyan-50";
 
   // For admin mode, render without drag and drop
   if (mode === "admin") {
@@ -141,7 +141,7 @@ function KeywordItem({
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsExpanded(!isExpanded)}
-                  className="p-1"
+                  className="p-1 rounded-full"
                 >
                   {isExpanded ? (
                     <ChevronDown className="w-3 h-3" />
@@ -152,8 +152,7 @@ function KeywordItem({
               )}
 
               <div className="flex items-center gap-1">
-                <Hash className="w-3 h-3 text-gray-400" />
-                <span className="text-xs text-gray-500">L{level + 1}</span>
+                <span className="text-xs text-gray-500">Bậc {level + 1}</span>
               </div>
 
               <div className="flex-1">
@@ -162,7 +161,7 @@ function KeywordItem({
                     placeholder="Nhập tiêu đề từ khóa"
                     value={keyword.title}
                     onChange={(e: any) => updateField("title", e.target.value)}
-                    className="border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
+                    className="border-gray-300 bg-transparent shadow-none border focus:bg-white focus:border focus:border-gray-300 bg-white"
                   />
                 ) : (
                   <div className="px-3 py-2 text-sm font-medium text-gray-900">
@@ -300,7 +299,7 @@ function KeywordItem({
           </div>
 
           {isExpanded && keyword.children && keyword.children.length > 0 && (
-            <div className="px-3 pb-3">
+            <div className="pl-4 pb-3">
               <div className="space-y-2">
                 {keyword.children.map((child, childIndex) => (
                   <KeywordItem
@@ -332,9 +331,11 @@ function KeywordItem({
             snapshot.isDragging ? "opacity-50" : ""
           }`}
         >
-          <div className={`border rounded-lg ${borderColor} ${bgColor} mb-3`}>
-            <div className="p-3">
-              <div className="flex items-center gap-3">
+          <div className={`rounded-lg mb-3`}>
+            <div className="py-3">
+              <div
+                className={`flex items-center gap-3 border p-3 rounded-lg ${borderColor} ${bgColor}`}
+              >
                 {mode === "staff" && (
                   <div
                     {...provided.dragHandleProps}
@@ -349,7 +350,7 @@ function KeywordItem({
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="p-1"
+                    className="p-1 rounded-full"
                   >
                     {isExpanded ? (
                       <ChevronDown className="w-3 h-3" />
@@ -360,8 +361,7 @@ function KeywordItem({
                 )}
 
                 <div className="flex items-center gap-1">
-                  <Hash className="w-3 h-3 text-gray-400" />
-                  <span className="text-xs text-gray-500">L{level + 1}</span>
+                  <span className="text-xs text-gray-800">Bậc {level + 1}</span>
                 </div>
 
                 <div className="flex-1">
@@ -370,7 +370,7 @@ function KeywordItem({
                       placeholder="Nhập tiêu đề từ khóa"
                       value={keyword.title}
                       onChange={(e) => updateField("title", e.target.value)}
-                      className="border-0 bg-transparent focus:bg-white focus:border focus:border-gray-300"
+                      className="border-1 bg-transparent focus:bg-white focus:border focus:border-gray-300 bg-white"
                     />
                   ) : (
                     <div className="px-3 py-2 text-sm font-medium text-gray-900">
@@ -393,7 +393,7 @@ function KeywordItem({
                           updateField("nodeType", value)
                         }
                       >
-                        <SelectTrigger className="w-40 h-8 text-xs">
+                        <SelectTrigger className="w-40 h-10 bg-white text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent
@@ -427,7 +427,7 @@ function KeywordItem({
                           )
                         }
                       >
-                        <SelectTrigger className="w-40 h-8 text-xs">
+                        <SelectTrigger className="w-40 h-10 bg-white text-sm">
                           <SelectValue placeholder="Chọn loại trường" />
                         </SelectTrigger>
                         <SelectContent
@@ -518,8 +518,8 @@ function KeywordItem({
 
               {/* TABLE Section */}
               {keyword.fieldType === "TABLE" && (
-                <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-blue-50">
-                  <div className="bg-white p-3 rounded border border-gray-300">
+                <div className="mt-3 pt-3">
+                  <div className="bg-white p-3 rounded-xl border border-gray-300">
                     <RichTable
                       onChange={(data) => {
                         console.log("KeywordManager TABLE onChange called:", {
@@ -537,7 +537,7 @@ function KeywordItem({
 
             {/* Children for admin mode */}
             {isExpanded && keyword.children && keyword.children.length > 0 && (
-              <div className="px-3 pb-3">
+              <div className="pl-6">
                 <DragDropContext onDragEnd={onChildDragEnd}>
                   <Droppable
                     droppableId={`children-${keyword.id}`}
