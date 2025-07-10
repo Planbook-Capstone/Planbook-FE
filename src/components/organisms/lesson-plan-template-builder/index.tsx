@@ -135,35 +135,10 @@ export function LessonPlanTemplateBuilder({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="flex-1 p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleExit}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Quay lại
-            </Button>
-            <div>
-              <h1 className="text-2xl font-calsans">
-                {mode === "admin"
-                  ? "Cấu Hình Template Giáo Án"
-                  : "Tạo Nội Dung Giáo Án"}
-              </h1>
-              <p className="text-gray-600">
-                {mode === "admin"
-                  ? "Cấu hình cấu trúc template cho toàn bộ hệ thống"
-                  : "Thêm nội dung vào các bước đã được thiết lập"}
-              </p>
-            </div>
-          </div>
-        </div>
-
+      <div className="flex-1 py-4 space-y-6">
         {/* Template Info - Only for Staff */}
         {mode === "staff" && (
-          <div className="bg-white rounded-lg border p-6 space-y-4">
-            <h2 className="text-lg font-calsans text-gray-900">
-              Thông tin Mẫu
-            </h2>
+          <div className="bg-white rounded-lg space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Tên Mẫu" htmlFor="template-name">
                 <Input
@@ -192,16 +167,6 @@ export function LessonPlanTemplateBuilder({
         )}
 
         {/* Action Buttons - Only for Staff */}
-        {mode === "staff" && (
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              <Button onClick={addStep}>
-                <Plus className="w-4 h-4 mr-2" />
-                Thêm bước mới
-              </Button>
-            </div>
-          </div>
-        )}
 
         {/* Main Content */}
         {/* <DragDropContext onDragEnd={onDragEnd}>
@@ -249,14 +214,26 @@ export function LessonPlanTemplateBuilder({
             />
           ))}
         </>
+        {mode === "staff" && (
+          <div className="flex justify-between items-center w-full">
+            <div className="flex gap-2 w-full">
+              <Button
+                onClick={addStep}
+                className="w-full bg-blue-50 border-dashed border text-sky-600 border-sky-400"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Thêm bước mới
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Action Bar - Only for Staff */}
       {mode === "staff" && (
         <div className="sticky bottom-0 left-0 right-0 bg-white border-t p-4 flex justify-end gap-3 z-50">
-          <Button variant="outline" onClick={handleSaveDraft}>
-            <Save className="w-4 h-4 mr-2" />
-            Lưu nháp
+          <Button variant="outline" onClick={onExit}>
+            Thoát
           </Button>
           <Button onClick={handleSave}>
             <Download className="w-4 h-4 mr-2" />
