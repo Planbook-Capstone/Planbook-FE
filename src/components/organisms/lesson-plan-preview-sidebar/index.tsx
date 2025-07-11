@@ -1058,36 +1058,82 @@ export function LessonPlanPreviewSidebar({
         };
       }
 
+      // Convert API format to display format (same logic as NodeRenderer and PreviewModal)
+      let displayHeaders: string[] = [];
+      let displayRows: string[][] = [];
+
+      if (tableData.rows && Array.isArray(tableData.rows)) {
+        // First pass: extract headers from header row
+        const headerRow = tableData.rows.find((row: any) =>
+          row.cells && row.cells.some((cell: any) => cell.isHeader)
+        );
+
+        if (headerRow && headerRow.cells) {
+          headerRow.cells.forEach((cell: any) => {
+            if (cell.isHeader) {
+              // Decode HTML entities and extract text content
+              let headerText = cell.title || cell.content || "";
+              headerText = headerText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+              headerText = headerText.replace(/<[^>]*>/g, ''); // Remove HTML tags
+              headerText = headerText.replace(/\n/g, ' ').trim();
+              displayHeaders.push(headerText || `Cột ${displayHeaders.length + 1}`);
+            }
+          });
+        }
+
+        // Second pass: extract data rows (non-header rows)
+        tableData.rows.forEach((row: any) => {
+          if (row.cells && !row.cells.some((cell: any) => cell.isHeader)) {
+            const rowData: string[] = [];
+
+            row.cells.forEach((cell: any) => {
+              // Handle regular cells - decode HTML and extract text
+              let cellText = cell.title || cell.content || "";
+              // Decode HTML entities
+              cellText = cellText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+              // Remove HTML tags for display
+              cellText = cellText.replace(/<[^>]*>/g, '');
+              // Clean up whitespace
+              cellText = cellText.replace(/\n/g, ' ').trim();
+              rowData.push(cellText);
+            });
+
+            // Ensure row has same number of cells as headers
+            while (rowData.length < displayHeaders.length) {
+              rowData.push("");
+            }
+            displayRows.push(rowData);
+          }
+        });
+      }
+
       return (
         <div className="ml-4 mt-2">
           <div className="border border-gray-300 rounded-sm overflow-hidden">
             <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="bg-gray-50">
+                  {displayHeaders.map((header, index) => (
+                    <th
+                      key={index}
+                      className="border-b border-gray-300 px-3 py-2 text-left font-calsans font-normal text-gray-900"
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
               <tbody>
-                {tableData.rows.map((row: any) => (
-                  <tr
-                    key={row.id}
-                    className={
-                      row.cells[0]?.isHeader ? "bg-gray-50" : "hover:bg-gray-50"
-                    }
-                  >
-                    {row.cells.map((cell: any) =>
-                      cell.isHeader ? (
-                        <th
-                          key={cell.id}
-                          className="border-b border-gray-300 px-3 py-2 text-left font-calsans font-normal text-gray-900"
-                        >
-                          {cell.content}
-                        </th>
-                      ) : (
-                        <td
-                          key={cell.id}
-                          className="border-b border-gray-200 px-3 py-2 text-gray-700"
-                          dangerouslySetInnerHTML={{
-                            __html: cell.content || "",
-                          }}
-                        />
-                      )
-                    )}
+                {displayRows.map((row, rowIndex) => (
+                  <tr key={rowIndex} className="hover:bg-gray-50">
+                    {row.map((cell, cellIndex) => (
+                      <td
+                        key={cellIndex}
+                        className="border-b border-gray-200 px-3 py-2 text-gray-700"
+                      >
+                        {cell}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -1279,7 +1325,7 @@ export function LessonPlanPreviewSidebar({
           {/* Special handling based on fieldType */}
           {field.fieldType === "TABLE" || field.nodeType === "TABLE" ? (
             (() => {
-              console.log("Calling renderTableComponent for field:", field.id);
+              console.log("🎯 LessonPlanPreview: Calling renderTableComponent for field:", field.id, "fieldType:", field.fieldType, "nodeType:", field.nodeType);
               return renderTableComponent(field, stepData);
             })()
           ) : field.fieldType === "REFERENCES" ||
