@@ -34,10 +34,7 @@ export default function ChatToggle({
   badgeCount = 0,
   disabled = false,
 }: ChatToggleProps) {
-  console.log("ChatToggle rendering with isOpen:", isOpen);
-
   const handleClick = () => {
-    console.log("ChatToggle clicked!");
     onToggle();
   };
 
