@@ -3,6 +3,23 @@
 
 @import "../styles/theme.css";
 
+/* Demo Layout Styles */
+.dotted-input {
+  border: none;
+  border-bottom: 2px dotted #cbd5e1;
+  background: transparent;
+  outline: none;
+  padding: 4px 0;
+}
+
+.dotted-input:focus {
+  border-bottom-color: #3b82f6;
+}
+
+.dotted-input::placeholder {
+  color: #cbd5e1;
+}
+
 /* @custom-variant dark (&: is(.dark *)); */
 
 @theme inline {
@@ -177,4 +194,36 @@ body {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+  
+@layer components {
+  /* Custom dotted input style */
+  .dotted-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px dotted #9CA3AF;
+    outline: none;
+    padding: 2px 4px;
+    border-radius: 0;
+    transition: border-color 0.2s ease;
+    min-height: 24px;
+    line-height: 1.4;
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  .dotted-input:focus {
+    border-bottom: 1px solid #3B82F6;
+  }
+
+  .dotted-input::placeholder {
+    color: #D1D5DB;
+    font-weight: normal;
+  }
+
+  /* Auto-resize textarea */
+  .dotted-input[rows="1"] {
+    min-height: 24px;
+    max-height: 200px; /* Giới hạn chiều cao tối đa */
+  }
 }

@@ -51,6 +51,10 @@ export function StepContent({
   isEditMode = false,
   className,
 }: StepContentProps) {
+
+  console.log(formData,"form");
+  console.log(mergedComponents,"merged")
+
   return (
     <div className={cn("flex-1 flex flex-col min-h-0", className)}>
       {/* Step Header */}
@@ -116,38 +120,38 @@ export function StepContent({
                         "bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-4"
                     )}
                   >
-                    {(() => {
-                      console.log("StepContent mergedComponents:", {
-                        stepId: step?.id,
-                        stepTitle: step?.title,
-                        mergedComponentsLength: mergedComponents.length,
-                        mergedComponents: mergedComponents.map((c) => ({
-                          id: c.id,
-                          title: c.title,
-                          fieldType: c.fieldType,
-                          type: c.type,
-                          isDynamic: c.isDynamic,
-                        })),
-                      });
+                    {/* {(() => {
+                      // console.log("StepContent mergedComponents:", {
+                      //   stepId: step?.id,
+                      //   stepTitle: step?.title,
+                      //   mergedComponentsLength: mergedComponents.length,
+                      //   mergedComponents: mergedComponents.map((c) => ({
+                      //     id: c.id,
+                      //     title: c.title,
+                      //     fieldType: c.fieldType,
+                      //     type: c.type,
+                      //     isDynamic: c.isDynamic,
+                      //   })),
+                      // });
                       return null;
-                    })()}
+                    })()} */}
                     {mergedComponents.length > 0 ? (
                       <div className="space-y-8">
                         {mergedComponents.map((keyword, index) => {
                           // Debug each keyword component
-                          console.log(
-                            `🎯 StepContent rendering keyword ${index}:`,
-                            {
-                              keywordId: keyword?.id,
-                              keywordTitle: keyword?.title,
-                              fieldType: keyword?.fieldType,
-                              nodeType: keyword?.nodeType,
-                              hasChildren: !!(
-                                keyword?.children && keyword.children.length > 0
-                              ),
-                              childrenCount: keyword?.children?.length || 0,
-                            }
-                          );
+                          // console.log(
+                          //   `🎯 StepContent rendering keyword ${index}:`,
+                          //   {
+                          //     keywordId: keyword?.id,
+                          //     keywordTitle: keyword?.title,
+                          //     fieldType: keyword?.fieldType,
+                          //     nodeType: keyword?.nodeType,
+                          //     hasChildren: !!(
+                          //       keyword?.children && keyword.children.length > 0
+                          //     ),
+                          //     childrenCount: keyword?.children?.length || 0,
+                          //   }
+                          // );
 
                           return (
                             <div key={keyword.id} className="relative group">

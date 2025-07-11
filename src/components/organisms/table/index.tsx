@@ -6,9 +6,17 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { Plus, Minus, Trash2 } from "lucide-react";
 
+interface CellContent {
+  text?: string;
+  image?: {
+    url: string;
+    name?: string;
+  };
+}
+
 interface TableData {
   headers: string[];
-  rows: string[][];
+  rows: (string | CellContent)[][];
 }
 
 interface TableProps {
@@ -105,7 +113,7 @@ export function Table({
   const handleCellChange = (
     rowIndex: number,
     cellIndex: number,
-    value: string
+    value: string | CellContent
   ) => {
     setTableData((prev) => ({
       ...prev,

@@ -165,10 +165,10 @@ function LessonPlanContent() {
       });
     });
 
-    console.log(
-      "Transformed formData for preview (with titles):",
-      transformedData
-    );
+    // console.log(
+    //   "Transformed formData for preview (with titles):",
+    //   transformedData
+    // );
     return transformedData;
   }, [allFormData]);
 
@@ -214,21 +214,9 @@ function LessonPlanContent() {
     currentStepData?.id,
     childrenData || []
   );
-
-  console.log("🔍 mergedComponents result:", {
-    currentStepId: currentStepData?.id,
-    currentStepIdType: typeof currentStepData?.id,
-    childrenDataLength: childrenData?.length || 0,
-    mergedComponentsLength: mergedComponents?.length || 0,
-    mergedComponents: mergedComponents?.map((c) => ({
-      id: c.id,
-      title: c.title,
-      type: c.nodeType,
-      fieldType: c.fieldType,
-      childern: c.children,
-      isDynamic: c.isDynamic,
-    })),
-  });
+  
+  console.log(formData, "form");
+  console.log(mergedComponents, "merged");
 
   return (
     <>
