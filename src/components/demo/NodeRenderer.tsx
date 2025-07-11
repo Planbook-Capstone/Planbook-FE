@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { Droppable } from "@hello-pangea/dnd";
+import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Table } from "@/components/organisms/table";
 
 interface CellContent {
@@ -190,8 +190,12 @@ export default function NodeRenderer({
   const isNewComponent = node.metadata?.isNew === true;
   const dropColors = getDropZoneColors(depth);
 
+  // Special styling for sections to make drop zones more visible
+  const isSection = node.type === "SECTION" || node.type === "SUBSECTION";
+  const sectionClass = isSection ? " pl-4" : "";
+
   return (
-    <div className="relative group rounded-lg mb-2 bg-white px-2">
+    <div className={`relative group rounded-lg mb-2 bg-white px-2 ${sectionClass}`}>
       {/* Data source indicator - only show for new components */}
       {isNewComponent && (
         <div className="absolute top-2 right-8">
@@ -253,34 +257,45 @@ export default function NodeRenderer({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`mt-0.5 min-h-[8px] rounded-lg transition-colors ${
+            className={`mt-2 rounded-lg transition-all duration-200 ${
               snapshot.isDraggingOver
-                ? `border-2 border-dashed ${dropColors.border} ${dropColors.bg} min-h-[30px]`
-                : "border-0 bg-transparent"
+                ? `border-2 border-dashed ${dropColors.border} ${dropColors.bg} min-h-[40px] p-2`
+                : "min-h-[8px] border-0 bg-transparent"
             }`}
           >
             {node.children && node.children.length > 0 ? (
-              <div className="mt-2">
+              <div className="space-y-1">
                 {node.children
                   .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map(child => (
-                  <div key={child.id} className="ml-4">
-                    <NodeRenderer
-                      node={child}
-                      depth={depth + 1}
-                      showDeleteButtons={showDeleteButtons}
-                      onDeleteNode={onDeleteNode}
-                      onUpdateNodeTitle={onUpdateNodeTitle}
-                      onUpdateNodeContent={onUpdateNodeContent}
-                      onUpdateTableData={onUpdateTableData}
-                    />
-                  </div>
+                  .map((child, index) => (
+                  <Draggable key={child.id} draggableId={child.id.toString()} index={index}>
+                    {(provided: any, snapshot: any) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`ml-4 ${snapshot.isDragging ? "opacity-50" : ""}`}
+                      >
+                        <NodeRenderer
+                          node={child}
+                          depth={depth + 1}
+                          showDeleteButtons={showDeleteButtons}
+                          onDeleteNode={onDeleteNode}
+                          onUpdateNodeTitle={onUpdateNodeTitle}
+                          onUpdateNodeContent={onUpdateNodeContent}
+                          onUpdateTableData={onUpdateTableData}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
                 ))}
               </div>
             ) : (
               snapshot.isDraggingOver && (
-                <div className="flex items-center justify-center h-10 text-gray-400 text-sm">
-                  Thả vào đây để thêm con (Cấp {depth + 1})
+                <div className="flex items-center justify-center text-gray-400 text-sm h-8">
+                  <span className="font-medium text-gray-600">
+                    🎯 Thả vào đây để thêm con (Cấp {depth + 1})
+                  </span>
                 </div>
               )
             )}
