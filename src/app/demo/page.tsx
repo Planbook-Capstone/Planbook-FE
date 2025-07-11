@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { v4 as uuidv4 } from "uuid";
 import { useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
@@ -9,6 +9,7 @@ import { generateDocx } from "@/utils/docxGenerator";
 import Sidebar from "@/components/demo/Sidebar";
 import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
+import { Heading1, Heading2, Images, List, Table, Type } from "lucide-react";
 
 interface CellContent {
   text?: string;
@@ -43,7 +44,7 @@ interface ComponentPaletteItem {
   type: "PARAGRAPH" | "LIST_ITEM" | "TABLE" | "IMAGE" | "SECTION" | "SUBSECTION";
   fieldType: "INPUT" | "TABLE" | "IMAGE";
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   description: string;
 }
 
@@ -53,7 +54,7 @@ const COMPONENT_PALETTE: ComponentPaletteItem[] = [
     type: "SECTION",
     fieldType: "INPUT",
     title: "Section",
-    icon: "📑",
+    icon: <Heading1 />,
     description: "Thêm tiêu đề chính"
   },
   {
@@ -61,7 +62,7 @@ const COMPONENT_PALETTE: ComponentPaletteItem[] = [
     type: "SUBSECTION",
     fieldType: "INPUT",
     title: "Subsection",
-    icon: "📄",
+    icon: <Heading2 />,
     description: "Thêm tiêu đề phụ"
   },
   {
@@ -69,7 +70,7 @@ const COMPONENT_PALETTE: ComponentPaletteItem[] = [
     type: "PARAGRAPH",
     fieldType: "INPUT",
     title: "Text/Paragraph",
-    icon: "📝",
+    icon: <Type />,
     description: "Thêm đoạn văn bản"
   },
   {
@@ -77,7 +78,7 @@ const COMPONENT_PALETTE: ComponentPaletteItem[] = [
     type: "TABLE",
     fieldType: "TABLE",
     title: "Table",
-    icon: "📊",
+    icon: <Table />,
     description: "Thêm bảng dữ liệu"
   },
   {
@@ -85,7 +86,7 @@ const COMPONENT_PALETTE: ComponentPaletteItem[] = [
     type: "LIST_ITEM",
     fieldType: "INPUT",
     title: "List Item",
-    icon: "📋",
+    icon: <List />,
     description: "Thêm mục danh sách"
   },
   {
@@ -93,7 +94,7 @@ const COMPONENT_PALETTE: ComponentPaletteItem[] = [
     type: "IMAGE",
     fieldType: "IMAGE",
     title: "Image",
-    icon: "🖼️",
+    icon: <Images />,
     description: "Thêm hình ảnh"
   }
 ];
