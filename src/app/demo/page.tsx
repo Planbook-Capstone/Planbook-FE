@@ -640,7 +640,7 @@ function DemoPage() {
       orderIndex: 0,
       metadata: null,
       status: "ACTIVE",
-      children: demoData.flatMap((node) => node.children || []),
+      children: demoData.flatMap((node) => node || []),
     };
 
     const payload = {
