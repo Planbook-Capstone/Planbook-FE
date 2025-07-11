@@ -654,7 +654,7 @@ export function LessonPlanPreviewSidebar({
         );
 
         const headers = headerRow
-          ? headerRow.cells.map((cell: any) => cell.content || "")
+          ? headerRow.cells.map((cell: any) => cell.title || cell.content || "")
           : ["Header 1", "Header 2"];
 
         // Extract data rows (isHeader: false or undefined)
@@ -665,9 +665,11 @@ export function LessonPlanPreviewSidebar({
           )
           .map((row: any) =>
             row.cells.map((cell: any) => {
-              // Strip HTML tags from content
+              // Combine title and content, strip HTML tags
+              const title = cell.title || "";
               const content = cell.content || "";
-              return content.replace(/<[^>]*>/g, "");
+              const combined = title && content ? `${title}\n${content}` : title || content;
+              return combined.replace(/<[^>]*>/g, "");
             })
           );
 
@@ -1040,15 +1042,15 @@ export function LessonPlanPreviewSidebar({
             {
               id: "header-row",
               cells: [
-                { id: "h1", content: "Cột 1", isHeader: true },
-                { id: "h2", content: "Cột 2", isHeader: true },
+                { id: "h1", title: "HOẠT ĐỘNG CỦA GIÁO VIÊN", content: "", isHeader: true },
+                { id: "h2", title: "HOẠT ĐỘNG CỦA HỌC SINH", content: "", isHeader: true },
               ],
             },
             {
               id: "row-1",
               cells: [
-                { id: "r1c1", content: "Nội dung ô 1" },
-                { id: "r1c2", content: "Nội dung ô 2" },
+                { id: "r1c1", title: "<p>Bước 1: Chuyển giao nhiệm vụ học tập</p>", content: "" },
+                { id: "r1c2", title: "", content: "" },
               ],
             },
           ],
