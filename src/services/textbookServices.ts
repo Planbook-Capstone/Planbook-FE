@@ -18,10 +18,15 @@ export const useTextBookByIdService = createSecondaryQueryHook(
   PDF_API_ENDPOINTS.GET_TEXTBOOK_BY_ID("") // Will be replaced with actual ID
 );
 
-
 // Quick textbook analysis
 export const useQuickTextBookAnalysisService = createSecondaryMutationHook(
   "textbooks",
   PDF_API_ENDPOINTS.QUICK_TEXTBOOK_ANALYSIS
 );
 
+// Get task result by ID
+export const useTaskResultService = (taskId: string) =>
+  createSecondaryQueryHook(
+    "task-result",
+    PDF_API_ENDPOINTS.TASKS_RESULT(taskId)
+  )({ enabled: false }); // Disable auto-fetch, will be triggered manually
