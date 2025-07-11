@@ -38,15 +38,15 @@ export default function Toolbar({
         <div className="flex items-center gap-3">
           <Button
             onClick={onExportJSON}
-            className="bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
+            className=" flex items-center justify-center bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
           >
             <Image
               src="/images/illustration/robot-head.svg"
-              width={20}
-              height={20}
+              width={25}
+              height={25}
               alt="AI"
             />
-            Tạo nhanh cùng AI
+            <p>Tạo nhanh cùng AI</p>
           </Button>
 
           <Button
