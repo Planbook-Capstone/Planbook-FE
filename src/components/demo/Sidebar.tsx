@@ -1,5 +1,6 @@
 "use client";
 
+import { useMaterialSearchService } from "@/services/materialServices";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface DemoNode {
@@ -40,6 +41,8 @@ export default function Sidebar({
   onRestoreNode, 
   componentPalette 
 }: SidebarProps) {
+    const { data: materials } = useMaterialSearchService("1");
+  
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
       {/* Sidebar Header */}
@@ -124,31 +127,26 @@ export default function Sidebar({
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Thư viện hình ảnh
             </h3>
-            <div className="space-y-2">
-              {[
-                { id: 'img1', name: 'diagram.png', icon: '📊' },
-                { id: 'img2', name: 'chart.jpg', icon: '📈' },
-                { id: 'img3', name: 'photo.png', icon: '📷' },
-                { id: 'img4', name: 'illustration.svg', icon: '🎨' },
-                { id: 'img5', name: 'screenshot.png', icon: '🖥️' }
-              ].map((image) => (
+            <div className="space-y-2 grid grid-cols-2 gap-2">
+              {materials?.data?.content?.map((image:any) => (
                 <div
                   key={image.id}
                   className="p-3 border border-gray-200 rounded-lg cursor-move hover:border-gray-300 hover:bg-gray-50 transition-colors"
                   draggable
                   onDragStart={(e) => {
-                    e.dataTransfer.setData('text/plain', `image:${image.name}`);
+                    e.dataTransfer.setData('text/plain', `${image.url}`);
                   }}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{image.icon}</span>
+                    {/* <span className="text-2xl">{image.icon}</span> */}
                     <div>
-                      <div className="font-medium text-gray-800 text-sm">
+                      <img src={image.url} alt={image.name} className="w-full h-full object-contain" />
+                      <div className="font-medium text-gray-800 text-sm text-center">
                         {image.name}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      {/* <div className="text-xs text-gray-500">
                         Kéo vào table cell
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>

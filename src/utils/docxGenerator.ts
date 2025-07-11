@@ -1,5 +1,20 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType, Footer, PageNumber } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType, Footer, PageNumber, ImageRun } from "docx";
 import { saveAs } from "file-saver";
+
+// Utility function to convert image URL to buffer
+const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | null> => {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      console.error("Failed to fetch image:", response.statusText);
+      return null;
+    }
+    return await response.arrayBuffer();
+  } catch (error) {
+    console.error("Error converting image to buffer:", error);
+    return null;
+  }
+};
 
 interface CellContent {
   text?: string;
@@ -207,7 +222,7 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
   // Add lesson plan header
   children.push(...createLessonPlanHeader(headerInfo));
 
-  const processNode = (node: DemoNode, depth: number = 0): any[] => {
+  const processNode = async (node: DemoNode, depth: number = 0): Promise<any[]> => {
     const elements: any[] = [];
 
     switch (node.type) {
@@ -251,11 +266,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          node.children
-            .sort((a, b) => a.orderIndex - b.orderIndex)
-            .forEach(child => {
-              elements.push(...processNode(child, depth));
-            });
+          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+            const childElements = await processNode(child, depth);
+            elements.push(...childElements);
+          }
         }
         break;
 
@@ -299,11 +313,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children with indentation
         if (node.children && node.children.length > 0) {
-          node.children
-            .sort((a, b) => a.orderIndex - b.orderIndex)
-            .forEach(child => {
-              elements.push(...processNode(child, depth + 1));
-            });
+          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+            const childElements = await processNode(child, depth + 1);
+            elements.push(...childElements);
+          }
         }
         break;
 
@@ -349,11 +362,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          node.children
-            .sort((a, b) => a.orderIndex - b.orderIndex)
-            .forEach(child => {
-              elements.push(...processNode(child, depth + 1));
-            });
+          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+            const childElements = await processNode(child, depth + 1);
+            elements.push(...childElements);
+          }
         }
         break;
 
@@ -382,11 +394,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          node.children
-            .sort((a, b) => a.orderIndex - b.orderIndex)
-            .forEach(child => {
-              elements.push(...processNode(child, depth + 1));
-            });
+          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+            const childElements = await processNode(child, depth + 1);
+            elements.push(...childElements);
+          }
         }
         break;
 
@@ -498,16 +509,15 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          node.children
-            .sort((a, b) => a.orderIndex - b.orderIndex)
-            .forEach(child => {
-              elements.push(...processNode(child, depth + 1));
-            });
+          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+            const childElements = await processNode(child, depth + 1);
+            elements.push(...childElements);
+          }
         }
         break;
 
       case "IMAGE":
-        // Add image placeholder
+        // Add image title
         if (node.title && node.title !== "Mới: Image") {
           elements.push(
             new Paragraph({
@@ -526,31 +536,99 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
           );
         }
 
-        elements.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "[Image Placeholder]",
-                italics: true,
-                size: 24,
-              }),
-            ],
-            spacing: {
-              after: 120, // 6pt
-            },
-            indent: {
-              left: depth * 360,
-            },
-          })
-        );
+        // Add actual image or placeholder
+        if (node.content) {
+          try {
+            // Try to add actual image
+            const imageBuffer = await convertImageToBuffer(node.content);
+            if (imageBuffer) {
+              elements.push(
+                new Paragraph({
+                  children: [
+                    new ImageRun({
+                      data: new Uint8Array(imageBuffer),
+                      transformation: {
+                        width: 400,
+                        height: 300,
+                      },
+                    }),
+                  ],
+                  spacing: {
+                    after: 120, // 6pt
+                  },
+                  indent: {
+                    left: depth * 360,
+                  },
+                })
+              );
+            } else {
+              // Fallback to placeholder if image loading fails
+              elements.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "[Không thể tải hình ảnh]",
+                      italics: true,
+                      size: 24,
+                    }),
+                  ],
+                  spacing: {
+                    after: 120, // 6pt
+                  },
+                  indent: {
+                    left: depth * 360,
+                  },
+                })
+              );
+            }
+          } catch (error) {
+            console.error("Error adding image to DOCX:", error);
+            // Fallback to placeholder
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "[Lỗi tải hình ảnh]",
+                    italics: true,
+                    size: 24,
+                  }),
+                ],
+                spacing: {
+                  after: 120, // 6pt
+                },
+                indent: {
+                  left: depth * 360,
+                },
+              })
+            );
+          }
+        } else {
+          // No image content
+          elements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "[Chưa có hình ảnh]",
+                  italics: true,
+                  size: 24,
+                }),
+              ],
+              spacing: {
+                after: 120, // 6pt
+              },
+              indent: {
+                left: depth * 360,
+              },
+            })
+          );
+        }
 
         // Process children
         if (node.children && node.children.length > 0) {
-          node.children
-            .sort((a, b) => a.orderIndex - b.orderIndex)
-            .forEach(child => {
-              elements.push(...processNode(child, depth + 1));
-            });
+          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+            const childElements = await processNode(child, depth + 1);
+            elements.push(...childElements);
+          }
         }
         break;
 
@@ -562,11 +640,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
   };
 
   // Process all nodes
-  data
-    .sort((a, b) => a.orderIndex - b.orderIndex)
-    .forEach(node => {
-      children.push(...processNode(node, 0));
-    });
+  for (const node of data.sort((a, b) => a.orderIndex - b.orderIndex)) {
+    const nodeElements = await processNode(node, 0);
+    children.push(...nodeElements);
+  }
 
   // Create document with header and footer
   const doc = new Document({

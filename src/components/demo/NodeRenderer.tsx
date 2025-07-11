@@ -169,11 +169,49 @@ export default function NodeRenderer({
         );
       case "IMAGE":
         return (
-          <div className="field-image w-full">
-            <div className="rounded-lg p-8 text-center bg-gray-50">
-              <div className="text-4xl mb-2">🖼️</div>
-              <p className="text-gray-500">Kéo hình ảnh vào đây hoặc click để chọn</p>
-            </div>
+          <div
+            className="field-image w-full"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+            }}
+            onDragLeave={(e) => {
+              e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+
+              const imageUrl = e.dataTransfer.getData('text/plain');
+              if (imageUrl) {
+                onUpdateNodeContent(node.id, imageUrl);
+              }
+            }}
+          >
+            {node.content ? (
+              <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 text-center bg-white hover:border-gray-400 transition-colors">
+                <img
+                  src={node.content}
+                  alt="Uploaded image"
+                  className="max-w-full max-h-64 mx-auto rounded-lg shadow-sm"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <div className="hidden text-red-500 text-sm mt-2">
+                  Không thể tải hình ảnh
+                </div>
+                <p className="text-gray-500 text-sm mt-2">Kéo hình ảnh khác để thay thế</p>
+              </div>
+            ) : (
+              <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors">
+                <div className="text-4xl mb-2">🖼️</div>
+                <p className="text-gray-500">Kéo hình ảnh từ panel bên trái vào đây</p>
+                <p className="text-gray-400 text-sm mt-1">Hoặc click để chọn file</p>
+              </div>
+            )}
           </div>
         );
       default:
