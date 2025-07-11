@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
-import { Table } from "@/components/organisms/table";
+import { Table as CustomTable } from "@/components/organisms/table";
 
 interface CellContent {
   text?: string;
@@ -107,10 +107,173 @@ export default function NodeRenderer({
     return colors[depth % colors.length];
   };
 
+  // Render table field - extracted from switch case
+  const renderTableField = useCallback((node: DemoNode) => {
+    // Parse table data from content field if it's a JSON string
+    let tableData: TableData;
+    try {
+      if (node.content && typeof node.content === 'string') {
+        const parsedContent = JSON.parse(node.content);
+
+        // Convert API format to our TableData format
+        if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
+          const headers: string[] = [];
+          const rows: string[][] = [];
+
+          // First pass: extract headers from header row
+          const headerRow = parsedContent.rows.find((row: any) =>
+            row.cells && row.cells.some((cell: any) => cell.isHeader)
+          );
+
+          if (headerRow && headerRow.cells) {
+            headerRow.cells.forEach((cell: any) => {
+              if (cell.isHeader) {
+                // Decode HTML entities and extract text content
+                let headerText = cell.title || cell.content || "";
+                headerText = headerText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                headerText = headerText.replace(/<[^>]*>/g, ''); // Remove HTML tags
+                headerText = headerText.replace(/\n/g, ' ').trim();
+                headers.push(headerText || `Cột ${headers.length + 1}`);
+              }
+            });
+          }
+
+          // Second pass: extract data rows (non-header rows)
+          parsedContent.rows.forEach((row: any) => {
+            if (row.cells && !row.cells.some((cell: any) => cell.isHeader)) {
+              const rowData: string[] = [];
+
+              row.cells.forEach((cell: any) => {
+                // Handle regular cells - decode HTML and extract text
+                let cellText = cell.title || cell.content || "";
+                // Decode HTML entities
+                cellText = cellText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                // Remove HTML tags for display
+                cellText = cellText.replace(/<[^>]*>/g, '');
+                // Clean up whitespace
+                cellText = cellText.replace(/\n/g, ' ').trim();
+                rowData.push(cellText);
+              });
+
+              // Ensure row has same number of cells as headers
+              while (rowData.length < headers.length) {
+                rowData.push("");
+              }
+              rows.push(rowData);
+            }
+          });
+
+          tableData = {
+            headers: headers.length > 0 ? headers : ["Cột 1", "Cột 2"],
+            rows: rows.length > 0 ? rows : [["", ""], ["", ""]]
+          };
+        } else {
+          // Fallback to default
+          tableData = {
+            headers: ["Cột 1", "Cột 2"],
+            rows: [["", ""], ["", ""]]
+          };
+        }
+      } else {
+        // Use tableData if available, otherwise default
+        tableData = node.tableData || {
+          headers: ["Cột 1", "Cột 2"],
+          rows: [["", ""], ["", ""]]
+        };
+      }
+    } catch (error) {
+      console.error("Error parsing table content:", error);
+      // Fallback to default or existing tableData
+      tableData = node.tableData || {
+        headers: ["Cột 1", "Cột 2"],
+        rows: [["", ""], ["", ""]]
+      };
+    }
+
+    // Ensure all cells are strings for simplicity
+    const convertedTableData: TableData = {
+      headers: tableData.headers,
+      rows: tableData.rows.map((row) =>
+        row.map((cell) => {
+          if (typeof cell === "string") {
+            return cell;
+          } else if (cell && typeof cell === "object") {
+            if ("type" in cell && "content" in cell) {
+              // Convert old format {type: 'text', content: 'value'} to string
+              const oldCell = cell as any;
+              return oldCell.content || "";
+            } else if ("text" in cell) {
+              // Convert new format to string for now
+              return (cell as any).text || "";
+            }
+          }
+          return "";
+        })
+      ),
+    };
+
+    const handleTableDataChange = (newTableData: TableData) => {
+      if (onUpdateTableData) {
+        // Convert TableData back to API format and save to content
+        const apiFormat = {
+          rows: [
+            // Header row
+            {
+              id: "header-row",
+              cells: newTableData.headers.map((header, index) => ({
+                id: `h${index + 1}`,
+                title: header,
+                content: "",
+                isHeader: true
+              }))
+            },
+            // Data rows
+            ...newTableData.rows.map((row, rowIndex) => ({
+              id: `row-${rowIndex + 1}`,
+              cells: row.map((cell, cellIndex) => ({
+                id: `r${rowIndex + 1}c${cellIndex + 1}`,
+                title: typeof cell === 'string' ? cell : (cell?.text || ""),
+                content: ""
+              }))
+            }))
+          ],
+          columns: newTableData.headers.length
+        };
+
+        // Update both tableData and content
+        onUpdateTableData(node.id, newTableData);
+        // Also update content with JSON string
+        if (onUpdateNodeContent) {
+          onUpdateNodeContent(node.id, JSON.stringify(apiFormat));
+        }
+      }
+    };
+
+    return (
+      <div className="field-table w-full">
+        <CustomTable
+          initialData={convertedTableData}
+          onDataChange={handleTableDataChange}
+          showControls={true}
+          minRows={1}
+          minCols={2}
+          maxRows={10}
+          maxCols={5}
+        />
+      </div>
+    );
+  }, [onUpdateTableData, onUpdateNodeContent]);
+
   // Render field based on fieldType and type
   const renderField = useCallback(
     (node: DemoNode) => {
-      // Special rendering for SECTION and SUBSECTION - editable titles
+      // Check fieldType first for special cases like TABLE
+      if (node.fieldType === "TABLE") {
+        // Handle TABLE fieldType regardless of node.type
+        return renderTableField(node);
+      }
+
+      // Special rendering for SECTION and SUBSECTION - editable titles (only if not TABLE fieldType)
       if (node.type === "SECTION") {
         return (
           <div className="section-field">
@@ -133,7 +296,7 @@ export default function NodeRenderer({
           <div className="subsection-field">
             <input
               type="text"
-              className="text-lg font-semibold text-gray-700 bg-transparent outline-none w-full pb-1"
+              className="text-lg font-calsans  bg-transparent outline-none w-full pb-1"
               value={node.title || ""}
               onChange={(e) => onUpdateNodeTitle(node.id, e.target.value)}
               placeholder="Nhập tiêu đề subsection..."
@@ -156,150 +319,8 @@ export default function NodeRenderer({
               onChange={(value) => onUpdateNodeContent(node.id, value)}
             />
           );
-        case "TABLE":
-          // Parse table data from content field if it's a JSON string
-          let tableData: TableData;
-          try {
-            if (node.content && typeof node.content === 'string') {
-              console.log("Parsing table content for node:", node.id, node.content);
-              const parsedContent = JSON.parse(node.content);
-              console.log("Parsed content:", parsedContent);
-              // Convert API format to our TableData format
-              if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
-                const headers: string[] = [];
-                const rows: string[][] = [];
 
-                parsedContent.rows.forEach((row: any, rowIndex: number) => {
-                  if (row.cells && Array.isArray(row.cells)) {
-                    const rowData: string[] = [];
-                    row.cells.forEach((cell: any, cellIndex: number) => {
-                      // Handle header row
-                      if (cell.isHeader) {
-                        if (rowIndex === 0) {
-                          // Decode HTML entities and extract text content
-                          const headerText = cell.title || cell.content || `Cột ${cellIndex + 1}`;
-                          headers.push(headerText.replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
-                        }
-                      } else {
-                        // Handle regular cells - decode HTML and extract text
-                        let cellText = cell.title || cell.content || "";
-                        // Decode HTML entities
-                        cellText = cellText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                        // Remove HTML tags for display
-                        cellText = cellText.replace(/<[^>]*>/g, '');
-                        // Clean up whitespace
-                        cellText = cellText.replace(/\n/g, ' ').trim();
-                        rowData.push(cellText);
-                      }
-                    });
 
-                    // Only add non-header rows to rows array
-                    if (!row.cells.some((cell: any) => cell.isHeader)) {
-                      rows.push(rowData);
-                    }
-                  }
-                });
-
-                tableData = {
-                  headers: headers.length > 0 ? headers : ["Cột 1", "Cột 2"],
-                  rows: rows.length > 0 ? rows : [["", ""], ["", ""]]
-                };
-                console.log("Final table data:", tableData);
-              } else {
-                // Fallback to default
-                tableData = {
-                  headers: ["Cột 1", "Cột 2"],
-                  rows: [["", ""], ["", ""]]
-                };
-              }
-            } else {
-              // Use tableData if available, otherwise default
-              tableData = node.tableData || {
-                headers: ["Cột 1", "Cột 2"],
-                rows: [["", ""], ["", ""]]
-              };
-            }
-          } catch (error) {
-            console.error("Error parsing table content:", error);
-            // Fallback to default or existing tableData
-            tableData = node.tableData || {
-              headers: ["Cột 1", "Cột 2"],
-              rows: [["", ""], ["", ""]]
-            };
-          }
-
-          // Ensure all cells are strings for simplicity
-          const convertedTableData: TableData = {
-            headers: tableData.headers,
-            rows: tableData.rows.map((row) =>
-              row.map((cell) => {
-                if (typeof cell === "string") {
-                  return cell;
-                } else if (cell && typeof cell === "object") {
-                  if ("type" in cell && "content" in cell) {
-                    // Convert old format {type: 'text', content: 'value'} to string
-                    const oldCell = cell as any;
-                    return oldCell.content || "";
-                  } else if ("text" in cell) {
-                    // Convert new format to string for now
-                    return (cell as any).text || "";
-                  }
-                }
-                return "";
-              })
-            ),
-          };
-
-          const handleTableDataChange = (newTableData: TableData) => {
-            if (onUpdateTableData) {
-              // Convert TableData back to API format and save to content
-              const apiFormat = {
-                rows: [
-                  // Header row
-                  {
-                    id: "header-row",
-                    cells: newTableData.headers.map((header, index) => ({
-                      id: `h${index + 1}`,
-                      title: header,
-                      content: "",
-                      isHeader: true
-                    }))
-                  },
-                  // Data rows
-                  ...newTableData.rows.map((row, rowIndex) => ({
-                    id: `row-${rowIndex + 1}`,
-                    cells: row.map((cell, cellIndex) => ({
-                      id: `r${rowIndex + 1}c${cellIndex + 1}`,
-                      title: typeof cell === 'string' ? cell : (cell?.text || ""),
-                      content: ""
-                    }))
-                  }))
-                ],
-                columns: newTableData.headers.length
-              };
-
-              // Update both tableData and content
-              onUpdateTableData(node.id, newTableData);
-              // Also update content with JSON string
-              if (onUpdateNodeContent) {
-                onUpdateNodeContent(node.id, JSON.stringify(apiFormat));
-              }
-            }
-          };
-
-          return (
-            <div className="field-table w-full">
-              <Table
-                initialData={convertedTableData}
-                onDataChange={handleTableDataChange}
-                showControls={true}
-                minRows={1}
-                minCols={2}
-                maxRows={10}
-                maxCols={5}
-              />
-            </div>
-          );
         case "IMAGE":
           return (
             <div
@@ -369,7 +390,7 @@ export default function NodeRenderer({
           );
       }
     },
-    [onUpdateNodeContent, onUpdateNodeTitle]
+    [onUpdateNodeContent, onUpdateNodeTitle, renderTableField]
   );
 
   const isNewComponent = node.metadata?.isNew === true;
