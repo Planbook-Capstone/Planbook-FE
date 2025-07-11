@@ -124,7 +124,7 @@ function DemoPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Load data from API
-  const childrenQuery = useLessonPlanNodeChildrenService("19")();
+  const childrenQuery = useLessonPlanNodeChildrenService("1")();
   const apiData = childrenQuery?.data?.data;
 
   // Initialize demo data from API when it loads
@@ -546,10 +546,23 @@ function DemoPage() {
 
   const { mutate } = useLessonPlanGenerationService();
   const handleGenerationLessonPlan = () => {
-    console.log(demoData);
+    const mergedNode = {
+      id: "merged",
+      lessonPlanId: 4,
+      parentId: null,
+      title: "Merged Section",
+      content: "",
+      fieldType: null,
+      type: "SUBSECTION",
+      orderIndex: 0,
+      metadata: null,
+      status: "ACTIVE",
+      children: demoData.flatMap((node) => node.children || []),
+    };
+
     const payload = {
       lesson_id: "string",
-      lesson_plan_json: demoData[0],
+      lesson_plan_json: mergedNode,
     };
     mutate(payload, {
       onSuccess: () => {
