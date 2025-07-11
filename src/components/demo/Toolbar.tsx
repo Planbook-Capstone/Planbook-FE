@@ -26,14 +26,12 @@ export default function Toolbar({
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors"
+            className=" cursor-pointer px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors"
             title={sidebarCollapsed ? "Mở sidebar" : "Đóng sidebar"}
           >
             {sidebarCollapsed ? "☰" : "✕"}
           </button>
-          <h1 className="text-xl font-semibold text-gray-800">
-            Dynamic Layout Demo
-          </h1>
+          <h1 className="text-xl font-calsans">Tạo giáo án</h1>
         </div>
         <div className="flex items-center gap-3">
           <Button
