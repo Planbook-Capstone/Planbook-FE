@@ -53,11 +53,193 @@ export default function PreviewModal({
 }: PreviewModalProps) {
   if (!isOpen) return null;
 
+  // Extract table rendering logic into separate function
+  const renderTablePreview = (node: DemoNode, marginLeft: number, depth: number): React.ReactNode => {
+    // Parse table data from content field if it's a JSON string (same logic as NodeRenderer)
+    let tableData: TableData;
+    try {
+      if (node.content && typeof node.content === 'string') {
+        const parsedContent = JSON.parse(node.content);
+
+        // Convert API format to our TableData format
+        if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
+          const headers: string[] = [];
+          const rows: string[][] = [];
+
+          // First pass: extract headers from header row
+          const headerRow = parsedContent.rows.find((row: any) =>
+            row.cells && row.cells.some((cell: any) => cell.isHeader)
+          );
+
+          if (headerRow && headerRow.cells) {
+            headerRow.cells.forEach((cell: any) => {
+              if (cell.isHeader) {
+                // Decode HTML entities and extract text content
+                let headerText = cell.title || cell.content || "";
+                headerText = headerText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                headerText = headerText.replace(/<[^>]*>/g, ''); // Remove HTML tags
+                headerText = headerText.replace(/\n/g, ' ').trim();
+                headers.push(headerText || `Cột ${headers.length + 1}`);
+              }
+            });
+          }
+
+          // Second pass: extract data rows (non-header rows)
+          parsedContent.rows.forEach((row: any) => {
+            if (row.cells && !row.cells.some((cell: any) => cell.isHeader)) {
+              const rowData: string[] = [];
+
+              row.cells.forEach((cell: any) => {
+                // Handle regular cells - decode HTML and extract text
+                let cellText = cell.title || cell.content || "";
+                // Decode HTML entities
+                cellText = cellText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                // Remove HTML tags for display
+                cellText = cellText.replace(/<[^>]*>/g, '');
+                // Clean up whitespace
+                cellText = cellText.replace(/\n/g, ' ').trim();
+                rowData.push(cellText);
+              });
+
+              // Ensure row has same number of cells as headers
+              while (rowData.length < headers.length) {
+                rowData.push("");
+              }
+              rows.push(rowData);
+            }
+          });
+
+          tableData = {
+            headers: headers.length > 0 ? headers : ["Cột 1", "Cột 2"],
+            rows: rows.length > 0 ? rows : [["", ""], ["", ""]]
+          };
+        } else {
+          // Fallback to default
+          tableData = {
+            headers: ["Cột 1", "Cột 2"],
+            rows: [["", ""], ["", ""]]
+          };
+        }
+      } else {
+        // Use tableData if available, otherwise default
+        tableData = node.tableData || {
+          headers: ["Cột 1", "Cột 2"],
+          rows: [["", ""], ["", ""]]
+        };
+      }
+    } catch (error) {
+      console.error("Error parsing table content in preview:", error);
+      // Fallback to default or existing tableData
+      tableData = node.tableData || {
+        headers: ["Cột 1", "Cột 2"],
+        rows: [["", ""], ["", ""]]
+      };
+    }
+
+    return (
+      <div
+        key={node.id}
+        style={{ marginLeft: `${marginLeft}px` }}
+        className="mb-4"
+      >
+        {node.title && node.title !== "Mới: Table" && (
+          <h3 className="text-lg font-medium text-black mb-2">
+            {node.title}
+          </h3>
+        )}
+        <div className="border border-gray-400">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                {tableData.headers.map((header, index) => (
+                  <th
+                    key={index}
+                    className="border border-gray-400 px-3 py-2 text-left font-semibold"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.rows.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {row.map((cell, colIndex) => {
+                    let cellText = "";
+                    try {
+                      if (typeof cell === "string") {
+                        cellText = cell;
+                      } else if (cell && typeof cell === "object") {
+                        if ("text" in cell || "image" in cell) {
+                          // New CellContent format
+                          const cellContent = cell as CellContent;
+                          if (cellContent.image) {
+                            cellText = `[Hình ảnh: ${
+                              cellContent.image.name || "image"
+                            }]`;
+                          } else {
+                            cellText = cellContent.text || "";
+                          }
+                        } else if ("type" in cell && "content" in cell) {
+                          // Old format compatibility
+                          const oldCell = cell as any;
+                          cellText =
+                            oldCell.type === "image"
+                              ? `[Hình ảnh: ${oldCell.content}]`
+                              : oldCell.content;
+                        }
+                      }
+                    } catch (error) {
+                      console.error("Error rendering cell:", error, cell);
+                      cellText = String(cell || "");
+                    }
+
+                    return (
+                      <td
+                        key={colIndex}
+                        className="border border-gray-400 px-3 py-2"
+                      >
+                        {cellText}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {node.children && node.children.length > 0 && (
+          <div className="ml-4 mt-3">
+            {node.children
+              .sort((a, b) => a.orderIndex - b.orderIndex)
+              .map((child) => renderPreviewNode(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderPreviewNode = (
     node: DemoNode,
     depth: number = 0
-  ): JSX.Element => {
+  ): React.ReactNode => {
     const marginLeft = depth * 20;
+
+    // Debug: Log all nodes to see their properties
+    console.log("🔍 PreviewModal node:", {
+      id: node.id,
+      type: node.type,
+      fieldType: node.fieldType,
+      title: node.title,
+      hasContent: !!node.content,
+      contentPreview: node.content?.substring(0, 50) + "..."
+    });
+
+    // Check fieldType first for TABLE (regardless of node.type)
+    if (node.fieldType === "TABLE") {
+      console.log("🎯 PreviewModal: Rendering table for node", node.id, "fieldType:", node.fieldType, "type:", node.type);
+      return renderTablePreview(node, marginLeft, depth);
+    }
 
     switch (node.type) {
       case "SECTION":
@@ -160,96 +342,7 @@ export default function PreviewModal({
           </div>
         );
 
-      case "TABLE":
-        const tableData = node.tableData || {
-          headers: ["Cột 1", "Cột 2"],
-          rows: [
-            ["", ""],
-            ["", ""],
-          ],
-        };
 
-        return (
-          <div
-            key={node.id}
-            style={{ marginLeft: `${marginLeft}px` }}
-            className="mb-4"
-          >
-            {node.title && node.title !== "Mới: Table" && (
-              <h3 className="text-lg font-medium text-black mb-2">
-                {node.title}
-              </h3>
-            )}
-            <div className="border border-gray-400">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    {tableData.headers.map((header, index) => (
-                      <th
-                        key={index}
-                        className="border border-gray-400 px-3 py-2 text-left font-semibold"
-                      >
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableData.rows.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                      {row.map((cell, colIndex) => {
-                        let cellText = "";
-                        try {
-                          if (typeof cell === "string") {
-                            cellText = cell;
-                          } else if (cell && typeof cell === "object") {
-                            if ("text" in cell || "image" in cell) {
-                              // New CellContent format
-                              const cellContent = cell as CellContent;
-                              if (cellContent.image) {
-                                cellText = `[Hình ảnh: ${
-                                  cellContent.image.name || "image"
-                                }]`;
-                              } else {
-                                cellText = cellContent.text || "";
-                              }
-                            } else if ("type" in cell && "content" in cell) {
-                              // Old format compatibility
-                              const oldCell = cell as any;
-                              cellText =
-                                oldCell.type === "image"
-                                  ? `[Hình ảnh: ${oldCell.content}]`
-                                  : oldCell.content;
-                            }
-                          }
-                        } catch (error) {
-                          console.error("Error rendering cell:", error, cell);
-                          cellText = String(cell || "");
-                        }
-
-                        return (
-                          <td
-                            key={colIndex}
-                            className="border border-gray-400 px-3 py-2"
-                          >
-                            {cellText}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {node.children && node.children.length > 0 && (
-              <div className="ml-4 mt-3">
-                {node.children
-                  .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map((child) => renderPreviewNode(child, depth + 1))}
-              </div>
-            )}
-          </div>
-        );
 
       case "IMAGE":
         return (
