@@ -1,6 +1,10 @@
 "use client";
 
+import { useMaterialSearchService } from "@/services/materialServices";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
+import { Badge } from "antd";
+import { Image, Trash } from "lucide-react";
+import React from "react";
 
 interface DemoNode {
   id: string;
@@ -9,7 +13,13 @@ interface DemoNode {
   title: string;
   content: string;
   fieldType: "INPUT" | "TABLE" | "IMAGE";
-  type: "PARAGRAPH" | "LIST_ITEM" | "TABLE" | "IMAGE" | "SECTION" | "SUBSECTION";
+  type:
+    | "PARAGRAPH"
+    | "LIST_ITEM"
+    | "TABLE"
+    | "IMAGE"
+    | "SECTION"
+    | "SUBSECTION";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -18,10 +28,16 @@ interface DemoNode {
 
 interface ComponentPaletteItem {
   id: string;
-  type: "PARAGRAPH" | "LIST_ITEM" | "TABLE" | "IMAGE" | "SECTION" | "SUBSECTION";
+  type:
+    | "PARAGRAPH"
+    | "LIST_ITEM"
+    | "TABLE"
+    | "IMAGE"
+    | "SECTION"
+    | "SUBSECTION";
   fieldType: "INPUT" | "TABLE" | "IMAGE";
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   description: string;
 }
 
@@ -33,18 +49,20 @@ interface SidebarProps {
   componentPalette: ComponentPaletteItem[];
 }
 
-export default function Sidebar({ 
-  activeTab, 
-  setActiveTab, 
-  trashData, 
-  onRestoreNode, 
-  componentPalette 
+export default function Sidebar({
+  activeTab,
+  setActiveTab,
+  trashData,
+  onRestoreNode,
+  componentPalette,
 }: SidebarProps) {
+  const { data: materials } = useMaterialSearchService("1");
+
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
       {/* Sidebar Header */}
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800">Demo Layout</h2>
+        <h2 className="text-lg font-calsans ">Thành phần</h2>
       </div>
 
       {/* Tabs */}
@@ -60,8 +78,16 @@ export default function Sidebar({
             }`}
           >
             {tab === "components" && "🧩 Components"}
-            {tab === "images" && "🖼️ Images"}
-            {tab === "trash" && `🗑️ Trash (${trashData.length})`}
+            {tab === "images" && (
+              <div className="flex items-center gap-1">
+                <Image /> <p className="text-nowrap">Hình ảnh</p>
+              </div>
+            )}
+            {tab === "trash" && (
+              <Badge count={trashData.length} size="small">
+                <Trash />
+              </Badge>
+            )}
           </button>
         ))}
       </div>
@@ -124,31 +150,30 @@ export default function Sidebar({
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Thư viện hình ảnh
             </h3>
-            <div className="space-y-2">
-              {[
-                { id: 'img1', name: 'diagram.png', icon: '📊' },
-                { id: 'img2', name: 'chart.jpg', icon: '📈' },
-                { id: 'img3', name: 'photo.png', icon: '📷' },
-                { id: 'img4', name: 'illustration.svg', icon: '🎨' },
-                { id: 'img5', name: 'screenshot.png', icon: '🖥️' }
-              ].map((image) => (
+            <div className="space-y-2 grid grid-cols-2 gap-2">
+              {materials?.data?.content?.map((image: any) => (
                 <div
                   key={image.id}
                   className="p-3 border border-gray-200 rounded-lg cursor-move hover:border-gray-300 hover:bg-gray-50 transition-colors"
                   draggable
                   onDragStart={(e) => {
-                    e.dataTransfer.setData('text/plain', `image:${image.name}`);
+                    e.dataTransfer.setData("text/plain", `${image.url}`);
                   }}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{image.icon}</span>
+                    {/* <span className="text-2xl">{image.icon}</span> */}
                     <div>
-                      <div className="font-medium text-gray-800 text-sm">
+                      <img
+                        src={image.url}
+                        alt={image.name}
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="font-medium text-gray-800 text-sm text-center">
                         {image.name}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      {/* <div className="text-xs text-gray-500">
                         Kéo vào table cell
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>
@@ -178,9 +203,7 @@ export default function Sidebar({
                         <div className="font-medium text-gray-800">
                           {item.title}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {item.type}
-                        </div>
+                        <div className="text-sm text-gray-500">{item.type}</div>
                       </div>
                       <button
                         onClick={() => onRestoreNode(item.id.toString())}
