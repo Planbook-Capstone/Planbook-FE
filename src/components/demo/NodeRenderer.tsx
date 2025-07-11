@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Table } from "@/components/organisms/table";
 
@@ -46,6 +46,46 @@ interface NodeRendererProps {
   onUpdateNodeTitle: (nodeId: string, title: string) => void;
   onUpdateNodeContent: (nodeId: string, content: string) => void;
   onUpdateTableData?: (nodeId: string, tableData: TableData) => void;
+}
+
+// Auto-resize textarea component
+interface AutoResizeTextareaProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+function AutoResizeTextarea({ value, onChange, placeholder, className }: AutoResizeTextareaProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const adjustHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "24px"; // Reset to min height
+      textarea.style.height = Math.max(24, textarea.scrollHeight) + "px";
+    }
+  }, []);
+
+  useEffect(() => {
+    adjustHeight();
+  }, [value, adjustHeight]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value);
+    adjustHeight();
+  };
+
+  return (
+    <textarea
+      ref={textareaRef}
+      className={className}
+      placeholder={placeholder}
+      value={value}
+      rows={1}
+      onChange={handleChange}
+    />
+  );
 }
 
 export default function NodeRenderer({
@@ -109,27 +149,84 @@ export default function NodeRenderer({
       switch (node.fieldType) {
         case "INPUT":
           return (
-            <textarea
+            <AutoResizeTextarea
               className="w-full dotted-input text-blue-600 resize-none overflow-hidden min-h-[24px] border-none outline-none bg-transparent leading-tight"
               placeholder="............................................"
               value={node.content || ""}
-              rows={1}
-              onChange={(e) => {
-                onUpdateNodeContent(node.id, e.target.value);
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = "24px"; // Reset to min height
-                target.style.height = Math.max(24, target.scrollHeight) + "px";
-              }}
+              onChange={(value) => onUpdateNodeContent(node.id, value)}
             />
           );
         case "TABLE":
-          const tableData = node.tableData || {
-            headers: ["Cột 1", "Cột 2"],
-            rows: [
-              ["", ""],
-              ["", ""],
-            ],
-          };
+          // Parse table data from content field if it's a JSON string
+          let tableData: TableData;
+          try {
+            if (node.content && typeof node.content === 'string') {
+              console.log("Parsing table content for node:", node.id, node.content);
+              const parsedContent = JSON.parse(node.content);
+              console.log("Parsed content:", parsedContent);
+              // Convert API format to our TableData format
+              if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
+                const headers: string[] = [];
+                const rows: string[][] = [];
+
+                parsedContent.rows.forEach((row: any, rowIndex: number) => {
+                  if (row.cells && Array.isArray(row.cells)) {
+                    const rowData: string[] = [];
+                    row.cells.forEach((cell: any, cellIndex: number) => {
+                      // Handle header row
+                      if (cell.isHeader) {
+                        if (rowIndex === 0) {
+                          // Decode HTML entities and extract text content
+                          const headerText = cell.title || cell.content || `Cột ${cellIndex + 1}`;
+                          headers.push(headerText.replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
+                        }
+                      } else {
+                        // Handle regular cells - decode HTML and extract text
+                        let cellText = cell.title || cell.content || "";
+                        // Decode HTML entities
+                        cellText = cellText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                        // Remove HTML tags for display
+                        cellText = cellText.replace(/<[^>]*>/g, '');
+                        // Clean up whitespace
+                        cellText = cellText.replace(/\n/g, ' ').trim();
+                        rowData.push(cellText);
+                      }
+                    });
+
+                    // Only add non-header rows to rows array
+                    if (!row.cells.some((cell: any) => cell.isHeader)) {
+                      rows.push(rowData);
+                    }
+                  }
+                });
+
+                tableData = {
+                  headers: headers.length > 0 ? headers : ["Cột 1", "Cột 2"],
+                  rows: rows.length > 0 ? rows : [["", ""], ["", ""]]
+                };
+                console.log("Final table data:", tableData);
+              } else {
+                // Fallback to default
+                tableData = {
+                  headers: ["Cột 1", "Cột 2"],
+                  rows: [["", ""], ["", ""]]
+                };
+              }
+            } else {
+              // Use tableData if available, otherwise default
+              tableData = node.tableData || {
+                headers: ["Cột 1", "Cột 2"],
+                rows: [["", ""], ["", ""]]
+              };
+            }
+          } catch (error) {
+            console.error("Error parsing table content:", error);
+            // Fallback to default or existing tableData
+            tableData = node.tableData || {
+              headers: ["Cột 1", "Cột 2"],
+              rows: [["", ""], ["", ""]]
+            };
+          }
 
           // Ensure all cells are strings for simplicity
           const convertedTableData: TableData = {
@@ -155,8 +252,38 @@ export default function NodeRenderer({
 
           const handleTableDataChange = (newTableData: TableData) => {
             if (onUpdateTableData) {
-              // Keep it simple - just pass the data as is
+              // Convert TableData back to API format and save to content
+              const apiFormat = {
+                rows: [
+                  // Header row
+                  {
+                    id: "header-row",
+                    cells: newTableData.headers.map((header, index) => ({
+                      id: `h${index + 1}`,
+                      title: header,
+                      content: "",
+                      isHeader: true
+                    }))
+                  },
+                  // Data rows
+                  ...newTableData.rows.map((row, rowIndex) => ({
+                    id: `row-${rowIndex + 1}`,
+                    cells: row.map((cell, cellIndex) => ({
+                      id: `r${rowIndex + 1}c${cellIndex + 1}`,
+                      title: typeof cell === 'string' ? cell : (cell?.text || ""),
+                      content: ""
+                    }))
+                  }))
+                ],
+                columns: newTableData.headers.length
+              };
+
+              // Update both tableData and content
               onUpdateTableData(node.id, newTableData);
+              // Also update content with JSON string
+              if (onUpdateNodeContent) {
+                onUpdateNodeContent(node.id, JSON.stringify(apiFormat));
+              }
             }
           };
 

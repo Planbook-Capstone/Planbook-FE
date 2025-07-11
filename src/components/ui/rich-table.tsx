@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/modal";
 
 interface TableCell {
   id: string;
+  title: string;
   content: string;
   isHeader?: boolean;
 }
@@ -36,29 +37,52 @@ const getDefaultTableData = (): TableData => ({
     {
       id: "header-row",
       cells: [
-        { id: "h1", content: "Cột 1", isHeader: true },
-        { id: "h2", content: "Cột 2", isHeader: true },
-        { id: "h3", content: "Cột 3", isHeader: true },
+        {
+          id: "h1",
+          title: "HOẠT ĐỘNG CỦA GIÁO VIÊN",
+          content: "<p>Mô tả các hoạt động của giáo viên trong tiết học</p>",
+          isHeader: true
+        },
+        {
+          id: "h2",
+          title: "HOẠT ĐỘNG CỦA HỌC SINH",
+          content: "<p>Mô tả các hoạt động của học sinh trong tiết học</p>",
+          isHeader: true
+        },
       ],
     },
     {
       id: "row-1",
       cells: [
-        { id: "r1c1", content: "<p>Nội dung ô 1</p>" },
-        { id: "r1c2", content: "<p>Nội dung ô 2</p>" },
-        { id: "r1c3", content: "<p>Nội dung ô 3</p>" },
+        {
+          id: "r1c1",
+          title: "Bước 1: Chuyển giao nhiệm vụ học tập",
+          content: "<p>Nội dung chi tiết về bước 1</p>"
+        },
+        {
+          id: "r1c2",
+          title: "Hoạt động của học sinh",
+          content: "<p>Học sinh thực hiện các hoạt động được giao</p>"
+        },
       ],
     },
     {
       id: "row-2",
       cells: [
-        { id: "r2c1", content: "<p>Nội dung ô 4</p>" },
-        { id: "r2c2", content: "<p>Nội dung ô 5</p>" },
-        { id: "r2c3", content: "<p>Nội dung ô 6</p>" },
+        {
+          id: "r2c1",
+          title: "Bước 2: Thực hiện nhiệm vụ",
+          content: "<p>Nội dung chi tiết về bước 2</p>"
+        },
+        {
+          id: "r2c2",
+          title: "Phản hồi của học sinh",
+          content: "<p>Học sinh phản hồi và thảo luận</p>"
+        },
       ],
     },
   ],
-  columns: 3,
+  columns: 2,
 });
 
 export function RichTable({ data, onChange, className }: RichTableProps) {
@@ -104,12 +128,32 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
     []
   );
 
+  const updateCellTitle = useCallback(
+    (rowId: string, cellId: string, title: string) => {
+      setTableData((prev) => ({
+        ...prev,
+        rows: prev.rows.map((row) =>
+          row.id === rowId
+            ? {
+                ...row,
+                cells: row.cells.map((cell) =>
+                  cell.id === cellId ? { ...cell, title } : cell
+                ),
+              }
+            : row
+        ),
+      }));
+    },
+    []
+  );
+
   const addRow = useCallback(() => {
     const newRowId = `row-${Date.now()}`;
     const newCells: TableCell[] = Array.from(
       { length: tableData.columns },
       (_, i) => ({
         id: `${newRowId}-c${i}`,
+        title: `Tiêu đề ${i + 1}`,
         content: "<p>Nội dung mới</p>",
       })
     );
@@ -130,10 +174,8 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
           ...row.cells,
           {
             id: `${row.id}-c${prev.columns}`,
-            content:
-              rowIndex === 0
-                ? `Cột ${prev.columns + 1}`
-                : "<p>Nội dung mới</p>",
+            title: rowIndex === 0 ? `Cột ${prev.columns + 1}` : `Tiêu đề mới`,
+            content: rowIndex === 0 ? "<p>Mô tả cột mới</p>" : "<p>Nội dung mới</p>",
             isHeader: rowIndex === 0,
           },
         ],
@@ -235,47 +277,61 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
                   <td
                     key={cell.id}
                     className={cn(
-                      "border-r border-gray-200 p-3 min-w-[200px] relative group",
+                      "border-r border-gray-200 p-3 min-w-[300px] relative group align-top",
                       cell.isHeader && "font-medium bg-neutral-50"
                     )}
                   >
-                    <div className="min-h-[40px] flex items-center justify-between font-questrial">
-                      {cell.isHeader ? (
-                        // Header cells - simple input
-                        <Input
-                          value={cell.content}
-                          onChange={(e) =>
-                            updateCell(row.id, cell.id, e.target.value)
-                          }
-                          className="border-0 bg-transparent font-medium shadow-none font-questrial"
-                          placeholder="Tiêu đề cột"
-                        />
-                      ) : (
-                        // Content cells - rich text preview
-                        <div
-                          className="flex-1 cursor-pointer min-h-[40px] p-2 rounded hover:bg-gray-50"
-                          onClick={() => openRichEditor(cell.id, cell.content)}
-                          dangerouslySetInnerHTML={{
-                            __html:
-                              cell.content || "<p>Nhấn để chỉnh sửa...</p>",
-                          }}
-                        />
-                      )}
+                    <div className="min-h-[60px] flex items-start justify-between font-questrial">
+                      <div className="flex-1">
+                        {/* All cells now have both title and content */}
+                        <div className="flex flex-col gap-2">
+                          {/* Title input for all cells */}
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs text-gray-500 font-medium">
+                              {cell.isHeader ? "Tiêu đề cột:" : "Tiêu đề:"}
+                            </label>
+                            <Input
+                              value={cell.title}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                updateCellTitle(row.id, cell.id, e.target.value)
+                              }
+                              className="border border-gray-200 bg-white shadow-none font-questrial text-sm"
+                              placeholder={cell.isHeader ? "Nhập tiêu đề cột" : "Nhập tiêu đề"}
+                            />
+                          </div>
 
-                      <div className="flex gap-1 ml-2 items-center">
-                        {!cell.isHeader && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                              openRichEditor(cell.id, cell.content)
-                            }
-                            className="h-7 w-7 p-0  text-neutral-600"
-                            title="Rich Text Editor"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </Button>
-                        )}
+                          {/* Content section for all cells */}
+                          <div className="flex flex-col gap-1">
+                            <label className="text-xs text-gray-500 font-medium">
+                              Nội dung:
+                            </label>
+                            <div
+                              className="cursor-pointer min-h-[40px] p-2 border border-gray-200 rounded hover:bg-gray-50 bg-white"
+                              onClick={() => openRichEditor(cell.id, cell.content)}
+                              dangerouslySetInnerHTML={{
+                                __html:
+                                  cell.content || "<p class='text-gray-400'>Nhấn để chỉnh sửa nội dung...</p>",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-1 ml-2 items-start pt-1">
+                        {/* Rich text editor button for all cells */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            openRichEditor(cell.id, cell.content)
+                          }
+                          className="h-7 w-7 p-0 text-neutral-600"
+                          title="Chỉnh sửa nội dung"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </Button>
+
+                        {/* Delete column button for header cells */}
                         {cell.isHeader && (
                           <Button
                             size="sm"
