@@ -202,10 +202,29 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
             {node.title && node.title !== "Mới: Image" && (
               <h3 className="text-lg font-medium text-black mb-2">{node.title}</h3>
             )}
-            <div className="border border-gray-300 bg-gray-50 p-8 text-center rounded">
-              <div className="text-4xl mb-2">🖼️</div>
-              <p className="text-gray-500">Image placeholder</p>
-            </div>
+            {node.content ? (
+              <div className="border border-gray-300 bg-white p-4 rounded">
+                <img
+                  src={node.content}
+                  alt={node.title || "Image"}
+                  className="max-w-full max-h-96 mx-auto rounded shadow-sm"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <div className="hidden text-center text-red-500 text-sm mt-2">
+                  <div className="text-4xl mb-2">🖼️</div>
+                  <p>Không thể tải hình ảnh</p>
+                </div>
+              </div>
+            ) : (
+              <div className="border border-gray-300 bg-gray-50 p-8 text-center rounded">
+                <div className="text-4xl mb-2">🖼️</div>
+                <p className="text-gray-500">Chưa có hình ảnh</p>
+              </div>
+            )}
             {node.children && node.children.length > 0 && (
               <div className="ml-4 mt-3">
                 {node.children
