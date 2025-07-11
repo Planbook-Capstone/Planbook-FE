@@ -227,6 +227,38 @@ function DemoPage() {
     setDemoData((prev) => updateNodeWithChild(prev));
   }, []);
 
+  // Find node by ID in nested structure
+  const findNodeById = useCallback((nodeList: DemoNode[], nodeId: string): DemoNode | null => {
+    for (const node of nodeList) {
+      if (node.id.toString() === nodeId) {
+        return node;
+      }
+      if (node.children && node.children.length > 0) {
+        const found = findNodeById(node.children, nodeId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }, []);
+
+  // Remove node from nested structure
+  const removeNodeById = useCallback((nodeList: DemoNode[], nodeId: string): DemoNode[] => {
+    return nodeList.reduce((acc: DemoNode[], node) => {
+      if (node.id.toString() === nodeId) {
+        // Skip this node (remove it)
+        return acc;
+      }
+
+      // Keep the node but update its children
+      const updatedNode = {
+        ...node,
+        children: node.children ? removeNodeById(node.children, nodeId) : []
+      };
+
+      return [...acc, updatedNode];
+    }, []);
+  }, []);
+
   // Handle drag end
   const handleDragEnd = useCallback((result: DropResult) => {
     const { source, destination, draggableId } = result;
@@ -276,17 +308,35 @@ function DemoPage() {
       }
     }
 
+    // Dragging existing nodes to create children relationships
+    else if (destination.droppableId.startsWith("node-")) {
+      const parentId = destination.droppableId.replace("node-", "");
+      const draggedNode = findNodeById(demoData, draggableId);
+
+      if (draggedNode && draggedNode.id.toString() !== parentId) {
+        // Remove the node from its current position
+        const updatedData = removeNodeById(demoData, draggableId);
+        setDemoData(updatedData);
+
+        // Add it as a child to the target node
+        setTimeout(() => {
+          addChildToNode(parentId, { ...draggedNode, parentId });
+        }, 0);
+      }
+    }
+
     // Dragging to trash
-    if (destination.droppableId === "trash") {
-      const nodeToDelete = demoData.find(node => node.id.toString() === draggableId);
+    else if (destination.droppableId === "trash") {
+      const nodeToDelete = findNodeById(demoData, draggableId);
       if (nodeToDelete) {
         setTrashData(prev => [...prev, { ...nodeToDelete, status: "DELETED" }]);
-        setDemoData(prev => prev.filter(node => node.id.toString() !== draggableId));
+        const updatedData = removeNodeById(demoData, draggableId);
+        setDemoData(updatedData);
       }
     }
 
     // Reordering within canvas
-    if (source.droppableId === "demo-canvas" && destination.droppableId === "demo-canvas") {
+    else if (source.droppableId === "demo-canvas" && destination.droppableId === "demo-canvas") {
       const newDemoData = Array.from(demoData);
       const [reorderedItem] = newDemoData.splice(source.index, 1);
       newDemoData.splice(destination.index, 0, reorderedItem);
@@ -299,7 +349,7 @@ function DemoPage() {
 
       setDemoData(updatedData);
     }
-  }, [demoData, addChildToNode]);
+  }, [demoData, addChildToNode, findNodeById, removeNodeById]);
 
   // Find and delete node (including nested nodes)
   const findAndDeleteNode = useCallback((nodeList: DemoNode[], nodeId: string): { updatedList: DemoNode[], deletedNode: DemoNode | null } => {
@@ -330,7 +380,8 @@ function DemoPage() {
   const handleDeleteNode = useCallback((nodeId: string) => {
     const result = findAndDeleteNode(demoData, nodeId);
     if (result.deletedNode) {
-      setTrashData(prev => [...prev, { ...result.deletedNode, status: "DELETED" as const }]);
+      const deletedNodeWithStatus: DemoNode = { ...result.deletedNode, status: "DELETED" as const };
+      setTrashData(prev => [...prev, deletedNodeWithStatus]);
       setDemoData(result.updatedList);
     }
   }, [demoData, findAndDeleteNode]);
