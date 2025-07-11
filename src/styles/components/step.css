@@ -1,0 +1,25 @@
+.ant-steps {
+  .ant-steps-item-finish .ant-steps-item-icon {
+    @apply bg-neutral-800 border-none;
+    .ant-steps-icon {
+      @apply text-white;
+    }
+  }
+  .ant-steps-item-process .ant-steps-item-icon {
+    @apply border-none bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)];
+  }
+  .ant-steps-item-container {
+    @apply font-questrial;
+    .ant-steps-item-title {
+      @apply font-questrial text-sm;
+    }
+    .ant-steps-item-description {
+      @apply font-calsans text-sm;
+    }
+  }
+  .ant-steps-item.ant-steps-item-finish,
+  .ant-steps-item.ant-steps-item-process.ant-steps-item-active,
+  .ant-steps-item.ant-steps-item-wait {
+    @apply min-w-[160px];
+  }
+}
