@@ -40,6 +40,7 @@ export default function Toolbar({
           >
             Tạo nhanh cùng AI
           </Button>
+          
           <Button
             onClick={onToggleDeleteButtons}
             variant={showDeleteButtons ? "default" : "outline"}
