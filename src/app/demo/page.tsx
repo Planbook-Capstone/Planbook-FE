@@ -11,7 +11,9 @@ import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
 import { Heading1, Heading2, Images, List, Table, Type } from "lucide-react";
 import { useLessonPlanGenerationService } from "@/services/lessonPlanGenerationServices";
+import { useTaskResultService } from "@/services/textbookServices";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/Button";
 
 interface CellContent {
   text?: string;
@@ -122,10 +124,91 @@ function DemoPage() {
   );
   const [showPreview, setShowPreview] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [taskId, setTaskId] = useState<string>(
+    "77e5d6e3-c6bb-4e27-9428-efd53afcfb14"
+  );
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Load data from API
   const childrenQuery = useLessonPlanNodeChildrenService("1")();
   const apiData = childrenQuery?.data?.data;
+
+  // Convert lesson plan data to DemoNode format
+  const convertLessonPlanToDemoNode = useCallback(
+    (lessonPlanData: any): DemoNode[] => {
+      if (!lessonPlanData) {
+        return [];
+      }
+
+      const convertNode = (node: any, index: number = 0): DemoNode => {
+        // Determine fieldType based on type
+        let fieldType: "INPUT" | "TABLE" | "IMAGE" = "INPUT";
+        if (node.type === "TABLE") {
+          fieldType = "TABLE";
+        } else if (node.type === "IMAGE") {
+          fieldType = "IMAGE";
+        }
+
+        // Ensure valid type
+        const validTypes = [
+          "PARAGRAPH",
+          "LIST_ITEM",
+          "TABLE",
+          "IMAGE",
+          "SECTION",
+          "SUBSECTION",
+        ];
+        const nodeType = validTypes.includes(node.type)
+          ? node.type
+          : "PARAGRAPH";
+
+        return {
+          id: node.id?.toString() || uuidv4(),
+          lessonPlanId: node.lessonPlanId || 1,
+          parentId: node.parentId?.toString() || null,
+          title: node.title || `Untitled ${nodeType}`,
+          content: node.content || "",
+          fieldType: fieldType,
+          type: nodeType as any,
+          orderIndex: node.orderIndex !== undefined ? node.orderIndex : index,
+          metadata: node.metadata || {},
+          status: (node.status === "DELETED" ? "DELETED" : "ACTIVE") as
+            | "ACTIVE"
+            | "DELETED",
+          children: node.children
+            ? node.children.map((child: any, childIndex: number) =>
+                convertNode(child, childIndex)
+              )
+            : [],
+          ...(nodeType === "TABLE" && {
+            tableData: node.tableData || {
+              headers: ["Cột 1", "Cột 2"],
+              rows: [
+                ["", ""],
+                ["", ""],
+              ],
+            },
+          }),
+        };
+      };
+
+      // Handle both array and object with children
+      if (Array.isArray(lessonPlanData)) {
+        return lessonPlanData.map((node, index) => convertNode(node, index));
+      } else if (
+        lessonPlanData.children &&
+        Array.isArray(lessonPlanData.children)
+      ) {
+        return lessonPlanData.children.map((node: any, index: number) =>
+          convertNode(node, index)
+        );
+      } else {
+        // Single node case
+        return [convertNode(lessonPlanData, 0)];
+      }
+    },
+    []
+  );
 
   // Initialize demo data from API when it loads
   useEffect(() => {
@@ -557,7 +640,7 @@ function DemoPage() {
       orderIndex: 0,
       metadata: null,
       status: "ACTIVE",
-      children: demoData.flatMap((node) => node.children || []),
+      children: demoData.flatMap((node) => node || []),
     };
 
     const payload = {
@@ -565,8 +648,10 @@ function DemoPage() {
       lesson_plan_json: mergedNode,
     };
     mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (e: any) => {
         toast.success("Tạo giáo án thành công");
+        console.log(e.data.task_id);
+        setTaskId(e.data.task_id);
       },
       onError: (error) => {
         toast.error("Tạo giáo án thất bại");
@@ -574,6 +659,57 @@ function DemoPage() {
       },
     });
   };
+
+  // Fetch task result data using React Query
+  const taskResultQuery = useTaskResultService(taskId);
+
+  // Handle fetch task result data
+  const handleFetchTaskResult = useCallback(() => {
+    setIsLoadingData(true);
+    console.log("🔄 Fetching task result for ID:", taskId);
+
+    // Trigger refetch
+    taskResultQuery
+      .refetch()
+      .then((result) => {
+        console.log("📥 Raw API response:", result);
+
+        if (result?.data) {
+          console.log("✅ API response data:", result.data);
+
+          // Check if result has the expected structure
+          if (result.data.result && result.data.result.lesson_plan) {
+            const lessonPlanData = result.data.result.lesson_plan;
+            console.log("📋 Lesson plan data:", lessonPlanData);
+
+            // Convert lesson plan data to DemoNode format and update demoData
+            const convertedData = convertLessonPlanToDemoNode(lessonPlanData);
+            console.log("🔄 Converted data:", convertedData);
+
+            if (convertedData.length > 0) {
+              setDemoData(convertedData);
+              toast.success(
+                `Lấy dữ liệu thành công! Đã load ${convertedData.length} node(s)`
+              );
+            } else {
+              toast.warning("Dữ liệu lesson plan trống");
+            }
+          } else {
+            console.log("⚠️ Unexpected data structure:", result.data);
+            toast.warning("Cấu trúc dữ liệu không đúng định dạng");
+          }
+        } else {
+          console.log("❌ No data in response");
+          toast.warning("Không có dữ liệu trong response");
+        }
+        setIsLoadingData(false);
+      })
+      .catch((error) => {
+        console.error("❌ Error fetching task result:", error);
+        toast.error(`Lỗi khi lấy dữ liệu: ${error.message || "Unknown error"}`);
+        setIsLoadingData(false);
+      });
+  }, [taskResultQuery, convertLessonPlanToDemoNode, taskId]);
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -616,6 +752,33 @@ function DemoPage() {
             onUpdateNodeContent={handleInputChange}
             onUpdateTableData={handleTableDataChange}
           />
+        </div>
+
+        {/* Fetch Data Button */}
+        <div className="p-4 space-y-2">
+          <Button
+            onClick={handleFetchTaskResult}
+            disabled={isLoadingData}
+            className="w-full"
+          >
+            {isLoadingData ? "Đang tải..." : "Lấy data từ API"}
+          </Button>
+
+          {/* Clear Data Button */}
+          <Button
+            onClick={() => {
+              setDemoData([]);
+              toast.success("Đã xóa dữ liệu hiện tại");
+            }}
+            disabled={isLoadingData}
+            className="w-full"
+            variant="outline"
+          >
+            Xóa dữ liệu hiện tại
+          </Button>
+
+          {/* Task ID Display */}
+          <div className="text-xs text-gray-500 mt-2">Task ID: {taskId}</div>
         </div>
 
         {/* Preview Modal */}
