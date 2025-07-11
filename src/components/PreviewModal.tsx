@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "./ui/Button";
+import { DowloadIcon } from "@/constants/icon";
 
 interface CellContent {
   text?: string;
@@ -22,7 +24,13 @@ interface DemoNode {
   title: string;
   content: string;
   fieldType: "INPUT" | "TABLE" | "IMAGE";
-  type: "PARAGRAPH" | "LIST_ITEM" | "TABLE" | "IMAGE" | "SECTION" | "SUBSECTION";
+  type:
+    | "PARAGRAPH"
+    | "LIST_ITEM"
+    | "TABLE"
+    | "IMAGE"
+    | "SECTION"
+    | "SUBSECTION";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -37,27 +45,41 @@ interface PreviewModalProps {
   onDownload: () => void;
 }
 
-export default function PreviewModal({ isOpen, onClose, data, onDownload }: PreviewModalProps) {
+export default function PreviewModal({
+  isOpen,
+  onClose,
+  data,
+  onDownload,
+}: PreviewModalProps) {
   if (!isOpen) return null;
 
-  const renderPreviewNode = (node: DemoNode, depth: number = 0): JSX.Element => {
+  const renderPreviewNode = (
+    node: DemoNode,
+    depth: number = 0
+  ): JSX.Element => {
     const marginLeft = depth * 20;
 
     switch (node.type) {
       case "SECTION":
         return (
-          <div key={node.id} style={{ marginLeft: `${marginLeft}px` }} className="mb-6">
+          <div
+            key={node.id}
+            style={{ marginLeft: `${marginLeft}px` }}
+            className="mb-6"
+          >
             <h1 className="text-2xl font-bold text-black mb-4 border-b-2 border-gray-300 pb-2">
               {node.title || "Untitled Section"}
             </h1>
             {node.content && (
-              <p className="text-base text-gray-700 mb-4 leading-relaxed">{node.content}</p>
+              <p className="text-base text-gray-700 mb-4 leading-relaxed">
+                {node.content}
+              </p>
             )}
             {node.children && node.children.length > 0 && (
               <div className="ml-0">
                 {node.children
                   .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map(child => renderPreviewNode(child, depth))}
+                  .map((child) => renderPreviewNode(child, depth))}
               </div>
             )}
           </div>
@@ -65,18 +87,24 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
 
       case "SUBSECTION":
         return (
-          <div key={node.id} style={{ marginLeft: `${marginLeft}px` }} className="mb-4">
+          <div
+            key={node.id}
+            style={{ marginLeft: `${marginLeft}px` }}
+            className="mb-4"
+          >
             <h2 className="text-xl font-semibold text-black mb-3">
               {node.title || "Untitled Subsection"}
             </h2>
             {node.content && (
-              <p className="text-base text-gray-700 mb-3 leading-relaxed">{node.content}</p>
+              <p className="text-base text-gray-700 mb-3 leading-relaxed">
+                {node.content}
+              </p>
             )}
             {node.children && node.children.length > 0 && (
               <div className="ml-4">
                 {node.children
                   .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map(child => renderPreviewNode(child, depth + 1))}
+                  .map((child) => renderPreviewNode(child, depth + 1))}
               </div>
             )}
           </div>
@@ -84,9 +112,15 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
 
       case "PARAGRAPH":
         return (
-          <div key={node.id} style={{ marginLeft: `${marginLeft}px` }} className="mb-4">
+          <div
+            key={node.id}
+            style={{ marginLeft: `${marginLeft}px` }}
+            className="mb-4"
+          >
             {node.title && node.title !== "Mới: Text/Paragraph" && (
-              <h3 className="text-lg font-medium text-black mb-2">{node.title}</h3>
+              <h3 className="text-lg font-medium text-black mb-2">
+                {node.title}
+              </h3>
             )}
             <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
               {node.content || ""}
@@ -95,7 +129,7 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
               <div className="ml-4 mt-3">
                 {node.children
                   .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map(child => renderPreviewNode(child, depth + 1))}
+                  .map((child) => renderPreviewNode(child, depth + 1))}
               </div>
             )}
           </div>
@@ -103,7 +137,11 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
 
       case "LIST_ITEM":
         return (
-          <div key={node.id} style={{ marginLeft: `${marginLeft}px` }} className="mb-2">
+          <div
+            key={node.id}
+            style={{ marginLeft: `${marginLeft}px` }}
+            className="mb-2"
+          >
             <div className="flex items-start gap-2">
               <span className="text-black font-medium flex-shrink-0">
                 {node.title || "Item"}:
@@ -116,7 +154,7 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
               <div className="ml-6 mt-2">
                 {node.children
                   .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map(child => renderPreviewNode(child, depth + 1))}
+                  .map((child) => renderPreviewNode(child, depth + 1))}
               </div>
             )}
           </div>
@@ -127,21 +165,30 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
           headers: ["Cột 1", "Cột 2"],
           rows: [
             ["", ""],
-            ["", ""]
-          ]
+            ["", ""],
+          ],
         };
 
         return (
-          <div key={node.id} style={{ marginLeft: `${marginLeft}px` }} className="mb-4">
+          <div
+            key={node.id}
+            style={{ marginLeft: `${marginLeft}px` }}
+            className="mb-4"
+          >
             {node.title && node.title !== "Mới: Table" && (
-              <h3 className="text-lg font-medium text-black mb-2">{node.title}</h3>
+              <h3 className="text-lg font-medium text-black mb-2">
+                {node.title}
+              </h3>
             )}
             <div className="border border-gray-400">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
                     {tableData.headers.map((header, index) => (
-                      <th key={index} className="border border-gray-400 px-3 py-2 text-left font-semibold">
+                      <th
+                        key={index}
+                        className="border border-gray-400 px-3 py-2 text-left font-semibold"
+                      >
                         {header}
                       </th>
                     ))}
@@ -151,32 +198,40 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
                   {tableData.rows.map((row, rowIndex) => (
                     <tr key={rowIndex}>
                       {row.map((cell, colIndex) => {
-                        let cellText = '';
+                        let cellText = "";
                         try {
-                          if (typeof cell === 'string') {
+                          if (typeof cell === "string") {
                             cellText = cell;
-                          } else if (cell && typeof cell === 'object') {
-                            if ('text' in cell || 'image' in cell) {
+                          } else if (cell && typeof cell === "object") {
+                            if ("text" in cell || "image" in cell) {
                               // New CellContent format
                               const cellContent = cell as CellContent;
                               if (cellContent.image) {
-                                cellText = `[Hình ảnh: ${cellContent.image.name || 'image'}]`;
+                                cellText = `[Hình ảnh: ${
+                                  cellContent.image.name || "image"
+                                }]`;
                               } else {
-                                cellText = cellContent.text || '';
+                                cellText = cellContent.text || "";
                               }
-                            } else if ('type' in cell && 'content' in cell) {
+                            } else if ("type" in cell && "content" in cell) {
                               // Old format compatibility
                               const oldCell = cell as any;
-                              cellText = oldCell.type === 'image' ? `[Hình ảnh: ${oldCell.content}]` : oldCell.content;
+                              cellText =
+                                oldCell.type === "image"
+                                  ? `[Hình ảnh: ${oldCell.content}]`
+                                  : oldCell.content;
                             }
                           }
                         } catch (error) {
-                          console.error('Error rendering cell:', error, cell);
-                          cellText = String(cell || '');
+                          console.error("Error rendering cell:", error, cell);
+                          cellText = String(cell || "");
                         }
 
                         return (
-                          <td key={colIndex} className="border border-gray-400 px-3 py-2">
+                          <td
+                            key={colIndex}
+                            className="border border-gray-400 px-3 py-2"
+                          >
                             {cellText}
                           </td>
                         );
@@ -190,7 +245,7 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
               <div className="ml-4 mt-3">
                 {node.children
                   .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map(child => renderPreviewNode(child, depth + 1))}
+                  .map((child) => renderPreviewNode(child, depth + 1))}
               </div>
             )}
           </div>
@@ -198,19 +253,44 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
 
       case "IMAGE":
         return (
-          <div key={node.id} style={{ marginLeft: `${marginLeft}px` }} className="mb-4">
+          <div
+            key={node.id}
+            style={{ marginLeft: `${marginLeft}px` }}
+            className="mb-4"
+          >
             {node.title && node.title !== "Mới: Image" && (
-              <h3 className="text-lg font-medium text-black mb-2">{node.title}</h3>
+              <h3 className="text-lg font-medium text-black mb-2">
+                {node.title}
+              </h3>
             )}
-            <div className="border border-gray-300 bg-gray-50 p-8 text-center rounded">
-              <div className="text-4xl mb-2">🖼️</div>
-              <p className="text-gray-500">Image placeholder</p>
-            </div>
+            {node.content ? (
+              <div className="border border-gray-300 bg-white p-4 rounded">
+                <img
+                  src={node.content}
+                  alt={node.title || "Image"}
+                  className="max-w-full max-h-96 mx-auto rounded shadow-sm"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                    target.nextElementSibling?.classList.remove("hidden");
+                  }}
+                />
+                <div className="hidden text-center text-red-500 text-sm mt-2">
+                  <div className="text-4xl mb-2">🖼️</div>
+                  <p>Không thể tải hình ảnh</p>
+                </div>
+              </div>
+            ) : (
+              <div className="border border-gray-300 bg-gray-50 p-8 text-center rounded">
+                <div className="text-4xl mb-2">🖼️</div>
+                <p className="text-gray-500">Chưa có hình ảnh</p>
+              </div>
+            )}
             {node.children && node.children.length > 0 && (
               <div className="ml-4 mt-3">
                 {node.children
                   .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map(child => renderPreviewNode(child, depth + 1))}
+                  .map((child) => renderPreviewNode(child, depth + 1))}
               </div>
             )}
           </div>
@@ -226,40 +306,50 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Document Preview</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            Xem trước giáo án
+          </h2>
           <div className="flex items-center gap-3">
-            <button
+            {/* <Button
               onClick={onDownload}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center gap-2"
             >
               📥 Download DOCX
-            </button>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm font-medium"
-            >
+            </Button> */}
+            <Button onClick={onDownload}>
+              {DowloadIcon}
+              <span>Tải về</span>
+            </Button>
+            <Button onClick={onClose} variant={"outline"}>
               Đóng
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Document Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto bg-white shadow-lg" style={{ minHeight: "297mm" }}>
+          <div
+            className="max-w-4xl mx-auto bg-white "
+            style={{ minHeight: "297mm" }}
+          >
             {/* Document Paper */}
-            <div className="bg-white p-12" style={{ 
-              width: "210mm", 
-              minHeight: "297mm",
-              margin: "20px auto",
-              boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-              fontFamily: "Times New Roman, serif"
-            }}>
+            <div
+              className="bg-white p-12"
+              style={{
+                width: "210mm",
+                minHeight: "297mm",
+                margin: "20px auto",
+                boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+                fontFamily: "Times New Roman, serif",
+              }}
+            >
               {/* Header thông tin bài dạy */}
               <div className="text-center space-y-4 mb-8">
                 <div className="font-bold text-lg">Phụ lục IV</div>
                 <div className="font-bold text-xl">KHUNG KẾ HOẠCH BÀI DẠY</div>
                 <div className="text-sm text-gray-600 italic">
-                  (Kèm theo Công văn số 5512/BGDĐT-GDTrH ngày 18 tháng 12 năm 2020 của Bộ GDĐT)
+                  (Kèm theo Công văn số 5512/BGDĐT-GDTrH ngày 18 tháng 12 năm
+                  2020 của Bộ GDĐT)
                 </div>
               </div>
 
@@ -276,14 +366,13 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
 
                 <div className="text-center space-y-2 mt-6">
                   <div className="font-bold text-lg">
-                    TÊN BÀI DẠY: ................................................
+                    TÊN BÀI DẠY:
+                    ................................................
                   </div>
                   <div>
                     Môn học/Hoạt động giáo dục: ..........; lớp:........
                   </div>
-                  <div>
-                    Thời gian thực hiện: (số tiết)
-                  </div>
+                  <div>Thời gian thực hiện: (số tiết)</div>
                 </div>
               </div>
 
@@ -295,24 +384,25 @@ export default function PreviewModal({ isOpen, onClose, data, onDownload }: Prev
                 <div>
                   {data
                     .sort((a, b) => a.orderIndex - b.orderIndex)
-                    .map(node => renderPreviewNode(node, 0))}
+                    .map((node) => renderPreviewNode(node, 0))}
 
                   {/* Ghi chú */}
                   <div className="space-y-3 text-sm text-gray-700 border-t pt-6 mt-8">
                     <div className="font-bold">Ghi chú:</div>
                     <div className="space-y-2">
                       <div>
-                        1. Mỗi bài dạy có thể được thực hiện trong nhiều tiết học, bảo đảm
-                        đủ thời gian dành cho mỗi hoạt động để học sinh thực hiện hiệu
-                        quả.
+                        1. Mỗi bài dạy có thể được thực hiện trong nhiều tiết
+                        học, bảo đảm đủ thời gian dành cho mỗi hoạt động để học
+                        sinh thực hiện hiệu quả.
                       </div>
                       <div>
-                        2. Trong Kế hoạch bài dạy không cần nêu cụ thể lời nói của giáo
-                        viên, học sinh mà tập trung mô tả rõ hoạt động cụ thể.
+                        2. Trong Kế hoạch bài dạy không cần nêu cụ thể lời nói
+                        của giáo viên, học sinh mà tập trung mô tả rõ hoạt động
+                        cụ thể.
                       </div>
                       <div>
-                        3. Việc kiểm tra, đánh giá thường xuyên được thực hiện trong quá
-                        trình tổ chức các hoạt động học.
+                        3. Việc kiểm tra, đánh giá thường xuyên được thực hiện
+                        trong quá trình tổ chức các hoạt động học.
                       </div>
                     </div>
                   </div>

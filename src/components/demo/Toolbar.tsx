@@ -1,5 +1,8 @@
 "use client";
 
+import { File, FileIcon, FileText } from "lucide-react";
+import { Button } from "../ui/Button";
+
 interface ToolbarProps {
   showDeleteButtons: boolean;
   onToggleDeleteButtons: () => void;
@@ -15,7 +18,7 @@ export default function Toolbar({
   onShowPreview,
   onExportJSON,
   sidebarCollapsed,
-  onToggleSidebar
+  onToggleSidebar,
 }: ToolbarProps) {
   return (
     <div className="bg-white border-b border-gray-200 p-4">
@@ -23,38 +26,29 @@ export default function Toolbar({
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors"
+            className=" cursor-pointer px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors"
             title={sidebarCollapsed ? "Mở sidebar" : "Đóng sidebar"}
           >
             {sidebarCollapsed ? "☰" : "✕"}
           </button>
-          <h1 className="text-xl font-semibold text-gray-800">
-            Dynamic Layout Demo
-          </h1>
+          <h1 className="text-xl font-calsans">Tạo giáo án</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleDeleteButtons}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              showDeleteButtons
-                ? "bg-red-100 text-red-700 hover:bg-red-200"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {showDeleteButtons ? "Ẩn nút xóa" : "Hiện nút xóa"}
-          </button>
-          <button
-            onClick={onShowPreview}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
-          >
-            📄 Preview
-          </button>
-          <button
+          <Button
             onClick={onExportJSON}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+            className="bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
           >
-            Export JSON
-          </button>
+            Tạo nhanh cùng AI
+          </Button>
+          <Button
+            onClick={onToggleDeleteButtons}
+            variant={showDeleteButtons ? "default" : "outline"}
+          >
+            {showDeleteButtons ? "Hoàn thành" : "Chỉnh sửa"}
+          </Button>
+          <Button onClick={onShowPreview}>
+            <FileText /> Preview
+          </Button>
         </div>
       </div>
     </div>

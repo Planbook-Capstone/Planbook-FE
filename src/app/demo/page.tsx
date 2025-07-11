@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { v4 as uuidv4 } from "uuid";
 import { useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
@@ -9,6 +9,9 @@ import { generateDocx } from "@/utils/docxGenerator";
 import Sidebar from "@/components/demo/Sidebar";
 import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
+import { Heading1, Heading2, Images, List, Table, Type } from "lucide-react";
+import { useLessonPlanGenerationService } from "@/services/lessonPlanGenerationServices";
+import { toast } from "sonner";
 
 interface CellContent {
   text?: string;
@@ -30,7 +33,13 @@ interface DemoNode {
   title: string;
   content: string;
   fieldType: "INPUT" | "TABLE" | "IMAGE";
-  type: "PARAGRAPH" | "LIST_ITEM" | "TABLE" | "IMAGE" | "SECTION" | "SUBSECTION";
+  type:
+    | "PARAGRAPH"
+    | "LIST_ITEM"
+    | "TABLE"
+    | "IMAGE"
+    | "SECTION"
+    | "SUBSECTION";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -40,10 +49,16 @@ interface DemoNode {
 
 interface ComponentPaletteItem {
   id: string;
-  type: "PARAGRAPH" | "LIST_ITEM" | "TABLE" | "IMAGE" | "SECTION" | "SUBSECTION";
+  type:
+    | "PARAGRAPH"
+    | "LIST_ITEM"
+    | "TABLE"
+    | "IMAGE"
+    | "SECTION"
+    | "SUBSECTION";
   fieldType: "INPUT" | "TABLE" | "IMAGE";
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   description: string;
 }
 
@@ -53,61 +68,63 @@ const COMPONENT_PALETTE: ComponentPaletteItem[] = [
     type: "SECTION",
     fieldType: "INPUT",
     title: "Section",
-    icon: "📑",
-    description: "Thêm tiêu đề chính"
+    icon: <Heading1 />,
+    description: "Thêm tiêu đề chính",
   },
   {
     id: "subsection",
     type: "SUBSECTION",
     fieldType: "INPUT",
     title: "Subsection",
-    icon: "📄",
-    description: "Thêm tiêu đề phụ"
+    icon: <Heading2 />,
+    description: "Thêm tiêu đề phụ",
   },
   {
     id: "paragraph",
     type: "PARAGRAPH",
     fieldType: "INPUT",
     title: "Text/Paragraph",
-    icon: "📝",
-    description: "Thêm đoạn văn bản"
+    icon: <Type />,
+    description: "Thêm đoạn văn bản",
   },
   {
     id: "table",
     type: "TABLE",
     fieldType: "TABLE",
     title: "Table",
-    icon: "📊",
-    description: "Thêm bảng dữ liệu"
+    icon: <Table />,
+    description: "Thêm bảng dữ liệu",
   },
   {
     id: "list-item",
     type: "LIST_ITEM",
     fieldType: "INPUT",
     title: "List Item",
-    icon: "📋",
-    description: "Thêm mục danh sách"
+    icon: <List />,
+    description: "Thêm mục danh sách",
   },
   {
     id: "image",
     type: "IMAGE",
     fieldType: "IMAGE",
     title: "Image",
-    icon: "🖼️",
-    description: "Thêm hình ảnh"
-  }
+    icon: <Images />,
+    description: "Thêm hình ảnh",
+  },
 ];
 
 function DemoPage() {
   const [demoData, setDemoData] = useState<DemoNode[]>([]);
   const [trashData, setTrashData] = useState<DemoNode[]>([]);
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
-  const [activeTab, setActiveTab] = useState<"components" | "images" | "trash">("components");
+  const [activeTab, setActiveTab] = useState<"components" | "images" | "trash">(
+    "components"
+  );
   const [showPreview, setShowPreview] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Load data from API
-  const childrenQuery = useLessonPlanNodeChildrenService("1")();
+  const childrenQuery = useLessonPlanNodeChildrenService("19")();
   const apiData = childrenQuery?.data?.data;
 
   // Initialize demo data from API when it loads
@@ -126,7 +143,9 @@ function DemoPage() {
           orderIndex: apiNode.orderIndex || 0,
           metadata: apiNode.metadata,
           status: apiNode.status || "ACTIVE",
-          children: apiNode.children ? apiNode.children.map(convertApiToDemoNode) : []
+          children: apiNode.children
+            ? apiNode.children.map(convertApiToDemoNode)
+            : [],
         };
       };
 
@@ -170,273 +189,340 @@ function DemoPage() {
   }, []);
 
   // Handle table data changes
-  const handleTableDataChange = useCallback((nodeId: string, tableData: TableData) => {
-    const updateNodeTableData = (nodeList: DemoNode[]): DemoNode[] => {
-      return nodeList.map((node) => {
-        if (node.id.toString() === nodeId) {
-          return { ...node, tableData };
-        }
-        if (node.children && node.children.length > 0) {
-          return { ...node, children: updateNodeTableData(node.children) };
-        }
-        return node;
-      });
-    };
+  const handleTableDataChange = useCallback(
+    (nodeId: string, tableData: TableData) => {
+      const updateNodeTableData = (nodeList: DemoNode[]): DemoNode[] => {
+        return nodeList.map((node) => {
+          if (node.id.toString() === nodeId) {
+            return { ...node, tableData };
+          }
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: updateNodeTableData(node.children) };
+          }
+          return node;
+        });
+      };
 
-    setDemoData((prev) => updateNodeTableData(prev));
-  }, []);
+      setDemoData((prev) => updateNodeTableData(prev));
+    },
+    []
+  );
 
   // Add child to node with proper orderIndex
-  const addChildToNode = useCallback((parentId: string, newChild: DemoNode, preserveOrderIndex: boolean = false) => {
-    const updateNodeWithChild = (nodeList: DemoNode[]): DemoNode[] => {
-      return nodeList.map((node) => {
-        if (node.id.toString() === parentId) {
-          let childWithOrder = { ...newChild, parentId: parentId };
+  const addChildToNode = useCallback(
+    (
+      parentId: string,
+      newChild: DemoNode,
+      preserveOrderIndex: boolean = false
+    ) => {
+      const updateNodeWithChild = (nodeList: DemoNode[]): DemoNode[] => {
+        return nodeList.map((node) => {
+          if (node.id.toString() === parentId) {
+            let childWithOrder = { ...newChild, parentId: parentId };
 
-          if (preserveOrderIndex) {
-            // Check if orderIndex conflicts with existing children
-            const existingChildOrderIndices = node.children.map(child => child.orderIndex);
-            if (existingChildOrderIndices.includes(newChild.orderIndex)) {
-              // If conflict, assign new orderIndex at the end
-              const maxChildOrderIndex = node.children.length > 0
-                ? Math.max(...existingChildOrderIndices)
-                : -1;
+            if (preserveOrderIndex) {
+              // Check if orderIndex conflicts with existing children
+              const existingChildOrderIndices = node.children.map(
+                (child) => child.orderIndex
+              );
+              if (existingChildOrderIndices.includes(newChild.orderIndex)) {
+                // If conflict, assign new orderIndex at the end
+                const maxChildOrderIndex =
+                  node.children.length > 0
+                    ? Math.max(...existingChildOrderIndices)
+                    : -1;
+                childWithOrder.orderIndex = maxChildOrderIndex + 1;
+              }
+              // else keep original orderIndex
+            } else {
+              // Calculate next orderIndex for new children
+              const maxChildOrderIndex =
+                node.children.length > 0
+                  ? Math.max(...node.children.map((child) => child.orderIndex))
+                  : -1;
               childWithOrder.orderIndex = maxChildOrderIndex + 1;
             }
-            // else keep original orderIndex
-          } else {
-            // Calculate next orderIndex for new children
-            const maxChildOrderIndex = node.children.length > 0
-              ? Math.max(...node.children.map(child => child.orderIndex))
-              : -1;
-            childWithOrder.orderIndex = maxChildOrderIndex + 1;
+
+            return {
+              ...node,
+              children: [...node.children, childWithOrder].sort(
+                (a, b) => a.orderIndex - b.orderIndex
+              ),
+            };
           }
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: updateNodeWithChild(node.children) };
+          }
+          return node;
+        });
+      };
 
-          return {
-            ...node,
-            children: [...node.children, childWithOrder].sort((a, b) => a.orderIndex - b.orderIndex)
-          };
-        }
-        if (node.children && node.children.length > 0) {
-          return { ...node, children: updateNodeWithChild(node.children) };
-        }
-        return node;
-      });
-    };
-
-    setDemoData((prev) => updateNodeWithChild(prev));
-  }, []);
+      setDemoData((prev) => updateNodeWithChild(prev));
+    },
+    []
+  );
 
   // Find node by ID in nested structure
-  const findNodeById = useCallback((nodeList: DemoNode[], nodeId: string): DemoNode | null => {
-    for (const node of nodeList) {
-      if (node.id.toString() === nodeId) {
-        return node;
+  const findNodeById = useCallback(
+    (nodeList: DemoNode[], nodeId: string): DemoNode | null => {
+      for (const node of nodeList) {
+        if (node.id.toString() === nodeId) {
+          return node;
+        }
+        if (node.children && node.children.length > 0) {
+          const found = findNodeById(node.children, nodeId);
+          if (found) return found;
+        }
       }
-      if (node.children && node.children.length > 0) {
-        const found = findNodeById(node.children, nodeId);
-        if (found) return found;
-      }
-    }
-    return null;
-  }, []);
+      return null;
+    },
+    []
+  );
 
   // Remove node from nested structure
-  const removeNodeById = useCallback((nodeList: DemoNode[], nodeId: string): DemoNode[] => {
-    return nodeList.reduce((acc: DemoNode[], node) => {
-      if (node.id.toString() === nodeId) {
-        // Skip this node (remove it)
-        return acc;
-      }
+  const removeNodeById = useCallback(
+    (nodeList: DemoNode[], nodeId: string): DemoNode[] => {
+      return nodeList.reduce((acc: DemoNode[], node) => {
+        if (node.id.toString() === nodeId) {
+          // Skip this node (remove it)
+          return acc;
+        }
 
-      // Keep the node but update its children
-      const updatedNode = {
-        ...node,
-        children: node.children ? removeNodeById(node.children, nodeId) : []
-      };
+        // Keep the node but update its children
+        const updatedNode = {
+          ...node,
+          children: node.children ? removeNodeById(node.children, nodeId) : [],
+        };
 
-      return [...acc, updatedNode];
-    }, []);
-  }, []);
+        return [...acc, updatedNode];
+      }, []);
+    },
+    []
+  );
 
   // Handle drag end
-  const handleDragEnd = useCallback((result: DropResult) => {
-    const { source, destination, draggableId } = result;
+  const handleDragEnd = useCallback(
+    (result: DropResult) => {
+      const { source, destination, draggableId } = result;
 
-    if (!destination) return;
+      if (!destination) return;
 
-    // Dragging from palette to canvas or to a node
-    if (source.droppableId === "component-palette") {
-      const componentType = COMPONENT_PALETTE.find(item => item.id === draggableId);
-      if (!componentType) return;
+      // Dragging from palette to canvas or to a node
+      if (source.droppableId === "component-palette") {
+        const componentType = COMPONENT_PALETTE.find(
+          (item) => item.id === draggableId
+        );
+        if (!componentType) return;
 
-      const newNode: DemoNode = {
-        id: uuidv4(),
-        lessonPlanId: 1,
-        parentId: null,
-        title: `Mới: ${componentType.title}`,
-        content: "",
-        fieldType: componentType.fieldType,
-        type: componentType.type,
-        orderIndex: 0,
-        metadata: { isNew: true },
-        status: "ACTIVE",
-        children: [],
-        ...(componentType.type === "TABLE" && {
-          tableData: {
-            headers: ["Cột 1", "Cột 2"],
-            rows: [
-              ["", ""],
-              ["", ""]
-            ]
-          }
-        })
-      };
+        const newNode: DemoNode = {
+          id: uuidv4(),
+          lessonPlanId: 1,
+          parentId: null,
+          title: `Mới: ${componentType.title}`,
+          content: "",
+          fieldType: componentType.fieldType,
+          type: componentType.type,
+          orderIndex: 0,
+          metadata: { isNew: true },
+          status: "ACTIVE",
+          children: [],
+          ...(componentType.type === "TABLE" && {
+            tableData: {
+              headers: ["Cột 1", "Cột 2"],
+              rows: [
+                ["", ""],
+                ["", ""],
+              ],
+            },
+          }),
+        };
 
-      // Dropping to main canvas
-      if (destination.droppableId === "demo-canvas") {
-        setDemoData(prev => {
-          const maxOrderIndex = prev.length > 0 ? Math.max(...prev.map(n => n.orderIndex)) : -1;
-          const nodeWithOrder = { ...newNode, orderIndex: maxOrderIndex + 1 };
-          return [...prev, nodeWithOrder].sort((a, b) => a.orderIndex - b.orderIndex);
-        });
+        // Dropping to main canvas
+        if (destination.droppableId === "demo-canvas") {
+          setDemoData((prev) => {
+            const maxOrderIndex =
+              prev.length > 0 ? Math.max(...prev.map((n) => n.orderIndex)) : -1;
+            const nodeWithOrder = { ...newNode, orderIndex: maxOrderIndex + 1 };
+            return [...prev, nodeWithOrder].sort(
+              (a, b) => a.orderIndex - b.orderIndex
+            );
+          });
+        }
+        // Dropping to a specific node (as child)
+        else if (destination.droppableId.startsWith("node-")) {
+          const parentId = destination.droppableId.replace("node-", "");
+          addChildToNode(parentId, newNode);
+        }
       }
-      // Dropping to a specific node (as child)
+
+      // Dragging existing nodes to create children relationships
       else if (destination.droppableId.startsWith("node-")) {
         const parentId = destination.droppableId.replace("node-", "");
-        addChildToNode(parentId, newNode);
+        const draggedNode = findNodeById(demoData, draggableId);
+
+        if (draggedNode && draggedNode.id.toString() !== parentId) {
+          // Remove the node from its current position
+          const updatedData = removeNodeById(demoData, draggableId);
+          setDemoData(updatedData);
+
+          // Add it as a child to the target node
+          setTimeout(() => {
+            addChildToNode(parentId, { ...draggedNode, parentId });
+          }, 0);
+        }
       }
-    }
 
-    // Dragging existing nodes to create children relationships
-    else if (destination.droppableId.startsWith("node-")) {
-      const parentId = destination.droppableId.replace("node-", "");
-      const draggedNode = findNodeById(demoData, draggableId);
+      // Dragging to trash
+      else if (destination.droppableId === "trash") {
+        const nodeToDelete = findNodeById(demoData, draggableId);
+        if (nodeToDelete) {
+          setTrashData((prev) => [
+            ...prev,
+            { ...nodeToDelete, status: "DELETED" },
+          ]);
+          const updatedData = removeNodeById(demoData, draggableId);
+          setDemoData(updatedData);
+        }
+      }
 
-      if (draggedNode && draggedNode.id.toString() !== parentId) {
-        // Remove the node from its current position
-        const updatedData = removeNodeById(demoData, draggableId);
+      // Reordering within canvas
+      else if (
+        source.droppableId === "demo-canvas" &&
+        destination.droppableId === "demo-canvas"
+      ) {
+        const newDemoData = Array.from(demoData);
+        const [reorderedItem] = newDemoData.splice(source.index, 1);
+        newDemoData.splice(destination.index, 0, reorderedItem);
+
+        // Update order indices
+        const updatedData = newDemoData.map((item, index) => ({
+          ...item,
+          orderIndex: index,
+        }));
+
         setDemoData(updatedData);
-
-        // Add it as a child to the target node
-        setTimeout(() => {
-          addChildToNode(parentId, { ...draggedNode, parentId });
-        }, 0);
       }
-    }
-
-    // Dragging to trash
-    else if (destination.droppableId === "trash") {
-      const nodeToDelete = findNodeById(demoData, draggableId);
-      if (nodeToDelete) {
-        setTrashData(prev => [...prev, { ...nodeToDelete, status: "DELETED" }]);
-        const updatedData = removeNodeById(demoData, draggableId);
-        setDemoData(updatedData);
-      }
-    }
-
-    // Reordering within canvas
-    else if (source.droppableId === "demo-canvas" && destination.droppableId === "demo-canvas") {
-      const newDemoData = Array.from(demoData);
-      const [reorderedItem] = newDemoData.splice(source.index, 1);
-      newDemoData.splice(destination.index, 0, reorderedItem);
-
-      // Update order indices
-      const updatedData = newDemoData.map((item, index) => ({
-        ...item,
-        orderIndex: index
-      }));
-
-      setDemoData(updatedData);
-    }
-  }, [demoData, addChildToNode, findNodeById, removeNodeById]);
+    },
+    [demoData, addChildToNode, findNodeById, removeNodeById]
+  );
 
   // Find and delete node (including nested nodes)
-  const findAndDeleteNode = useCallback((nodeList: DemoNode[], nodeId: string): { updatedList: DemoNode[], deletedNode: DemoNode | null } => {
-    for (let i = 0; i < nodeList.length; i++) {
-      const node = nodeList[i];
+  const findAndDeleteNode = useCallback(
+    (
+      nodeList: DemoNode[],
+      nodeId: string
+    ): { updatedList: DemoNode[]; deletedNode: DemoNode | null } => {
+      for (let i = 0; i < nodeList.length; i++) {
+        const node = nodeList[i];
 
-      // Found the node to delete
-      if (node.id.toString() === nodeId) {
-        const updatedList = nodeList.filter((_, index) => index !== i);
-        return { updatedList, deletedNode: node };
-      }
+        // Found the node to delete
+        if (node.id.toString() === nodeId) {
+          const updatedList = nodeList.filter((_, index) => index !== i);
+          return { updatedList, deletedNode: node };
+        }
 
-      // Search in children
-      if (node.children && node.children.length > 0) {
-        const result = findAndDeleteNode(node.children, nodeId);
-        if (result.deletedNode) {
-          const updatedNode = { ...node, children: result.updatedList };
-          const updatedList = nodeList.map((n, index) => index === i ? updatedNode : n);
-          return { updatedList, deletedNode: result.deletedNode };
+        // Search in children
+        if (node.children && node.children.length > 0) {
+          const result = findAndDeleteNode(node.children, nodeId);
+          if (result.deletedNode) {
+            const updatedNode = { ...node, children: result.updatedList };
+            const updatedList = nodeList.map((n, index) =>
+              index === i ? updatedNode : n
+            );
+            return { updatedList, deletedNode: result.deletedNode };
+          }
         }
       }
-    }
 
-    return { updatedList: nodeList, deletedNode: null };
-  }, []);
+      return { updatedList: nodeList, deletedNode: null };
+    },
+    []
+  );
 
   // Delete node
-  const handleDeleteNode = useCallback((nodeId: string) => {
-    const result = findAndDeleteNode(demoData, nodeId);
-    if (result.deletedNode) {
-      const deletedNodeWithStatus: DemoNode = { ...result.deletedNode, status: "DELETED" as const };
-      setTrashData(prev => [...prev, deletedNodeWithStatus]);
-      setDemoData(result.updatedList);
-    }
-  }, [demoData, findAndDeleteNode]);
+  const handleDeleteNode = useCallback(
+    (nodeId: string) => {
+      const result = findAndDeleteNode(demoData, nodeId);
+      if (result.deletedNode) {
+        const deletedNodeWithStatus: DemoNode = {
+          ...result.deletedNode,
+          status: "DELETED" as const,
+        };
+        setTrashData((prev) => [...prev, deletedNodeWithStatus]);
+        setDemoData(result.updatedList);
+      }
+    },
+    [demoData, findAndDeleteNode]
+  );
 
   // Check if parent exists in current data
-  const findParentExists = useCallback((parentId: string, nodeList: DemoNode[]): boolean => {
-    for (const node of nodeList) {
-      if (node.id.toString() === parentId) {
-        return true;
-      }
-      if (node.children && node.children.length > 0) {
-        if (findParentExists(parentId, node.children)) {
+  const findParentExists = useCallback(
+    (parentId: string, nodeList: DemoNode[]): boolean => {
+      for (const node of nodeList) {
+        if (node.id.toString() === parentId) {
           return true;
         }
+        if (node.children && node.children.length > 0) {
+          if (findParentExists(parentId, node.children)) {
+            return true;
+          }
+        }
       }
-    }
-    return false;
-  }, []);
+      return false;
+    },
+    []
+  );
 
   // Restore from trash
-  const handleRestoreNode = useCallback((nodeId: string) => {
-    const nodeToRestore = trashData.find(node => node.id.toString() === nodeId);
-    if (nodeToRestore) {
-      // Check if parent still exists, if not restore to root level
-      const shouldRestoreToRoot = !nodeToRestore.parentId ||
-        !findParentExists(nodeToRestore.parentId, demoData);
+  const handleRestoreNode = useCallback(
+    (nodeId: string) => {
+      const nodeToRestore = trashData.find(
+        (node) => node.id.toString() === nodeId
+      );
+      if (nodeToRestore) {
+        // Check if parent still exists, if not restore to root level
+        const shouldRestoreToRoot =
+          !nodeToRestore.parentId ||
+          !findParentExists(nodeToRestore.parentId, demoData);
 
-      if (shouldRestoreToRoot) {
-        // Restore to root level with original orderIndex
-        setDemoData(prev => {
-          const restoredNode = {
+        if (shouldRestoreToRoot) {
+          // Restore to root level with original orderIndex
+          setDemoData((prev) => {
+            const restoredNode = {
+              ...nodeToRestore,
+              status: "ACTIVE" as const,
+              parentId: null, // Clear parentId when restoring to root
+            };
+
+            // Check if orderIndex conflicts with existing nodes
+            const existingOrderIndices = prev.map((n) => n.orderIndex);
+            if (existingOrderIndices.includes(restoredNode.orderIndex)) {
+              // If conflict, assign new orderIndex at the end
+              const maxOrderIndex =
+                prev.length > 0 ? Math.max(...existingOrderIndices) : -1;
+              restoredNode.orderIndex = maxOrderIndex + 1;
+            }
+
+            return [...prev, restoredNode].sort(
+              (a, b) => a.orderIndex - b.orderIndex
+            );
+          });
+        } else {
+          // Restore as child to existing parent with original orderIndex
+          const nodeWithOriginalOrder = {
             ...nodeToRestore,
             status: "ACTIVE" as const,
-            parentId: null // Clear parentId when restoring to root
           };
+          addChildToNode(nodeToRestore.parentId!, nodeWithOriginalOrder, true); // preserveOrderIndex = true
+        }
 
-          // Check if orderIndex conflicts with existing nodes
-          const existingOrderIndices = prev.map(n => n.orderIndex);
-          if (existingOrderIndices.includes(restoredNode.orderIndex)) {
-            // If conflict, assign new orderIndex at the end
-            const maxOrderIndex = prev.length > 0 ? Math.max(...existingOrderIndices) : -1;
-            restoredNode.orderIndex = maxOrderIndex + 1;
-          }
-
-          return [...prev, restoredNode].sort((a, b) => a.orderIndex - b.orderIndex);
-        });
-      } else {
-        // Restore as child to existing parent with original orderIndex
-        const nodeWithOriginalOrder = { ...nodeToRestore, status: "ACTIVE" as const };
-        addChildToNode(nodeToRestore.parentId!, nodeWithOriginalOrder, true); // preserveOrderIndex = true
+        setTrashData((prev) =>
+          prev.filter((node) => node.id.toString() !== nodeId)
+        );
       }
-
-      setTrashData(prev => prev.filter(node => node.id.toString() !== nodeId));
-    }
-  }, [trashData, addChildToNode, findParentExists, demoData]);
+    },
+    [trashData, addChildToNode, findParentExists, demoData]
+  );
 
   // Handle download DOCX
   const handleDownloadDocx = useCallback(async () => {
@@ -446,9 +532,10 @@ function DemoPage() {
         department: "Tổ:..............................",
         subject: "Môn học/Hoạt động giáo dục: ..........",
         grade: "lớp:........",
-        lessonTitle: "TÊN BÀI DẠY: ................................................",
+        lessonTitle:
+          "TÊN BÀI DẠY: ................................................",
         duration: "Thời gian thực hiện: (số tiết)",
-        teacherName: "Họ và tên giáo viên:\n................................"
+        teacherName: "Họ và tên giáo viên:\n................................",
       };
       await generateDocx(demoData, "lesson-plan.docx", headerInfo);
     } catch (error) {
@@ -457,15 +544,33 @@ function DemoPage() {
     }
   }, [demoData]);
 
-
-
-
+  const { mutate } = useLessonPlanGenerationService();
+  const handleGenerationLessonPlan = () => {
+    console.log(demoData);
+    const payload = {
+      lesson_id: "string",
+      lesson_plan_json: demoData[0],
+    };
+    mutate(payload, {
+      onSuccess: () => {
+        toast.success("Tạo giáo án thành công");
+      },
+      onError: (error) => {
+        toast.error("Tạo giáo án thất bại");
+        console.error(error);
+      },
+    });
+  };
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-screen bg-gray-50">
         {/* Sidebar */}
-        <div className={`transition-all duration-300 ${sidebarCollapsed ? 'w-0' : 'w-80'} overflow-hidden`}>
+        <div
+          className={`transition-all duration-300 ${
+            sidebarCollapsed ? "w-0" : "w-80"
+          } overflow-hidden`}
+        >
           <Sidebar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -480,12 +585,11 @@ function DemoPage() {
           {/* Toolbar */}
           <Toolbar
             showDeleteButtons={showDeleteButtons}
-            onToggleDeleteButtons={() => setShowDeleteButtons(!showDeleteButtons)}
+            onToggleDeleteButtons={() =>
+              setShowDeleteButtons(!showDeleteButtons)
+            }
             onShowPreview={() => setShowPreview(true)}
-            onExportJSON={() => {
-              console.log("Demo Data:", demoData);
-              alert("Check console for data structure!");
-            }}
+            onExportJSON={handleGenerationLessonPlan}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
