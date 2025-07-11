@@ -84,6 +84,7 @@ export const PDF_API_ENDPOINTS = {
 
   //Task-progress
   TASKS_STATUS: `/tasks/status`,
+  TASKS_RESULT: (taskId: string) => `/tasks/result/${taskId}`,
 } as const;
 
 export const EXAM_ENDPOINTS = {
