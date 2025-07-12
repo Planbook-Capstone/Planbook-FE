@@ -16,6 +16,56 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
   }
 };
 
+// Helper function to parse HTML and create TextRun array with formatting
+const parseHtmlToTextRuns = (html: string): any[] => {
+  if (!html || typeof html !== 'string') {
+    return [new TextRun({ text: '', size: 24 })];
+  }
+
+  const textRuns: any[] = [];
+  let currentText = html;
+
+  // Handle <p> tags - convert to line breaks
+  currentText = currentText.replace(/<p[^>]*>/gi, '').replace(/<\/p>/gi, '\n');
+
+  // Split by bold tags and process each part
+  const parts = currentText.split(/(<\/?(?:strong|b)[^>]*>)/gi);
+  let isBold = false;
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+
+    if (part.match(/<(strong|b)[^>]*>/i)) {
+      isBold = true;
+    } else if (part.match(/<\/(strong|b)>/i)) {
+      isBold = false;
+    } else if (part.trim()) {
+      // Clean up remaining HTML tags
+      const cleanText = part.replace(/<[^>]*>/g, '').trim();
+      if (cleanText) {
+        textRuns.push(new TextRun({
+          text: cleanText,
+          bold: isBold,
+          size: 24,
+        }));
+      }
+    }
+  }
+
+  // If no formatting was found, just return the plain text
+  if (textRuns.length === 0) {
+    const plainText = currentText.replace(/<[^>]*>/g, '').trim();
+    if (plainText) {
+      textRuns.push(new TextRun({
+        text: plainText,
+        size: 24,
+      }));
+    }
+  }
+
+  return textRuns.length > 0 ? textRuns : [new TextRun({ text: '', size: 24 })];
+};
+
 interface CellContent {
   text?: string;
   image?: {
@@ -225,6 +275,13 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
   const processNode = async (node: DemoNode, depth: number = 0): Promise<any[]> => {
     const elements: any[] = [];
 
+    // Check fieldType first for special cases like TABLE
+    if (node.fieldType === "TABLE") {
+      console.log("🎯 Processing TABLE fieldType node:", node.id);
+      // Handle TABLE fieldType regardless of node.type - jump to TABLE case
+      node = { ...node, type: "TABLE" as any };
+    }
+
     switch (node.type) {
       case "SECTION":
         // Add section title
@@ -421,14 +478,101 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
           );
         }
 
-        // Get table data
-        const tableData = node.tableData || {
-          headers: ["Cột 1", "Cột 2"],
-          rows: [
-            ["", ""],
-            ["", ""]
-          ]
-        };
+        // Handle both old and new table data formats
+        let tableData: TableData;
+
+        console.log("📋 Processing table node:", {
+          nodeId: node.id,
+          hasTableData: !!node.tableData,
+          hasContent: !!node.content,
+          contentType: typeof node.content
+        });
+
+        // First try to parse from content field (new rich table format)
+        if (node.content && typeof node.content === 'string') {
+          try {
+            const parsedContent = JSON.parse(node.content);
+            console.log("📋 Parsing rich table data for DOCX:", parsedContent);
+
+            if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
+              // Extract headers from cells with isHeader: true
+              const headerRow = parsedContent.rows.find((row: any) =>
+                row.cells && row.cells.some((cell: any) => cell.isHeader)
+              );
+
+              const headers = headerRow ?
+                headerRow.cells
+                  .filter((cell: any) => cell.isHeader)
+                  .map((cell: any) => {
+                    const title = cell.title || cell.content || "";
+                    return title.replace(/<[^>]*>/g, "").trim();
+                  })
+                : ["Cột 1", "Cột 2"];
+
+              // Extract data rows (cells without isHeader or isHeader: false)
+              const dataRows = parsedContent.rows
+                .filter((row: any) =>
+                  row.cells && !row.cells.some((cell: any) => cell.isHeader)
+                )
+                .map((row: any) =>
+                  row.cells.map((cell: any) => {
+                    // Combine title and content, preserve HTML formatting info
+                    const title = cell.title || "";
+                    const content = cell.content || "";
+                    let combined = "";
+
+                    if (title && content) {
+                      combined = `${title}\n${content}`;
+                    } else {
+                      combined = title || content;
+                    }
+
+                    // Parse HTML and return object with text and formatting
+                    return parseHtmlToTextRuns(combined);
+                  })
+                );
+
+              tableData = {
+                headers,
+                rows: dataRows,
+              };
+
+              console.log("✅ Converted rich table to DOCX format:", {
+                headers,
+                dataRowsCount: dataRows.length,
+                firstRow: dataRows[0]
+              });
+            } else {
+              throw new Error("Invalid rich table format");
+            }
+          } catch (error) {
+            console.error("❌ Error parsing rich table data:", error);
+            // Fallback to tableData field or default
+            tableData = node.tableData || {
+              headers: ["Cột 1", "Cột 2"],
+              rows: [["", ""], ["", ""]],
+            };
+          }
+        }
+        // Fallback to tableData field (old format) if content parsing failed
+        else if (node.tableData && node.tableData.headers && node.tableData.rows) {
+          console.log("📋 Using tableData field as fallback:", node.tableData);
+          tableData = node.tableData;
+        }
+        // Use default if no data available
+        else {
+          console.log("📋 Using default table data");
+          tableData = {
+            headers: ["Cột 1", "Cột 2"],
+            rows: [["", ""], ["", ""]],
+          };
+        }
+
+        // Calculate equal column widths
+        const totalWidth = 9000; // Total table width in DXA units (about 5 inches)
+        const columnWidth = Math.floor(totalWidth / tableData.headers.length);
+
+        console.log(`📏 Setting equal column widths: ${tableData.headers.length} columns, ${columnWidth} DXA each`);
 
         // Create table rows
         const tableRows = [
@@ -447,6 +591,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
                     ],
                   }),
                 ],
+                width: {
+                  size: columnWidth,
+                  type: WidthType.DXA,
+                },
               })
             ),
           }),
@@ -454,34 +602,47 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
           ...tableData.rows.map(row =>
             new TableRow({
               children: row.map(cell => {
-                let cellText = '';
+                let cellTextRuns: any[] = [];
+
                 if (typeof cell === 'string') {
-                  cellText = cell;
+                  // Parse HTML string to TextRuns with formatting
+                  cellTextRuns = parseHtmlToTextRuns(cell);
+                } else if (Array.isArray(cell)) {
+                  // Already parsed TextRuns array
+                  cellTextRuns = cell;
                 } else if (cell && typeof cell === 'object') {
                   if ('text' in cell && 'image' in cell) {
                     // New CellContent format
                     if (cell.image) {
-                      cellText = `[Hình ảnh: ${cell.image.name || 'image'}]`;
+                      cellTextRuns = [new TextRun({
+                        text: `[Hình ảnh: ${cell.image.name || 'image'}]`,
+                        size: 24,
+                      })];
                     } else {
-                      cellText = cell.text || '';
+                      cellTextRuns = parseHtmlToTextRuns(cell.text || '');
                     }
                   } else if ('type' in cell && 'content' in cell) {
                     // Old format compatibility
-                    cellText = cell.type === 'image' ? `[Hình ảnh: ${cell.content}]` : cell.content;
+                    const text = cell.type === 'image' ? `[Hình ảnh: ${cell.content}]` : cell.content;
+                    cellTextRuns = parseHtmlToTextRuns(text);
                   }
+                }
+
+                // Ensure we have at least one TextRun
+                if (cellTextRuns.length === 0) {
+                  cellTextRuns = [new TextRun({ text: '', size: 24 })];
                 }
 
                 return new TableCell({
                   children: [
                     new Paragraph({
-                      children: [
-                        new TextRun({
-                          text: cellText,
-                          size: 24,
-                        }),
-                      ],
+                      children: cellTextRuns,
                     }),
                   ],
+                  width: {
+                    size: columnWidth,
+                    type: WidthType.DXA,
+                  },
                 });
               }),
             })
