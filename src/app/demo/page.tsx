@@ -143,7 +143,7 @@ function DemoPage() {
       const convertNode = (node: any, index: number = 0): DemoNode => {
         // Determine fieldType based on type
         let fieldType: "INPUT" | "TABLE" | "IMAGE" = "INPUT";
-        if (node.type === "TABLE") {
+        if (node.fieldType === "TABLE") {
           fieldType = "TABLE";
         } else if (node.type === "IMAGE") {
           fieldType = "IMAGE";
@@ -644,7 +644,7 @@ function DemoPage() {
     };
 
     const payload = {
-      lesson_id: "string",
+      lesson_id: "5",
       lesson_plan_json: mergedNode,
     };
     mutate(payload, {
