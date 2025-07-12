@@ -40,8 +40,10 @@ export function TableCell({
   // Parse value to get text and image
   const parsedValue = React.useMemo(() => {
     if (typeof value === "string") {
+      console.log("🔍 TableCell string value:", value);
       return { text: value, image: null };
     }
+    console.log("🔍 TableCell object value:", value);
     return { text: value?.text || "", image: value?.image || null };
   }, [value]);
 
@@ -165,7 +167,7 @@ export function TableCell({
     return (
       <td
         className={cn(
-          "border-2 border-blue-400 p-0 min-w-[300px] max-w-[500px] bg-white shadow-lg",
+          "border-2 border-blue-400 p-0 w-auto bg-white shadow-lg",
           isHeader && "bg-blue-50",
           className
         )}
@@ -188,7 +190,7 @@ export function TableCell({
   return (
     <td
       className={cn(
-        "border border-gray-300 p-2 min-w-[120px] cursor-pointer hover:bg-gray-50 transition-colors font-questrial relative",
+        "border border-gray-300 p-2 w-auto cursor-pointer hover:bg-gray-50 transition-colors font-questrial relative",
         isHeader && "bg-gray-100 font-calsans",
         disabled && "cursor-not-allowed opacity-60",
         isDragOver && "bg-blue-50 border-blue-300",

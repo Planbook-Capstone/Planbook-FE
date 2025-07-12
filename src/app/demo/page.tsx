@@ -125,7 +125,7 @@ function DemoPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [taskId, setTaskId] = useState<string>(
-    "77e5d6e3-c6bb-4e27-9428-efd53afcfb14"
+    "82312bab-6f4b-42d4-8018-6770917a4347"
   );
   const [isLoadingData, setIsLoadingData] = useState(false);
 
