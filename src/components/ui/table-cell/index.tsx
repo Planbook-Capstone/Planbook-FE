@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "../input";
+import { TableCellEditor } from "../table-cell-editor";
 import { ImageIcon, X } from "lucide-react";
 
 interface CellContent {
@@ -62,15 +63,16 @@ export function TableCell({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSave();
-    } else if (e.key === "Escape") {
+    // For Tiptap editor, we'll handle save/cancel differently
+    if (e.key === "Escape") {
       handleCancel();
     }
+    // Note: Enter key should work normally in Tiptap for line breaks
+    // We'll use Ctrl+Enter or blur to save
   };
 
   const handleSave = () => {
-    // If there's no image, just return the text string for simplicity
+    // Save HTML content from Tiptap editor
     if (!parsedValue.image) {
       onChange(editValue);
     } else {
@@ -89,7 +91,10 @@ export function TableCell({
   };
 
   const handleBlur = () => {
-    handleSave();
+    // Add a small delay to allow toolbar clicks to complete
+    setTimeout(() => {
+      handleSave();
+    }, 150);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -109,7 +114,7 @@ export function TableCell({
     if (disabled) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
+    const imageFile = files.find((file) => file.type.startsWith("image/"));
 
     if (imageFile) {
       const reader = new FileReader();
@@ -130,7 +135,7 @@ export function TableCell({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const imageUrl = event.target?.result as string;
@@ -160,21 +165,21 @@ export function TableCell({
     return (
       <td
         className={cn(
-          "border border-gray-300 p-2 min-w-[120px]",
-          isHeader && "bg-gray-50 font-semibold",
+          "border-2 border-blue-400 p-0 min-w-[300px] max-w-[500px] bg-white shadow-lg",
+          isHeader && "bg-blue-50",
           className
         )}
+        style={{ zIndex: 10 }}
       >
-        <Input
-          ref={inputRef}
-          asTextarea
-          type="text"
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          className="w-full bg-transparent border-none outline-none font-questrial text-sm"
+        <TableCellEditor
+          content={editValue}
+          onChange={(content) => setEditValue(content)}
+          onBlur={handleSave}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          autoFocus={true}
           placeholder={placeholder}
+          className="w-full bg-white border-none shadow-none"
         />
       </td>
     );
@@ -196,46 +201,12 @@ export function TableCell({
       title={disabled ? "" : "Double-click để chỉnh sửa hoặc kéo hình ảnh vào"}
     >
       <div className="space-y-2">
-        {/* Text content with markdown support for title/content format */}
+        {/* Rich text content from Tiptap editor */}
         {parsedValue.text && (
-          <div className="text-sm text-gray-900">
-            {parsedValue.text.includes('**') && parsedValue.text.includes('\n') ? (
-              // Handle title + content format: **title**\n  content
-              parsedValue.text.split('\n').map((line, index) => {
-                if (line.startsWith('**') && line.endsWith('**')) {
-                  // Title line - bold
-                  const titleText = line.replace(/\*\*/g, '');
-                  return (
-                    <div key={index} className="font-bold">
-                      {titleText}
-                    </div>
-                  );
-                } else if (line.startsWith('  ')) {
-                  // Content line with padding
-                  return (
-                    <div key={index} className="pl-2 mt-1">
-                      {line.trim()}
-                    </div>
-                  );
-                } else {
-                  // Regular line
-                  return (
-                    <div key={index}>
-                      {line}
-                    </div>
-                  );
-                }
-              })
-            ) : parsedValue.text.startsWith('**') && parsedValue.text.endsWith('**') ? (
-              // Handle title only format: **title**
-              <div className="font-bold">
-                {parsedValue.text.replace(/\*\*/g, '')}
-              </div>
-            ) : (
-              // Regular text
-              parsedValue.text
-            )}
-          </div>
+          <div
+            className="text-sm text-gray-900 prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: parsedValue.text }}
+          />
         )}
 
         {/* Image content */}
@@ -257,32 +228,7 @@ export function TableCell({
             )}
           </div>
         )}
-
-        {/* Empty state */}
-        {!parsedValue.text && !parsedValue.image && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 italic text-sm">{placeholder}</span>
-            {!disabled && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="text-gray-400 hover:text-blue-500 transition-colors"
-                title="Thêm hình ảnh"
-              >
-                <ImageIcon className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        )}
       </div>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
     </td>
   );
 }
