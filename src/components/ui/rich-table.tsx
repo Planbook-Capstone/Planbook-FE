@@ -269,7 +269,7 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
 
       {/* Table */}
       <div className="border border-gray-200 rounded-md overflow-hidden">
-        <table className="w-full">
+        <table className="w-full table-fixed">
           <tbody>
             {tableData.rows.map((row, rowIndex) => (
               <tr key={row.id} className={rowIndex === 0 ? "bg-gray-50" : ""}>
@@ -277,7 +277,7 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
                   <td
                     key={cell.id}
                     className={cn(
-                      "border-r border-gray-200 p-3 min-w-[300px] relative group align-top",
+                      "border-r border-gray-200 p-3 w-auto relative group align-top",
                       cell.isHeader && "font-medium bg-neutral-50"
                     )}
                   >

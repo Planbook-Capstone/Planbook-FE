@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "./ui/Button";
 import { DowloadIcon } from "@/constants/icon";
 
@@ -148,13 +147,13 @@ export default function PreviewModal({
           </h3>
         )}
         <div className="border border-gray-400">
-          <table className="w-full border-collapse">
+          <table className="w-full border-collapse table-fixed">
             <thead>
               <tr className="bg-gray-100">
                 {tableData.headers.map((header, index) => (
                   <th
                     key={index}
-                    className="border border-gray-400 px-3 py-2 text-left font-semibold"
+                    className="border border-gray-400 px-3 py-2 text-left font-semibold w-auto"
                   >
                     {header}
                   </th>
@@ -197,7 +196,7 @@ export default function PreviewModal({
                     return (
                       <td
                         key={colIndex}
-                        className="border border-gray-400 px-3 py-2"
+                        className="border border-gray-400 px-3 py-2 w-auto"
                       >
                         {cellText}
                       </td>
