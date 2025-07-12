@@ -89,15 +89,23 @@ export default function PreviewModal({
               const rowData: string[] = [];
 
               row.cells.forEach((cell: any) => {
-                // Handle regular cells - decode HTML and extract text
-                let cellText = cell.title || cell.content || "";
+                // Handle regular cells - combine title and content with HTML
+                let titleText = cell.title || "";
+                let contentText = cell.content || "";
+
                 // Decode HTML entities
-                cellText = cellText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                // Remove HTML tags for display
-                cellText = cellText.replace(/<[^>]*>/g, '');
-                // Clean up whitespace
-                cellText = cellText.replace(/\n/g, ' ').trim();
-                rowData.push(cellText);
+                titleText = titleText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                contentText = contentText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+
+                // Combine title and content, keeping HTML formatting
+                let combinedText = "";
+                if (titleText && contentText) {
+                  combinedText = `${titleText} ${contentText}`;
+                } else {
+                  combinedText = titleText || contentText;
+                }
+
+                rowData.push(combinedText);
               });
 
               // Ensure row has same number of cells as headers
@@ -164,33 +172,64 @@ export default function PreviewModal({
               {tableData.rows.map((row, rowIndex) => (
                 <tr key={rowIndex}>
                   {row.map((cell, colIndex) => {
-                    let cellText = "";
+                    let cellContent: React.ReactNode = "";
                     try {
                       if (typeof cell === "string") {
-                        cellText = cell;
+                        // Check if it's HTML content
+                        if (cell.includes('<') && cell.includes('>')) {
+                          cellContent = (
+                            <div
+                              className="prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: cell }}
+                            />
+                          );
+                        } else {
+                          cellContent = cell;
+                        }
                       } else if (cell && typeof cell === "object") {
                         if ("text" in cell || "image" in cell) {
                           // New CellContent format
-                          const cellContent = cell as CellContent;
-                          if (cellContent.image) {
-                            cellText = `[Hình ảnh: ${
-                              cellContent.image.name || "image"
+                          const cellContent_obj = cell as CellContent;
+                          if (cellContent_obj.image) {
+                            cellContent = `[Hình ảnh: ${
+                              cellContent_obj.image.name || "image"
                             }]`;
                           } else {
-                            cellText = cellContent.text || "";
+                            const text = cellContent_obj.text || "";
+                            if (text.includes('<') && text.includes('>')) {
+                              cellContent = (
+                                <div
+                                  className="prose prose-sm max-w-none"
+                                  dangerouslySetInnerHTML={{ __html: text }}
+                                />
+                              );
+                            } else {
+                              cellContent = text;
+                            }
                           }
                         } else if ("type" in cell && "content" in cell) {
                           // Old format compatibility
                           const oldCell = cell as any;
-                          cellText =
-                            oldCell.type === "image"
-                              ? `[Hình ảnh: ${oldCell.content}]`
-                              : oldCell.content;
+                          if (oldCell.type === "image") {
+                            cellContent = `[Hình ảnh: ${oldCell.content}]`;
+                          } else {
+                            const content = oldCell.content || "";
+                            if (content.includes('<') && content.includes('>')) {
+                              cellContent = (
+                                <div
+                                  className="prose prose-sm max-w-none"
+                                  dangerouslySetInnerHTML={{ __html: content }}
+                                />
+                              );
+                            } else {
+                              cellContent = content;
+                            }
+                          }
                         }
                       }
                     } catch (error) {
                       console.error("Error rendering cell:", error, cell);
-                      cellText = String(cell || "");
+                      cellContent = String(cell || "");
                     }
 
                     return (
@@ -198,7 +237,7 @@ export default function PreviewModal({
                         key={colIndex}
                         className="border border-gray-400 px-3 py-2 w-auto"
                       >
-                        {cellText}
+                        {cellContent}
                       </td>
                     );
                   })}
