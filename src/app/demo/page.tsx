@@ -3,7 +3,10 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { v4 as uuidv4 } from "uuid";
-import { useLessonPlanNodeChildrenService, useLessonPlanNodeTreeService } from "@/services/lessonPlanNodeServices";
+import {
+  useLessonPlanNodeChildrenService,
+  useLessonPlanNodeTreeService,
+} from "@/services/lessonPlanNodeServices";
 import PreviewModal from "@/components/PreviewModal";
 import { generateDocx } from "@/utils/docxGenerator";
 import Sidebar from "@/components/demo/Sidebar";
@@ -130,10 +133,16 @@ function DemoPage() {
   );
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-  //get node root of lesson plan id 
-   const treeData = useLessonPlanNodeTreeService("1")();
+  //get node root of lesson plan id
+  const { data: treeData } = useLessonPlanNodeTreeService("6")();
 
-   console.log(trashData,"tree");
+  console.log(treeData?.data, "tree");
+
+  const items = treeData?.data?.map((item: any) => ({
+    id: item?.id,
+    title: item?.title,
+    description: item?.content || "",
+  }));
 
   // Load data from API
   const childrenQuery = useLessonPlanNodeChildrenService("1")();
@@ -749,8 +758,8 @@ function DemoPage() {
             onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
           <StepFloatingPanel
-            items={[]}
-            current={1}
+            items={items}
+            current={0}
             layout="horizontal"
             visible={true}
             initialPosition={{ x: 700, y: 100 }}
