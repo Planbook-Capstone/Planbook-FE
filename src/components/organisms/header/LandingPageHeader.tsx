@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { MagneticButton } from "@/components/ui/MagneticButton";
+import { TypewriterText } from "@/components/ui/TypewriterText";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
