@@ -174,7 +174,7 @@ export default function NodeRenderer({
                   const rowData: string[] = [];
 
                   row.cells.forEach((cell: any) => {
-                    // Handle regular cells - decode HTML and extract both title and content
+                    // Handle regular cells - create HTML content for Tiptap editor
                     let titleText = cell.title || "";
                     let contentText = cell.content || "";
 
@@ -186,25 +186,29 @@ export default function NodeRenderer({
                       .replace(/&lt;/g, "<")
                       .replace(/&gt;/g, ">");
 
-                    // Remove HTML tags for display
-                    titleText = titleText.replace(/<[^>]*>/g, "");
-                    contentText = contentText.replace(/<[^>]*>/g, "");
+                    // Clean up title by removing HTML tags and whitespace
+                    const cleanTitleText = titleText.replace(/<[^>]*>/g, "").replace(/\n/g, " ").trim();
 
-                    // Clean up whitespace but preserve line breaks for content
-                    titleText = titleText.replace(/\n/g, " ").trim();
-                    contentText = contentText.trim(); // Keep line breaks in content
+                    // Keep content as-is but trim whitespace
+                    const cleanContentText = contentText.trim();
 
-                    // Combine title and content: title in bold on first line, then content with padding
-                    let cellText = "";
-                    if (titleText && contentText) {
-                      cellText = `**${titleText}**\n  ${contentText}`;
-                    } else if (titleText) {
-                      cellText = `**${titleText}**`;
-                    } else if (contentText) {
-                      cellText = contentText;
+                    // Create HTML content for Tiptap editor
+                    let cellHtml = "";
+                    if (cleanTitleText && cleanContentText) {
+                      // Title as bold paragraph + content as separate paragraph
+                      cellHtml = `<p><strong>${cleanTitleText}</strong></p><p>${cleanContentText}</p>`;
+                    } else if (cleanTitleText) {
+                      // Title only as bold paragraph
+                      cellHtml = `<p><strong>${cleanTitleText}</strong></p>`;
+                    } else if (cleanContentText) {
+                      // Content only as paragraph
+                      cellHtml = `<p>${cleanContentText}</p>`;
+                    } else {
+                      // Empty cell
+                      cellHtml = "";
                     }
 
-                    rowData.push(cellText);
+                    rowData.push(cellHtml);
                   });
 
                   // Ensure row has same number of cells as headers
