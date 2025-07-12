@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { TableRow } from "@/components/molecules/table-row";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 
 interface CellContent {
   text?: string;
@@ -43,12 +43,9 @@ export function Table({
   maxCols = 10,
 }: TableProps) {
   // Debug re-renders
-  // console.log("Table component re-rendered", { initialData, disabled });
+  console.log("🔍 Table component received initialData:", initialData);
 
-  // Use ref to track if component has been initialized
-  const isInitialized = useRef(false);
-
-  // Initialize with default 2x2 table - only once
+  // Initialize with default 2x2 table
   const [tableData, setTableData] = useState<TableData>(() => {
     const defaultData = {
       headers: ["Header 1", "Header 2"],
@@ -58,28 +55,23 @@ export function Table({
       ],
     };
 
-    // Only use initialData if it's provided and valid
+    // Use initialData if it's provided and valid
     if (initialData && initialData.headers && initialData.rows) {
-      isInitialized.current = true;
+      console.log("🔍 Using initialData in useState:", initialData);
       return initialData;
     }
 
-    isInitialized.current = true;
+    console.log("🔍 Using defaultData in useState");
     return defaultData;
   });
 
-  // Only update from initialData once, when component first mounts
+  // Update when initialData changes
   useEffect(() => {
-    if (
-      initialData &&
-      initialData.headers &&
-      initialData.rows &&
-      !isInitialized.current
-    ) {
+    if (initialData && initialData.headers && initialData.rows) {
+      console.log("🔍 useEffect updating tableData with:", initialData);
       setTableData(initialData);
-      isInitialized.current = true;
     }
-  }, []); // Empty dependency array - only run once
+  }, [initialData]); // Run when initialData changes
 
   // Stable callback for data changes
   const handleDataChange = useCallback(
@@ -90,7 +82,7 @@ export function Table({
   );
 
   // Only call onDataChange when tableData actually changes
-  const prevTableDataRef = useRef<TableData>();
+  const prevTableDataRef = useRef<TableData | undefined>();
   useEffect(() => {
     if (
       prevTableDataRef.current &&
@@ -227,7 +219,7 @@ export function Table({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse table-fixed">
           <thead className="font-calsans font-normal">
             <TableRow
               cells={tableData.headers}
