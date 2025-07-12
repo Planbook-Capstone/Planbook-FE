@@ -28,7 +28,6 @@ export function TableRow({
   className,
   disabled = false,
 }: TableRowProps) {
-  console.log("🔍 TableRow received cells:", cells, "isHeader:", isHeader);
 
   const handleCellChange = (cellIndex: number, value: string | CellContent) => {
     onCellChange(cellIndex, value);

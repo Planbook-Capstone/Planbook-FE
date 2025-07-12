@@ -115,15 +115,6 @@ export default function NodeRenderer({
   // Render table field - extracted from switch case
   const renderTableField = useCallback(
     (node: DemoNode) => {
-      console.log(
-        "🔍 renderTableField called for node:",
-        node.id,
-        "content:",
-        node.content,
-        "tableData:",
-        (node as any).tableData
-      );
-
       // Parse table data from content field if it's a JSON string, or use tableData field
       let tableData: TableData;
 
@@ -137,7 +128,6 @@ export default function NodeRenderer({
         try {
           if (node.content && typeof node.content === "string") {
             const parsedContent = JSON.parse(node.content);
-            console.log("📋 Parsed content:", parsedContent);
 
             // Convert API format to our TableData format
             if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
@@ -195,34 +185,22 @@ export default function NodeRenderer({
                     // Keep content as-is but trim whitespace
                     const cleanContentText = contentText.trim();
 
-                    console.log("🔍 After cleaning:", {
-                      cleanTitleText,
-                      cleanContentText,
-                      hasTitle: !!cleanTitleText,
-                      hasContent: !!cleanContentText,
-                    });
-
                     // Create HTML content for Tiptap editor
                     let cellHtml = "";
                     if (cleanTitleText && cleanContentText) {
                       // Title as bold paragraph + content as separate paragraph
                       cellHtml = `<p><strong>${cleanTitleText}</strong></p><p>${cleanContentText}</p>`;
-                      console.log("🔍 Case: Both title and content");
                     } else if (cleanTitleText) {
                       // Title only as bold paragraph
                       cellHtml = `<p><strong>${cleanTitleText}</strong></p>`;
-                      console.log("🔍 Case: Title only");
                     } else if (cleanContentText) {
                       // Content only as paragraph
                       cellHtml = `<p>${cleanContentText}</p>`;
-                      console.log("🔍 Case: Content only");
                     } else {
                       // Empty cell
                       cellHtml = "";
-                      console.log("🔍 Case: Empty cell");
                     }
 
-                    console.log("🔍 Final cellHtml:", cellHtml);
                     rowData.push(cellHtml);
                   });
 
