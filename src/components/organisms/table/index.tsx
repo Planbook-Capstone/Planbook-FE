@@ -42,9 +42,6 @@ export function Table({
   maxRows = 20,
   maxCols = 10,
 }: TableProps) {
-  // Debug re-renders
-  console.log("🔍 Table component received initialData:", initialData);
-
   // Initialize with default 2x2 table
   const [tableData, setTableData] = useState<TableData>(() => {
     const defaultData = {
@@ -57,7 +54,6 @@ export function Table({
 
     // Use initialData if it's provided and valid
     if (initialData && initialData.headers && initialData.rows) {
-      console.log("🔍 Using initialData in useState:", initialData);
       return initialData;
     }
 
@@ -68,7 +64,6 @@ export function Table({
   // Update when initialData changes
   useEffect(() => {
     if (initialData && initialData.headers && initialData.rows) {
-      console.log("🔍 useEffect updating tableData with:", initialData);
       setTableData(initialData);
     }
   }, [initialData]); // Run when initialData changes
