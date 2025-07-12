@@ -133,8 +133,16 @@ function DemoPage() {
   );
   const [isLoadingData, setIsLoadingData] = useState(false);
 
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const handleChangeStep = (newStep: number) => {
+    setCurrentStep(newStep);
+  };
+
+  console.log(currentStep, "current");
+
   //get node root of lesson plan id
-  const { data: treeData } = useLessonPlanNodeTreeService("6")();
+  const { data: treeData } = useLessonPlanNodeTreeService("7")();
 
   console.log(treeData?.data, "tree");
 
@@ -145,7 +153,10 @@ function DemoPage() {
   }));
 
   // Load data from API
-  const childrenQuery = useLessonPlanNodeChildrenService("1")();
+  const childrenQuery = useLessonPlanNodeChildrenService(
+    items && items.length > currentStep ? items[currentStep].id.toString() : ""
+  )();
+  
   const apiData = childrenQuery?.data?.data;
 
   // Convert lesson plan data to DemoNode format
@@ -759,9 +770,10 @@ function DemoPage() {
           />
           <StepFloatingPanel
             items={items}
-            current={0}
+            current={currentStep}
             layout="horizontal"
             visible={true}
+            onStepChange={handleChangeStep}
             initialPosition={{ x: 700, y: 100 }}
             style={{ width: 300 }}
           />
