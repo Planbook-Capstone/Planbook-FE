@@ -17,7 +17,7 @@ export const PricingCard = ({
   return (
     <div
       className={cn(
-        "relative rounded-2xl p-8 w-full bg-transparent flex flex-col justify-between"
+        "relative rounded-2xl p-8 w-full bg-transparent flex flex-col justify-between hover:scale-110 transition-all cursor-pointer ease-in-out"
       )}
       style={
         popular ? { boxShadow: "45px 25px 75px rgba(0, 0, 0, 0.1)" } : undefined

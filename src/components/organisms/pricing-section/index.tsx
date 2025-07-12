@@ -6,6 +6,7 @@ import {
 } from "@/components/molecules/pricing-card";
 import { PricingDescription } from "@/components/molecules/pricing-description";
 import { Button } from "@/components/ui/Button";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
 const pricingPlans: PricingCardProps[] = [
   {
@@ -46,17 +47,25 @@ const pricingPlans: PricingCardProps[] = [
 export const PricingSection = () => {
   return (
     <section className="px-4 md:px-6 lg:px-8 py-20 max-w-[1340px] mx-auto">
-      <span className="inline-block text-white bg-[#FF5812] text-sm px-4 py-1 rounded-full mb-3 font-medium">
-        Bảng giá
-      </span>
+      <AnimatedSection animation="fadeIn" delay={200}>
+        <span className="inline-block text-white bg-[#FF5812] text-sm px-4 py-1 rounded-full mb-3 font-medium">
+          Bảng giá
+        </span>
+      </AnimatedSection>
+
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 mb-14">
-        <div>
-          <h2 className="text-[40px] md:text-[56px] font-calsans leading-tight mb-3">
-            Lựa chọn giá
-            <br />
-            linh hoạt
-          </h2>
-        </div>
+        <AnimatedSection animation="slideLeft" delay={400}>
+          <div>
+            <div className="text-[40px] md:text-[56px] font-calsans leading-tight mb-3">
+              <h2>
+                Lựa chọn giá
+                <br />
+                linh hoạt
+              </h2>
+            </div>
+          </div>
+        </AnimatedSection>
+
         <p className="max-w-md lg:max-w-xl text-muted-foreground">
           Trải nghiệm sự chủ động và tiện lợi trong quản lý công việc giảng dạy
           với các gói dịch vụ đa dạng. Từ công cụ lập kế hoạch, soạn giáo án,
@@ -67,11 +76,21 @@ export const PricingSection = () => {
           Xem thêm
         </Button>
       </div>
+
       <div className="flex flex-col lg:flex-row gap-10 justify-between">
-        <PricingDescription />
+        <AnimatedSection animation="slideLeft" delay={1000}>
+          <PricingDescription />
+        </AnimatedSection>
+
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pricingPlans.map((plan, idx) => (
-            <PricingCard key={idx} {...plan} />
+            <AnimatedSection
+              key={idx}
+              animation="slideUp"
+              delay={1200 + idx * 200}
+            >
+              <PricingCard {...plan} />
+            </AnimatedSection>
           ))}
         </div>
       </div>
