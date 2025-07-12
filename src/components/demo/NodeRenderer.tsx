@@ -109,16 +109,27 @@ export default function NodeRenderer({
 
   // Render table field - extracted from switch case
   const renderTableField = useCallback((node: DemoNode) => {
-    // Parse table data from content field if it's a JSON string
-    let tableData: TableData;
-    try {
-      if (node.content && typeof node.content === 'string') {
-        const parsedContent = JSON.parse(node.content);
+    console.log("🔍 renderTableField called for node:", node.id, "content:", node.content, "tableData:", (node as any).tableData);
 
-        // Convert API format to our TableData format
-        if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
-          const headers: string[] = [];
-          const rows: string[][] = [];
+    // Parse table data from content field if it's a JSON string, or use tableData field
+    let tableData: TableData;
+
+    // Check if node has tableData field (old format)
+    if ((node as any).tableData) {
+      console.log("📋 Using tableData field:", (node as any).tableData);
+      tableData = (node as any).tableData;
+    }
+    // Otherwise try to parse from content field (new format)
+    else {
+      try {
+        if (node.content && typeof node.content === 'string') {
+          const parsedContent = JSON.parse(node.content);
+          console.log("📋 Parsed content:", parsedContent);
+
+          // Convert API format to our TableData format
+          if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
+            const headers: string[] = [];
+            const rows: string[][] = [];
 
           // First pass: extract headers from header row
           const headerRow = parsedContent.rows.find((row: any) =>
@@ -144,14 +155,32 @@ export default function NodeRenderer({
               const rowData: string[] = [];
 
               row.cells.forEach((cell: any) => {
-                // Handle regular cells - decode HTML and extract text
-                let cellText = cell.title || cell.content || "";
-                // Decode HTML entities
-                cellText = cellText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                // Handle regular cells - decode HTML and extract both title and content
+                let titleText = cell.title || "";
+                let contentText = cell.content || "";
+
+                // Decode HTML entities for both title and content
+                titleText = titleText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                contentText = contentText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+
                 // Remove HTML tags for display
-                cellText = cellText.replace(/<[^>]*>/g, '');
-                // Clean up whitespace
-                cellText = cellText.replace(/\n/g, ' ').trim();
+                titleText = titleText.replace(/<[^>]*>/g, '');
+                contentText = contentText.replace(/<[^>]*>/g, '');
+
+                // Clean up whitespace but preserve line breaks for content
+                titleText = titleText.replace(/\n/g, ' ').trim();
+                contentText = contentText.trim(); // Keep line breaks in content
+
+                // Combine title and content: title in bold on first line, then content with padding
+                let cellText = "";
+                if (titleText && contentText) {
+                  cellText = `**${titleText}**\n  ${contentText}`;
+                } else if (titleText) {
+                  cellText = `**${titleText}**`;
+                } else if (contentText) {
+                  cellText = contentText;
+                }
+
                 rowData.push(cellText);
               });
 
@@ -167,6 +196,13 @@ export default function NodeRenderer({
             headers: headers.length > 0 ? headers : ["Cột 1", "Cột 2"],
             rows: rows.length > 0 ? rows : [["", ""], ["", ""]]
           };
+          } else {
+            // Fallback to default
+            tableData = {
+              headers: ["Cột 1", "Cột 2"],
+              rows: [["", ""], ["", ""]]
+            };
+          }
         } else {
           // Fallback to default
           tableData = {
@@ -174,20 +210,14 @@ export default function NodeRenderer({
             rows: [["", ""], ["", ""]]
           };
         }
-      } else {
-        // Use tableData if available, otherwise default
-        tableData = node.tableData || {
+      } catch (error) {
+        console.error("Error parsing table content:", error);
+        // Fallback to default
+        tableData = {
           headers: ["Cột 1", "Cột 2"],
           rows: [["", ""], ["", ""]]
         };
       }
-    } catch (error) {
-      console.error("Error parsing table content:", error);
-      // Fallback to default or existing tableData
-      tableData = node.tableData || {
-        headers: ["Cột 1", "Cột 2"],
-        rows: [["", ""], ["", ""]]
-      };
     }
 
     // Ensure all cells are strings for simplicity
@@ -230,11 +260,37 @@ export default function NodeRenderer({
             // Data rows
             ...newTableData.rows.map((row, rowIndex) => ({
               id: `row-${rowIndex + 1}`,
-              cells: row.map((cell, cellIndex) => ({
-                id: `r${rowIndex + 1}c${cellIndex + 1}`,
-                title: typeof cell === 'string' ? cell : (cell?.text || ""),
-                content: ""
-              }))
+              cells: row.map((cell, cellIndex) => {
+                let cellText = typeof cell === 'string' ? cell : (cell?.text || "");
+                let title = "";
+                let content = "";
+
+                // Parse markdown format: **title**\n  content
+                if (cellText.includes('**') && cellText.includes('\n')) {
+                  const lines = cellText.split('\n');
+                  const titleLine = lines.find(line => line.startsWith('**') && line.endsWith('**'));
+                  const contentLine = lines.find(line => line.startsWith('  '));
+
+                  if (titleLine) {
+                    title = titleLine.replace(/\*\*/g, '');
+                  }
+                  if (contentLine) {
+                    content = contentLine.trim();
+                  }
+                } else if (cellText.startsWith('**') && cellText.endsWith('**')) {
+                  // Only title format: **title**
+                  title = cellText.replace(/\*\*/g, '');
+                } else {
+                  // Regular content
+                  content = cellText;
+                }
+
+                return {
+                  id: `r${rowIndex + 1}c${cellIndex + 1}`,
+                  title: title,
+                  content: content
+                };
+              })
             }))
           ],
           columns: newTableData.headers.length
@@ -262,7 +318,7 @@ export default function NodeRenderer({
         />
       </div>
     );
-  }, [onUpdateTableData, onUpdateNodeContent]);
+  }, [onUpdateNodeContent]);
 
   // Render field based on fieldType and type
   const renderField = useCallback(
@@ -270,7 +326,24 @@ export default function NodeRenderer({
       // Check fieldType first for special cases like TABLE
       if (node.fieldType === "TABLE") {
         // Handle TABLE fieldType regardless of node.type
-        return renderTableField(node);
+        return (
+          <div className="field-table-container w-full">
+            {/* Table title - editable */}
+            {node.title && (
+              <div className="mb-3">
+                <input
+                  type="text"
+                  className="text-lg font-calsans text-gray-800 bg-transparent outline-none w-full border-gray-200 pb-1"
+                  value={node.title || ""}
+                  onChange={(e) => onUpdateNodeTitle(node.id, e.target.value)}
+                  placeholder="Nhập tiêu đề bảng..."
+                />
+              </div>
+            )}
+            {/* Table content */}
+            {renderTableField(node)}
+          </div>
+        );
       }
 
       // Special rendering for SECTION and SUBSECTION - editable titles (only if not TABLE fieldType)

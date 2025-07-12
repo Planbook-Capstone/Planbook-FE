@@ -196,10 +196,45 @@ export function TableCell({
       title={disabled ? "" : "Double-click để chỉnh sửa hoặc kéo hình ảnh vào"}
     >
       <div className="space-y-2">
-        {/* Text content */}
+        {/* Text content with markdown support for title/content format */}
         {parsedValue.text && (
           <div className="text-sm text-gray-900">
-            {parsedValue.text}
+            {parsedValue.text.includes('**') && parsedValue.text.includes('\n') ? (
+              // Handle title + content format: **title**\n  content
+              parsedValue.text.split('\n').map((line, index) => {
+                if (line.startsWith('**') && line.endsWith('**')) {
+                  // Title line - bold
+                  const titleText = line.replace(/\*\*/g, '');
+                  return (
+                    <div key={index} className="font-bold">
+                      {titleText}
+                    </div>
+                  );
+                } else if (line.startsWith('  ')) {
+                  // Content line with padding
+                  return (
+                    <div key={index} className="pl-2 mt-1">
+                      {line.trim()}
+                    </div>
+                  );
+                } else {
+                  // Regular line
+                  return (
+                    <div key={index}>
+                      {line}
+                    </div>
+                  );
+                }
+              })
+            ) : parsedValue.text.startsWith('**') && parsedValue.text.endsWith('**') ? (
+              // Handle title only format: **title**
+              <div className="font-bold">
+                {parsedValue.text.replace(/\*\*/g, '')}
+              </div>
+            ) : (
+              // Regular text
+              parsedValue.text
+            )}
           </div>
         )}
 
