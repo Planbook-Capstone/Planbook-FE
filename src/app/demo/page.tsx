@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { v4 as uuidv4 } from "uuid";
-import { useLessonPlanNodeChildrenService } from "@/services/lessonPlanNodeServices";
+import { useLessonPlanNodeChildrenService, useLessonPlanNodeTreeService } from "@/services/lessonPlanNodeServices";
 import PreviewModal from "@/components/PreviewModal";
 import { generateDocx } from "@/utils/docxGenerator";
 import Sidebar from "@/components/demo/Sidebar";
@@ -14,6 +14,7 @@ import { useLessonPlanGenerationService } from "@/services/lessonPlanGenerationS
 import { useTaskResultService } from "@/services/textbookServices";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
+import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 
 interface CellContent {
   text?: string;
@@ -128,6 +129,11 @@ function DemoPage() {
     "82312bab-6f4b-42d4-8018-6770917a4347"
   );
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  //get node root of lesson plan id 
+   const treeData = useLessonPlanNodeTreeService("1")();
+
+   console.log(trashData,"tree");
 
   // Load data from API
   const childrenQuery = useLessonPlanNodeChildrenService("1")();
@@ -742,7 +748,14 @@ function DemoPage() {
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
-
+          <StepFloatingPanel
+            items={[]}
+            current={1}
+            layout="horizontal"
+            visible={true}
+            initialPosition={{ x: 700, y: 100 }}
+            style={{ width: 300 }}
+          />
           {/* Canvas */}
           <Canvas
             demoData={demoData}

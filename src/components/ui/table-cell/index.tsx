@@ -40,7 +40,6 @@ export function TableCell({
   // Parse value to get text and image
   const parsedValue = React.useMemo(() => {
     if (typeof value === "string") {
-      console.log("🔍 TableCell string value:", value);
       return { text: value, image: null };
     }
     console.log("🔍 TableCell object value:", value);
