@@ -135,9 +135,8 @@ function DemoPage() {
 
   const [currentStep, setCurrentStep] = useState(0);
 
-  const handleChangeStep = (newStep: number) => {
-    setCurrentStep(newStep);
-  };
+  // Final data để lưu tổng data của tất cả các step
+  const [finalData, setFinalData] = useState<Record<string, DemoNode[]>>({});
 
   console.log(currentStep, "current");
 
@@ -151,6 +150,30 @@ function DemoPage() {
     title: item?.title,
     description: item?.content || "",
   }));
+
+  // Helper function để update finalData khi demoData thay đổi
+  const updateFinalData = useCallback((newDemoData: DemoNode[]) => {
+    if (items && items.length > currentStep) {
+      const currentStepId = items[currentStep].id.toString();
+      setFinalData(prev => ({
+        ...prev,
+        [currentStepId]: newDemoData
+      }));
+    }
+  }, [items, currentStep]);
+
+  const handleChangeStep = (newStep: number) => {
+    // Lưu demoData hiện tại vào finalData trước khi chuyển step
+    if (items && items.length > currentStep) {
+      const currentStepId = items[currentStep].id.toString();
+      setFinalData(prev => ({
+        ...prev,
+        [currentStepId]: demoData
+      }));
+    }
+
+    setCurrentStep(newStep);
+  };
 
   // Load data from API
   const childrenQuery = useLessonPlanNodeChildrenService(
@@ -238,30 +261,47 @@ function DemoPage() {
 
   // Initialize demo data from API when it loads
   useEffect(() => {
-    if (apiData && apiData.length > 0) {
-      // Convert API data to DemoNode format
-      const convertApiToDemoNode = (apiNode: any): DemoNode => {
-        return {
-          id: apiNode.id?.toString() || uuidv4(),
-          lessonPlanId: apiNode.lessonPlanId || 1,
-          parentId: apiNode.parentId?.toString() || null,
-          title: apiNode.title || "",
-          content: apiNode.content || "",
-          fieldType: apiNode.fieldType || "INPUT",
-          type: apiNode.type || "PARAGRAPH",
-          orderIndex: apiNode.orderIndex || 0,
-          metadata: apiNode.metadata,
-          status: apiNode.status || "ACTIVE",
-          children: apiNode.children
-            ? apiNode.children.map(convertApiToDemoNode)
-            : [],
-        };
-      };
+    if (items && items.length > currentStep) {
+      const currentStepId = items[currentStep].id.toString();
 
-      const convertedData = apiData.map(convertApiToDemoNode);
-      setDemoData(convertedData);
+      // Kiểm tra xem đã có data trong finalData chưa
+      if (finalData[currentStepId]) {
+        // Nếu có thì load từ finalData
+        setDemoData(finalData[currentStepId]);
+      } else if (apiData && apiData.length > 0) {
+        // Nếu chưa có thì convert từ API data
+        const convertApiToDemoNode = (apiNode: any): DemoNode => {
+          return {
+            id: apiNode.id?.toString() || uuidv4(),
+            lessonPlanId: apiNode.lessonPlanId || 1,
+            parentId: apiNode.parentId?.toString() || null,
+            title: apiNode.title || "",
+            content: apiNode.content || "",
+            fieldType: apiNode.fieldType || "INPUT",
+            type: apiNode.type || "PARAGRAPH",
+            orderIndex: apiNode.orderIndex || 0,
+            metadata: apiNode.metadata,
+            status: apiNode.status || "ACTIVE",
+            children: apiNode.children
+              ? apiNode.children.map(convertApiToDemoNode)
+              : [],
+          };
+        };
+
+        const convertedData = apiData.map(convertApiToDemoNode);
+        setDemoData(convertedData);
+
+        // Lưu vào finalData
+        setFinalData(prev => ({
+          ...prev,
+          [currentStepId]: convertedData
+        }));
+      } else {
+        // Nếu không có data từ API thì set empty array
+        setDemoData([]);
+      }
     }
-  }, [apiData]);
+  }, [apiData, currentStep, items, finalData]);
 
   // Handle content changes
   const handleInputChange = useCallback((nodeId: string, value: string) => {
@@ -277,8 +317,12 @@ function DemoPage() {
       });
     };
 
-    setDemoData((prev) => updateNodeContent(prev));
-  }, []);
+    setDemoData((prev) => {
+      const newData = updateNodeContent(prev);
+      updateFinalData(newData);
+      return newData;
+    });
+  }, [updateFinalData]);
 
   // Handle title changes
   const handleTitleChange = useCallback((nodeId: string, title: string) => {
@@ -294,8 +338,12 @@ function DemoPage() {
       });
     };
 
-    setDemoData((prev) => updateNodeTitle(prev));
-  }, []);
+    setDemoData((prev) => {
+      const newData = updateNodeTitle(prev);
+      updateFinalData(newData);
+      return newData;
+    });
+  }, [updateFinalData]);
 
   // Handle table data changes
   const handleTableDataChange = useCallback(
@@ -312,9 +360,13 @@ function DemoPage() {
         });
       };
 
-      setDemoData((prev) => updateNodeTableData(prev));
+      setDemoData((prev) => {
+        const newData = updateNodeTableData(prev);
+        updateFinalData(newData);
+        return newData;
+      });
     },
-    []
+    [updateFinalData]
   );
 
   // Add child to node with proper orderIndex
@@ -366,9 +418,13 @@ function DemoPage() {
         });
       };
 
-      setDemoData((prev) => updateNodeWithChild(prev));
+      setDemoData((prev) => {
+        const newData = updateNodeWithChild(prev);
+        updateFinalData(newData);
+        return newData;
+      });
     },
-    []
+    [updateFinalData]
   );
 
   // Find node by ID in nested structure
@@ -452,9 +508,11 @@ function DemoPage() {
             const maxOrderIndex =
               prev.length > 0 ? Math.max(...prev.map((n) => n.orderIndex)) : -1;
             const nodeWithOrder = { ...newNode, orderIndex: maxOrderIndex + 1 };
-            return [...prev, nodeWithOrder].sort(
+            const newData = [...prev, nodeWithOrder].sort(
               (a, b) => a.orderIndex - b.orderIndex
             );
+            updateFinalData(newData);
+            return newData;
           });
         }
         // Dropping to a specific node (as child)
@@ -473,6 +531,7 @@ function DemoPage() {
           // Remove the node from its current position
           const updatedData = removeNodeById(demoData, draggableId);
           setDemoData(updatedData);
+          updateFinalData(updatedData);
 
           // Add it as a child to the target node
           setTimeout(() => {
@@ -491,6 +550,7 @@ function DemoPage() {
           ]);
           const updatedData = removeNodeById(demoData, draggableId);
           setDemoData(updatedData);
+          updateFinalData(updatedData);
         }
       }
 
@@ -510,6 +570,7 @@ function DemoPage() {
         }));
 
         setDemoData(updatedData);
+        updateFinalData(updatedData);
       }
     },
     [demoData, addChildToNode, findNodeById, removeNodeById]
@@ -559,9 +620,10 @@ function DemoPage() {
         };
         setTrashData((prev) => [...prev, deletedNodeWithStatus]);
         setDemoData(result.updatedList);
+        updateFinalData(result.updatedList);
       }
     },
-    [demoData, findAndDeleteNode]
+    [demoData, findAndDeleteNode, updateFinalData]
   );
 
   // Check if parent exists in current data
@@ -612,9 +674,11 @@ function DemoPage() {
               restoredNode.orderIndex = maxOrderIndex + 1;
             }
 
-            return [...prev, restoredNode].sort(
+            const newData = [...prev, restoredNode].sort(
               (a, b) => a.orderIndex - b.orderIndex
             );
+            updateFinalData(newData);
+            return newData;
           });
         } else {
           // Restore as child to existing parent with original orderIndex
@@ -633,6 +697,46 @@ function DemoPage() {
     [trashData, addChildToNode, findParentExists, demoData]
   );
 
+  // Hàm lấy tổng data từ finalData với cấu trúc cha-con đúng
+  const getAllFinalData = useCallback(() => {
+    // Lưu demoData hiện tại vào finalData trước
+    if (items && items.length > currentStep) {
+      const currentStepId = items[currentStep].id.toString();
+      const updatedFinalData = {
+        ...finalData,
+        [currentStepId]: demoData
+      };
+
+      // Tạo cấu trúc cha-con đúng từ tree data và children data
+      const allData: DemoNode[] = [];
+
+      items.forEach((item: any) => {
+        const stepId = item.id.toString();
+        const stepChildrenData = (updatedFinalData as Record<string, DemoNode[]>)[stepId] || [];
+
+        // Tạo node cha từ tree data
+        const parentNode: DemoNode = {
+          id: item.id.toString(),
+          lessonPlanId: 7, // Lesson plan ID hiện tại
+          parentId: null,
+          title: item.title || "",
+          content: item.description || "",
+          fieldType: "INPUT", // fieldType chỉ có INPUT, TABLE, IMAGE
+          type: "SECTION",
+          orderIndex: items.indexOf(item),
+          metadata: null,
+          status: "ACTIVE",
+          children: stepChildrenData // Gán các node con từ finalData
+        };
+
+        allData.push(parentNode);
+      });
+
+      return allData;
+    }
+    return demoData;
+  }, [finalData, demoData, items, currentStep]);
+
   // Handle download DOCX
   const handleDownloadDocx = useCallback(async () => {
     try {
@@ -646,15 +750,20 @@ function DemoPage() {
         duration: "Thời gian thực hiện: (số tiết)",
         teacherName: "Họ và tên giáo viên:\n................................",
       };
-      await generateDocx(demoData, "lesson-plan.docx", headerInfo);
+      // Sử dụng tổng data từ tất cả các step
+      const allData = getAllFinalData();
+      await generateDocx(allData, "lesson-plan.docx", headerInfo);
     } catch (error) {
       console.error("Error generating DOCX:", error);
       alert("Có lỗi xảy ra khi tạo file DOCX");
     }
-  }, [demoData]);
+  }, [getAllFinalData]);
 
   const { mutate } = useLessonPlanGenerationService();
   const handleGenerationLessonPlan = () => {
+    // Sử dụng tổng data từ tất cả các step
+    const allData = getAllFinalData();
+
     const mergedNode = {
       id: "merged",
       lessonPlanId: 4,
@@ -689,6 +798,39 @@ function DemoPage() {
   // Fetch task result data using React Query
   const taskResultQuery = useTaskResultService(taskId);
 
+  // Hàm merge data từ AI vào finalData
+  const mergeAIDataToFinalData = useCallback((aiData: DemoNode[]) => {
+    if (!items || items.length <= currentStep) return;
+
+    const currentStepId = items[currentStep].id.toString();
+
+    // Lấy data hiện tại của step
+    const currentStepData = finalData[currentStepId] || demoData;
+
+    // Merge logic: nếu trùng id thì update, không thì thêm mới
+    const mergedData = [...currentStepData];
+
+    aiData.forEach(aiNode => {
+      const existingIndex = mergedData.findIndex(node => node.id === aiNode.id);
+      if (existingIndex !== -1) {
+        // Update existing node
+        mergedData[existingIndex] = aiNode;
+      } else {
+        // Add new node
+        mergedData.push(aiNode);
+      }
+    });
+
+    // Update finalData và demoData
+    setFinalData(prev => ({
+      ...prev,
+      [currentStepId]: mergedData
+    }));
+    setDemoData(mergedData);
+
+    return mergedData;
+  }, [currentStep, items, finalData, demoData]);
+
   // Handle fetch task result data
   const handleFetchTaskResult = useCallback(() => {
     setIsLoadingData(true);
@@ -708,14 +850,15 @@ function DemoPage() {
             const lessonPlanData = result.data.result.lesson_plan;
             console.log("📋 Lesson plan data:", lessonPlanData);
 
-            // Convert lesson plan data to DemoNode format and update demoData
+            // Convert lesson plan data to DemoNode format
             const convertedData = convertLessonPlanToDemoNode(lessonPlanData);
             console.log("🔄 Converted data:", convertedData);
 
             if (convertedData.length > 0) {
-              setDemoData(convertedData);
+              // Merge vào finalData thay vì replace
+              const mergedData = mergeAIDataToFinalData(convertedData);
               toast.success(
-                `Lấy dữ liệu thành công! Đã load ${convertedData.length} node(s)`
+                `Lấy dữ liệu thành công! Đã merge ${convertedData.length} node(s), tổng ${mergedData?.length || 0} node(s)`
               );
             } else {
               toast.warning("Dữ liệu lesson plan trống");
@@ -735,7 +878,7 @@ function DemoPage() {
         toast.error(`Lỗi khi lấy dữ liệu: ${error.message || "Unknown error"}`);
         setIsLoadingData(false);
       });
-  }, [taskResultQuery, convertLessonPlanToDemoNode, taskId]);
+  }, [taskResultQuery, convertLessonPlanToDemoNode, taskId, mergeAIDataToFinalData]);
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -774,7 +917,6 @@ function DemoPage() {
             layout="horizontal"
             visible={true}
             onStepChange={handleChangeStep}
-            initialPosition={{ x: 700, y: 100 }}
             style={{ width: 300 }}
           />
           {/* Canvas */}
@@ -802,6 +944,14 @@ function DemoPage() {
           <Button
             onClick={() => {
               setDemoData([]);
+              // Xóa data của step hiện tại trong finalData
+              if (items && items.length > currentStep) {
+                const currentStepId = items[currentStep].id.toString();
+                setFinalData(prev => ({
+                  ...prev,
+                  [currentStepId]: []
+                }));
+              }
               toast.success("Đã xóa dữ liệu hiện tại");
             }}
             disabled={isLoadingData}
@@ -811,15 +961,34 @@ function DemoPage() {
             Xóa dữ liệu hiện tại
           </Button>
 
-          {/* Task ID Display */}
-          <div className="text-xs text-gray-500 mt-2">Task ID: {taskId}</div>
+          {/* Clear All Final Data Button */}
+          <Button
+            onClick={() => {
+              setFinalData({});
+              setDemoData([]);
+              toast.success("Đã xóa tất cả dữ liệu final data");
+            }}
+            disabled={isLoadingData}
+            className="w-full"
+            variant="destructive"
+          >
+            Xóa tất cả Final Data
+          </Button>
+
+          {/* Debug Final Data */}
+          <div className="text-xs text-gray-500 mt-2">
+            <div>Task ID: {taskId}</div>
+            <div>Current Step: {currentStep}</div>
+            <div>Final Data Keys: {Object.keys(finalData).join(", ")}</div>
+            <div>Demo Data Count: {demoData.length}</div>
+          </div>
         </div>
 
         {/* Preview Modal */}
         <PreviewModal
           isOpen={showPreview}
           onClose={() => setShowPreview(false)}
-          data={demoData}
+          data={getAllFinalData()}
           onDownload={handleDownloadDocx}
         />
       </div>
