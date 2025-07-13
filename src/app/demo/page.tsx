@@ -697,7 +697,7 @@ function DemoPage() {
     [trashData, addChildToNode, findParentExists, demoData]
   );
 
-  // Hàm lấy tổng data từ finalData
+  // Hàm lấy tổng data từ finalData với cấu trúc cha-con đúng
   const getAllFinalData = useCallback(() => {
     // Lưu demoData hiện tại vào finalData trước
     if (items && items.length > currentStep) {
@@ -707,12 +707,29 @@ function DemoPage() {
         [currentStepId]: demoData
       };
 
-      // Merge tất cả data từ các step
+      // Tạo cấu trúc cha-con đúng từ tree data và children data
       const allData: DemoNode[] = [];
+
       items.forEach((item: any) => {
         const stepId = item.id.toString();
-        const stepData = (updatedFinalData as Record<string, DemoNode[]>)[stepId] || [];
-        allData.push(...stepData);
+        const stepChildrenData = (updatedFinalData as Record<string, DemoNode[]>)[stepId] || [];
+
+        // Tạo node cha từ tree data
+        const parentNode: DemoNode = {
+          id: item.id.toString(),
+          lessonPlanId: 7, // Lesson plan ID hiện tại
+          parentId: null,
+          title: item.title || "",
+          content: item.description || "",
+          fieldType: "INPUT", // fieldType chỉ có INPUT, TABLE, IMAGE
+          type: "SECTION",
+          orderIndex: items.indexOf(item),
+          metadata: null,
+          status: "ACTIVE",
+          children: stepChildrenData // Gán các node con từ finalData
+        };
+
+        allData.push(parentNode);
       });
 
       return allData;
