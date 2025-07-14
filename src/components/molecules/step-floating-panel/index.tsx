@@ -11,6 +11,7 @@ type StepFloatingPanelProps = Omit<StepsProps, "onChange"> & {
   visible?: boolean;
   className?: string;
   style?: CSSProperties;
+  initialPosition: { x: number; y: number };
   onStepChange?: (index: number) => void;
 };
 
@@ -21,6 +22,7 @@ export const StepFloatingPanel = ({
   style,
   onStepChange,
   current = 0,
+  initialPosition = { x: 100, y: 200 },
   ...stepsProps
 }: StepFloatingPanelProps) => {
   const dragRef = useDraggable();
@@ -43,8 +45,8 @@ export const StepFloatingPanel = ({
         className
       )}
       style={{
-        top: 100,
-        left: 100,
+        top: initialPosition.y,
+        left: initialPosition.x,
         position: "fixed",
         ...style,
       }}
