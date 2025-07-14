@@ -152,23 +152,26 @@ function DemoPage() {
   }));
 
   // Helper function để update finalData khi demoData thay đổi
-  const updateFinalData = useCallback((newDemoData: DemoNode[]) => {
-    if (items && items.length > currentStep) {
-      const currentStepId = items[currentStep].id.toString();
-      setFinalData(prev => ({
-        ...prev,
-        [currentStepId]: newDemoData
-      }));
-    }
-  }, [items, currentStep]);
+  const updateFinalData = useCallback(
+    (newDemoData: DemoNode[]) => {
+      if (items && items.length > currentStep) {
+        const currentStepId = items[currentStep].id.toString();
+        setFinalData((prev) => ({
+          ...prev,
+          [currentStepId]: newDemoData,
+        }));
+      }
+    },
+    [items, currentStep]
+  );
 
   const handleChangeStep = (newStep: number) => {
     // Lưu demoData hiện tại vào finalData trước khi chuyển step
     if (items && items.length > currentStep) {
       const currentStepId = items[currentStep].id.toString();
-      setFinalData(prev => ({
+      setFinalData((prev) => ({
         ...prev,
-        [currentStepId]: demoData
+        [currentStepId]: demoData,
       }));
     }
 
@@ -179,7 +182,7 @@ function DemoPage() {
   const childrenQuery = useLessonPlanNodeChildrenService(
     items && items.length > currentStep ? items[currentStep].id.toString() : ""
   )();
-  
+
   const apiData = childrenQuery?.data?.data;
 
   // Convert lesson plan data to DemoNode format
@@ -292,9 +295,9 @@ function DemoPage() {
         setDemoData(convertedData);
 
         // Lưu vào finalData
-        setFinalData(prev => ({
+        setFinalData((prev) => ({
           ...prev,
-          [currentStepId]: convertedData
+          [currentStepId]: convertedData,
         }));
       } else {
         // Nếu không có data từ API thì set empty array
@@ -304,46 +307,52 @@ function DemoPage() {
   }, [apiData, currentStep, items, finalData]);
 
   // Handle content changes
-  const handleInputChange = useCallback((nodeId: string, value: string) => {
-    const updateNodeContent = (nodeList: DemoNode[]): DemoNode[] => {
-      return nodeList.map((node) => {
-        if (node.id.toString() === nodeId) {
-          return { ...node, content: value };
-        }
-        if (node.children && node.children.length > 0) {
-          return { ...node, children: updateNodeContent(node.children) };
-        }
-        return node;
-      });
-    };
+  const handleInputChange = useCallback(
+    (nodeId: string, value: string) => {
+      const updateNodeContent = (nodeList: DemoNode[]): DemoNode[] => {
+        return nodeList.map((node) => {
+          if (node.id.toString() === nodeId) {
+            return { ...node, content: value };
+          }
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: updateNodeContent(node.children) };
+          }
+          return node;
+        });
+      };
 
-    setDemoData((prev) => {
-      const newData = updateNodeContent(prev);
-      updateFinalData(newData);
-      return newData;
-    });
-  }, [updateFinalData]);
+      setDemoData((prev) => {
+        const newData = updateNodeContent(prev);
+        updateFinalData(newData);
+        return newData;
+      });
+    },
+    [updateFinalData]
+  );
 
   // Handle title changes
-  const handleTitleChange = useCallback((nodeId: string, title: string) => {
-    const updateNodeTitle = (nodeList: DemoNode[]): DemoNode[] => {
-      return nodeList.map((node) => {
-        if (node.id.toString() === nodeId) {
-          return { ...node, title };
-        }
-        if (node.children && node.children.length > 0) {
-          return { ...node, children: updateNodeTitle(node.children) };
-        }
-        return node;
-      });
-    };
+  const handleTitleChange = useCallback(
+    (nodeId: string, title: string) => {
+      const updateNodeTitle = (nodeList: DemoNode[]): DemoNode[] => {
+        return nodeList.map((node) => {
+          if (node.id.toString() === nodeId) {
+            return { ...node, title };
+          }
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: updateNodeTitle(node.children) };
+          }
+          return node;
+        });
+      };
 
-    setDemoData((prev) => {
-      const newData = updateNodeTitle(prev);
-      updateFinalData(newData);
-      return newData;
-    });
-  }, [updateFinalData]);
+      setDemoData((prev) => {
+        const newData = updateNodeTitle(prev);
+        updateFinalData(newData);
+        return newData;
+      });
+    },
+    [updateFinalData]
+  );
 
   // Handle table data changes
   const handleTableDataChange = useCallback(
@@ -704,7 +713,7 @@ function DemoPage() {
       const currentStepId = items[currentStep].id.toString();
       const updatedFinalData = {
         ...finalData,
-        [currentStepId]: demoData
+        [currentStepId]: demoData,
       };
 
       // Tạo cấu trúc cha-con đúng từ tree data và children data
@@ -712,7 +721,8 @@ function DemoPage() {
 
       items.forEach((item: any) => {
         const stepId = item.id.toString();
-        const stepChildrenData = (updatedFinalData as Record<string, DemoNode[]>)[stepId] || [];
+        const stepChildrenData =
+          (updatedFinalData as Record<string, DemoNode[]>)[stepId] || [];
 
         // Tạo node cha từ tree data
         const parentNode: DemoNode = {
@@ -726,7 +736,7 @@ function DemoPage() {
           orderIndex: items.indexOf(item),
           metadata: null,
           status: "ACTIVE",
-          children: stepChildrenData // Gán các node con từ finalData
+          children: stepChildrenData, // Gán các node con từ finalData
         };
 
         allData.push(parentNode);
@@ -779,7 +789,7 @@ function DemoPage() {
     };
 
     const payload = {
-      lesson_id: "5",
+      lesson_id: "sinh",
       lesson_plan_json: mergedNode,
     };
     mutate(payload, {
@@ -795,41 +805,46 @@ function DemoPage() {
     });
   };
 
-  // Fetch task result data using React Query
-  const taskResultQuery = useTaskResultService(taskId);
+  // Fetch task result data using React Query with current step context
+  const taskResultQuery = useTaskResultService(taskId, currentStep);
 
   // Hàm merge data từ AI vào finalData
-  const mergeAIDataToFinalData = useCallback((aiData: DemoNode[]) => {
-    if (!items || items.length <= currentStep) return;
+  const mergeAIDataToFinalData = useCallback(
+    (aiData: DemoNode[]) => {
+      if (!items || items.length <= currentStep) return;
 
-    const currentStepId = items[currentStep].id.toString();
+      const currentStepId = items[currentStep].id.toString();
 
-    // Lấy data hiện tại của step
-    const currentStepData = finalData[currentStepId] || demoData;
+      // Lấy data hiện tại của step
+      const currentStepData = finalData[currentStepId] || demoData;
 
-    // Merge logic: nếu trùng id thì update, không thì thêm mới
-    const mergedData = [...currentStepData];
+      // Merge logic: nếu trùng id thì update, không thì thêm mới
+      const mergedData = [...currentStepData];
 
-    aiData.forEach(aiNode => {
-      const existingIndex = mergedData.findIndex(node => node.id === aiNode.id);
-      if (existingIndex !== -1) {
-        // Update existing node
-        mergedData[existingIndex] = aiNode;
-      } else {
-        // Add new node
-        mergedData.push(aiNode);
-      }
-    });
+      aiData.forEach((aiNode) => {
+        const existingIndex = mergedData.findIndex(
+          (node) => node.id === aiNode.id
+        );
+        if (existingIndex !== -1) {
+          // Update existing node
+          mergedData[existingIndex] = aiNode;
+        } else {
+          // Add new node
+          mergedData.push(aiNode);
+        }
+      });
 
-    // Update finalData và demoData
-    setFinalData(prev => ({
-      ...prev,
-      [currentStepId]: mergedData
-    }));
-    setDemoData(mergedData);
+      // Update finalData và demoData
+      setFinalData((prev) => ({
+        ...prev,
+        [currentStepId]: mergedData,
+      }));
+      setDemoData(mergedData);
 
-    return mergedData;
-  }, [currentStep, items, finalData, demoData]);
+      return mergedData;
+    },
+    [currentStep, items, finalData, demoData]
+  );
 
   // Handle fetch task result data
   const handleFetchTaskResult = useCallback(() => {
@@ -858,7 +873,9 @@ function DemoPage() {
               // Merge vào finalData thay vì replace
               const mergedData = mergeAIDataToFinalData(convertedData);
               toast.success(
-                `Lấy dữ liệu thành công! Đã merge ${convertedData.length} node(s), tổng ${mergedData?.length || 0} node(s)`
+                `Lấy dữ liệu thành công! Đã merge ${
+                  convertedData.length
+                } node(s), tổng ${mergedData?.length || 0} node(s)`
               );
             } else {
               toast.warning("Dữ liệu lesson plan trống");
@@ -878,7 +895,12 @@ function DemoPage() {
         toast.error(`Lỗi khi lấy dữ liệu: ${error.message || "Unknown error"}`);
         setIsLoadingData(false);
       });
-  }, [taskResultQuery, convertLessonPlanToDemoNode, taskId, mergeAIDataToFinalData]);
+  }, [
+    taskResultQuery,
+    convertLessonPlanToDemoNode,
+    taskId,
+    mergeAIDataToFinalData,
+  ]);
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -918,6 +940,7 @@ function DemoPage() {
             visible={true}
             onStepChange={handleChangeStep}
             style={{ width: 300 }}
+            initialPosition={{ x: 500, y: 100 }}
           />
           {/* Canvas */}
           <Canvas
@@ -947,9 +970,9 @@ function DemoPage() {
               // Xóa data của step hiện tại trong finalData
               if (items && items.length > currentStep) {
                 const currentStepId = items[currentStep].id.toString();
-                setFinalData(prev => ({
+                setFinalData((prev) => ({
                   ...prev,
-                  [currentStepId]: []
+                  [currentStepId]: [],
                 }));
               }
               toast.success("Đã xóa dữ liệu hiện tại");
