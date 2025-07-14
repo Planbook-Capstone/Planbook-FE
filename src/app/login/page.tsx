@@ -7,11 +7,16 @@ import { useUserServices } from "@/services/userService";
 import { toast } from "sonner";
 import { supabase } from "@/config/supabaseClient";
 import { useRouter } from "next/navigation";
+import { FcGoogle } from "react-icons/fc";
 
 const LoginPage = () => {
   const { mutate } = useUserServices();
   const [form] = Form.useForm();
+  const [registerForm] = Form.useForm();
+  const [isRegister, setIsRegister] = React.useState(false);
+  const [showRegisterOptions, setShowRegisterOptions] = React.useState(false);
   const router = useRouter();
+
   const onFinish = (values: any) => {
     console.log("Form values:", values);
     mutate(values, {
@@ -34,6 +39,37 @@ const LoginPage = () => {
         );
       },
     });
+  };
+
+  const onRegisterFinish = (values: any) => {
+    console.log("Register values:", values);
+    // TODO: Implement register API call
+    toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+    setIsRegister(false);
+    setShowRegisterOptions(false);
+    registerForm.resetFields();
+  };
+
+  const handleShowRegisterOptions = () => {
+    setShowRegisterOptions(true);
+    setIsRegister(false);
+  };
+
+  const handleRegisterWithCredentials = () => {
+    setIsRegister(true);
+    setShowRegisterOptions(false);
+  };
+
+  const handleRegisterWithGoogle = () => {
+    // Tạm thời back to login
+    toast.info("Đăng ký với Google - Coming soon!");
+    setShowRegisterOptions(false);
+    setIsRegister(false);
+  };
+
+  const handleBackToLogin = () => {
+    setIsRegister(false);
+    setShowRegisterOptions(false);
   };
 
   const loginGG = async () => {
@@ -79,88 +115,268 @@ const LoginPage = () => {
       {/* Login Form */}
       <div className="absolute h-full flex items-center lg:pl-[8rem] justify-end gap-28">
         <div className="min-h-fit flex items-center justify-center bg-white px-4 py-10 z-10 rounded-md">
-          <div className="w-full max-w-sm space-y-6 px-4">
+          <div
+            className={`w-full space-y-6 px-4 transition-all duration-300 ${
+              showRegisterOptions || isRegister ? "min-w-sm" : "max-w-sm"
+            }`}
+          >
             <div>
               <h1 className="text-2xl font-questrial text-gray-900">
-                Chào mừng{" "}
-                <span className="font-calsans text-gray-900">quay trở lại</span>
+                {showRegisterOptions ? (
+                  <>
+                    Chọn phương thức{" "}
+                    <span className="font-calsans text-gray-900">đăng ký</span>
+                  </>
+                ) : isRegister ? (
+                  <>
+                    Tạo tài khoản{" "}
+                    <span className="font-calsans text-gray-900">mới</span>
+                  </>
+                ) : (
+                  <>
+                    Chào mừng{" "}
+                    <span className="font-calsans text-gray-900">
+                      quay trở lại
+                    </span>
+                  </>
+                )}
               </h1>
               <p className="mt-2 text-sm text-gray-500 font-questrial">
-                Nhập email và mật khẩu để đăng nhập vào tài khoản.
+                {showRegisterOptions
+                  ? "Chọn cách bạn muốn tạo tài khoản mới."
+                  : isRegister
+                  ? "Điền thông tin để tạo tài khoản mới."
+                  : "Nhập email và mật khẩu để đăng nhập vào tài khoản."}
               </p>
             </div>
 
-            <Form
-              form={form}
-              onFinish={onFinish}
-              layout="vertical"
-              className="space-y-4 font-questrial"
-            >
-              <Form.Item
-                name="username"
-                rules={[{ required: true, message: "Vui lòng nhập email!" }]}
-              >
-                <Input
-                  placeholder="Username"
-                  size="large"
-                  className="input-base input-secondary"
-                />
-              </Form.Item>
-              <Form.Item
-                name="password"
-                rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
-              >
-                <Input.Password
-                  placeholder="Mật khẩu"
-                  size="large"
-                  className="input-base input-secondary"
-                />
-              </Form.Item>
-
-              <Form.Item>
+            {showRegisterOptions ? (
+              // Register Options
+              <div className="space-y-4">
                 <Button
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
+                  onClick={handleRegisterWithCredentials}
                   block
-                  className="w-full btn-base flex !justify-between !pl-4 !border-none btn-secondary !bg-[#0BD7DA] !hover:bg-cyan-500"
+                  size="large"
+                  className="w-full btn-base flex !text-white !justify-between !pl-4 !border-none btn-secondary !bg-[#0BD7DA] !hover:bg-cyan-500"
                 >
-                  <span>Đăng nhập</span>{" "}
-                  <div className="w-14 h-full flex justify-center items-center bg-[#00BFC9]">
-                    <ArrowRight />
+                  <span>Đăng ký với tên và mật khẩu</span>
+                </Button>
+
+                <Button
+                  onClick={handleRegisterWithGoogle}
+                  block
+                  size="large"
+                  className="btn-base btn-secondary flex !justify-between !pl-4 !border-[#E4EBF3] !border-1 !hover:bg-gray-100"
+                >
+                  <div className="flex items-center gap-2">
+                    <FcGoogle className="h-6 w-6" />
+                    Đăng ký với Google
                   </div>
                 </Button>
-              </Form.Item>
-            </Form>
-
-            <Button
-              onClick={loginGG}
-              block
-              size="large"
-              className="btn-base btn-secondary flex !justify-between !pl-4 !border-[#E4EBF3] !border-1 !hover:bg-gray-100"
-            >
-              <div className="flex items-center gap-2">Tiếp tục với Google</div>
-              <div className="w-14 h-full flex justify-center items-center bg-[#E4EBF3] text-[#AABBCF]">
-                <ArrowRight />
               </div>
-            </Button>
+            ) : isRegister ? (
+              // Register Form
+              <Form
+                form={registerForm}
+                onFinish={onRegisterFinish}
+                layout="vertical"
+                className="space-y-4 font-questrial"
+              >
+                <Form.Item
+                  name="fullName"
+                  rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
+                >
+                  <Input
+                    placeholder="Họ và tên"
+                    size="large"
+                    className="input-base input-secondary"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="email"
+                  rules={[
+                    { required: true, message: "Vui lòng nhập email!" },
+                    { type: "email", message: "Email không hợp lệ!" },
+                  ]}
+                >
+                  <Input
+                    placeholder="Email"
+                    size="large"
+                    className="input-base input-secondary"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="username"
+                  rules={[
+                    { required: true, message: "Vui lòng nhập tên đăng nhập!" },
+                  ]}
+                >
+                  <Input
+                    placeholder="Tên đăng nhập"
+                    size="large"
+                    className="input-base input-secondary"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="password"
+                  rules={[
+                    { required: true, message: "Vui lòng nhập mật khẩu!" },
+                    { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự!" },
+                  ]}
+                >
+                  <Input.Password
+                    placeholder="Mật khẩu"
+                    size="large"
+                    className="input-base input-secondary"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="confirmPassword"
+                  dependencies={["password"]}
+                  rules={[
+                    { required: true, message: "Vui lòng xác nhận mật khẩu!" },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue("password") === value) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          new Error("Mật khẩu xác nhận không khớp!")
+                        );
+                      },
+                    }),
+                  ]}
+                >
+                  <Input.Password
+                    placeholder="Xác nhận mật khẩu"
+                    size="large"
+                    className="input-base input-secondary"
+                  />
+                </Form.Item>
 
-            <div className="text-sm font-questrial mt-2">
-              <a href="#" className="text-cyan-500 hover:underline">
-                Quên mật khẩu
-              </a>
-            </div>
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    size="large"
+                    block
+                    className="w-full btn-base flex !justify-between !pl-4 !border-none btn-secondary !bg-[#0BD7DA] !hover:bg-cyan-500"
+                  >
+                    <span>Đăng ký</span>
+                    <div className="w-14 h-full flex justify-center items-center bg-[#00BFC9]">
+                      <ArrowRight />
+                    </div>
+                  </Button>
+                </Form.Item>
+              </Form>
+            ) : (
+              // Login Form
+              <Form
+                form={form}
+                onFinish={onFinish}
+                layout="vertical"
+                className="space-y-4 font-questrial"
+              >
+                <Form.Item
+                  name="username"
+                  rules={[{ required: true, message: "Vui lòng nhập email!" }]}
+                >
+                  <Input
+                    placeholder="Username"
+                    size="large"
+                    className="input-base input-secondary"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="password"
+                  rules={[
+                    { required: true, message: "Vui lòng nhập mật khẩu!" },
+                  ]}
+                >
+                  <Input.Password
+                    placeholder="Mật khẩu"
+                    size="large"
+                    className="input-base input-secondary"
+                  />
+                </Form.Item>
+
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    size="large"
+                    block
+                    className="w-full btn-base flex !justify-between !pl-4 !border-none btn-secondary !bg-[#0BD7DA] !hover:bg-cyan-500"
+                  >
+                    <span>Đăng nhập</span>
+                    <div className="w-14 h-full flex justify-center items-center bg-[#00BFC9]">
+                      <ArrowRight />
+                    </div>
+                  </Button>
+                </Form.Item>
+              </Form>
+            )}
+            {!isRegister && !showRegisterOptions && (
+              <Button
+                onClick={loginGG}
+                block
+                size="large"
+                className="btn-base btn-secondary flex !justify-between !pl-4 !border-[#E4EBF3] !border-1 !hover:bg-gray-100"
+              >
+                <div className="flex items-center gap-2">
+                  Tiếp tục với Google
+                </div>
+                <div className="w-14 h-full flex justify-center items-center bg-[#E4EBF3] text-[#AABBCF]">
+                  <ArrowRight />
+                </div>
+              </Button>
+            )}
+
+            {!isRegister && (
+              <div className="text-sm font-questrial mt-2">
+                <a href="#" className="text-cyan-500 hover:underline">
+                  Quên mật khẩu
+                </a>
+              </div>
+            )}
 
             <Divider />
 
             <p className="text-sm text-gray-600 font-questrial block">
-              Bạn chưa có tài khoản?{" "}
-              <a
-                href="#"
-                className="text-cyan-500 font-calsans hover:underline"
-              >
-                Đăng kí ngay
-              </a>
+              {showRegisterOptions ? (
+                <>
+                  Đã có tài khoản?{" "}
+                  <button
+                    type="button"
+                    onClick={handleBackToLogin}
+                    className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
+                  >
+                    Đăng nhập ngay
+                  </button>
+                </>
+              ) : isRegister ? (
+                <>
+                  Đã có tài khoản?{" "}
+                  <button
+                    type="button"
+                    onClick={handleBackToLogin}
+                    className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
+                  >
+                    Đăng nhập ngay
+                  </button>
+                </>
+              ) : (
+                <>
+                  Bạn chưa có tài khoản?{" "}
+                  <button
+                    type="button"
+                    onClick={handleShowRegisterOptions}
+                    className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
+                  >
+                    Đăng ký ngay
+                  </button>
+                </>
+              )}
             </p>
           </div>
         </div>
