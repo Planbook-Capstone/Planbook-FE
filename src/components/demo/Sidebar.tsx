@@ -4,6 +4,7 @@ import { useMaterialSearchService } from "@/services/materialServices";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Badge } from "antd";
 import { Image, Trash } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
 
 interface DemoNode {
@@ -59,42 +60,41 @@ export default function Sidebar({
   const { data: materials } = useMaterialSearchService("1");
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col ">
       {/* Sidebar Header */}
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-calsans ">Thành phần</h2>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
-        {(["components", "images", "trash"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 text-sm font-medium capitalize ${
-              activeTab === tab
-                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                : "text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            {tab === "components" && "🧩 Components"}
-            {tab === "images" && (
-              <div className="flex items-center gap-1">
-                <Image /> <p className="text-nowrap">Hình ảnh</p>
-              </div>
-            )}
-            {tab === "trash" && (
-              <Badge count={trashData.length} size="small">
-                <Trash />
-              </Badge>
-            )}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as "components" | "images" | "trash")
+        }
+        className="w-full flex flex-col flex-1 p-2"
+      >
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="components" className="text-xs">
+            Components
+          </TabsTrigger>
+          <TabsTrigger value="images" className="text-xs">
+            <div className="flex items-center gap-1">
+              <Image size={14} />
+              <span className="text-nowrap">Hình ảnh</span>
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="trash" className="text-xs">
+            <Badge count={trashData.length} size="small">
+              <Trash size={14} />
+            </Badge>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tab Content */}
-      <div className="flex-1 p-4 overflow-y-auto">
-        {activeTab === "components" && (
+        <TabsContent
+          value="components"
+          className="flex-1 p-4 overflow-y-auto mt-0"
+        >
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Kéo thả để thêm components
@@ -143,9 +143,9 @@ export default function Sidebar({
               )}
             </Droppable>
           </div>
-        )}
+        </TabsContent>
 
-        {activeTab === "images" && (
+        <TabsContent value="images" className="flex-1 p-4 overflow-y-auto mt-0">
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Thư viện hình ảnh
@@ -180,9 +180,9 @@ export default function Sidebar({
               ))}
             </div>
           </div>
-        )}
+        </TabsContent>
 
-        {activeTab === "trash" && (
+        <TabsContent value="trash" className="flex-1 p-4 overflow-y-auto mt-0">
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Thùng rác ({trashData.length} items)
@@ -217,8 +217,8 @@ export default function Sidebar({
               </div>
             )}
           </div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
