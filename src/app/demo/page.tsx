@@ -18,6 +18,8 @@ import { useTaskResultService } from "@/services/textbookServices";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
+import { useExecuteToolService } from "@/services/executeToolServices";
+import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 
 interface CellContent {
   text?: string;
@@ -769,7 +771,35 @@ function DemoPage() {
     }
   }, [getAllFinalData]);
 
-  const { mutate } = useLessonPlanGenerationService();
+  const { mutate } = useExecuteToolService();
+  const [wsUrl, setWsUrl] = useState("http://localhost:8085/websocket");
+  const [topic, setTopic] = useState("/user/queue/notifications");
+  const [enabled, setEnabled] = useState(false);
+  const { data, isConnected, error, sendMessage, reconnect } =
+    useSimpleWebSocket({
+      url: wsUrl,
+      topic: topic,
+      enabled: enabled,
+    });
+
+  console.log(data, "test-tran");
+
+  useEffect(() => {
+    const convertedData = convertLessonPlanToDemoNode(data?.children);
+    if (convertedData.length > 0) {
+      // Merge vào finalData thay vì replace
+      const mergedData = mergeAIDataToFinalData(convertedData);
+      toast.success(
+        `Lấy dữ liệu thành công! Đã merge ${
+          convertedData.length
+        } node(s), tổng ${mergedData?.length || 0} node(s)`
+      );
+    } else {
+      toast.warning("Vui lòng đợi");
+    }
+   
+  }, [data]);
+
   const handleGenerationLessonPlan = () => {
     // Sử dụng tổng data từ tất cả các step
     const allData = getAllFinalData();
@@ -789,7 +819,9 @@ function DemoPage() {
     };
 
     const payload = {
-      lesson_id: "sinh",
+      toolId: "6ef43906-1899-4cec-b969-48957ba574ba",
+      toolType: "INTERNAL",
+      lesson_id: "4",
       lesson_plan_json: mergedNode,
     };
     mutate(payload, {
@@ -797,6 +829,7 @@ function DemoPage() {
         toast.success("Tạo giáo án thành công");
         console.log(e.data.task_id);
         setTaskId(e.data.task_id);
+        setEnabled(true);
       },
       onError: (error) => {
         toast.error("Tạo giáo án thất bại");
@@ -943,6 +976,9 @@ function DemoPage() {
             initialPosition={{ x: 500, y: 100 }}
           />
           {/* Canvas */}
+          <h1 className="font-calsans px-5 text-xl">
+            {items?.length > 0 && items[currentStep]?.title}
+          </h1>
           <Canvas
             demoData={demoData}
             showDeleteButtons={showDeleteButtons}
@@ -951,60 +987,6 @@ function DemoPage() {
             onUpdateNodeContent={handleInputChange}
             onUpdateTableData={handleTableDataChange}
           />
-        </div>
-
-        {/* Fetch Data Button */}
-        <div className="p-4 space-y-2">
-          <Button
-            onClick={handleFetchTaskResult}
-            disabled={isLoadingData}
-            className="w-full"
-          >
-            {isLoadingData ? "Đang tải..." : "Lấy data từ API"}
-          </Button>
-
-          {/* Clear Data Button */}
-          <Button
-            onClick={() => {
-              setDemoData([]);
-              // Xóa data của step hiện tại trong finalData
-              if (items && items.length > currentStep) {
-                const currentStepId = items[currentStep].id.toString();
-                setFinalData((prev) => ({
-                  ...prev,
-                  [currentStepId]: [],
-                }));
-              }
-              toast.success("Đã xóa dữ liệu hiện tại");
-            }}
-            disabled={isLoadingData}
-            className="w-full"
-            variant="outline"
-          >
-            Xóa dữ liệu hiện tại
-          </Button>
-
-          {/* Clear All Final Data Button */}
-          <Button
-            onClick={() => {
-              setFinalData({});
-              setDemoData([]);
-              toast.success("Đã xóa tất cả dữ liệu final data");
-            }}
-            disabled={isLoadingData}
-            className="w-full"
-            variant="destructive"
-          >
-            Xóa tất cả Final Data
-          </Button>
-
-          {/* Debug Final Data */}
-          <div className="text-xs text-gray-500 mt-2">
-            <div>Task ID: {taskId}</div>
-            <div>Current Step: {currentStep}</div>
-            <div>Final Data Keys: {Object.keys(finalData).join(", ")}</div>
-            <div>Demo Data Count: {demoData.length}</div>
-          </div>
         </div>
 
         {/* Preview Modal */}

@@ -6,8 +6,8 @@
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: "/auth-service-local/api/login",
-    LOGIN_GOOGLE: "/auth-service-local/api/login-google",
+    LOGIN: "/auth-service/api/login",
+    LOGIN_GOOGLE: "/auth-service/api/login-google",
   },
 
   // Academic Years
@@ -35,18 +35,21 @@ export const API_ENDPOINTS = {
   SUBJECTS: "master-data-service-local/api/subjects",
   SUBJECTS_BY_GRADE: "master-data-service-local/api/subjects/by-grade",
 
+  //EXECUTE-TOOL
+  EXECUTE_TOOL: "aggregator/api/tool/execute",
+
   // Forms (Lesson Plans)
   FORMS: "/forms",
 
   // Lesson Plan Templates
-  LESSON_PLANS: "/lesson-plan-service-local/api/lesson-plans",
+  LESSON_PLANS: "/lesson-plan-service/api/lesson-plans",
 
-  LESSON_NODES: "/lesson-plan-service-local/api/lesson-nodes",
+  LESSON_NODES: "/lesson-plan-service/api/lesson-nodes",
   LESSON_NODES_TREE: (id: string) =>
-    `/lesson-plan-service-local/api/lesson-nodes/${id}/tree`,
+    `/lesson-plan-service/api/lesson-nodes/${id}/tree`,
 
   LESSON_NODE_CHIDREN: (nodeId: string) =>
-    `/lesson-plan-service-local/api/lesson-nodes/${nodeId}/children`,
+    `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
 
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
 
