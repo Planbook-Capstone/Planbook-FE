@@ -1,7 +1,14 @@
-/**
- * API Endpoints Constants
- * Centralized management of all API endpoints
- */
+const SERVICES = {
+  AUTH: "auth-service",
+  MASTER_DATA: "master-data-service-local",
+  LESSON_PLAN: "lesson-plan-service",
+  ACADEMIC_RESOURCE: "academic-resource-service-local",
+  EXTERNAL_TOOL: "external-tool-config-service",
+  AGGREGATOR: "aggregator",
+} as const;
+
+const buildEndpoint = (service: string, path: string) =>
+  `/${service}/api${path}`;
 
 export const API_ENDPOINTS = {
   // Authentication
@@ -41,16 +48,17 @@ export const API_ENDPOINTS = {
   // Forms (Lesson Plans)
   FORMS: "/forms",
 
-  // Lesson Plan Templates
-  LESSON_PLANS: "/lesson-plan-service/api/lesson-plans",
+  // Lesson Plan
 
-  LESSON_NODES: "/lesson-plan-service/api/lesson-nodes",
-  LESSON_NODES_TREE: (id: string) =>
-    `/lesson-plan-service/api/lesson-nodes/${id}/tree`,
+  LESSON_PLANS: {
+    BASE: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-plans"),
 
-  LESSON_NODE_CHIDREN: (nodeId: string) =>
-    `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
+    NODES: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-nodes"),
+    TREE: (id: string) => `/lesson-plan-service/api/lesson-nodes/${id}/tree`,
 
+    CHIDREN: (nodeId: string) =>
+      `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
+  },
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
 
   // Tags
