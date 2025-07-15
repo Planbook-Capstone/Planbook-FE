@@ -22,6 +22,7 @@ import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import LoadingAI from "@/components/molecules/loading";
 
 interface CellContent {
   text?: string;
@@ -236,9 +237,11 @@ function DemoPage() {
               )
             : [],
           // For TABLE nodes, ensure content is properly formatted as JSON string
-          ...(nodeType === "TABLE" && node.content && {
-            // Content is already in correct JSON format from API
-          }),
+          ...(nodeType === "TABLE" &&
+            node.content &&
+            {
+              // Content is already in correct JSON format from API
+            }),
         };
       };
 
@@ -351,8 +354,6 @@ function DemoPage() {
     },
     [updateFinalData]
   );
-
-
 
   // Add child to node with proper orderIndex
   const addChildToNode = useCallback(
@@ -475,13 +476,15 @@ function DemoPage() {
                   {
                     id: "h1",
                     title: "HOẠT ĐỘNG CỦA GIÁO VIÊN",
-                    content: "<p>Mô tả các hoạt động của giáo viên trong tiết học</p>",
+                    content:
+                      "<p>Mô tả các hoạt động của giáo viên trong tiết học</p>",
                     isHeader: true,
                   },
                   {
                     id: "h2",
                     title: "HOẠT ĐỘNG CỦA HỌC SINH",
-                    content: "<p>Mô tả các hoạt động của học sinh trong tiết học</p>",
+                    content:
+                      "<p>Mô tả các hoạt động của học sinh trong tiết học</p>",
                     isHeader: true,
                   },
                 ],
@@ -988,20 +991,7 @@ function DemoPage() {
           />
           {data?.status === "processing" ? (
             <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
-              <div className="w-3/4  my-5 flex flex-col items-start">
-                <div className="w-full flex items-center justify-between">
-                  <p>{data?.message}</p>
-                  <p>{data?.progress}%</p>
-                </div>
-                <Progress value={data?.progress} className="w-full" />
-              </div>
-              <div className="w-full space-y-3">
-                <Skeleton className="h-10 w-1/3 bg-neutral-400" />
-                <Skeleton className="h-10 w-full bg-neutral-400" />
-                <Skeleton className="h-10 w-full bg-neutral-400" />
-                <Skeleton className="h-4 w-3/4 bg-neutral-300" />
-                <Skeleton className="h-4 w-1/2 bg-neutral-300" />
-              </div>
+              <LoadingAI message={data?.message} progress={data?.progress} />
             </div>
           ) : (
             <>
