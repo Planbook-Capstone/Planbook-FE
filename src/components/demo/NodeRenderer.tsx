@@ -35,7 +35,6 @@ interface DemoNode {
   metadata?: any;
   status: "ACTIVE" | "DELETED";
   children: DemoNode[];
-  tableData?: TableData;
 }
 
 interface NodeRendererProps {
@@ -45,7 +44,6 @@ interface NodeRendererProps {
   onDeleteNode: (nodeId: string) => void;
   onUpdateNodeTitle: (nodeId: string, title: string) => void;
   onUpdateNodeContent: (nodeId: string, content: string) => void;
-  onUpdateTableData?: (nodeId: string, tableData: TableData) => void;
 }
 
 // Auto-resize textarea component
@@ -100,7 +98,6 @@ export default function NodeRenderer({
   onDeleteNode,
   onUpdateNodeTitle,
   onUpdateNodeContent,
-  onUpdateTableData,
 }: NodeRendererProps) {
   // Get drop zone colors based on depth level
   const getDropZoneColors = (depth: number) => {
@@ -115,16 +112,11 @@ export default function NodeRenderer({
   // Render table field - extracted from switch case
   const renderTableField = useCallback(
     (node: DemoNode) => {
-      // Parse table data from content field if it's a JSON string, or use tableData field
+      // Parse table data from content field (prioritize content field over tableData)
       let tableData: TableData;
 
-      // Check if node has tableData field (old format)
-      if ((node as any).tableData) {
-        console.log("📋 Using tableData field:", (node as any).tableData);
-        tableData = (node as any).tableData;
-      }
-      // Otherwise try to parse from content field (new format)
-      else {
+      // First try to parse from content field (new format)
+      if (node.content && typeof node.content === "string") {
         try {
           if (node.content && typeof node.content === "string") {
             const parsedContent = JSON.parse(node.content);
@@ -244,15 +236,35 @@ export default function NodeRenderer({
           }
         } catch (error) {
           console.error("Error parsing table content:", error);
-          // Fallback to default
-          tableData = {
-            headers: ["Cột 1", "Cột 2"],
-            rows: [
-              ["", ""],
-              ["", ""],
-            ],
-          };
+          // Fallback to tableData field if available, otherwise use default
+          if ((node as any).tableData) {
+            console.log("📋 Fallback to tableData field:", (node as any).tableData);
+            tableData = (node as any).tableData;
+          } else {
+            tableData = {
+              headers: ["Cột 1", "Cột 2"],
+              rows: [
+                ["", ""],
+                ["", ""],
+              ],
+            };
+          }
         }
+      }
+      // Fallback to tableData field if no content available
+      else if ((node as any).tableData) {
+        console.log("📋 Using tableData field as fallback:", (node as any).tableData);
+        tableData = (node as any).tableData;
+      }
+      // Use default if no data available
+      else {
+        tableData = {
+          headers: ["Cột 1", "Cột 2"],
+          rows: [
+            ["", ""],
+            ["", ""],
+          ],
+        };
       }
 
       // Ensure all cells are strings for simplicity
@@ -278,8 +290,7 @@ export default function NodeRenderer({
       };
 
       const handleTableDataChange = (newTableData: TableData) => {
-        if (onUpdateTableData) {
-          // Convert TableData back to API format and save to content
+        // Convert TableData back to API format and save to content
           const apiFormat = {
             rows: [
               // Header row
@@ -339,12 +350,9 @@ export default function NodeRenderer({
             columns: newTableData.headers.length,
           };
 
-          // Update both tableData and content
-          onUpdateTableData(node.id, newTableData);
-          // Also update content with JSON string
-          if (onUpdateNodeContent) {
-            onUpdateNodeContent(node.id, JSON.stringify(apiFormat));
-          }
+        // Only update content field with JSON string
+        if (onUpdateNodeContent) {
+          onUpdateNodeContent(node.id, JSON.stringify(apiFormat));
         }
       };
 
@@ -615,7 +623,6 @@ export default function NodeRenderer({
                             onDeleteNode={onDeleteNode}
                             onUpdateNodeTitle={onUpdateNodeTitle}
                             onUpdateNodeContent={onUpdateNodeContent}
-                            onUpdateTableData={onUpdateTableData}
                           />
                         </div>
                       )}

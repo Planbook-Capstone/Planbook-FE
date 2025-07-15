@@ -34,7 +34,6 @@ interface DemoNode {
   metadata?: any;
   status: "ACTIVE" | "DELETED";
   children: DemoNode[];
-  tableData?: TableData;
 }
 
 interface PreviewModalProps {
@@ -128,16 +127,16 @@ export default function PreviewModal({
           };
         }
       } else {
-        // Use tableData if available, otherwise default
-        tableData = node.tableData || {
+        // Use default if no content available
+        tableData = {
           headers: ["Cột 1", "Cột 2"],
           rows: [["", ""], ["", ""]]
         };
       }
     } catch (error) {
       console.error("Error parsing table content in preview:", error);
-      // Fallback to default or existing tableData
-      tableData = node.tableData || {
+      // Fallback to default
+      tableData = {
         headers: ["Cột 1", "Cột 2"],
         rows: [["", ""], ["", ""]]
       };
