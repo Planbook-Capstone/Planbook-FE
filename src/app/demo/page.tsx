@@ -22,6 +22,7 @@ import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import LoadingAI from "@/components/molecules/loading";
 
 interface CellContent {
   text?: string;
@@ -54,7 +55,6 @@ interface DemoNode {
   metadata?: any;
   status: "ACTIVE" | "DELETED";
   children: DemoNode[];
-  tableData?: TableData;
 }
 
 interface ComponentPaletteItem {
@@ -236,15 +236,12 @@ function DemoPage() {
                 convertNode(child, childIndex)
               )
             : [],
-          ...(nodeType === "TABLE" && {
-            tableData: node.tableData || {
-              headers: ["Cột 1", "Cột 2"],
-              rows: [
-                ["", ""],
-                ["", ""],
-              ],
-            },
-          }),
+          // For TABLE nodes, ensure content is properly formatted as JSON string
+          ...(nodeType === "TABLE" &&
+            node.content &&
+            {
+              // Content is already in correct JSON format from API
+            }),
         };
       };
 
@@ -351,30 +348,6 @@ function DemoPage() {
 
       setDemoData((prev) => {
         const newData = updateNodeTitle(prev);
-        updateFinalData(newData);
-        return newData;
-      });
-    },
-    [updateFinalData]
-  );
-
-  // Handle table data changes
-  const handleTableDataChange = useCallback(
-    (nodeId: string, tableData: TableData) => {
-      const updateNodeTableData = (nodeList: DemoNode[]): DemoNode[] => {
-        return nodeList.map((node) => {
-          if (node.id.toString() === nodeId) {
-            return { ...node, tableData };
-          }
-          if (node.children && node.children.length > 0) {
-            return { ...node, children: updateNodeTableData(node.children) };
-          }
-          return node;
-        });
-      };
-
-      setDemoData((prev) => {
-        const newData = updateNodeTableData(prev);
         updateFinalData(newData);
         return newData;
       });
@@ -492,27 +465,78 @@ function DemoPage() {
         );
         if (!componentType) return;
 
+        // Create default table content for TABLE type
+        let nodeContent = "";
+        if (componentType.type === "TABLE") {
+          const defaultTableData = {
+            rows: [
+              {
+                id: "header-row",
+                cells: [
+                  {
+                    id: "h1",
+                    title: "HOẠT ĐỘNG CỦA GIÁO VIÊN",
+                    content:
+                      "<p>Mô tả các hoạt động của giáo viên trong tiết học</p>",
+                    isHeader: true,
+                  },
+                  {
+                    id: "h2",
+                    title: "HOẠT ĐỘNG CỦA HỌC SINH",
+                    content:
+                      "<p>Mô tả các hoạt động của học sinh trong tiết học</p>",
+                    isHeader: true,
+                  },
+                ],
+              },
+              {
+                id: "row-1",
+                cells: [
+                  {
+                    id: "r1c1",
+                    title: "Bước 1: Chuyển giao nhiệm vụ học tập",
+                    content: "",
+                  },
+                  {
+                    id: "r1c2",
+                    title: "Học sinh thực hiện các hoạt động được giao",
+                    content: "",
+                  },
+                ],
+              },
+              {
+                id: "row-2",
+                cells: [
+                  {
+                    id: "r2c1",
+                    title: "Bước 2: Thực hiện nhiệm vụ",
+                    content: "",
+                  },
+                  {
+                    id: "r2c2",
+                    title: "Học sinh phản hồi và thảo luận",
+                    content: "",
+                  },
+                ],
+              },
+            ],
+            columns: 2,
+          };
+          nodeContent = JSON.stringify(defaultTableData);
+        }
+
         const newNode: DemoNode = {
           id: uuidv4(),
           lessonPlanId: 1,
           parentId: null,
           title: `Mới: ${componentType.title}`,
-          content: "",
+          content: nodeContent,
           fieldType: componentType.fieldType,
           type: componentType.type,
           orderIndex: 0,
           metadata: { isNew: true },
           status: "ACTIVE",
           children: [],
-          ...(componentType.type === "TABLE" && {
-            tableData: {
-              headers: ["Cột 1", "Cột 2"],
-              rows: [
-                ["", ""],
-                ["", ""],
-              ],
-            },
-          }),
         };
 
         // Dropping to main canvas
@@ -967,20 +991,7 @@ function DemoPage() {
           />
           {data?.status === "processing" ? (
             <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
-              <div className="w-3/4  my-5 flex flex-col items-start">
-                <div className="w-full flex items-center justify-between">
-                  <p>{data?.message}</p>
-                  <p>{data?.progress}%</p>
-                </div>
-                <Progress value={data?.progress} className="w-full" />
-              </div>
-              <div className="w-full space-y-3">
-                <Skeleton className="h-10 w-1/3 bg-neutral-400" />
-                <Skeleton className="h-10 w-full bg-neutral-400" />
-                <Skeleton className="h-10 w-full bg-neutral-400" />
-                <Skeleton className="h-4 w-3/4 bg-neutral-300" />
-                <Skeleton className="h-4 w-1/2 bg-neutral-300" />
-              </div>
+              <LoadingAI message={data?.message} progress={data?.progress} />
             </div>
           ) : (
             <>
@@ -1003,7 +1014,6 @@ function DemoPage() {
                 onDeleteNode={handleDeleteNode}
                 onUpdateNodeTitle={handleTitleChange}
                 onUpdateNodeContent={handleInputChange}
-                onUpdateTableData={handleTableDataChange}
               />
             </>
           )}

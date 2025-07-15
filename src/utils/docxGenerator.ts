@@ -91,7 +91,6 @@ interface DemoNode {
   metadata?: any;
   status: "ACTIVE" | "DELETED";
   children: DemoNode[];
-  tableData?: TableData;
 }
 
 interface LessonPlanHeader {
