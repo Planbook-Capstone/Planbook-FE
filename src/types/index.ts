@@ -250,3 +250,67 @@ export interface LessonPlanStepContent {
     value: string;
   }[];
 }
+
+// Slide Editor Types
+export interface TextStyle {
+  fontSize: number;
+  fontFamily: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  color?: string;
+  textAlign?: "left" | "center" | "right";
+}
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export interface TextElement {
+  id: string;
+  type: "text";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  text: string;
+  style: TextStyle;
+}
+
+export interface ImageElement {
+  id: string;
+  type: "image";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  src: string;
+  alt?: string;
+}
+
+export interface ShapeElement {
+  id: string;
+  type: "shape";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  shapeType: "rectangle" | "circle" | "triangle";
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+}
+
+export type SlideElement = TextElement | ImageElement | ShapeElement;
+
+export interface SlideData {
+  id: string;
+  elements: SlideElement[];
+  background?: string;
+}
