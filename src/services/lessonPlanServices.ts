@@ -22,5 +22,5 @@ export const useUpdateFormService = updateMutationHook(
 
 export const useLessonPlanService = createMutationHook(
   "lesson-plan",
-  API_ENDPOINTS.LESSON_PLANS
+  API_ENDPOINTS.LESSON_PLANS.BASE
 );
