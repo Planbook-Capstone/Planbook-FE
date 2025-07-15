@@ -28,7 +28,6 @@ interface DemoNode {
   metadata?: any;
   status: "ACTIVE" | "DELETED";
   children: DemoNode[];
-  tableData?: TableData;
 }
 
 interface CanvasProps {
@@ -37,7 +36,6 @@ interface CanvasProps {
   onDeleteNode: (nodeId: string) => void;
   onUpdateNodeTitle: (nodeId: string, title: string) => void;
   onUpdateNodeContent: (nodeId: string, content: string) => void;
-  onUpdateTableData: (nodeId: string, tableData: TableData) => void;
 }
 
 export default function Canvas({
@@ -45,8 +43,7 @@ export default function Canvas({
   showDeleteButtons,
   onDeleteNode,
   onUpdateNodeTitle,
-  onUpdateNodeContent,
-  onUpdateTableData
+  onUpdateNodeContent
 }: CanvasProps) {
   return (
     <div className="flex-1 p-1 overflow-y-auto">
@@ -89,7 +86,6 @@ export default function Canvas({
                           onDeleteNode={onDeleteNode}
                           onUpdateNodeTitle={onUpdateNodeTitle}
                           onUpdateNodeContent={onUpdateNodeContent}
-                          onUpdateTableData={onUpdateTableData}
                         />
                       </div>
                     )}
