@@ -10,7 +10,7 @@ interface Props {
 
 function LoadingAI({ message, progress }: Props) {
   return (
-    <div className="p-5 w-full flex flex-col items-center">
+    <div className="mx-auto  w-full flex flex-col items-center">
       <Image
         alt="Loading...."
         width={300}
