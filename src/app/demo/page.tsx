@@ -142,12 +142,8 @@ function DemoPage() {
   // Final data để lưu tổng data của tất cả các step
   const [finalData, setFinalData] = useState<Record<string, DemoNode[]>>({});
 
-  console.log(currentStep, "current");
-
   //get node root of lesson plan id
   const { data: treeData } = useLessonPlanNodeTreeService("7")();
-
-  console.log(treeData?.data, "tree");
 
   const items = treeData?.data?.map((item: any) => ({
     id: item?.id,

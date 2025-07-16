@@ -149,9 +149,15 @@ export default function PreviewModal({
         className="mb-4"
       >
         {node.title && node.title !== "Mới: Table" && (
-          <h3 className="text-lg font-medium text-black mb-2">
-            {node.title}
-          </h3>
+          node.type === "SUBSECTION" ? (
+            <h2 className="text-xl font-semibold text-black mb-3">
+              {node.title}
+            </h2>
+          ) : (
+            <h3 className="text-lg font-medium text-black mb-2">
+              {node.title}
+            </h3>
+          )
         )}
         <div className="border border-gray-400">
           <table className="w-full border-collapse table-fixed">
