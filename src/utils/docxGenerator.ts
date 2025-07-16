@@ -142,7 +142,7 @@ const createLessonPlanHeader = (headerInfo: LessonPlanHeader = {}) => {
       children: [
         new TextRun({
           text: "(Kèm theo Công văn số 5512/BGDĐT-GDTrH ngày 18 tháng 12 năm 2020 của Bộ GDĐT)",
-          italic: true,
+          italics: true,
           size: 24,
         }),
       ],
@@ -505,7 +505,7 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         console.log("📋 Processing table node:", {
           nodeId: node.id,
-          hasTableData: !!node.tableData,
+          hasTableData: !!(node as any).tableData,
           hasContent: !!node.content,
           contentType: typeof node.content
         });
@@ -538,19 +538,39 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
                 )
                 .map((row: any) =>
                   row.cells.map((cell: any) => {
-                    // Combine title and content, preserve HTML formatting info
+                    // Combine title and content for text content
                     const title = cell.title || "";
                     const content = cell.content || "";
-                    let combined = "";
+                    let textContent = "";
 
                     if (title && content) {
-                      combined = `${title}\n${content}`;
+                      textContent = `${title}\n${content}`;
                     } else {
-                      combined = title || content;
+                      textContent = title || content;
                     }
 
-                    // Parse HTML and return object with text and formatting
-                    return parseHtmlToTextRuns(combined);
+                    // Check if this cell has image data (from drag-drop)
+                    // Look for base64 image data in title or content
+                    const hasImageInTitle = title.includes('data:image/');
+                    const hasImageInContent = content.includes('data:image/');
+
+                    if (hasImageInTitle || hasImageInContent) {
+                      // Extract image URL
+                      const imageUrl = hasImageInTitle ? title : content;
+                      // Get text content from the other field
+                      const remainingText = hasImageInTitle ? content : title;
+
+                      return {
+                        text: remainingText || "",
+                        image: {
+                          url: imageUrl,
+                          name: "table-image"
+                        }
+                      } as CellContent;
+                    } else {
+                      // Regular text cell - return combined text
+                      return textContent;
+                    }
                   })
                 );
 
@@ -570,16 +590,17 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
           } catch (error) {
             console.error("❌ Error parsing rich table data:", error);
             // Fallback to tableData field or default
-            tableData = node.tableData || {
+            const nodeAny = node as any;
+            tableData = nodeAny.tableData || {
               headers: ["Cột 1", "Cột 2"],
               rows: [["", ""], ["", ""]],
             };
           }
         }
         // Fallback to tableData field (old format) if content parsing failed
-        else if (node.tableData && node.tableData.headers && node.tableData.rows) {
-          console.log("📋 Using tableData field as fallback:", node.tableData);
-          tableData = node.tableData;
+        else if ((node as any).tableData && (node as any).tableData.headers && (node as any).tableData.rows) {
+          console.log("📋 Using tableData field as fallback:", (node as any).tableData);
+          tableData = (node as any).tableData;
         }
         // Use default if no data available
         else {
@@ -630,22 +651,38 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
                   // Parse HTML string to TextRuns with formatting
                   cellTextRuns = parseHtmlToTextRuns(cell);
                 } else if (Array.isArray(cell)) {
-                  // Already parsed TextRuns array
+                  // Already parsed TextRuns array (legacy)
                   cellTextRuns = cell;
                 } else if (cell && typeof cell === 'object') {
                   if ('text' in cell && 'image' in cell) {
-                    // New CellContent format
-                    if (cell.image) {
-                      cellTextRuns = [new TextRun({
-                        text: `[Hình ảnh: ${cell.image.name || 'image'}]`,
-                        size: 24,
-                      })];
-                    } else {
-                      cellTextRuns = parseHtmlToTextRuns(cell.text || '');
+                    // New CellContent format - handle mixed content
+                    const cellContent = cell as CellContent;
+
+                    // Add text content if exists
+                    if (cellContent.text) {
+                      cellTextRuns = parseHtmlToTextRuns(cellContent.text);
+                    }
+
+                    // Add image placeholder if exists
+                    if (cellContent.image) {
+                      const imageText = cellContent.text ?
+                        ` [📷 ${cellContent.image.name || 'Hình ảnh'}]` :
+                        `[📷 ${cellContent.image.name || 'Hình ảnh'}]`;
+                      cellTextRuns.push(new TextRun({
+                        text: imageText,
+                        size: 22,
+                        italics: true,
+                        color: "0066CC", // Blue color for image placeholders
+                      }));
+                    }
+
+                    if (cellTextRuns.length === 0) {
+                      cellTextRuns = [new TextRun({ text: '', size: 24 })];
                     }
                   } else if ('type' in cell && 'content' in cell) {
                     // Old format compatibility
-                    const text = cell.type === 'image' ? `[Hình ảnh: ${cell.content}]` : cell.content;
+                    const cellData = cell as any;
+                    const text = cellData.type === 'image' ? `[📷 ${cellData.content}]` : String(cellData.content || '');
                     cellTextRuns = parseHtmlToTextRuns(text);
                   }
                 }
@@ -682,7 +719,99 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         elements.push(table);
 
-        // Add spacing after table
+        // Collect and add images from table cells
+        const tableImages: { url: string; name?: string }[] = [];
+
+        console.log("🔍 Debug table data for images:", {
+          hasRows: !!tableData.rows,
+          rowCount: tableData.rows?.length,
+          tableData: tableData
+        });
+
+        // Collect images from all table cells
+        if (tableData.rows) {
+          tableData.rows.forEach((row, rowIndex) => {
+            row.forEach((cell, cellIndex) => {
+              console.log(`🔍 Checking cell [${rowIndex}][${cellIndex}]:`, {
+                cellType: typeof cell,
+                isObject: cell && typeof cell === 'object',
+                hasImage: cell && typeof cell === 'object' && 'image' in cell,
+                cell: cell
+              });
+
+              if (cell && typeof cell === 'object' && 'image' in cell && cell.image) {
+                const cellContent = cell as CellContent;
+                console.log("✅ Found image in cell:", cellContent.image);
+                if (cellContent.image) {
+                  tableImages.push(cellContent.image);
+                }
+              }
+            });
+          });
+        }
+
+        console.log("📷 Total images found in table:", tableImages.length, tableImages);
+
+        // Add images after table if any exist
+        if (tableImages.length > 0) {
+          elements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Hình ảnh trong bảng:",
+                  bold: true,
+                  size: 24,
+                }),
+              ],
+              spacing: { before: 120, after: 60 },
+            })
+          );
+
+          // Add each image
+          for (const image of tableImages) {
+            try {
+              const imageBuffer = await convertImageToBuffer(image.url);
+              if (imageBuffer) {
+                elements.push(
+                  new Paragraph({
+                    children: [
+                      new ImageRun({
+                        data: new Uint8Array(imageBuffer),
+                        transformation: {
+                          width: 300,
+                          height: 200,
+                        },
+                        type: "png",
+                      }),
+                    ],
+                    spacing: { after: 60 },
+                  })
+                );
+
+                // Add image caption if name exists
+                if (image.name) {
+                  elements.push(
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: `📷 ${image.name}`,
+                          italics: true,
+                          size: 22,
+                          color: "666666",
+                        }),
+                      ],
+                      spacing: { after: 120 },
+                    })
+                  );
+                }
+              }
+            } catch (error) {
+              console.error("Error adding table image to DOCX:", error);
+            }
+          }
+        }
+
+        // Add spacing after table and images
         elements.push(
           new Paragraph({
             children: [new TextRun({ text: "", size: 24 })],
@@ -734,6 +863,7 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
                         width: 400,
                         height: 300,
                       },
+                      type: "png",
                     }),
                   ],
                   spacing: {
