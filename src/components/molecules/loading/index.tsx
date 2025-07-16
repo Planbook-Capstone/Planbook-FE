@@ -1,4 +1,5 @@
 import { Progress } from "@/components/ui/progress";
+import { TypewriterText } from "@/components/ui/TypewriterText";
 import Image from "next/image";
 import React from "react";
 
@@ -18,9 +19,9 @@ function LoadingAI({ message, progress }: Props) {
         priority
         unoptimized
       />
-      <div className="w-3/4 flex flex-col items-start">
+      <div className="w-3/4 flex flex-col items-start gap-1">
         <div className="w-full flex items-center justify-between">
-          <p>{message}</p>
+          <TypewriterText texts={[message,"Đang xử lí ...","Vui lòng chờ ..."]}/>
           <p>{progress}%</p>
         </div>
         <Progress value={progress} className="w-full" />
