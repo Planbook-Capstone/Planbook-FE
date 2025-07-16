@@ -274,9 +274,12 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
   const processNode = async (node: DemoNode, depth: number = 0): Promise<any[]> => {
     const elements: any[] = [];
 
+    // Store original type for title styling
+    const originalType = node.type;
+
     // Check fieldType first for special cases like TABLE
     if (node.fieldType === "TABLE") {
-      console.log("🎯 Processing TABLE fieldType node:", node.id);
+      console.log("🎯 Processing TABLE fieldType node:", node.id, "originalType:", originalType);
       // Handle TABLE fieldType regardless of node.type - jump to TABLE case
       node = { ...node, type: "TABLE" as any };
     }
@@ -460,21 +463,41 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
       case "TABLE":
         // Add table title if it's not default
         if (node.title && node.title !== "Mới: Table") {
-          elements.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: node.title,
-                  bold: true,
-                  size: 26, // 13pt
-                }),
-              ],
-              spacing: {
-                after: 60, // 3pt
-                before: 120, // 6pt
-              },
-            })
-          );
+          // Use different styling based on original type
+          if (originalType === "SUBSECTION") {
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: node.title,
+                    bold: true,
+                    size: 28, // 14pt - same as SUBSECTION
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_2,
+                spacing: {
+                  after: 120, // 6pt
+                  before: 240, // 12pt
+                },
+              })
+            );
+          } else {
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: node.title,
+                    bold: true,
+                    size: 26, // 13pt
+                  }),
+                ],
+                spacing: {
+                  after: 60, // 3pt
+                  before: 120, // 6pt
+                },
+              })
+            );
+          }
         }
 
         // Handle both old and new table data formats
