@@ -92,22 +92,39 @@ export function RichTable({ data, onChange, className }: RichTableProps) {
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
 
-  // Update parent when data changes (debounced)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log("RichTable - Saving data:", tableData);
-      onChange?.(tableData);
-    }, 300);
-    return () => clearTimeout(timeoutId);
-  }, [tableData]);
+  // Track previous data to prevent infinite loops
+  const prevDataRef = useRef<TableData | undefined>();
+  const prevTableDataRef = useRef<TableData | undefined>();
 
   // Update local state when prop changes (prevent infinite loop)
   useEffect(() => {
-    if (data && JSON.stringify(data) !== JSON.stringify(tableData)) {
+    if (
+      data &&
+      JSON.stringify(prevDataRef.current) !== JSON.stringify(data) &&
+      JSON.stringify(data) !== JSON.stringify(tableData)
+    ) {
       console.log("RichTable - Loading data:", data);
       setTableData(data);
+      prevDataRef.current = data;
     }
-  }, [data]);
+  }, [data, tableData]);
+
+  // Update parent when data changes (debounced and prevent loops)
+  useEffect(() => {
+    if (
+      prevTableDataRef.current &&
+      JSON.stringify(prevTableDataRef.current) !== JSON.stringify(tableData) &&
+      JSON.stringify(prevDataRef.current) !== JSON.stringify(tableData)
+    ) {
+      const timeoutId = setTimeout(() => {
+        console.log("RichTable - Saving data:", tableData);
+        onChange?.(tableData);
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
+    }
+    prevTableDataRef.current = tableData;
+  }, [tableData, onChange]);
 
   const updateCell = useCallback(
     (rowId: string, cellId: string, content: string) => {
