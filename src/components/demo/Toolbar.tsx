@@ -22,9 +22,9 @@ export default function Toolbar({
   onToggleSidebar,
 }: ToolbarProps) {
   return (
-    <div className="bg-white border-b border-gray-200 p-4">
+    <div className=" p-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
             className=" cursor-pointer px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors"
@@ -33,7 +33,7 @@ export default function Toolbar({
             {sidebarCollapsed ? "☰" : "✕"}
           </button>
           <h1 className="text-xl font-calsans">Tạo giáo án</h1>
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-3">
           <Button

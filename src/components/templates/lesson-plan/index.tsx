@@ -785,14 +785,16 @@ function LessonPlanTemplate() {
         department: "Tổ:..............................",
         subject: "Môn học/Hoạt động giáo dục: ..........",
         grade: "lớp:........",
-        lessonTitle:
-          "TÊN BÀI DẠY: ................................................",
+        lessonTitle: `TÊN BÀI DẠY: ${
+          " " + lessonById?.data?.name?.toUpperCase() ||
+          "................................................"
+        }"`,
         duration: "Thời gian thực hiện: (số tiết)",
         teacherName: "Họ và tên giáo viên:\n................................",
       };
       // Sử dụng tổng data từ tất cả các step
       const allData = getAllFinalData();
-      await generateDocx(allData, "lesson-plan.docx", headerInfo);
+      await generateDocx(allData, "Giao_an_lesson-plan.docx", headerInfo);
     } catch (error) {
       console.error("Error generating DOCX:", error);
       alert("Có lỗi xảy ra khi tạo file DOCX");
@@ -846,7 +848,7 @@ function LessonPlanTemplate() {
     const payload = {
       toolId: "6ef43906-1899-4cec-b969-48957ba574ba",
       toolType: "INTERNAL",
-      lesson_id: "4",
+      lesson_id: lessonId?.toString(),
       lesson_plan_json: mergedNode,
     };
     mutate(payload, {
@@ -981,16 +983,18 @@ function LessonPlanTemplate() {
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col">
           {/* Toolbar */}
-          <Toolbar
-            showDeleteButtons={showDeleteButtons}
-            onToggleDeleteButtons={() =>
-              setShowDeleteButtons(!showDeleteButtons)
-            }
-            onShowPreview={() => setShowPreview(true)}
-            onExportJSON={handleGenerationLessonPlan}
-            sidebarCollapsed={sidebarCollapsed}
-            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-          />
+          <div className="absolute right-0 -top-16">
+            <Toolbar
+              showDeleteButtons={showDeleteButtons}
+              onToggleDeleteButtons={() =>
+                setShowDeleteButtons(!showDeleteButtons)
+              }
+              onShowPreview={() => setShowPreview(true)}
+              onExportJSON={handleGenerationLessonPlan}
+              sidebarCollapsed={sidebarCollapsed}
+              onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+            />
+          </div>
           {data?.status === "processing" ? (
             <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
               <LoadingAI message={data?.message} progress={data?.progress} />
@@ -1027,6 +1031,7 @@ function LessonPlanTemplate() {
           onClose={() => setShowPreview(false)}
           data={getAllFinalData()}
           onDownload={handleDownloadDocx}
+          lesson={lessonById?.data?.name}
         />
       </div>
     </DragDropContext>
