@@ -12,8 +12,9 @@ import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
 import { GradeResponse, SubjectResponse, BookResponse } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BookSelector from "@/components/molecules/book-selector";
+import { useHeader } from "@/contexts/HeaderContext";
 
 interface SelectLessonProps {
   onLessonSelect: (lessonId: string) => void;
@@ -27,6 +28,16 @@ function SelectLesson({
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedBook, setSelectedBook] = useState<string>("");
+
+  // Header context to clear previous state
+  const { setBreadcrumbs, setActions, setHideDefaultHeader } = useHeader();
+
+  // Clear header state when component mounts (when returning to lesson selection)
+  useEffect(() => {
+    setBreadcrumbs([]);
+    setActions([]);
+    setHideDefaultHeader(false);
+  }, [setBreadcrumbs, setActions, setHideDefaultHeader]);
 
   // API calls
   const { data: grades } = useGradesService();

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -12,26 +12,18 @@ import { generateDocx } from "@/utils/docxGenerator";
 import Sidebar from "@/components/demo/Sidebar";
 import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
-import {
-  ChevronLeft,
-  Edit,
-  FileText,
-  Heading1,
-  Heading2,
-  Images,
-  List,
-  Table,
-  Type,
-} from "lucide-react";
+import { Heading1, Heading2, Images, List, Table, Type } from "lucide-react";
+import { useLessonPlanGenerationService } from "@/services/lessonPlanGenerationServices";
 import { useTaskResultService } from "@/services/textbookServices";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/Button";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import LoadingAI from "@/components/molecules/loading";
-import { useHeader } from "@/contexts/HeaderContext";
-import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useLessonByIdService } from "@/services/lessonServices";
 
 interface CellContent {
@@ -142,80 +134,12 @@ function LessonPlanTemplate() {
   );
   const [showPreview, setShowPreview] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [taskId, setTaskId] = useState<string>(
+    "82312bab-6f4b-42d4-8018-6770917a4347"
+  );
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(0);
-
-  const { setBreadcrumbs, setActions, setHideDefaultHeader } = useHeader();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const lessonId = searchParams.get("lessonId");
-  const { data: lessonById } = useLessonByIdService(lessonId || "");
-  console.log(lessonById?.data?.name, "tran");
-  const breadcrumbs = useMemo(
-    () => [
-      {
-        label: "Quay lại",
-        href: "/lesson-plan",
-        onClick: () => {
-          // Remove lessonId from URL to go back to lesson selection
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete("lessonId");
-          router.push(newUrl.pathname + newUrl.search);
-        },
-        beforeIcon: <ChevronLeft className="w-4 h-4" />,
-      },
-      {
-        label: `${lessonById?.data?.name || "Tạo giáo án"}`,
-        active: true,
-      },
-    ],
-    []
-  );
-
-  const actions = useMemo(
-    () => [
-      {
-        label: "Tạo nhanh cùng AI",
-        icon: (
-          <Image
-            src="/images/illustration/robot-head.svg"
-            width={16}
-            height={16}
-            alt="AI"
-          />
-        ),
-        onClick: () => handleGenerationLessonPlan(),
-        variant: "custom" as const,
-      },
-      {
-        label: showDeleteButtons ? "Hoàn thành" : "Chỉnh sửa",
-        icon: <Edit className="w-4 h-4" />,
-        onClick: () => setShowDeleteButtons(!showDeleteButtons),
-        variant: showDeleteButtons
-          ? ("default" as const)
-          : ("outline" as const),
-      },
-      {
-        label: "Preview",
-        icon: <FileText className="w-4 h-4" />,
-        onClick: () => setShowPreview(true),
-        variant: "default" as const,
-        className: "bg-black text-white",
-      },
-    ],
-    [
-      showDeleteButtons,
-      // handleGenerateWithAI,
-      // handleToggleEditMode,
-      // handleTogglePreview,
-    ]
-  );
-
-  useEffect(() => {
-    setBreadcrumbs(breadcrumbs);
-    setActions(actions);
-    setHideDefaultHeader(false);
-  }, [setBreadcrumbs, setActions, setHideDefaultHeader, breadcrumbs, actions]);
 
   // Final data để lưu tổng data của tất cả các step
   const [finalData, setFinalData] = useState<Record<string, DemoNode[]>>({});
@@ -228,6 +152,10 @@ function LessonPlanTemplate() {
     title: item?.title,
     description: item?.content || "",
   }));
+
+  const searchParams = useSearchParams();
+  const lessonId = searchParams.get("lessonId");
+  const { data: lessonById } = useLessonByIdService(lessonId || "");
 
   // Helper function để update finalData khi demoData thay đổi
   const updateFinalData = useCallback(
@@ -924,6 +852,8 @@ function LessonPlanTemplate() {
     mutate(payload, {
       onSuccess: (e: any) => {
         toast.success("Gửi dữ liệu thành công!");
+        console.log(e.data.task_id);
+        setTaskId(e.data.task_id);
         setEnabled(true);
       },
       onError: (error) => {
@@ -932,6 +862,9 @@ function LessonPlanTemplate() {
       },
     });
   };
+
+  // Fetch task result data using React Query with current step context
+  const taskResultQuery = useTaskResultService(taskId, currentStep);
 
   // Hàm merge data từ AI vào finalData
   const mergeAIDataToFinalData = useCallback(
@@ -971,6 +904,62 @@ function LessonPlanTemplate() {
     [currentStep, items, finalData, demoData]
   );
 
+  // Handle fetch task result data
+  const handleFetchTaskResult = useCallback(() => {
+    setIsLoadingData(true);
+    console.log("🔄 Fetching task result for ID:", taskId);
+
+    // Trigger refetch
+    taskResultQuery
+      .refetch()
+      .then((result) => {
+        console.log("📥 Raw API response:", result);
+
+        if (result?.data) {
+          console.log("✅ API response data:", result.data);
+
+          // Check if result has the expected structure
+          if (result.data.result && result.data.result.lesson_plan) {
+            const lessonPlanData = result.data.result.lesson_plan;
+            console.log("📋 Lesson plan data:", lessonPlanData);
+
+            // Convert lesson plan data to DemoNode format
+            const convertedData = convertLessonPlanToDemoNode(lessonPlanData);
+            console.log("🔄 Converted data:", convertedData);
+
+            if (convertedData.length > 0) {
+              // Merge vào finalData thay vì replace
+              const mergedData = mergeAIDataToFinalData(convertedData);
+              toast.success(
+                `Lấy dữ liệu thành công! Đã merge ${
+                  convertedData.length
+                } node(s), tổng ${mergedData?.length || 0} node(s)`
+              );
+            } else {
+              toast.warning("Dữ liệu lesson plan trống");
+            }
+          } else {
+            console.log("⚠️ Unexpected data structure:", result.data);
+            toast.warning("Cấu trúc dữ liệu không đúng định dạng");
+          }
+        } else {
+          console.log("❌ No data in response");
+          toast.warning("Không có dữ liệu trong response");
+        }
+        setIsLoadingData(false);
+      })
+      .catch((error) => {
+        console.error("❌ Error fetching task result:", error);
+        toast.error(`Lỗi khi lấy dữ liệu: ${error.message || "Unknown error"}`);
+        setIsLoadingData(false);
+      });
+  }, [
+    taskResultQuery,
+    convertLessonPlanToDemoNode,
+    taskId,
+    mergeAIDataToFinalData,
+  ]);
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-screen bg-gray-50">
@@ -992,7 +981,7 @@ function LessonPlanTemplate() {
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col">
           {/* Toolbar */}
-          {/* <Toolbar
+          <Toolbar
             showDeleteButtons={showDeleteButtons}
             onToggleDeleteButtons={() =>
               setShowDeleteButtons(!showDeleteButtons)
@@ -1001,7 +990,7 @@ function LessonPlanTemplate() {
             onExportJSON={handleGenerationLessonPlan}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-          /> */}
+          />
           {data?.status === "processing" ? (
             <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
               <LoadingAI message={data?.message} progress={data?.progress} />
