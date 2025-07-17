@@ -783,7 +783,7 @@ function LessonPlanTemplate() {
       const headerInfo = {
         school: "Trường:.....................",
         department: "Tổ:..............................",
-        subject: "Môn học/Hoạt động giáo dục: ..........",
+        subject: "Môn học/Hoạt động giáo dục: ..........;",
         grade: "lớp:........",
         lessonTitle: `TÊN BÀI DẠY: ${
           " " + lessonById?.data?.name?.toUpperCase() ||
@@ -794,7 +794,11 @@ function LessonPlanTemplate() {
       };
       // Sử dụng tổng data từ tất cả các step
       const allData = getAllFinalData();
-      await generateDocx(allData, "Giao_an_lesson-plan.docx", headerInfo);
+      await generateDocx(
+        allData,
+        `Giao_an_${lessonById?.data?.name}.docx`,
+        headerInfo
+      );
     } catch (error) {
       console.error("Error generating DOCX:", error);
       alert("Có lỗi xảy ra khi tạo file DOCX");
@@ -817,11 +821,7 @@ function LessonPlanTemplate() {
     if (convertedData.length > 0) {
       // Merge vào finalData thay vì replace
       const mergedData = mergeAIDataToFinalData(convertedData);
-      // toast.success(
-      //   `Lấy dữ liệu thành công! Đã merge ${
-      //     convertedData.length
-      //   } node(s), tổng ${mergedData?.length || 0} node(s)`
-      // );
+
       toast.success("Đã tạo thành công giáo án");
     } else {
     }
@@ -865,9 +865,6 @@ function LessonPlanTemplate() {
     });
   };
 
-  // Fetch task result data using React Query with current step context
-  const taskResultQuery = useTaskResultService(taskId, currentStep);
-
   // Hàm merge data từ AI vào finalData
   const mergeAIDataToFinalData = useCallback(
     (aiData: DemoNode[]) => {
@@ -905,62 +902,6 @@ function LessonPlanTemplate() {
     },
     [currentStep, items, finalData, demoData]
   );
-
-  // Handle fetch task result data
-  const handleFetchTaskResult = useCallback(() => {
-    setIsLoadingData(true);
-    console.log("🔄 Fetching task result for ID:", taskId);
-
-    // Trigger refetch
-    taskResultQuery
-      .refetch()
-      .then((result) => {
-        console.log("📥 Raw API response:", result);
-
-        if (result?.data) {
-          console.log("✅ API response data:", result.data);
-
-          // Check if result has the expected structure
-          if (result.data.result && result.data.result.lesson_plan) {
-            const lessonPlanData = result.data.result.lesson_plan;
-            console.log("📋 Lesson plan data:", lessonPlanData);
-
-            // Convert lesson plan data to DemoNode format
-            const convertedData = convertLessonPlanToDemoNode(lessonPlanData);
-            console.log("🔄 Converted data:", convertedData);
-
-            if (convertedData.length > 0) {
-              // Merge vào finalData thay vì replace
-              const mergedData = mergeAIDataToFinalData(convertedData);
-              toast.success(
-                `Lấy dữ liệu thành công! Đã merge ${
-                  convertedData.length
-                } node(s), tổng ${mergedData?.length || 0} node(s)`
-              );
-            } else {
-              toast.warning("Dữ liệu lesson plan trống");
-            }
-          } else {
-            console.log("⚠️ Unexpected data structure:", result.data);
-            toast.warning("Cấu trúc dữ liệu không đúng định dạng");
-          }
-        } else {
-          console.log("❌ No data in response");
-          toast.warning("Không có dữ liệu trong response");
-        }
-        setIsLoadingData(false);
-      })
-      .catch((error) => {
-        console.error("❌ Error fetching task result:", error);
-        toast.error(`Lỗi khi lấy dữ liệu: ${error.message || "Unknown error"}`);
-        setIsLoadingData(false);
-      });
-  }, [
-    taskResultQuery,
-    convertLessonPlanToDemoNode,
-    taskId,
-    mergeAIDataToFinalData,
-  ]);
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -1031,7 +972,7 @@ function LessonPlanTemplate() {
           onClose={() => setShowPreview(false)}
           data={getAllFinalData()}
           onDownload={handleDownloadDocx}
-          lesson={lessonById?.data?.name}
+          lesson={lessonById?.data}
         />
       </div>
     </DragDropContext>

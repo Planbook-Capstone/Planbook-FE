@@ -803,11 +803,11 @@ export default function MatrixTemplate2() {
         </Button>
       </div>
 
-      <hr className="my-6" />
+      {/* <hr className="my-6" />
       <h3 className="font-bold mb-2">Matrix JSON</h3>
       <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
         {JSON.stringify(mapToBackend(), null, 2)}
-      </pre>
+      </pre> */}
     </div>
   );
 }
