@@ -189,7 +189,7 @@ export function TableCell({
   return (
     <td
       className={cn(
-        "border border-gray-300 p-2 w-auto cursor-pointer hover:bg-gray-50 transition-colors font-questrial relative",
+        "border border-gray-300 p-1 w-auto cursor-pointer hover:bg-gray-50 transition-colors font-questrial relative",
         isHeader && "bg-gray-100 font-calsans",
         disabled && "cursor-not-allowed opacity-60",
         isDragOver && "bg-blue-50 border-blue-300",
@@ -201,11 +201,11 @@ export function TableCell({
       onDrop={handleDrop}
       title={disabled ? "" : "Double-click để chỉnh sửa hoặc kéo hình ảnh vào"}
     >
-      <div className="space-y-2">
+      <div className="space-y-1">
         {/* Rich text content from Tiptap editor */}
         {parsedValue.text && (
           <div
-            className="text-sm text-gray-900 prose prose-sm max-w-none"
+            className="text-sm text-gray-900 prose prose-sm max-w-none [&>p]:m-0 [&>p]:leading-tight [&>p+p]:mt-1"
             dangerouslySetInnerHTML={{ __html: parsedValue.text }}
           />
         )}
@@ -227,6 +227,13 @@ export function TableCell({
                 <X className="w-3 h-3" />
               </button>
             )}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!parsedValue.text && !parsedValue.image && (
+          <div className="text-gray-400 text-sm italic min-h-[20px] flex items-center">
+            {placeholder}
           </div>
         )}
       </div>
