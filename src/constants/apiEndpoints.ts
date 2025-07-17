@@ -21,26 +21,29 @@ export const API_ENDPOINTS = {
   ACADEMIC_YEARS: "/academic-years",
 
   // Books
-  BOOKS: "master-data-service-local/api/books",
-  BOOKS_BY_SUBJECT: "master-data-service-local/api/books/by-subject",
+  BOOKS: buildEndpoint(SERVICES.MASTER_DATA, "/books"),
+  BOOKS_BY_SUBJECT: buildEndpoint(SERVICES.MASTER_DATA, "/books/by-subject"),
 
   // Book Types
   BOOK_TYPES: "/book-types",
 
   // Chapters
-  CHAPTERS: "master-data-service-local/api/chapters",
-  CHAPTERS_BY_BOOK: "master-data-service-local/api/chapters/by-book",
+  CHAPTERS: buildEndpoint(SERVICES.MASTER_DATA, "/chapters"),
+  CHAPTERS_BY_BOOK: buildEndpoint(SERVICES.MASTER_DATA, "/chapters/by-book"),
 
   // Grades
-  GRADES: "master-data-service-local/api/grades",
+  GRADES: buildEndpoint(SERVICES.MASTER_DATA, "/grades"),
 
   // Lessons
-  LESSONS: "master-data-service-local/api/lessons",
-  LESSONS_BY_CHAPTER: "master-data-service-local/api/lessons/by-chapter",
+  LESSONS: buildEndpoint(SERVICES.MASTER_DATA, "/lessons"),
+  LESSONS_BY_CHAPTER: buildEndpoint(
+    SERVICES.MASTER_DATA,
+    "/lessons/by-chapter"
+  ),
 
   // Subjects
-  SUBJECTS: "master-data-service-local/api/subjects",
-  SUBJECTS_BY_GRADE: "master-data-service-local/api/subjects/by-grade",
+  SUBJECTS: buildEndpoint(SERVICES.MASTER_DATA, "/subjects"),
+  SUBJECTS_BY_GRADE: buildEndpoint(SERVICES.MASTER_DATA, "/subjects/by-grade"),
 
   //EXECUTE-TOOL
   EXECUTE_TOOL: "aggregator/api/tool/execute",
@@ -91,7 +94,7 @@ export const PDF_API_ENDPOINTS = {
   QUICK_TEXTBOOK_ANALYSIS: "/pdf/import",
 
   //SEARCH
-  RAG_QUERY: "pdf/rag-query",
+  RAG_QUERY: "/rag/query",
 
   //Task-progress
   TASKS_STATUS: `/tasks/status`,
