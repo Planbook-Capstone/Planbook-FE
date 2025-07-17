@@ -22,6 +22,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         menuitem: "flex-col",
         dash: "border border-dashed text-neutral-600 font-questrial hover:bg-neutral-100",
+        custom:
+          "text-white bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]",
       },
       size: {
         default: "h-10 px-5 py-3 has-[>svg]:px-3",
