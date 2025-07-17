@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useMemo } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Table as CustomTable } from "@/components/organisms/table";
 
@@ -109,11 +109,10 @@ export default function NodeRenderer({
     return colors[depth % colors.length];
   };
 
-  // Render table field - extracted from switch case
-  const renderTableField = useCallback(
-    (node: DemoNode) => {
-      // Parse table data from content field (prioritize content field over tableData)
-      let tableData: TableData;
+  // Memoize table data conversion to prevent unnecessary re-renders
+  const getConvertedTableData = useCallback((node: DemoNode): TableData => {
+    // Parse table data from content field (prioritize content field over tableData)
+    let tableData: TableData;
 
       // First try to parse from content field (new format)
       if (node.content && typeof node.content === "string") {
@@ -267,27 +266,17 @@ export default function NodeRenderer({
         };
       }
 
-      // Ensure all cells are strings for simplicity
-      const convertedTableData: TableData = {
+      // Return data preserving CellContent format for DOCX export
+      return {
         headers: tableData.headers,
-        rows: tableData.rows.map((row) =>
-          row.map((cell) => {
-            if (typeof cell === "string") {
-              return cell;
-            } else if (cell && typeof cell === "object") {
-              if ("type" in cell && "content" in cell) {
-                // Convert old format {type: 'text', content: 'value'} to string
-                const oldCell = cell as any;
-                return oldCell.content || "";
-              } else if ("text" in cell) {
-                // Convert new format to string for now
-                return (cell as any).text || "";
-              }
-            }
-            return "";
-          })
-        ),
+        rows: tableData.rows, // Keep original format with CellContent objects
       };
+    }, []);
+
+  // Render table field - extracted from switch case
+  const renderTableField = useCallback(
+    (node: DemoNode) => {
+      const convertedTableData = getConvertedTableData(node);
 
       const handleTableDataChange = (newTableData: TableData) => {
         // Convert TableData back to API format and save to content
@@ -307,36 +296,76 @@ export default function NodeRenderer({
               ...newTableData.rows.map((row, rowIndex) => ({
                 id: `row-${rowIndex + 1}`,
                 cells: row.map((cell, cellIndex) => {
-                  let cellText =
-                    typeof cell === "string" ? cell : cell?.text || "";
                   let title = "";
                   let content = "";
 
-                  // Parse markdown format: **title**\n  content
-                  if (cellText.includes("**") && cellText.includes("\n")) {
-                    const lines = cellText.split("\n");
-                    const titleLine = lines.find(
-                      (line) => line.startsWith("**") && line.endsWith("**")
-                    );
-                    const contentLine = lines.find((line) =>
-                      line.startsWith("  ")
-                    );
+                  // Handle different cell formats
+                  if (typeof cell === "string") {
+                    // String cell - parse markdown format
+                    const cellText = cell;
 
-                    if (titleLine) {
-                      title = titleLine.replace(/\*\*/g, "");
+                    if (cellText.includes("**") && cellText.includes("\n")) {
+                      const lines = cellText.split("\n");
+                      const titleLine = lines.find(
+                        (line) => line.startsWith("**") && line.endsWith("**")
+                      );
+                      const contentLine = lines.find((line) =>
+                        line.startsWith("  ")
+                      );
+
+                      if (titleLine) {
+                        title = titleLine.replace(/\*\*/g, "");
+                      }
+                      if (contentLine) {
+                        content = contentLine.trim();
+                      }
+                    } else if (
+                      cellText.startsWith("**") &&
+                      cellText.endsWith("**")
+                    ) {
+                      // Only title format: **title**
+                      title = cellText.replace(/\*\*/g, "");
+                    } else {
+                      // Regular content
+                      content = cellText;
                     }
-                    if (contentLine) {
-                      content = contentLine.trim();
+                  } else if (cell && typeof cell === "object" && "text" in cell) {
+                    // CellContent object with text and possibly image
+                    const cellContent = cell as CellContent;
+
+                    // Use text content for title/content parsing
+                    const cellText = cellContent.text || "";
+
+                    if (cellText.includes("**") && cellText.includes("\n")) {
+                      const lines = cellText.split("\n");
+                      const titleLine = lines.find(
+                        (line) => line.startsWith("**") && line.endsWith("**")
+                      );
+                      const contentLine = lines.find((line) =>
+                        line.startsWith("  ")
+                      );
+
+                      if (titleLine) {
+                        title = titleLine.replace(/\*\*/g, "");
+                      }
+                      if (contentLine) {
+                        content = contentLine.trim();
+                      }
+                    } else if (
+                      cellText.startsWith("**") &&
+                      cellText.endsWith("**")
+                    ) {
+                      title = cellText.replace(/\*\*/g, "");
+                    } else {
+                      content = cellText;
                     }
-                  } else if (
-                    cellText.startsWith("**") &&
-                    cellText.endsWith("**")
-                  ) {
-                    // Only title format: **title**
-                    title = cellText.replace(/\*\*/g, "");
-                  } else {
-                    // Regular content
-                    content = cellText;
+
+                    // If cell has image, store image URL in title field
+                    if (cellContent.image) {
+                      // Put image URL in title, text content in content
+                      title = cellContent.image.url;
+                      content = cellText;
+                    }
                   }
 
                   return {
@@ -370,7 +399,7 @@ export default function NodeRenderer({
         </div>
       );
     },
-    [onUpdateNodeContent]
+    [onUpdateNodeContent, getConvertedTableData]
   );
 
   // Render field based on fieldType and type
@@ -515,7 +544,7 @@ export default function NodeRenderer({
           );
       }
     },
-    [onUpdateNodeContent, onUpdateNodeTitle, renderTableField]
+    [onUpdateNodeContent, onUpdateNodeTitle, renderTableField, getConvertedTableData]
   );
 
   const isNewComponent = node.metadata?.isNew === true;
