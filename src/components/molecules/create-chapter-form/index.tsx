@@ -22,8 +22,6 @@ import { useQuickTextBookAnalysisService } from "@/services/textbookServices";
 import TaskProgressWrapper from "@/components/molecules/task-progress-wrapper";
 import { formSchema, type FormData } from "@/schemas";
 
-
-
 interface CreateChapterFormProps {
   bookId?: string;
   onClose?: () => void;
@@ -48,7 +46,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
 
   // Function to remove completed tasks
   const removeCompletedTask = (taskId: string) => {
-    setActiveTaskIds(prev => prev.filter(id => id !== taskId));
+    setActiveTaskIds((prev) => prev.filter((id) => id !== taskId));
   };
 
   // React Hook Form setup
@@ -63,7 +61,13 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
       chapters: [
         {
           chapterTitle: "",
-          lessons: [{ lessonTitle: "", pdfFile: typeof File !== 'undefined' ? new File([], "") : null as any }],
+          lessons: [
+            {
+              lessonTitle: "",
+              pdfFile:
+                typeof File !== "undefined" ? new File([], "") : (null as any),
+            },
+          ],
         },
       ],
     },
@@ -141,6 +145,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
                       lessonId: createdLesson.data.data.id,
                       fileName: lesson.pdfFile.name,
                       fileSize: lesson.pdfFile.size,
+                      book_id: createdLesson.data.data.chapter.book.id,
                     }
                   );
 
@@ -152,6 +157,10 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
                   );
                   analysisFormData.append("file", lesson.pdfFile);
                   analysisFormData.append("create_embeddings", "true");
+                  analysisFormData.append(
+                    "book_id",
+                    createdLesson.data.data.chapter.book.id
+                  );
 
                   const analysisResponse = await quickAnalysisMutateAsync(
                     analysisFormData
@@ -164,7 +173,7 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
 
                   // Add task_id to activeTaskIds array
                   if (taskId) {
-                    setActiveTaskIds(prev => [...prev, taskId]);
+                    setActiveTaskIds((prev) => [...prev, taskId]);
                   }
 
                   toast.success(
@@ -223,7 +232,15 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
         chapters: [
           {
             chapterTitle: "",
-            lessons: [{ lessonTitle: "", pdfFile: typeof File !== 'undefined' ? new File([], "") : null as any }],
+            lessons: [
+              {
+                lessonTitle: "",
+                pdfFile:
+                  typeof File !== "undefined"
+                    ? new File([], "")
+                    : (null as any),
+              },
+            ],
           },
         ],
       });
@@ -321,7 +338,15 @@ const CreateChapterForm = ({ bookId }: CreateChapterFormProps) => {
               onClick={() =>
                 appendChapter({
                   chapterTitle: "",
-                  lessons: [{ lessonTitle: "", pdfFile: typeof File !== 'undefined' ? new File([], "") : null as any }],
+                  lessons: [
+                    {
+                      lessonTitle: "",
+                      pdfFile:
+                        typeof File !== "undefined"
+                          ? new File([], "")
+                          : (null as any),
+                    },
+                  ],
                 })
               }
               className="bg-neutral-100"
@@ -370,7 +395,13 @@ const LessonsFieldArray = ({
               <Controller
                 name={`chapters.${chapterIndex}.lessons.${lessonIndex}.lessonTitle`}
                 control={control}
-                render={({ field }) => <Input {...field} placeholder="Bài 1" className="text-black placeholder:text-neutral-300" />}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    placeholder="Bài 1"
+                    className="text-black placeholder:text-neutral-300"
+                  />
+                )}
               />
               {errors.chapters?.[chapterIndex]?.lessons?.[lessonIndex]
                 ?.lessonTitle && (
@@ -448,7 +479,13 @@ const LessonsFieldArray = ({
                         type="button"
                         size="sm"
                         variant="ghost"
-                        onClick={() => onChange(typeof File !== 'undefined' ? new File([], "") : null)}
+                        onClick={() =>
+                          onChange(
+                            typeof File !== "undefined"
+                              ? new File([], "")
+                              : null
+                          )
+                        }
                         className="h-6 w-6 p-0 text-green-600 hover:text-green-800"
                       >
                         <X size={14} />
@@ -480,7 +517,11 @@ const LessonsFieldArray = ({
         type="button"
         variant="dash"
         onClick={() =>
-          appendLesson({ lessonTitle: "", pdfFile: typeof File !== 'undefined' ? new File([], "") : null as any })
+          appendLesson({
+            lessonTitle: "",
+            pdfFile:
+              typeof File !== "undefined" ? new File([], "") : (null as any),
+          })
         }
       >
         + Thêm bài
