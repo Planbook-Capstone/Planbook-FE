@@ -134,10 +134,6 @@ function LessonPlanTemplate() {
   );
   const [showPreview, setShowPreview] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [taskId, setTaskId] = useState<string>(
-    "82312bab-6f4b-42d4-8018-6770917a4347"
-  );
-  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -145,7 +141,7 @@ function LessonPlanTemplate() {
   const [finalData, setFinalData] = useState<Record<string, DemoNode[]>>({});
 
   //get node root of lesson plan id
-  const { data: treeData } = useLessonPlanNodeTreeService("7")();
+  const { data: treeData } = useLessonPlanNodeTreeService("9")();
 
   const items = treeData?.data?.map((item: any) => ({
     id: item?.id,
@@ -855,7 +851,6 @@ function LessonPlanTemplate() {
       onSuccess: (e: any) => {
         toast.success("Gửi dữ liệu thành công!");
         console.log(e.data.task_id);
-        setTaskId(e.data.task_id);
         setEnabled(true);
       },
       onError: (error) => {
