@@ -15,16 +15,12 @@ import { TrashIcon } from "lucide-react";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
+import { useChaptersByBookService } from "@/services/chapterServices";
+import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "sonner";
 import { useGenerateSmartExamService } from "@/services/examGenerateServices";
-
-// Dữ liệu ảo cho bài học, bạn có thể thay bằng API nếu cần
-const LESSON_OPTIONS = [
-  { id: "5", name: "Hình học Oxyz" },
-  { id: "4", name: "Hàm số" },
-  { id: "6", name: "Tích phân" },
-];
+import { useLessonByIdService } from "@/services/lessonServices";
 
 type DistributionLevel = {
   biet: number;
@@ -46,6 +42,7 @@ export default function MatrixTemplate2() {
   // State cho chọn trường, lớp, môn
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedBook, setSelectedBook] = useState("");
   const [school, setSchool] = useState("");
   const [examTitle, setExamTitle] = useState("");
   const [duration, setDuration] = useState(45);
@@ -58,10 +55,28 @@ export default function MatrixTemplate2() {
   const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
     enabled: !!selectedGrade,
   });
+  const { data: books } = useBooksBySubjectService(selectedSubject, {
+    enabled: !!selectedSubject,
+  });
+
+  // Get chapters by selected book
+  const { data: chaptersResponse } = useChaptersByBookService(selectedBook, {
+    enabled: !!selectedBook,
+  });
+  const chapters = chaptersResponse?.data?.content || [];
+
+  // Get lessons by all chapter IDs
+  const lessonQueries = useLessonsByChaptersService(
+    chapters.map((ch: any) => ch.id)
+  );
+
+  // Flatten all lessons from all chapters
+  const allLessons = lessonQueries
+    .filter((query) => query.data?.data?.content)
+    .flatMap((query) => query.data.data.content)
+    .filter((lesson: any) => lesson && lesson.id && lesson.name);
 
   const { mutate, isPending } = useGenerateSmartExamService();
-  // Nếu muốn chọn sách thì mở dòng dưới, còn không thì bỏ qua
-  // const { data: books } = useBooksBySubjectService(selectedSubject, { enabled: !!selectedSubject });
 
   // State cho bảng matrix
   const [matrix, setMatrix] = useState<MatrixRow[]>([
@@ -237,11 +252,12 @@ export default function MatrixTemplate2() {
       grade: 12,
       subject: selectedSubject || "Hoa_hoc",
       examTitle,
+      examCode: "1234",
       duration: Number(duration),
       outputFormat: "docx",
       outputLink: "online",
       matrix: matrix.map((row) => ({
-        lessonId: row.lessonID,
+        lessonId: row.lessonID.toString(),
         totalQuestions: calculateRowTotal(row),
         parts: [
           {
@@ -412,13 +428,13 @@ export default function MatrixTemplate2() {
           title="Vui lòng chọn sách"
           gradeOptions={grades?.data?.content || []}
           subjectOptions={subjects?.data?.content || []}
-          bookOptions={[]} // Không cần chọn sách ở đây
+          bookOptions={books?.data?.content || []} // Không cần chọn sách ở đây
           selectedGrade={selectedGrade}
           selectedSubject={selectedSubject}
-          selectedBook={""}
+          selectedBook={selectedBook}
           onGradeChange={setSelectedGrade}
           onSubjectChange={setSelectedSubject}
-          onBookChange={() => {}}
+          onBookChange={setSelectedBook}
         />
       </div>
       <div className="grid grid-cols-3 gap-4 mb-6 font-questrial">
@@ -590,19 +606,21 @@ export default function MatrixTemplate2() {
                           -- Chọn bài học --
                         </span>
                       </SelectItem>
-                      {LESSON_OPTIONS.filter((item) => {
-                        // Lọc ra các bài học đã được chọn ở các hàng khác
-                        const selectedLessons = matrix
-                          .map((row, index) =>
-                            index !== rowIdx ? row.lessonID : null
-                          )
-                          .filter(Boolean);
-                        return !selectedLessons.includes(item.id);
-                      }).map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
+                      {allLessons
+                        .filter((item: any) => {
+                          // Lọc ra các bài học đã được chọn ở các hàng khác
+                          const selectedLessons = matrix
+                            .map((row, index) =>
+                              index !== rowIdx ? row.lessonID : null
+                            )
+                            .filter(Boolean);
+                          return !selectedLessons.includes(item.id);
+                        })
+                        .map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   {errors[`matrix_${rowIdx}_lesson`] && (
