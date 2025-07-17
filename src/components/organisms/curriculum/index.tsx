@@ -65,7 +65,7 @@ const CurriculumList = ({ bookId, onLessonSelect }: CurriculumListProps) => {
                 {chapter.name}
               </AccordionTrigger>
 
-              <AccordionContent className="py-3">
+              <AccordionContent className="py-3 font-questrial">
                 {isLoadingLessons ? (
                   <div className="ml-10 text-gray-500 font-questrial">
                     Đang tải bài học...
