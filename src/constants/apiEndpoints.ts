@@ -2,7 +2,7 @@ const SERVICES = {
   AUTH: "auth-service",
   MASTER_DATA: "master-data-service-local",
   LESSON_PLAN: "lesson-plan-service",
-  ACADEMIC_RESOURCE: "academic-resource-service-local",
+  ACADEMIC_RESOURCE: "academic-resource-service",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
 } as const;
@@ -25,7 +25,7 @@ export const API_ENDPOINTS = {
   BOOKS_BY_SUBJECT: buildEndpoint(SERVICES.MASTER_DATA, "/books/by-subject"),
 
   // Book Types
-  BOOK_TYPES: "/book-types",
+  BOOK_TYPES: buildEndpoint(SERVICES.AUTH, "/book-types"),
 
   // Chapters
   CHAPTERS: buildEndpoint(SERVICES.MASTER_DATA, "/chapters"),
@@ -65,19 +65,27 @@ export const API_ENDPOINTS = {
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
 
   // Tags
-  TAGS: "/academic-resource-service-local/api/tags",
+  TAGS: buildEndpoint(SERVICES.ACADEMIC_RESOURCE, "/tags"),
 
   //ACADEMIC RESOURCE
-  ACADEMIC_RESOURCE: "academic-resource-service-local/api/academic-resources",
+  ACADEMIC_RESOURCE: buildEndpoint(
+    SERVICES.ACADEMIC_RESOURCE,
+    "/academic-resources"
+  ),
   //ACADEMIC RESOURCE SEARCH
-  ACADEMIC_RESOURCE_SEARCH:
-    "academic-resource-service-local/api/academic-resources/search",
-  ACADEMIC_RESOURCE_UPLOAD:
-    "/academic-resource-service-local/api/academic-resources/upload",
+  ACADEMIC_RESOURCE_SEARCH: buildEndpoint(
+    SERVICES.ACADEMIC_RESOURCE,
+    "/academic-resources/search"
+  ),
+  ACADEMIC_RESOURCE_UPLOAD: buildEndpoint(
+    SERVICES.ACADEMIC_RESOURCE,
+    "/academic-resources/upload"
+  ),
 
-  ACADEMIC_RESOURSE_INTERNAL:
-    "/academic-resource-service-local/api/academic-resources/internal",
-
+  ACADEMIC_RESOURSE_INTERNAL: buildEndpoint(
+    SERVICES.ACADEMIC_RESOURCE,
+    "/academic-resources/internal"
+  ),
   // External Tools
   EXTERNAL_TOOLS: "external-tool-config-service/api/external-tools",
 } as const;

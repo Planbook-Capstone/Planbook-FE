@@ -41,6 +41,12 @@ const FormSchema = z.object({
     .refine((val) => val.length > 0, {
       message: "Mô tả không được để trống",
     }),
+  href: z
+    .string()
+    .transform((val) => val.trim())
+    .refine((val) => val.length > 0, {
+      message: "Đường dẫn không được để trống",
+    }),
   tokenCostPerQuery: z.coerce
     .number({
       invalid_type_error: "Phải là số",
@@ -63,6 +69,7 @@ interface CreateBookTypeFormProps {
     id?: string;
     name: string;
     description: string;
+    href: string;
     tokenCostPerQuery: number;
     priority?: number;
     icon?: string; // base64
@@ -74,7 +81,7 @@ function CreateBookTypeForm({
   onSuccess,
   initialValues,
 }: CreateBookTypeFormProps) {
-  const [svgPreview, setSvgPreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { mutate: createBookType } = useCreateBookTypeService();
   const { mutate: updateBookType } = useUpdateBookTypeService();
 
@@ -83,6 +90,7 @@ function CreateBookTypeForm({
     defaultValues: {
       name: initialValues?.name || "",
       description: initialValues?.description || "",
+      href: initialValues?.href || "",
       tokenCostPerQuery: initialValues?.tokenCostPerQuery || undefined,
       priority: initialValues?.priority || undefined,
       icon: undefined,
@@ -92,7 +100,7 @@ function CreateBookTypeForm({
 
   useEffect(() => {
     if (initialValues?.icon) {
-      setSvgPreview(initialValues.icon);
+      setImagePreview(initialValues.icon);
     }
   }, [initialValues]);
 
@@ -110,20 +118,22 @@ function CreateBookTypeForm({
 
     // If a new file is uploaded, validate and convert it
     if (data.icon && data.icon instanceof File) {
-      if (data.icon.type !== "image/svg+xml") {
-        toast.error("Chỉ chấp nhận file SVG");
+      const allowedTypes = ["image/svg+xml", "image/png", "image/jpeg", "image/jpg", "image/gif"];
+      if (!allowedTypes.includes(data.icon.type)) {
+        toast.error("Chỉ chấp nhận file SVG, PNG, JPG, JPEG hoặc GIF");
         return;
       }
       base64Icon = await fileToBase64(data.icon);
     } else if (!initialValues?.id) {
       // For create mode, file is required
-      toast.error("Vui lòng chọn một file SVG");
+      toast.error("Vui lòng chọn một file ảnh hoặc SVG");
       return;
     }
 
     const payload = {
       name: data.name,
       description: data.description,
+      href: data.href,
       tokenCostPerQuery: data.tokenCostPerQuery,
       icon: base64Icon,
       priority: data.priority,
@@ -200,6 +210,19 @@ function CreateBookTypeForm({
         />
         <FormField
           control={form.control}
+          name="href"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Đường dẫn</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Nhập đường dẫn..." />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="tokenCostPerQuery"
           render={({ field }) => (
             <FormItem>
@@ -235,34 +258,34 @@ function CreateBookTypeForm({
               <FormControl>
                 <Input
                   type="file"
-                  accept=".svg"
+                  accept=".svg,.png,.jpg,.jpeg,.gif"
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const file = e.target.files?.[0];
                     if (file) {
                       field.onChange(file);
                       const reader = new FileReader();
                       reader.onload = () => {
-                        setSvgPreview(reader.result as string);
+                        setImagePreview(reader.result as string);
                       };
                       reader.readAsDataURL(file);
                     } else {
                       // User clicked cancel or removed file
                       field.onChange(undefined);
-                      setSvgPreview(null);
+                      setImagePreview(null);
                     }
                   }}
                 />
               </FormControl>
               <FormMessage />
-              {svgPreview && (
+              {imagePreview && (
                 <div className="mt-2 border rounded p-2 bg-muted">
                   <p className="text-sm mb-1 text-muted-foreground">
                     Xem trước:
                   </p>
                   <div className="w-[100px] h-[100px]">
                     <img
-                      src={svgPreview}
-                      alt="SVG Preview"
+                      src={imagePreview}
+                      alt="Image Preview"
                       className="object-contain w-full h-full"
                     />
                   </div>
@@ -284,6 +307,7 @@ interface CreateBookTypeModalProps {
     id?: string;
     name: string;
     description: string;
+    href: string;
     tokenCostPerQuery: number;
     icon?: string;
     priority?: number;
