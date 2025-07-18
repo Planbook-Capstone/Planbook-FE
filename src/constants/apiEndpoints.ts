@@ -63,6 +63,7 @@ export const API_ENDPOINTS = {
       `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
   },
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
+  UPLOAD_DOCX_TO_ONLINE: "/lesson/upload-docx-to-online",
 
   // Tags
   TAGS: buildEndpoint(SERVICES.ACADEMIC_RESOURCE, "/tags"),
