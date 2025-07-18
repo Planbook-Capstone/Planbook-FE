@@ -784,7 +784,7 @@ function LessonPlanTemplate() {
         lessonTitle: `TÊN BÀI DẠY: ${
           " " + lessonById?.data?.name?.toUpperCase() ||
           "................................................"
-        }"`,
+        }`,
         duration: "Thời gian thực hiện: (số tiết)",
         teacherName: "Họ và tên giáo viên:\n................................",
       };

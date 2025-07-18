@@ -1,7 +1,9 @@
 "use client";
 
+import { Share2 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { DowloadIcon } from "@/constants/icon";
+import { useUploadDocxToOnlineService } from "@/services/lessonPlanGenerationServices";
 
 interface CellContent {
   text?: string;
@@ -52,7 +54,7 @@ export default function PreviewModal({
   lesson,
 }: PreviewModalProps) {
   if (!isOpen) return null;
-
+  const { mutate } = useUploadDocxToOnlineService();
   // Extract table rendering logic into separate function
   const renderTablePreview = (
     node: DemoNode,
@@ -474,15 +476,13 @@ export default function PreviewModal({
             Xem trước giáo án
           </h2>
           <div className="flex items-center gap-3">
-            {/* <Button
-              onClick={onDownload}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center gap-2"
-            >
-              📥 Download DOCX
-            </Button> */}
             <Button onClick={onDownload}>
               {DowloadIcon}
               <span>Tải về</span>
+            </Button>
+            <Button onClick={() => {}} variant={"custom"}>
+              <Share2 />
+              <span>Export docx online</span>
             </Button>
             <Button onClick={onClose} variant={"outline"}>
               Đóng
