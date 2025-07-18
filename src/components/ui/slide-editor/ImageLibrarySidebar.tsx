@@ -225,48 +225,20 @@ export default function ImageLibrarySidebar({
   };
 
   return (
-    <div className="w-80 bg-white border-l border-gray-200 flex flex-col h-full">
-      <style jsx global>{`
-        .material-tabs .ant-tabs-nav {
-          margin: 0 !important;
-        }
-        .material-tabs .ant-tabs-tab {
-          padding: 8px 12px !important;
-          margin: 0 4px !important;
-          border-radius: 8px !important;
-          border: 1px solid transparent !important;
-          background: transparent !important;
-          color: #6b7280 !important;
-          font-size: 14px !important;
-          font-weight: 500 !important;
-        }
-        .material-tabs .ant-tabs-tab:hover {
-          background: #f3f4f6 !important;
-          color: #111827 !important;
-        }
-        .material-tabs .ant-tabs-tab-active {
-          background: white !important;
-          color: #2563eb !important;
-          border-color: #bfdbfe !important;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
-        }
-        .material-tabs .ant-tabs-ink-bar {
-          display: none !important;
-        }
-      `}</style>
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-white">
+      <div className="p-4 bg-white">
         <h2 className="text-lg font-calsans text-gray-900 mb-4">Học liệu</h2>
 
         {/* Search Bar */}
-        <div className="relative mb-4">
+        <div className="relative mb-4 ">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
             placeholder="Tìm kiếm hình ảnh"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full rounded-full pl-10 pr-4 py-2.5 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           />
         </div>
 
@@ -297,24 +269,8 @@ export default function ImageLibrarySidebar({
         </button>
       </div>
 
-      {/* Material Tags */}
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-        <Tabs
-          size="small"
-          activeKey={activeTagId}
-          onChange={setActiveTagId}
-          items={
-            tag?.data?.map((item: TagResponse, index: number) => ({
-              label: item.name || `Tag-${index}`,
-              key: String(item.id || index),
-            })) || []
-          }
-          className="material-tabs"
-        />
-      </div>
-
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto bg-gray-50">
+      <div className="flex-1 overflow-y-auto">
         <div className="p-4">
           {allImages.length > 0 ? (
             <div>
