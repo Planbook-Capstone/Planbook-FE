@@ -19,9 +19,9 @@ export function Tabs({ tabs, defaultTab, className }: TabsProps) {
   const activeTabContent = tabs.find((tab) => tab.id === activeTab)?.content;
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("w-full flex flex-col", className)}>
       {/* Tab Headers */}
-      <div className="flex border border-gray-200 rounded-full p-1">
+      <div className="flex border border-gray-200 rounded-full p-1 mb-4">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -29,7 +29,7 @@ export function Tabs({ tabs, defaultTab, className }: TabsProps) {
             className={cn(
               "w-full px-4 py-2 text-sm font-questrial transition-colors",
               activeTab === tab.id
-                ? "border rounded-full"
+                ? "bg-blue-500 text-white rounded-full"
                 : "text-gray-500 hover:text-gray-700"
             )}
           >
@@ -39,7 +39,7 @@ export function Tabs({ tabs, defaultTab, className }: TabsProps) {
       </div>
 
       {/* Tab Content */}
-      <div className="mt-4">{activeTabContent}</div>
+      <div className="flex-1 overflow-hidden">{activeTabContent}</div>
     </div>
   );
 }

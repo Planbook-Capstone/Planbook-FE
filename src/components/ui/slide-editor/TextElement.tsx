@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Rnd } from "react-rnd";
 import { TextElement as TextElementType, TextStyle } from "@/types";
+import { useSnapAlignment } from "@/hooks/useSnapAlignment";
 
 interface TextElementProps {
   element: TextElementType;
@@ -13,6 +14,15 @@ interface TextElementProps {
   onStopEdit: () => void;
   onUpdate: (id: string, updates: Partial<TextElementType>) => void;
   onDelete: (id: string) => void;
+  otherElements?: Array<{
+    id: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
+  onSnapUpdate?: (guides: any[]) => void;
+  onContextMenu?: (elementId: string, x: number, y: number) => void;
 }
 
 export default function TextElement({
@@ -24,10 +34,22 @@ export default function TextElement({
   onStopEdit,
   onUpdate,
   onDelete,
+  otherElements = [],
+  onSnapUpdate,
+  onContextMenu,
 }: TextElementProps) {
   const [localText, setLocalText] = useState(element.text);
   const textRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
+
+  // Snap alignment hook
+  const { handleDragWithSnap, clearGuides } = useSnapAlignment({
+    threshold: 6,
+    showGuides: true,
+    snapToCanvas: true,
+    canvasWidth: 960,
+    canvasHeight: 540,
+  });
 
   // Calculate minimum size based on text content
   const calculateMinSize = useCallback(() => {
@@ -56,13 +78,43 @@ export default function TextElement({
     // For multiline support, ensure minimum width for text wrapping
     const minWidth = Math.max(80, element.style.fontSize * 4);
 
-    // Calculate minimum height based on line height
-    // Account for potential multiline content
-    const estimatedLines = Math.max(1, Math.ceil(currentText.length / 20));
+    // Calculate minimum height based on actual line breaks and wrapping
+    const lines = currentText.split("\n");
+    let totalVisualLines = 0;
+
+    // Calculate how many visual lines each text line will take
+    lines.forEach((line) => {
+      if (line.trim() === "") {
+        totalVisualLines += 1; // Empty line still takes space
+      } else {
+        // Estimate character width and how many chars fit per line
+        const charWidth = element.style.fontSize * 0.6;
+        const availableWidth = Math.max(element.width - 16, 80); // Account for padding
+        const charsPerLine = Math.max(
+          Math.floor(availableWidth / charWidth),
+          10
+        );
+        const wrappedLines = Math.ceil(line.length / charsPerLine);
+        totalVisualLines += Math.max(wrappedLines, 1);
+      }
+    });
+
+    // Ensure at least 1 line
+    totalVisualLines = Math.max(totalVisualLines, 1);
+
     const minHeight = Math.max(
-      lineHeight * estimatedLines + 16,
-      element.style.fontSize * 1.8
+      lineHeight * totalVisualLines + 16, // 16px for padding
+      element.style.fontSize * 1.8 // Minimum based on font size
     );
+
+    console.log(`📏 Text sizing for ${element.id}:`, {
+      text: currentText.substring(0, 30) + "...",
+      explicitLines: lines.length,
+      totalVisualLines,
+      lineHeight,
+      minHeight,
+      elementWidth: element.width,
+    });
 
     return { width: minWidth, height: minHeight };
   }, [element.style, localText, element.text]);
@@ -72,21 +124,34 @@ export default function TextElement({
     setLocalText(element.text);
   }, [element.text]);
 
-  // Auto-resize element if it's smaller than minimum size
+  // ✅ Smart auto-resize: only expand if text doesn't fit, allow manual shrinking
   useEffect(() => {
     const minSize = calculateMinSize();
-    if (element.width < minSize.width || element.height < minSize.height) {
-      const newWidth = Math.max(element.width, minSize.width);
-      const newHeight = Math.max(element.height, minSize.height);
 
-      if (newWidth !== element.width || newHeight !== element.height) {
+    // Only auto-expand height if current size is smaller than minimum needed for text
+    // Don't auto-shrink - let user control that
+    // Don't auto-expand width - let user control that too
+    if (element.height < minSize.height) {
+      const newHeight = minSize.height;
+
+      if (newHeight !== element.height) {
+        console.log(
+          `📏 Auto-expanding height from ${element.height} to ${newHeight} for element ${element.id}`
+        );
         onUpdate(element.id, {
-          width: newWidth,
           height: newHeight,
         });
       }
     }
-  }, [element.width, element.height, calculateMinSize, element.id, onUpdate]);
+  }, [
+    localText,
+    element.text,
+    element.width,
+    calculateMinSize,
+    element.id,
+    onUpdate,
+    element.height,
+  ]);
 
   // Handle text editing
   const handleTextChange = useCallback((e: React.FormEvent<HTMLDivElement>) => {
@@ -202,7 +267,27 @@ export default function TextElement({
       position={{ x: element.x, y: element.y }}
       minWidth={minSize.width}
       minHeight={minSize.height}
+      onDrag={(e, d) => {
+        // Handle snap during drag
+        const snapResult = handleDragWithSnap(
+          { ...element, x: d.x, y: d.y },
+          otherElements
+        );
+
+        if (onSnapUpdate) {
+          onSnapUpdate(snapResult.guides);
+        }
+
+        if (snapResult.snapped) {
+          // Update position with snapped coordinates
+          onUpdate(element.id, { x: snapResult.x, y: snapResult.y });
+        }
+      }}
       onDragStop={(e, d) => {
+        clearGuides();
+        if (onSnapUpdate) {
+          onSnapUpdate([]);
+        }
         onUpdate(element.id, { x: d.x, y: d.y });
       }}
       onResizeStop={(e, direction, ref, delta, position) => {
@@ -228,7 +313,7 @@ export default function TextElement({
         ${isEditing ? "ring-2 ring-green-500" : ""}
       `}
       style={{
-        zIndex: isSelected || isEditing ? 1000 : 1,
+        zIndex: isEditing ? 10000 : isSelected ? 9999 : element.zIndex ?? 0,
       }}
       resizeHandleStyles={{
         bottomRight: {
@@ -288,6 +373,12 @@ export default function TextElement({
         <div
           onClick={handleClick}
           onDoubleClick={handleDoubleClick}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            if (onContextMenu) {
+              onContextMenu(element.id, e.clientX, e.clientY);
+            }
+          }}
           className="w-full h-full"
           style={{
             ...textStyles,

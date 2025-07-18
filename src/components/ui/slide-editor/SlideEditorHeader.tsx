@@ -9,34 +9,38 @@ import {
   Redo,
   Play,
   Settings,
+  FileText,
+  Loader2,
 } from "lucide-react";
 
 interface SlideEditorHeaderProps {
   onSave?: () => void;
   onExportPPTX?: () => void;
+  onExportJSON?: () => void;
   onImport?: () => void;
-  onUndo?: () => void;
-  onRedo?: () => void;
   onPreview?: () => void;
-  canUndo?: boolean;
-  canRedo?: boolean;
+  onLoadSampleData?: () => void;
+  onClearData?: () => void;
   slideCount?: number;
   currentSlide?: number;
   isExporting?: boolean;
+  isLoadingData?: boolean;
+  hasLoadedData?: boolean;
 }
 
 export default function SlideEditorHeader({
   onSave,
   onExportPPTX,
+  onExportJSON,
   onImport,
-  onUndo,
-  onRedo,
   onPreview,
-  canUndo = false,
-  canRedo = false,
+  onLoadSampleData,
+  onClearData,
   slideCount = 1,
   currentSlide = 1,
   isExporting = false,
+  isLoadingData = false,
+  hasLoadedData = false,
 }: SlideEditorHeaderProps) {
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
@@ -45,35 +49,50 @@ export default function SlideEditorHeader({
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-calsans text-gray-900">Slide Editor</h1>
         </div>
-        <button
-          onClick={onUndo}
-          disabled={!canUndo}
-          className={`p-2 rounded-lg transition-colors ${
-            canUndo
-              ? "hover:bg-gray-100 text-gray-700"
-              : "text-gray-400 cursor-not-allowed"
-          }`}
-          title="Undo (Ctrl+Z)"
-        >
-          <Undo className="w-5 h-5" />
-        </button>
-
-        <button
-          onClick={onRedo}
-          disabled={!canRedo}
-          className={`p-2 rounded-lg transition-colors ${
-            canRedo
-              ? "hover:bg-gray-100 text-gray-700"
-              : "text-gray-400 cursor-not-allowed"
-          }`}
-          title="Redo (Ctrl+Y)"
-        >
-          <Redo className="w-5 h-5" />
-        </button>
       </div>
 
       {/* Right Section - File Actions */}
       <div className="flex items-center gap-2">
+        {/* Load Sample Data Button */}
+        <button
+          onClick={onLoadSampleData}
+          disabled={isLoadingData}
+          className={`px-4 py-2 bg-neutral-800 text-white text-sm rounded-full transition-colors flex items-center gap-2 ${
+            isLoadingData
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-neutral-700"
+          }`}
+          title="Load sample presentation data"
+        >
+          {isLoadingData ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Upload className="w-4 h-4" />
+          )}
+          {isLoadingData ? "Loading..." : "Load Data"}
+        </button>
+
+        {/* Clear Data Button */}
+        {hasLoadedData && (
+          <button
+            onClick={onClearData}
+            className="px-4 py-2 bg-gray-500 text-white text-sm rounded-full hover:bg-gray-600 transition-colors flex items-center gap-2"
+            title="Clear loaded data"
+          >
+            <FileText className="w-4 h-4" />
+            Clear
+          </button>
+        )}
+
+        <button
+          onClick={onImport}
+          className="px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 hover:bg-neutral-100"
+          title="Import JSON file"
+        >
+          <Upload className="w-4 h-4" />
+          Import JSON
+        </button>
+
         <button
           onClick={onExportPPTX}
           disabled={isExporting}
@@ -88,6 +107,15 @@ export default function SlideEditorHeader({
             className={`w-4 h-4 ${isExporting ? "animate-spin" : ""}`}
           />
           {isExporting ? "Đang xuất..." : "Tải PPTX"}
+        </button>
+
+        <button
+          onClick={onExportJSON}
+          className="px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 hover:bg-neutral-100"
+          title="Export to JSON"
+        >
+          <FileText className="w-4 h-4" />
+          Tải JSON
         </button>
 
         <button

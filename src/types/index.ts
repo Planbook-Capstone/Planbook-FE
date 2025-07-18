@@ -281,6 +281,8 @@ export interface TextElement {
   height: number;
   text: string;
   style: TextStyle;
+  zIndex?: number;
+  rotation?: number; // in degrees
 }
 
 export interface ImageElement {
@@ -292,6 +294,7 @@ export interface ImageElement {
   height: number;
   src: string;
   alt?: string;
+  zIndex?: number;
 }
 
 export interface ShapeElement {
@@ -305,6 +308,8 @@ export interface ShapeElement {
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
+  zIndex?: number;
+  rotation?: number; // in degrees
 }
 
 export type SlideElement = TextElement | ImageElement | ShapeElement;

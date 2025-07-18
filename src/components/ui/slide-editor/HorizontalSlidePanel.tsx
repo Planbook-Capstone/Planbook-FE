@@ -15,19 +15,51 @@ import {
 // Mini preview component for slide thumbnails
 const SlidePreview = ({
   elements = [],
+  background = "#ffffff",
   width = 80,
   height = 45,
 }: {
   elements?: any[];
+  background?: string;
   width?: number;
   height?: number;
 }) => {
   const scale = width / 960; // Scale down from canvas size (960px)
 
+  // Helper function to get background style
+  const getBackgroundStyle = () => {
+    if (!background || background === "#ffffff") {
+      return { backgroundColor: "#ffffff" };
+    }
+
+    if (background.startsWith("#")) {
+      return { backgroundColor: background };
+    }
+
+    if (background.startsWith("linear-gradient")) {
+      return { background: background };
+    }
+
+    if (background.startsWith("url(")) {
+      return {
+        backgroundImage: background,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      };
+    }
+
+    return { backgroundColor: "#ffffff" };
+  };
+
   return (
     <div
-      className="relative bg-white border border-gray-200 rounded overflow-hidden"
-      style={{ width, height }}
+      className="relative border border-gray-200 rounded overflow-hidden"
+      style={{
+        width,
+        height,
+        ...getBackgroundStyle(),
+      }}
     >
       {elements.length === 0 ? (
         <div className="flex items-center justify-center h-full text-gray-400 text-xs">
@@ -76,6 +108,7 @@ interface Slide {
   thumbnail?: string;
   isVisible: boolean;
   elements?: any[]; // Canvas elements for preview
+  background?: string; // Background color, gradient, or image URL
 }
 
 interface HorizontalSlidePanelProps {
@@ -194,9 +227,9 @@ export default function HorizontalSlidePanel({
   }
 
   return (
-    <div className="h-40 border-gray-200 flex flex-col py-4 px-6 mb-10">
+    <div className="w-full h-40 border-gray-200 flex flex-col py-4 px-6 mb-10">
       {/* Slides List - Horizontal */}
-      <div className="overflow-x-auto overflow-y-hidden p-2 h-full">
+      <div className=" w-full overflow-x-scroll overflow-y-hidden p-2 h-full">
         <div className="flex gap-2 h-full">
           {slides.map((slide, index) => (
             <div

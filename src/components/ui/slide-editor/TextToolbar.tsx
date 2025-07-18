@@ -9,7 +9,8 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  BoldIcon,
+  Plus,
+  Minus,
 } from "lucide-react";
 import {
   Select,
@@ -25,43 +26,24 @@ interface TextToolbarProps {
 }
 
 const FONT_FAMILIES = [
+  "Arial",
   "Arial, sans-serif",
+  "Helvetica",
   "Helvetica, sans-serif",
+  "Times New Roman",
   "Times New Roman, serif",
+  "Georgia",
   "Georgia, serif",
+  "Verdana",
   "Verdana, sans-serif",
+  "Courier New",
   "Courier New, monospace",
+  "Impact",
   "Impact, sans-serif",
+  "Comic Sans MS",
   "Comic Sans MS, cursive",
-];
-
-const FONT_SIZES = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 64, 72];
-
-const COLORS = [
-  "#000000",
-  "#333333",
-  "#666666",
-  "#999999",
-  "#CCCCCC",
-  "#FFFFFF",
-  "#FF0000",
-  "#FF6600",
-  "#FFCC00",
-  "#FFFF00",
-  "#CCFF00",
-  "#66FF00",
-  "#00FF00",
-  "#00FF66",
-  "#00FFCC",
-  "#00FFFF",
-  "#00CCFF",
-  "#0066FF",
-  "#0000FF",
-  "#6600FF",
-  "#CC00FF",
-  "#FF00FF",
-  "#FF00CC",
-  "#FF0066",
+  "Calibri",
+  "Tahoma",
 ];
 
 export default function TextToolbar({
@@ -83,41 +65,64 @@ export default function TextToolbar({
       {/* Font Family */}
       <div className="flex items-center gap-2">
         <Select
-          value={style.fontFamily}
+          value={style.fontFamily || "Arial, sans-serif"}
           onValueChange={(value) => handleStyleUpdate({ fontFamily: value })}
         >
-          <SelectTrigger className="w-[160px] h-8 rounded-full py-4">
-            <SelectValue />
+          <SelectTrigger className="w-[160px] h-8 rounded-full py-4 bg-gray-50 border-none shadow-none">
+            <SelectValue placeholder="Select font" />
           </SelectTrigger>
           <SelectContent className="z-[99999]">
             {FONT_FAMILIES.map((font) => (
               <SelectItem key={font} value={font}>
-                <span style={{ fontFamily: font }}>{font.split(",")[0]}</span>
+                <span style={{ fontFamily: font }}>
+                  {font.includes(",") ? font.split(",")[0] : font}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Font Size */}
-      <div className="flex items-center gap-2">
-        <Select
-          value={style.fontSize.toString()}
-          onValueChange={(value) =>
-            handleStyleUpdate({ fontSize: parseInt(value) })
-          }
+      {/* Font Size with +/- Controls */}
+      <div className="flex items-center gap-1 bg-gray-50 rounded-full px-2 py-1">
+        <button
+          onClick={() => {
+            const newSize = Math.max(8, (style.fontSize || 16) - 2);
+            handleStyleUpdate({ fontSize: newSize });
+          }}
+          className="p-1 rounded-full hover:bg-gray-200 transition-colors "
+          title="Decrease font size"
         >
-          <SelectTrigger className="w-[80px] h-8 rounded-full py-4">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {FONT_SIZES.map((size) => (
-              <SelectItem key={size} value={size.toString()}>
-                {size}px
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Minus className="w-3 h-3" />
+        </button>
+
+        <input
+          type="number"
+          value={style.fontSize || 16}
+          onChange={(e) => {
+            const newSize = Math.max(
+              8,
+              Math.min(200, parseInt(e.target.value) || 16)
+            );
+            handleStyleUpdate({ fontSize: newSize });
+          }}
+          className="w-12 py-1 text-center text-sm bg-transparent border-none outline-none"
+          min="8"
+          max="200"
+        />
+
+        <span className="text-xs text-gray-500">px</span>
+
+        <button
+          onClick={() => {
+            const newSize = Math.min(200, (style.fontSize || 16) + 2);
+            handleStyleUpdate({ fontSize: newSize });
+          }}
+          className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+          title="Increase font size"
+        >
+          <Plus className="w-3 h-3" />
+        </button>
       </div>
 
       {/* Style Buttons */}

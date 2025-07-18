@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { SlideElement, TextElement as TextElementType } from "@/types";
 import SlideEditorHeader from "./SlideEditorHeader";
 import SlideEditorSidebar from "./SlideEditorSidebar";
@@ -10,31 +10,105 @@ import HorizontalSlidePanel from "./HorizontalSlidePanel";
 import { SlideEditorDirector } from "./SlideEditorDirector";
 import { useSlideExport } from "@/hooks/useSlideExport";
 import { SlideData } from "@/utils/pptxExporter";
+import { useElementPositioning } from "@/hooks/useElementPositioning";
+import BackgroundSidebar from "./BackgroundSidebar";
+import ImageLibrarySidebar from "./ImageLibrarySidebar";
+
+import { ImageElement } from "@/types";
+import { TextColorProvider } from "./TextColorContext";
 
 interface Slide {
   id: string;
   title: string;
   elements: SlideElement[];
   isVisible: boolean;
+  background?: string; // Background color, gradient, or image URL
 }
 
-export default function SlideEditorLayout() {
-  const [slides, setSlides] = useState<Slide[]>([
-    {
-      id: "slide-1",
-      title: "Slide 1",
-      elements: [],
-      isVisible: true,
-    },
-  ]);
-  const [currentSlideId, setCurrentSlideId] = useState<string>("slide-1");
+interface SlideEditorLayoutProps {
+  initialSlides?: any[];
+  onLoadSampleData?: () => void;
+  onClearData?: () => void;
+  isLoadingData?: boolean;
+  hasLoadedData?: boolean;
+}
+
+export default function SlideEditorLayout({
+  initialSlides,
+  onLoadSampleData,
+  onClearData,
+  isLoadingData = false,
+  hasLoadedData = false,
+}: SlideEditorLayoutProps) {
+  // Convert initialSlides to proper format if provided
+  const getInitialSlides = (): Slide[] => {
+    if (initialSlides && initialSlides.length > 0) {
+      return initialSlides.map((slide, index) => ({
+        id: slide.id || `slide-${index + 1}`,
+        title: `Slide ${index + 1}`,
+        elements: slide.elements || [],
+        isVisible: true,
+        background: (slide as any).background || "#ffffff",
+      }));
+    }
+
+    return [
+      {
+        id: "slide-1",
+        title: "Slide 1",
+        elements: [],
+        isVisible: true,
+        background: "#ffffff",
+      },
+    ];
+  };
+
+  const [slides, setSlides] = useState<Slide[]>(getInitialSlides());
+  const [currentSlideId, setCurrentSlideId] = useState<string>(() => {
+    const initialSlidesData = getInitialSlides();
+    return initialSlidesData[0]?.id || "slide-1";
+  });
   const [selectedElementId, setSelectedElementId] = useState<string | null>(
     null
   );
+  const [activeTab, setActiveTab] = useState<string>("text"); // "text", "images", or "background"
+
+  // Update slides when initialSlides prop changes
+  useEffect(() => {
+    if (initialSlides && initialSlides.length > 0) {
+      const newSlides = initialSlides.map((slide, index) => ({
+        id: slide.id || `slide-${index + 1}`,
+        title: `Slide ${index + 1}`,
+        elements: slide.elements || [],
+        isVisible: true,
+        background: (slide as any).background || "#ffffff",
+      }));
+
+      // Use a ref to avoid infinite loops
+      const slidesRef = { current: newSlides };
+
+      // Only update if slides actually changed
+      if (JSON.stringify(slides) !== JSON.stringify(newSlides)) {
+        console.log("🔄 Loading new slides");
+        setSlides(newSlides);
+        setCurrentSlideId(newSlides[0]?.id || "slide-1");
+        setSelectedElementId(null);
+
+        console.log("🔄 Updated slides in editor:", newSlides.length);
+        console.log(
+          "📄 Total elements:",
+          newSlides.reduce((total, slide) => total + slide.elements.length, 0)
+        );
+      }
+    }
+  }, [initialSlides]); // Remove slides from dependencies
   const [slideFormat, setSlideFormat] = useState<"16:9" | "4:3">("16:9");
 
   // Export functionality
   const { exportSlides, isExporting, error: exportError } = useSlideExport();
+
+  // Element positioning
+  const { getCenterPosition } = useElementPositioning(slideFormat);
 
   // Get current slide
   const currentSlide = slides.find((slide) => slide.id === currentSlideId);
@@ -45,31 +119,59 @@ export default function SlideEditorLayout() {
     (el) => el.id === selectedElementId
   ) as TextElementType | null;
 
+  // Utility function to normalize zIndex values
+  const normalizeZIndex = useCallback(
+    (elements: SlideElement[]): SlideElement[] => {
+      const normalized = elements
+        .slice() // Create a copy to avoid mutating the original array
+        .sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0))
+        .map((el, index) => ({ ...el, zIndex: index }));
+
+      // Debug logging (uncomment to debug zIndex issues)
+      // console.table(normalized.map(e => ({ id: e.id.slice(-8), type: e.type, zIndex: e.zIndex })));
+
+      return normalized;
+    },
+    []
+  );
+
   // Handle adding new element
   const handleAddElement = useCallback(
     (element: SlideElement) => {
       setSlides((prev) =>
-        prev.map((slide) =>
-          slide.id === currentSlideId
-            ? { ...slide, elements: [...slide.elements, element] }
-            : slide
-        )
+        prev.map((slide) => {
+          if (slide.id !== currentSlideId) return slide;
+
+          // Add new element with high zIndex, then normalize
+          const newElements = [
+            ...slide.elements,
+            {
+              ...element,
+              zIndex: element.zIndex ?? 9999, // Assign high zIndex initially
+            },
+          ];
+
+          return {
+            ...slide,
+            elements: normalizeZIndex(newElements),
+          };
+        })
       );
       setSelectedElementId(element.id);
     },
-    [currentSlideId]
+    [currentSlideId, normalizeZIndex]
   );
 
   // Handle updating element
   const handleUpdateElement = useCallback(
     (id: string, updates: Partial<SlideElement>) => {
-      setSlides((prev: any) =>
-        prev.map((slide: any) =>
+      setSlides((prev) =>
+        prev.map((slide) =>
           slide.id === currentSlideId
             ? {
                 ...slide,
-                elements: slide.elements.map((el: any) =>
-                  el.id === id ? { ...el, ...updates } : el
+                elements: slide.elements.map((el) =>
+                  el.id === id ? ({ ...el, ...updates } as SlideElement) : el
                 ),
               }
             : slide
@@ -101,14 +203,13 @@ export default function SlideEditorLayout() {
 
   // Handle adding text element
   const handleAddText = useCallback(() => {
-    const canvasWidth = slideFormat === "16:9" ? 960 : 960;
-    const canvasHeight = slideFormat === "16:9" ? 540 : 720;
+    const centerPosition = getCenterPosition({ width: 200, height: 50 });
 
     const newTextElement: TextElementType = {
       id: `text-${Date.now()}`,
       type: "text",
-      x: Math.random() * (canvasWidth - 200) + 50,
-      y: Math.random() * (canvasHeight - 100) + 50,
+      x: centerPosition.x,
+      y: centerPosition.y,
       width: 200,
       height: 50,
       text: "New Text",
@@ -123,18 +224,17 @@ export default function SlideEditorLayout() {
       },
     };
     handleAddElement(newTextElement);
-  }, [slideFormat, handleAddElement]);
+  }, [getCenterPosition, handleAddElement]);
 
   // Handle adding heading text (72px, bold)
   const handleAddHeading = useCallback(() => {
-    const canvasWidth = slideFormat === "16:9" ? 960 : 960;
-    const canvasHeight = slideFormat === "16:9" ? 540 : 720;
+    const centerPosition = getCenterPosition({ width: 300, height: 80 });
 
     const newTextElement: TextElementType = {
       id: `text-${Date.now()}`,
       type: "text",
-      x: Math.random() * (canvasWidth - 300) + 50,
-      y: Math.random() * (canvasHeight - 100) + 50,
+      x: centerPosition.x,
+      y: centerPosition.y,
       width: 300,
       height: 80,
       text: "Heading",
@@ -149,18 +249,17 @@ export default function SlideEditorLayout() {
       },
     };
     handleAddElement(newTextElement);
-  }, [slideFormat, handleAddElement]);
+  }, [getCenterPosition, handleAddElement]);
 
   // Handle adding subheading text (36px, bold)
   const handleAddSubheading = useCallback(() => {
-    const canvasWidth = slideFormat === "16:9" ? 960 : 960;
-    const canvasHeight = slideFormat === "16:9" ? 540 : 720;
+    const centerPosition = getCenterPosition({ width: 250, height: 60 });
 
     const newTextElement: TextElementType = {
       id: `text-${Date.now()}`,
       type: "text",
-      x: Math.random() * (canvasWidth - 250) + 50,
-      y: Math.random() * (canvasHeight - 100) + 50,
+      x: centerPosition.x,
+      y: centerPosition.y,
       width: 250,
       height: 60,
       text: "Subheading",
@@ -175,18 +274,17 @@ export default function SlideEditorLayout() {
       },
     };
     handleAddElement(newTextElement);
-  }, [slideFormat, handleAddElement]);
+  }, [getCenterPosition, handleAddElement]);
 
   // Handle adding body text (18px, normal)
   const handleAddBodyText = useCallback(() => {
-    const canvasWidth = slideFormat === "16:9" ? 960 : 960;
-    const canvasHeight = slideFormat === "16:9" ? 540 : 720;
+    const centerPosition = getCenterPosition({ width: 200, height: 40 });
 
     const newTextElement: TextElementType = {
       id: `text-${Date.now()}`,
       type: "text",
-      x: Math.random() * (canvasWidth - 200) + 50,
-      y: Math.random() * (canvasHeight - 100) + 50,
+      x: centerPosition.x,
+      y: centerPosition.y,
       width: 200,
       height: 40,
       text: "Body text",
@@ -201,7 +299,7 @@ export default function SlideEditorLayout() {
       },
     };
     handleAddElement(newTextElement);
-  }, [slideFormat, handleAddElement]);
+  }, [getCenterPosition, handleAddElement]);
 
   // Handle updating text style
   const handleUpdateTextStyle = useCallback(
@@ -228,6 +326,163 @@ export default function SlideEditorLayout() {
     [currentSlideId]
   );
 
+  // Handle adding image element
+  const handleAddImage = useCallback(
+    (imageElement: ImageElement) => {
+      handleAddElement(imageElement);
+    },
+    [handleAddElement]
+  );
+
+  // Handle adding image from URL (for ImageLibrarySidebar)
+  const handleAddImageFromUrl = useCallback(
+    (imageUrl: string) => {
+      const centerPosition = getCenterPosition({ width: 200, height: 150 });
+
+      const imageElement: ImageElement = {
+        id: `image-${Date.now()}`,
+        type: "image",
+        x: centerPosition.x,
+        y: centerPosition.y,
+        width: 200,
+        height: 150,
+        src: imageUrl,
+      };
+
+      handleAddElement(imageElement);
+    },
+    [handleAddElement, getCenterPosition]
+  );
+
+  // Handle tab change
+  const handleTabChange = useCallback((tabKey: string) => {
+    setActiveTab(tabKey);
+  }, []);
+
+  // Handle background change
+  const handleBackgroundChange = useCallback(
+    (background: string) => {
+      setSlides((prev) =>
+        prev.map((slide) =>
+          slide.id === currentSlideId ? { ...slide, background } : slide
+        )
+      );
+    },
+    [currentSlideId]
+  );
+
+  // Layer management functions
+  const handleBringToFront = useCallback(
+    (elementId: string) => {
+      setSlides((prev) =>
+        prev.map((slide) => {
+          if (slide.id !== currentSlideId) return slide;
+
+          const elements = slide.elements.map((el) =>
+            el.id === elementId ? { ...el, zIndex: 9999 } : el
+          );
+
+          return {
+            ...slide,
+            elements: normalizeZIndex(elements),
+          };
+        })
+      );
+    },
+    [currentSlideId, normalizeZIndex]
+  );
+
+  const handleSendToBack = useCallback(
+    (elementId: string) => {
+      setSlides((prev) =>
+        prev.map((slide) => {
+          if (slide.id !== currentSlideId) return slide;
+
+          const elements = slide.elements.map((el) =>
+            el.id === elementId ? { ...el, zIndex: -1 } : el
+          );
+
+          return {
+            ...slide,
+            elements: normalizeZIndex(elements),
+          };
+        })
+      );
+    },
+    [currentSlideId, normalizeZIndex]
+  );
+
+  const handleBringForward = useCallback(
+    (elementId: string) => {
+      setSlides((prev) =>
+        prev.map((slide) => {
+          if (slide.id !== currentSlideId) return slide;
+
+          // First normalize to ensure proper ordering
+          const normalizedElements = normalizeZIndex(slide.elements);
+          const elementIndex = normalizedElements.findIndex(
+            (el) => el.id === elementId
+          );
+
+          // If element is not found or already at the front, return unchanged
+          if (
+            elementIndex < 0 ||
+            elementIndex === normalizedElements.length - 1
+          ) {
+            return slide;
+          }
+
+          // Swap with the element in front
+          const newElements = [...normalizedElements];
+          [newElements[elementIndex], newElements[elementIndex + 1]] = [
+            newElements[elementIndex + 1],
+            newElements[elementIndex],
+          ];
+
+          return {
+            ...slide,
+            elements: normalizeZIndex(newElements),
+          };
+        })
+      );
+    },
+    [currentSlideId, normalizeZIndex]
+  );
+
+  const handleSendBackward = useCallback(
+    (elementId: string) => {
+      setSlides((prev) =>
+        prev.map((slide) => {
+          if (slide.id !== currentSlideId) return slide;
+
+          // First normalize to ensure proper ordering
+          const normalizedElements = normalizeZIndex(slide.elements);
+          const elementIndex = normalizedElements.findIndex(
+            (el) => el.id === elementId
+          );
+
+          // If element is not found or already at the back, return unchanged
+          if (elementIndex <= 0) {
+            return slide;
+          }
+
+          // Swap with the element behind
+          const newElements = [...normalizedElements];
+          [newElements[elementIndex], newElements[elementIndex - 1]] = [
+            newElements[elementIndex - 1],
+            newElements[elementIndex],
+          ];
+
+          return {
+            ...slide,
+            elements: normalizeZIndex(newElements),
+          };
+        })
+      );
+    },
+    [currentSlideId, normalizeZIndex]
+  );
+
   // Handle adding new slide
   const handleAddSlide = useCallback(() => {
     const newSlide: Slide = {
@@ -235,6 +490,7 @@ export default function SlideEditorLayout() {
       title: `Slide ${slides.length + 1}`,
       elements: [],
       isVisible: true,
+      background: "#ffffff", // Default white background
     };
     setSlides((prev) => [...prev, newSlide]);
     setCurrentSlideId(newSlide.id);
@@ -326,8 +582,11 @@ export default function SlideEditorLayout() {
           height: element.height,
           text: (element as any).text,
           style: (element as any).style,
+          src: (element as any).src, // For image elements
+          alt: (element as any).alt, // For image elements
         })),
         isVisible: slide.isVisible,
+        background: slide.background, // Include background for export
       }));
 
       const result = await exportSlides(slidesToExport, {
@@ -350,90 +609,333 @@ export default function SlideEditorLayout() {
     }
   }, [slides, exportSlides]);
 
-  // Handle import (placeholder)
+  // Handle export JSON
+  const handleExportJSON = useCallback(async () => {
+    try {
+      // Helper function to convert blob URLs to base64
+      const convertBlobToBase64 = async (blobUrl: string): Promise<string> => {
+        if (!blobUrl.startsWith("blob:")) return blobUrl;
+
+        try {
+          const response = await fetch(blobUrl);
+          const blob = await response.blob();
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        } catch (error) {
+          console.warn("Failed to convert blob URL:", error);
+          return blobUrl; // Return original if conversion fails
+        }
+      };
+
+      // Process slides and convert blob URLs to base64
+      const processedSlides = await Promise.all(
+        slides.map(async (slide) => {
+          const processedElements = await Promise.all(
+            slide.elements.map(async (element) => {
+              const elementData = {
+                id: element.id,
+                type: element.type,
+                x: element.x,
+                y: element.y,
+                width: element.width,
+                height: element.height,
+                zIndex: element.zIndex,
+                text: (element as any).text,
+                style: (element as any).style,
+                src: (element as any).src,
+                alt: (element as any).alt,
+              };
+
+              // Convert blob URLs to base64 for images
+              if (elementData.src && elementData.src.startsWith("blob:")) {
+                elementData.src = await convertBlobToBase64(elementData.src);
+              }
+
+              return elementData;
+            })
+          );
+
+          // Process background if it's a blob URL
+          let processedBackground = slide.background;
+          if (
+            processedBackground &&
+            processedBackground.startsWith("url(blob:")
+          ) {
+            const blobUrl = processedBackground.slice(4, -1); // Remove url() wrapper
+            const base64 = await convertBlobToBase64(blobUrl);
+            processedBackground = `url(${base64})`;
+          }
+
+          return {
+            id: slide.id,
+            title: slide.title,
+            elements: processedElements,
+            isVisible: slide.isVisible,
+            background: processedBackground,
+          };
+        })
+      );
+
+      // Create export data with processed slides
+      const exportData = {
+        version: "1.0",
+        createdAt: new Date().toISOString(),
+        slideFormat: slideFormat,
+        slides: processedSlides,
+      };
+
+      // Convert to JSON string
+      const jsonString = JSON.stringify(exportData, null, 2);
+
+      // Create and download file
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `slides-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log("✅ JSON export completed successfully");
+      alert("JSON file downloaded successfully!");
+    } catch (error) {
+      console.error("❌ JSON export failed:", error);
+      alert(`JSON export failed: ${error}`);
+    }
+  }, [slides, slideFormat]);
+
+  // Handle import JSON with coordinate validation
   const handleImport = useCallback(() => {
-    console.log("Import functionality coming soon...");
-  }, []);
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const importData = JSON.parse(text);
+
+        // Validate JSON structure
+        if (!importData.slides || !Array.isArray(importData.slides)) {
+          throw new Error("Invalid JSON format: missing slides array");
+        }
+
+        // Helper function to clamp coordinates within canvas bounds
+        const clampToCanvas = (
+          value: number,
+          max: number,
+          size: number = 0
+        ) => {
+          // Strict clamping to keep elements fully within canvas
+          const minValue = 0; // Don't allow negative coordinates
+          const maxValue = Math.max(0, max - size); // Don't allow elements to go beyond canvas
+          return Math.max(minValue, Math.min(maxValue, value));
+        };
+
+        // Get canvas dimensions for validation (match EditorCanvas dimensions)
+        const canvasWidth = slideFormat === "4:3" ? 960 : 960; // Always 960px width
+        const canvasHeight = slideFormat === "4:3" ? 720 : 540; // 720px for 4:3, 540px for 16:9
+
+        // Convert imported data to slides format with coordinate validation
+        const importedSlides: Slide[] = importData.slides.map(
+          (slideData: any, index: number) => ({
+            id: slideData.id || `slide-${Date.now()}-${index}`,
+            title: slideData.title || `Slide ${index + 1}`,
+            elements:
+              slideData.elements?.map((elementData: any) => {
+                // Validate and clamp coordinates
+                const width = Math.max(50, elementData.width || 100); // Minimum 50px width
+                const height = Math.max(30, elementData.height || 50); // Minimum 30px height
+                const originalX = elementData.x || 0;
+                const originalY = elementData.y || 0;
+                const x = clampToCanvas(originalX, canvasWidth, width);
+                const y = clampToCanvas(originalY, canvasHeight, height);
+
+                // Debug logging for problematic coordinates
+                if (originalX !== x || originalY !== y) {
+                  console.log(`🔧 Clamped element ${elementData.id}:`, {
+                    original: { x: originalX, y: originalY },
+                    clamped: { x, y },
+                    canvas: { width: canvasWidth, height: canvasHeight },
+                    elementSize: { width, height },
+                  });
+                }
+
+                return {
+                  id:
+                    elementData.id || `element-${Date.now()}-${Math.random()}`,
+                  type: elementData.type,
+                  x: x,
+                  y: y,
+                  width: width,
+                  height: height,
+                  zIndex: elementData.zIndex || 0,
+                  text: elementData.text,
+                  style: elementData.style,
+                  src: elementData.src,
+                  alt: elementData.alt,
+                };
+              }) || [],
+            isVisible: slideData.isVisible !== false, // Default to true
+            background: slideData.background || "#ffffff",
+          })
+        );
+
+        // Set imported slides
+        setSlides(importedSlides);
+
+        // Set first slide as current
+        if (importedSlides.length > 0) {
+          setCurrentSlideId(importedSlides[0].id);
+        }
+
+        // Update slide format if available
+        if (importData.slideFormat) {
+          console.log("Imported slide format:", importData.slideFormat);
+        }
+
+        console.log("✅ JSON import completed successfully");
+        alert(
+          `Successfully imported ${importedSlides.length} slides! Coordinates have been validated and adjusted to fit canvas.`
+        );
+      } catch (error) {
+        console.error("❌ JSON import failed:", error);
+        alert(`Import failed: ${error}`);
+      }
+    };
+    input.click();
+  }, [slideFormat]);
 
   const menuItems = [
     {
-      label: "Năm học",
-      key: "workspace",
+      label: "Chữ",
+      key: "text",
       image: "/icons/academic.svg",
       active: "/icons/academic-active.svg",
     },
     {
-      label: "Quản lí sách",
-      key: "resource",
+      label: "Học liệu",
+      key: "images",
       image: "/icons/folder.svg",
       active: "/icons/folder-active.svg",
+    },
+    {
+      label: "Nền",
+      key: "background",
+      image: "/icons/diamond.svg",
+      active: "/icons/diamond-active.svg",
     },
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header */}
-      <SlideEditorHeader
-        onSave={handleSave}
-        onExportPPTX={handleExportPPTX}
-        onImport={handleImport}
-        slideCount={slides.length}
-        currentSlide={slides.findIndex((s) => s.id === currentSlideId) + 1}
-        isExporting={isExporting}
-      />
-
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* SlideEditorDirector - Tab Navigation */}
-        <SlideEditorDirector menuItems={menuItems} />
-
-        {/* Tools Sidebar */}
-        <SlideEditorSidebar
-          onAddText={handleAddText}
-          onAddHeading={handleAddHeading}
-          onAddSubheading={handleAddSubheading}
-          onAddBodyText={handleAddBodyText}
+    <TextColorProvider>
+      <div
+        className="h-screen flex flex-col bg-gray-50"
+        style={{ maxWidth: "100vw" }}
+      >
+        {/* Header */}
+        <SlideEditorHeader
+          onSave={handleSave}
+          onExportPPTX={handleExportPPTX}
+          onExportJSON={handleExportJSON}
+          onImport={handleImport}
+          onLoadSampleData={onLoadSampleData}
+          onClearData={onClearData}
+          slideCount={slides.length}
+          currentSlide={slides.findIndex((s) => s.id === currentSlideId) + 1}
+          isExporting={isExporting}
+          isLoadingData={isLoadingData}
+          hasLoadedData={hasLoadedData}
         />
 
-        {/* Main Editor Area */}
-        <div className="flex-1 flex flex-col relative">
-          {/* Text Formatting Toolbar */}
-          {selectedElement && selectedElement.type === "text" && (
-            <div className="pt-2 flex justify-center ">
-              <TextToolbar
-                selectedElement={selectedElement}
-                onUpdateStyle={handleUpdateTextStyle}
-              />
-            </div>
+        {/* Main Content */}
+        <div
+          className="flex-1 flex overflow-auto w-full"
+          style={{ maxWidth: "100vw" }}
+        >
+          {/* SlideEditorDirector - Tab Navigation */}
+          <SlideEditorDirector
+            menuItems={menuItems}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
+
+          {/* Tools Sidebar - Conditional based on active tab */}
+          {activeTab === "text" && (
+            <SlideEditorSidebar
+              onAddText={handleAddText}
+              onAddHeading={handleAddHeading}
+              onAddSubheading={handleAddSubheading}
+              onAddBodyText={handleAddBodyText}
+            />
           )}
 
-          {/* Canvas Area */}
-          <div className="flex-1 flex flex-col">
-            {/* Canvas */}
-            <div className="flex-1">
-              <EditorCanvas
-                elements={elements}
-                onUpdateElement={handleUpdateElement}
-                onDeleteElement={handleDeleteElement}
-                onAddElement={handleAddElement}
-                onSelectElement={setSelectedElementId}
-                slideFormat={slideFormat}
-              />
-            </div>
+          {activeTab === "images" && (
+            <ImageLibrarySidebar onAddImage={handleAddImageFromUrl} />
+          )}
 
-            {/* Horizontal Slide Panel */}
-            <HorizontalSlidePanel
-              slides={slides}
-              currentSlideId={currentSlideId}
-              onSlideSelect={handleSlideSelect}
-              onSlideAdd={handleAddSlide}
-              onSlideDuplicate={handleSlideDuplicate}
-              onSlideDelete={handleSlideDelete}
-              onSlideToggleVisibility={handleSlideToggleVisibility}
+          {activeTab === "background" && (
+            <BackgroundSidebar
+              currentBackground={currentSlide?.background || "#ffffff"}
+              onBackgroundChange={handleBackgroundChange}
             />
+          )}
+
+          {/* Main Editor Area */}
+          <div className="flex-1 flex flex-col relative overflow-auto w-full">
+            {/* Text Formatting Toolbar */}
+            {selectedElement && selectedElement.type === "text" && (
+              <div className="pt-2 flex justify-center ">
+                <TextToolbar
+                  selectedElement={selectedElement}
+                  onUpdateStyle={handleUpdateTextStyle}
+                />
+              </div>
+            )}
+
+            {/* Canvas Area */}
+            <div className="flex-1 flex flex-col " style={{ maxWidth: "100%" }}>
+              {/* Canvas */}
+              <div
+                className="flex-1 relative w-full"
+                style={{ maxWidth: "100%" }}
+              >
+                <EditorCanvas
+                  elements={elements}
+                  onUpdateElement={handleUpdateElement}
+                  onDeleteElement={handleDeleteElement}
+                  onAddElement={handleAddElement}
+                  onSelectElement={setSelectedElementId}
+                  onBringToFront={handleBringToFront}
+                  onSendToBack={handleSendToBack}
+                  onBringForward={handleBringForward}
+                  onSendBackward={handleSendBackward}
+                  slideFormat={slideFormat}
+                  background={currentSlide?.background || "#ffffff"}
+                />
+
+                {/* Horizontal Slide Panel */}
+                <HorizontalSlidePanel
+                  slides={slides}
+                  currentSlideId={currentSlideId}
+                  onSlideSelect={handleSlideSelect}
+                  onSlideAdd={handleAddSlide}
+                  onSlideDuplicate={handleSlideDuplicate}
+                  onSlideDelete={handleSlideDelete}
+                  onSlideToggleVisibility={handleSlideToggleVisibility}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </TextColorProvider>
   );
 }
