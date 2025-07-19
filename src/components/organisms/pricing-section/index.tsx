@@ -4,90 +4,99 @@ import {
   PricingCard,
   PricingCardProps,
 } from "@/components/molecules/pricing-card";
-import { PricingDescription } from "@/components/molecules/pricing-description";
-import { Button } from "@/components/ui/Button";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
 const pricingPlans: PricingCardProps[] = [
   {
-    name: "Gói Tiêu chuẩn",
+    id: "01",
+    name: "GÓI TIÊU CHUẨN",
+    description:
+      "Phù hợp cho giáo viên cá nhân với các tính năng cơ bản để quản lý lớp học hiệu quả",
     price: "480.000₫",
+    badge: "",
+    buttonText: "Chọn gói ngay",
+    buttonSubtext:
+      "Bắt đầu số hóa công việc giảng dạy. Tiết kiệm thời gian và nâng cao hiệu quả",
+    cardType: "purple",
     features: [
-      "Theo dõi và báo cáo tài chính nâng cao",
-      "Công cụ quản lý chi tiêu và lập ngân sách",
-      "Tích hợp mượt mà với các cổng thanh toán phổ biến",
-      "Mã hóa dữ liệu an toàn, đảm bảo tuân thủ quy định",
+      "Lập kế hoạch bài học cơ bản",
+      "Quản lý thông tin học sinh",
+      "Tạo giáo án đơn giản",
+      "Báo cáo tiến độ học tập",
+      "Hỗ trợ kỹ thuật cơ bản",
     ],
-    popular: false,
   },
   {
-    name: "Gói Chuyên nghiệp",
+    id: "02",
+    name: "GÓI CHUYÊN NGHIỆP",
+    description:
+      "Tích hợp đầy đủ tính năng nâng cao cho giáo viên có nhiều lớp và yêu cầu chuyên sâu",
     price: "4.320.000₫",
+    badge: "PHỔ BIẾN",
+    buttonText: "Chọn gói ngay",
+    buttonSubtext:
+      "Quản lý chuyên nghiệp nhiều lớp học. Phân tích chi tiết và báo cáo toàn diện",
+    cardType: "dark",
     features: [
-      "Bao gồm toàn bộ tính năng từ Gói Tiêu chuẩn",
-      "Dự báo và phân tích dòng tiền nâng cao",
-      "Tùy chỉnh hoá đơn và phương thức thanh toán",
-      "Hỗ trợ đa tiền tệ cho các giao dịch quốc tế",
+      "Tất cả tính năng gói Tiêu chuẩn",
+      "Quản lý nhiều lớp học đồng thời",
+      "Phân tích học tập nâng cao",
+      "Tùy chỉnh giáo án chuyên sâu",
+      "Báo cáo chi tiết và thống kê",
+      "Tích hợp với hệ thống trường học",
+      "Hỗ trợ ưu tiên 24/7",
     ],
-    popular: true,
   },
   {
-    name: "Gói Doanh nghiệp",
+    id: "03",
+    name: "GÓI DOANH NGHIỆP",
+    description:
+      "Giải pháp toàn diện cho trường học và tổ chức giáo dục với tùy chỉnh linh hoạt",
     price: "12.000.000₫",
+    badge: "PREMIUM",
+    buttonText: "Liên hệ tư vấn",
+    buttonSubtext:
+      "Giải pháp tổng thể cho tổ chức. API tích hợp và hỗ trợ chuyên biệt 24/7",
+    cardType: "gradient",
     features: [
-      "Bao gồm toàn bộ tính năng từ Gói Chuyên nghiệp",
-      "Phân tích tài chính chuyên sâu và chi tiết",
-      "Bảng điều khiển và trực quan hóa dữ liệu tuỳ biến",
-      "Cung cấp API để tích hợp vào hệ thống khác",
+      "Tất cả tính năng gói Chuyên nghiệp",
+      "Quản lý toàn trường/tổ chức",
+      "API tích hợp hệ thống riêng",
+      "Tùy chỉnh giao diện theo thương hiệu",
+      "Phân quyền chi tiết theo vai trò",
+      "Báo cáo tổng thể cấp lãnh đạo",
+      "Đào tạo và triển khai chuyên biệt",
+      "Hỗ trợ kỹ thuật chuyên biệt 24/7",
     ],
-    popular: false,
   },
 ];
 
 export const PricingSection = () => {
   return (
-    <section className="px-4 md:px-6 lg:px-8 py-20 max-w-[1340px] mx-auto">
-      <AnimatedSection animation="fadeIn" delay={200}>
-        <span className="inline-block text-white bg-[#FF5812] text-sm px-4 py-1 rounded-full mb-3 font-medium">
-          Bảng giá
-        </span>
-      </AnimatedSection>
+    <section className="relative mb-30 mt-20 text-white px-4 md:px-6 lg:px-8 pt-20 pb-40 overflow-hidden rounded-4xl">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/images/background/abstract-bg.png')",
+        }}
+      ></div>
 
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 mb-14">
-        <AnimatedSection animation="slideLeft" delay={400}>
-          <div>
-            <div className="text-[40px] md:text-[56px] font-calsans leading-tight mb-3">
-              <h2>
-                Lựa chọn giá
-                <br />
-                linh hoạt
-              </h2>
-            </div>
+      <div className="relative z-10 lg:px-[150px] mx-auto">
+        <AnimatedSection animation="fadeIn" delay={200}>
+          <div className="mb-16">
+            <h2 className="text-5xl md:text-7xl font-calsans mb-4 leading-tight">
+              Bảng giá
+            </h2>
           </div>
         </AnimatedSection>
 
-        <p className="max-w-md lg:max-w-xl text-muted-foreground">
-          Trải nghiệm sự chủ động và tiện lợi trong quản lý công việc giảng dạy
-          với các gói dịch vụ đa dạng. Từ công cụ lập kế hoạch, soạn giáo án,
-          đến hỗ trợ chấm điểm và phân tích học tập — tất cả đều được thiết kế
-          để tiết kiệm thời gian và nâng cao hiệu quả cho giáo viên.
-        </p>
-        <Button variant="outline" className="rounded-full h-12 px-6 text-base">
-          Xem thêm
-        </Button>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-10 justify-between">
-        <AnimatedSection animation="slideLeft" delay={1000}>
-          <PricingDescription />
-        </AnimatedSection>
-
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {pricingPlans.map((plan, idx) => (
             <AnimatedSection
               key={idx}
               animation="slideUp"
-              delay={1200 + idx * 200}
+              delay={400 + idx * 200}
             >
               <PricingCard {...plan} />
             </AnimatedSection>
