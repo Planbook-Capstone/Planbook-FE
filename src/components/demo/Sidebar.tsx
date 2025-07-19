@@ -3,7 +3,7 @@
 import { useMaterialSearchService } from "@/services/materialServices";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Badge } from "antd";
-import { Image, Trash } from "lucide-react";
+import { Image, RotateCcw, Trash } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
 
@@ -196,7 +196,7 @@ export default function Sidebar({
                 {trashData.map((item) => (
                   <div
                     key={item.id}
-                    className="p-3 border border-gray-200 rounded-lg bg-gray-50"
+                    className="p-3 border border-red-200 rounded-lg bg-red-50"
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -207,9 +207,9 @@ export default function Sidebar({
                       </div>
                       <button
                         onClick={() => onRestoreNode(item.id.toString())}
-                        className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="p-2 bg-blue-100 text-blue-600 hover:bg-blue-200 rounded-md transition-colors hover:cursor-pointer"
                       >
-                        Khôi phục
+                        <RotateCcw className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
