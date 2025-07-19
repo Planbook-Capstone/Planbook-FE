@@ -43,6 +43,7 @@ export interface ExamData {
   examTime: string;
   examDate: string;
   examCode?: string;
+  atomic_masses?: string | null;
   questions: ExamQuestion[];
   yesNoQuestions: YesNoQuestion[];
   shortQuestions: ShortQuestion[];
@@ -281,6 +282,32 @@ const createExamHeader = (examData: ExamData): (Paragraph | Table)[] => {
         insideHorizontal: { style: BorderStyle.NIL, size: 0 },
         insideVertical: { style: BorderStyle.NIL, size: 0 },
       },
+    }),
+  ];
+};
+
+/**
+ * Create atomic masses section
+ */
+const createAtomicMassesSection = (
+  atomic_masses: string | null
+): Paragraph[] => {
+  if (!atomic_masses) return [];
+
+  return [
+    new Paragraph({
+      text: "",
+      spacing: { after: 240 },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: atomic_masses,
+          italics: true,
+          size: 24,
+        }),
+      ],
+      spacing: { after: 240 },
     }),
   ];
 };
@@ -665,6 +692,9 @@ export const generateExamDocx = async (examData: ExamData): Promise<void> => {
   try {
     // Create document sections
     const headerParagraphs = createExamHeader(examData);
+    const atomicMassesParagraphs = createAtomicMassesSection(
+      examData.atomic_masses || null
+    );
     const multipleChoiceParagraphs = await createMultipleChoiceSection(
       examData.questions
     );
@@ -680,6 +710,7 @@ export const generateExamDocx = async (examData: ExamData): Promise<void> => {
     // Combine all sections
     const allElements = [
       ...headerParagraphs,
+      ...atomicMassesParagraphs,
       ...multipleChoiceParagraphs,
       ...yesNoParagraphs,
       ...shortAnswerParagraphs,
