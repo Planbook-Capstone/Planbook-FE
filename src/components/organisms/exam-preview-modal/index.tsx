@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
 import { CanvasElement } from "@/components/templates/canva-layout";
-import ExamPreview from '@/components/organisms/exam-preview';
-import { useExamContext } from '@/contexts/ExamContext';
+import ExamPreview from "@/components/organisms/exam-preview";
+import { useExamContext } from "@/contexts/ExamContext";
 import { Button } from "@/components/ui/Button";
-import { X, Download, Share2 } from "lucide-react";
+import { X, Share2 } from "lucide-react";
+import { DowloadIcon } from "@/constants/icon";
+import { generateExamDocx, ExamData } from "@/utils/docxGeneratorExam";
 
 interface ExamPreviewModalProps {
   isOpen: boolean;
@@ -13,14 +14,48 @@ interface ExamPreviewModalProps {
   elements: CanvasElement[];
 }
 
-export default function ExamPreviewModal({ isOpen, onClose, elements }: ExamPreviewModalProps) {
-  const { examQuestions, examYesNoQuestions, examShortQuestions } = useExamContext();
+export default function ExamPreviewModal({
+  isOpen,
+  onClose,
+  elements,
+}: ExamPreviewModalProps) {
+  const { examQuestions, examYesNoQuestions, examShortQuestions } =
+    useExamContext();
 
   if (!isOpen) return null;
 
-  const handleDownload = () => {
-    // TODO: Implement download functionality
-    console.log("Download exam");
+  const handleDownload = async () => {
+    try {
+      const examData: ExamData = {
+        examTitle: "KỲ THI TỐT NGHIỆP TRUNG HỌC PHỔ THÔNG NĂM 2025",
+        examSubject: "HÓA HỌC",
+        examTime: "50 phút, không kể thời gian phát đề",
+        examDate: new Date().toLocaleDateString("vi-VN"),
+        examCode: "0314",
+        questions: examQuestions.map((q) => ({
+          question: q.question,
+          options: q.options,
+          illustrationImage: q.illustrationImage,
+        })),
+        yesNoQuestions: examYesNoQuestions.map((q) => ({
+          question: q.question,
+          statements: {
+            a: { text: q.statements.a.text },
+            b: { text: q.statements.b.text },
+            c: { text: q.statements.c.text },
+            d: { text: q.statements.d.text },
+          },
+        })),
+        shortQuestions: examShortQuestions.map((q) => ({
+          question: q.question || q.text || "",
+        })),
+      };
+
+      await generateExamDocx(examData);
+    } catch (error) {
+      console.error("Error downloading exam:", error);
+      alert("Có lỗi xảy ra khi tải xuống đề thi. Vui lòng thử lại.");
+    }
   };
 
   const handleShare = () => {
@@ -37,8 +72,8 @@ export default function ExamPreviewModal({ isOpen, onClose, elements }: ExamPrev
             Xem trước đề thi
           </h2>
           <div className="flex items-center gap-3">
-            <Button onClick={handleDownload} variant="default">
-              <Download className="w-4 h-4" />
+            <Button onClick={handleDownload}>
+              {DowloadIcon}
               <span>Tải về</span>
             </Button>
             <Button onClick={handleShare} variant="outline">
@@ -61,7 +96,7 @@ export default function ExamPreviewModal({ isOpen, onClose, elements }: ExamPrev
             examTitle="KỲ THI TỐT NGHIỆP TRUNG HỌC PHỔ THÔNG NĂM 2025"
             examSubject="HÓA HỌC"
             examTime="50 phút, không kể thời gian phát đề"
-            examDate={new Date().toLocaleDateString('vi-VN')}
+            examDate={new Date().toLocaleDateString("vi-VN")}
             examCode="0314"
           />
         </div>
