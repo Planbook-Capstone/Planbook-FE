@@ -4,11 +4,14 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Question } from '@/components/organisms/exam-question-item/types';
 import { YesNoQuestion } from '@/components/organisms/yes-no-question-item/types';
 import { ShortQuestion } from '@/components/organisms/short-question-item/types';
+import { BasicExamInfo, defaultBasicExamInfo } from "@/components/organisms/basic-exam-info/types";
 
 interface ExamContextType {
+  basicExamInfo: BasicExamInfo;
   examQuestions: Question[];
   examYesNoQuestions: YesNoQuestion[];
   examShortQuestions: ShortQuestion[];
+  updateBasicExamInfo: (info: BasicExamInfo) => void;
   updateQuestion: (question: Question) => void;
   updateYesNoQuestion: (question: YesNoQuestion) => void;
   updateShortQuestion: (question: ShortQuestion) => void;
@@ -38,6 +41,7 @@ interface ExamProviderProps {
 }
 
 export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
+  const [basicExamInfo, setBasicExamInfo] = useState<BasicExamInfo>(defaultBasicExamInfo);
   const [examQuestions, setExamQuestions] = useState<Question[]>([
     {
       id: '1',
@@ -141,10 +145,16 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     );
   };
 
+  const updateBasicExamInfo = (info: BasicExamInfo) => {
+    setBasicExamInfo(info);
+  };
+
   const value: ExamContextType = {
+    basicExamInfo,
     examQuestions,
     examYesNoQuestions,
     examShortQuestions,
+    updateBasicExamInfo,
     updateQuestion,
     updateYesNoQuestion,
     updateShortQuestion,

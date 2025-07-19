@@ -6,6 +6,7 @@ import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { Question } from "@/components/organisms/exam-question-item/types";
 import { YesNoQuestion } from "@/components/organisms/yes-no-question-item/types";
 import { ShortQuestion } from "@/components/organisms/short-question-item/types";
+import { useExamContext } from "@/contexts/ExamContext";
 
 interface ExamPreviewProps {
   questions: Question[];
@@ -21,11 +22,21 @@ export default function ExamPreview({
   questions,
   yesNoQuestions,
   shortQuestions,
-  examTitle = "ĐỀ KIỂM TRA LỚP 12",
-  examSubject = "3",
-  examTime = "45 phút, không kể thời gian phát đề",
-  examCode = "1234",
+  examTitle,
+  examSubject,
+  examTime,
+  examCode,
 }: ExamPreviewProps) {
+  // Get basic exam info from context if not provided via props
+  const { basicExamInfo } = useExamContext();
+
+  // Use context values as fallback
+  const finalExamTitle = examTitle || "ĐỀ KIỂM TRA LỚP 12";
+  const finalExamSubject = examSubject || basicExamInfo.subject;
+  const finalExamTime =
+    examTime ||
+    `${basicExamInfo.duration_minutes} phút, không kể thời gian phát đề`;
+  const finalExamCode = examCode || basicExamInfo.exam_code;
   const totalQuestions =
     questions.length + yesNoQuestions.length + shortQuestions.length;
 
@@ -83,11 +94,13 @@ export default function ExamPreview({
                   </p>
                 </div>
                 <div className="text-center" style={{ width: "70%" }}>
-                  <p className="font-bold text-sm">
-                    {examTitle || "ĐỀ KIỂM TRA LỚP 12"}
+                  <p className="font-bold text-sm">{finalExamTitle}</p>
+                  <p className="font-bold text-sm mt-2">
+                    Môn: {finalExamSubject}
                   </p>
-                  <p className="font-bold text-sm mt-2">Môn: {examSubject}</p>
-                  <p className="text-xs mt-2">Thời gian làm bài: {examTime}</p>
+                  <p className="text-xs mt-2">
+                    Thời gian làm bài: {finalExamTime}
+                  </p>
                 </div>
               </div>
 
@@ -110,12 +123,19 @@ export default function ExamPreview({
                 >
                   <div className="border-2 border-black px-6 py-2 flex items-center justify-center">
                     <p className="text-sm text-center">
-                      Mã đề: {examCode || "1234"}
+                      Mã đề: {finalExamCode}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Atomic Masses Section - Only show if data exists */}
+            {basicExamInfo.atomic_masses && (
+              <div className="mb-6">
+                <p className="text-sm">{basicExamInfo.atomic_masses}</p>
+              </div>
+            )}
 
             {/* Questions Content */}
             <div className="space-y-6">
