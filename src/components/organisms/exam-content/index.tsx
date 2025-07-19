@@ -6,9 +6,11 @@ import { Plus, ChevronDown, ChevronRight } from "lucide-react";
 import QuestionItem from "@/components/organisms/exam-question-item";
 import YesNoQuestionItem from "@/components/organisms/yes-no-question-item";
 import ShortQuestionItem from "@/components/organisms/short-question-item";
+import BasicExamInfoComponent from "@/components/organisms/basic-exam-info";
 import { Question } from "../exam-question-item/types";
 import { YesNoQuestion } from "../yes-no-question-item/types";
 import { ShortQuestion } from "../short-question-item/types";
+import { useExamContext } from "@/contexts/ExamContext";
 
 interface ExamContentProps {
   questions: Question[];
@@ -39,6 +41,9 @@ export default function ExamContent({
   onAddYesNoQuestion,
   onAddShortQuestion,
 }: ExamContentProps) {
+  // Get exam context for basic info
+  const { basicExamInfo, updateBasicExamInfo } = useExamContext();
+
   // State for collapse/expand sections
   const [isSection1Collapsed, setIsSection1Collapsed] = useState(false);
   const [isSection2Collapsed, setIsSection2Collapsed] = useState(false);
@@ -46,6 +51,12 @@ export default function ExamContent({
   return (
     <main className="flex-1 px-2 py-6 bg-white">
       <div className="w-full">
+        {/* Basic Exam Info */}
+        <BasicExamInfoComponent
+          examInfo={basicExamInfo}
+          onUpdate={updateBasicExamInfo}
+        />
+
         {/* Section 1: Multiple Choice Questions */}
 
         <div

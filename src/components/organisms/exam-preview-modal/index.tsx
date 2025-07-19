@@ -19,7 +19,7 @@ export default function ExamPreviewModal({
   onClose,
   elements,
 }: ExamPreviewModalProps) {
-  const { examQuestions, examYesNoQuestions, examShortQuestions } =
+  const { examQuestions, examYesNoQuestions, examShortQuestions, basicExamInfo } =
     useExamContext();
 
   if (!isOpen) return null;
@@ -27,11 +27,12 @@ export default function ExamPreviewModal({
   const handleDownload = async () => {
     try {
       const examData: ExamData = {
-        examTitle: "KỲ THI TỐT NGHIỆP TRUNG HỌC PHỔ THÔNG NĂM 2025",
-        examSubject: "HÓA HỌC",
-        examTime: "50 phút, không kể thời gian phát đề",
+        examTitle: "ĐỀ KIỂM TRA LỚP 12",
+        examSubject: basicExamInfo.subject,
+        examTime: `${basicExamInfo.duration_minutes} phút, không kể thời gian phát đề`,
         examDate: new Date().toLocaleDateString("vi-VN"),
-        examCode: "0314",
+        examCode: basicExamInfo.exam_code,
+        atomic_masses: basicExamInfo.atomic_masses,
         questions: examQuestions.map((q) => ({
           question: q.question,
           options: q.options,
@@ -45,9 +46,11 @@ export default function ExamPreviewModal({
             c: { text: q.statements.c.text },
             d: { text: q.statements.d.text },
           },
+          illustrationImage: q.illustrationImage,
         })),
         shortQuestions: examShortQuestions.map((q) => ({
           question: q.question || q.text || "",
+          illustrationImage: q.illustrationImage,
         })),
       };
 
@@ -93,11 +96,6 @@ export default function ExamPreviewModal({
             questions={examQuestions}
             yesNoQuestions={examYesNoQuestions}
             shortQuestions={examShortQuestions}
-            examTitle="KỲ THI TỐT NGHIỆP TRUNG HỌC PHỔ THÔNG NĂM 2025"
-            examSubject="HÓA HỌC"
-            examTime="50 phút, không kể thời gian phát đề"
-            
-            examCode="0314"
           />
         </div>
       </div>
