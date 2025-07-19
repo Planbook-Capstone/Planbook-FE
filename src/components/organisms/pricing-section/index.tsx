@@ -12,7 +12,7 @@ const pricingPlans: PricingCardProps[] = [
     name: "GÓI TIÊU CHUẨN",
     description:
       "Phù hợp cho giáo viên cá nhân với các tính năng cơ bản để quản lý lớp học hiệu quả",
-    price: "480.000₫",
+    price: "480.000",
     badge: "",
     buttonText: "Chọn gói ngay",
     buttonSubtext:
@@ -31,7 +31,7 @@ const pricingPlans: PricingCardProps[] = [
     name: "GÓI CHUYÊN NGHIỆP",
     description:
       "Tích hợp đầy đủ tính năng nâng cao cho giáo viên có nhiều lớp và yêu cầu chuyên sâu",
-    price: "4.320.000₫",
+    price: "4.320.000",
     badge: "PHỔ BIẾN",
     buttonText: "Chọn gói ngay",
     buttonSubtext:
@@ -52,7 +52,7 @@ const pricingPlans: PricingCardProps[] = [
     name: "GÓI DOANH NGHIỆP",
     description:
       "Giải pháp toàn diện cho trường học và tổ chức giáo dục với tùy chỉnh linh hoạt",
-    price: "12.000.000₫",
+    price: "12.000.000",
     badge: "PREMIUM",
     buttonText: "Liên hệ tư vấn",
     buttonSubtext:
@@ -82,7 +82,7 @@ export const PricingSection = () => {
         }}
       ></div>
 
-      <div className="relative z-10 lg:px-[150px] mx-auto">
+      <div className="relative z-10 xl:[200px] md:px-[75px] mx-auto">
         <AnimatedSection animation="fadeIn" delay={200}>
           <div className="mb-16">
             <h2 className="text-5xl md:text-7xl font-calsans mb-4 leading-tight">

@@ -6,7 +6,7 @@ export const LandingPageFooter = () => {
   return (
     <footer className="bg-white">
       {/* Combined Video Testimonial & CTA Section */}
-      <section className="mx-0 md:mx-6 lg:px-[200px] md:px-[75px] lg:mx-auto space-y-0">
+      <section className="mx-0 md:mx-6 xl:[200px] md:px-[75px] lg:mx-auto space-y-0">
         {/* Video Testimonial Part */}
         <div className="relative overflow-hidden rounded-3xl">
           {/* Background Video */}

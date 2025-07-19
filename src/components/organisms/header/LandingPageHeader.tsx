@@ -38,10 +38,10 @@ export const LandingPageHeader = () => {
             <a href="#" className="font-calsans text-neutral-800">
               Trang chủ
             </a>
-            <a href="#" className="text-neutral-300">
+            <a href="#" className="text-neutral-600">
               Trợ giúp
             </a>
-            <a href="#" className="text-neutral-300">
+            <a href="#" className="text-neutral-600">
               Liên hệ
             </a>
           </nav>

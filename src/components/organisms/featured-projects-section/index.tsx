@@ -43,7 +43,7 @@ export const FeaturedProjectsSection = () => {
   ];
 
   return (
-    <section className="py-16 px-4 lg:px-[200px] md:px-[75px]">
+    <section className="py-16 px-4 xl:[200px] md:px-[75px]">
       <div className="mx-auto space-y-3">
         <div className="lg:hidden mb-12 lg:mb-2 lg:pr-4 pr-0 lg:col-span-1 flex flex-col justify-end">
           <h2 className="text-4xl md:text-5xl font-calsans text-gray-900 mb-4">
