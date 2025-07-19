@@ -26,7 +26,7 @@ function CanvaLayoutContent() {
   const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const { updateQuestionImage } = useExamContext();
+  const { updateQuestionImage, updateYesNoQuestionImage, updateShortQuestionImage } = useExamContext();
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -61,19 +61,40 @@ function CanvaLayoutContent() {
         }
       } else if (
         over.id &&
-        over.id.toString().includes("question-") &&
+        over.id.toString().includes("question") &&
         over.id.toString().includes("-image-drop")
       ) {
-        // Handle drop on question image area
+        // Handle drop on any type of question image area
         if (assetData.type === "image") {
-          // Extract question ID from drop zone ID
-          const questionId = over.id
-            .toString()
-            .replace("question-", "")
-            .replace("-image-drop", "");
+          console.log("🖼️ Dropping image on question:", over.id.toString());
 
-          // Update question's illustration image using context
-          updateQuestionImage(questionId, assetData.content);
+          let questionId = "";
+
+          if (over.id.toString().includes("yes-no-question-")) {
+            // Format: yes-no-question-{id}-image-drop
+            questionId = over.id
+              .toString()
+              .replace("yes-no-question-", "")
+              .replace("-image-drop", "");
+            console.log("🎯 Updating Yes/No question image:", questionId);
+            updateYesNoQuestionImage(questionId, assetData.content);
+          } else if (over.id.toString().includes("short-question-")) {
+            // Format: short-question-{id}-image-drop
+            questionId = over.id
+              .toString()
+              .replace("short-question-", "")
+              .replace("-image-drop", "");
+            console.log("🎯 Updating Short question image:", questionId);
+            updateShortQuestionImage(questionId, assetData.content);
+          } else if (over.id.toString().includes("question-")) {
+            // Format: question-{id}-image-drop (multiple choice)
+            questionId = over.id
+              .toString()
+              .replace("question-", "")
+              .replace("-image-drop", "");
+            console.log("🎯 Updating Multiple choice question image:", questionId);
+            updateQuestionImage(questionId, assetData.content);
+          }
         }
       }
     }

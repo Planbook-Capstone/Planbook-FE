@@ -29,10 +29,12 @@ export interface YesNoQuestion {
     c: { text: string };
     d: { text: string };
   };
+  illustrationImage?: string;
 }
 
 export interface ShortQuestion {
   question: string;
+  illustrationImage?: string;
 }
 
 export interface ExamData {
@@ -293,6 +295,10 @@ const createMultipleChoiceSection = async (
 
   const paragraphs: Paragraph[] = [
     new Paragraph({
+      text: "",
+      spacing: { after: 240 },
+    }),
+    new Paragraph({
       children: [
         new TextRun({
           text: "PHẦN I: TRẮC NGHIỆM",
@@ -401,10 +407,10 @@ const createMultipleChoiceSection = async (
 /**
  * Create yes/no questions section
  */
-const createYesNoSection = (
+const createYesNoSection = async (
   yesNoQuestions: YesNoQuestion[],
   questionsOffset: number
-): Paragraph[] => {
+): Promise<Paragraph[]> => {
   if (yesNoQuestions.length === 0) return [];
 
   const paragraphs: Paragraph[] = [
@@ -416,66 +422,128 @@ const createYesNoSection = (
           size: 28,
         }),
       ],
-      heading: HeadingLevel.HEADING_1,
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 240 },
     }),
   ];
 
-  const questionParagraphs = yesNoQuestions.flatMap((question, index) => [
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `Câu ${questionsOffset + index + 1}: ${question.question}`,
-          bold: true,
-          size: 24,
+  const questionParagraphs = await Promise.all(
+    yesNoQuestions.map(async (question, index) => {
+      const questionParagraphs: Paragraph[] = [
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Câu ${questionsOffset + index + 1}: ${question.question}`,
+              bold: true,
+              size: 24,
+            }),
+          ],
+          spacing: { after: 120 },
         }),
-      ],
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `a) ${question.statements.a.text}`,
-          size: 22,
-        }),
-      ],
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `b) ${question.statements.b.text}`,
-          size: 22,
-        }),
-      ],
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `c) ${question.statements.c.text}`,
-          size: 22,
-        }),
-      ],
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `d) ${question.statements.d.text}`,
-          size: 22,
-        }),
-      ],
-    }),
-    new Paragraph({ text: "" }), // Empty line
-  ]);
+      ];
 
-  paragraphs.push(...questionParagraphs);
+      // Add image if exists
+      if (question.illustrationImage) {
+        try {
+          console.log(
+            "🖼️ Processing image for Yes/No question:",
+            question.illustrationImage.substring(0, 50)
+          );
+
+          const imageBuffer = await convertImageToPNG(
+            question.illustrationImage
+          );
+
+          if (imageBuffer) {
+            console.log(
+              "✅ Image buffer created, size:",
+              imageBuffer.byteLength
+            );
+
+            questionParagraphs.push(
+              new Paragraph({
+                children: [
+                  new ImageRun({
+                    data: new Uint8Array(imageBuffer),
+                    transformation: {
+                      width: 300,
+                      height: 200,
+                    },
+                    type: "png",
+                  }),
+                ],
+                spacing: { after: 120 },
+              })
+            );
+
+            console.log("✅ Image added to Yes/No question");
+          } else {
+            console.error("❌ Failed to create image buffer");
+          }
+        } catch (error) {
+          console.error("❌ Error adding image to Yes/No question:", error);
+        }
+      }
+
+      // Add statements with proper indentation
+      questionParagraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `a) ${question.statements.a.text}`,
+              size: 22,
+            }),
+          ],
+          indent: { left: 720 },
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `b) ${question.statements.b.text}`,
+              size: 22,
+            }),
+          ],
+          indent: { left: 720 },
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `c) ${question.statements.c.text}`,
+              size: 22,
+            }),
+          ],
+          indent: { left: 720 },
+        }),
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `d) ${question.statements.d.text}`,
+              size: 22,
+            }),
+          ],
+          indent: { left: 720 },
+        }),
+        new Paragraph({
+          text: "",
+          spacing: { after: 240 },
+        })
+      );
+
+      return questionParagraphs;
+    })
+  );
+
+  paragraphs.push(...questionParagraphs.flat());
   return paragraphs;
 };
 
 /**
  * Create short answer questions section
  */
-const createShortAnswerSection = (
+const createShortAnswerSection = async (
   shortQuestions: ShortQuestion[],
   questionsOffset: number
-): Paragraph[] => {
+): Promise<Paragraph[]> => {
   if (shortQuestions.length === 0) return [];
 
   const paragraphs: Paragraph[] = [
@@ -487,40 +555,106 @@ const createShortAnswerSection = (
           size: 28,
         }),
       ],
-      heading: HeadingLevel.HEADING_1,
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 240 },
     }),
   ];
 
-  const questionParagraphs = shortQuestions.flatMap((question, index) => [
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `Câu ${questionsOffset + index + 1}: ${question.question}`,
-          bold: true,
-          size: 24,
+  const questionParagraphs = await Promise.all(
+    shortQuestions.map(async (question, index) => {
+      const questionParagraphs: Paragraph[] = [
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Câu ${questionsOffset + index + 1}: ${question.question}`,
+              bold: true,
+              size: 24,
+            }),
+          ],
+          spacing: { after: 120 },
         }),
-      ],
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "................................................................................................................................................................................................",
-          size: 22,
-        }),
-      ],
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "................................................................................................................................................................................................",
-          size: 22,
-        }),
-      ],
-    }),
-    new Paragraph({ text: "" }), // Empty line
-  ]);
+      ];
 
-  paragraphs.push(...questionParagraphs);
+      // Add image if exists
+      if (question.illustrationImage) {
+        try {
+          console.log(
+            "🖼️ Processing image for Short question:",
+            question.illustrationImage.substring(0, 50)
+          );
+
+          const imageBuffer = await convertImageToPNG(
+            question.illustrationImage
+          );
+
+          if (imageBuffer) {
+            console.log(
+              "✅ Image buffer created, size:",
+              imageBuffer.byteLength
+            );
+
+            questionParagraphs.push(
+              new Paragraph({
+                children: [
+                  new ImageRun({
+                    data: new Uint8Array(imageBuffer),
+                    transformation: {
+                      width: 300,
+                      height: 200,
+                    },
+                    type: "png",
+                  }),
+                ],
+                spacing: { after: 120 },
+              })
+            );
+
+            console.log("✅ Image added to Short question");
+          } else {
+            console.error("❌ Failed to create image buffer");
+          }
+        } catch (error) {
+          console.error("❌ Error adding image to Short question:", error);
+        }
+      }
+
+      // Add answer lines
+      // questionParagraphs.push(
+      //   new Paragraph({
+      //     children: [
+      //       new TextRun({
+      //         text: "................................................................................................................................................................................................",
+      //         size: 22,
+      //       }),
+      //     ],
+      //   }),
+      //   new Paragraph({
+      //     children: [
+      //       new TextRun({
+      //         text: "................................................................................................................................................................................................",
+      //         size: 22,
+      //       }),
+      //     ],
+      //   }),
+      //   new Paragraph({
+      //     children: [
+      //       new TextRun({
+      //         text: "................................................................................................................................................................................................",
+      //         size: 22,
+      //       }),
+      //     ],
+      //   }),
+      //   new Paragraph({
+      //     text: "",
+      //     spacing: { after: 240 }
+      //   })
+      // );
+
+      return questionParagraphs;
+    })
+  );
+
+  paragraphs.push(...questionParagraphs.flat());
   return paragraphs;
 };
 
@@ -534,11 +668,11 @@ export const generateExamDocx = async (examData: ExamData): Promise<void> => {
     const multipleChoiceParagraphs = await createMultipleChoiceSection(
       examData.questions
     );
-    const yesNoParagraphs = createYesNoSection(
+    const yesNoParagraphs = await createYesNoSection(
       examData.yesNoQuestions,
       examData.questions.length
     );
-    const shortAnswerParagraphs = createShortAnswerSection(
+    const shortAnswerParagraphs = await createShortAnswerSection(
       examData.shortQuestions,
       examData.questions.length + examData.yesNoQuestions.length
     );
@@ -581,10 +715,11 @@ export const generateExamDocx = async (examData: ExamData): Promise<void> => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${examData.examTitle.replace(
-      /\s+/g,
-      "_"
-    )}_${new Date().getTime()}.docx`;
+    link.download = `exam-test.docx`;
+    // link.download = `${examData.examTitle.replace(
+    //   /\s+/g,
+    //   "_"
+    // )}_${new Date().getTime()}.docx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

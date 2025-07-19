@@ -119,11 +119,36 @@ export default function ExamPreview({
 
             {/* Questions Content */}
             <div className="space-y-6">
-              {getCurrentPageQuestions().map((question: any) => (
-                <div
-                  key={`${question.type}-${question.index}`}
-                  className="mb-6"
-                >
+              {/* Section Headers */}
+              {questions.length > 0 && (
+                <div className="my-1">
+                  <h2 className="text-lg font-bold text-left">PHẦN I: TRẮC NGHIỆM</h2>
+                </div>
+              )}
+
+              {getCurrentPageQuestions().map((question: any, questionIndex: number) => {
+                // Check if we need to show section headers
+                const currentQuestions = getCurrentPageQuestions();
+                const isFirstYesNo = question.type === "yesno" &&
+                  (questionIndex === 0 || currentQuestions[questionIndex - 1]?.type !== "yesno");
+                const isFirstShort = question.type === "short" &&
+                  (questionIndex === 0 || currentQuestions[questionIndex - 1]?.type !== "short");
+
+                return (
+                  <div key={`${question.type}-${question.index}`}>
+                    {/* Section Headers */}
+                    {isFirstYesNo && yesNoQuestions.length > 0 && (
+                      <div className="my-1">
+                        <h2 className="text-lg font-bold text-left">PHẦN II: ĐÚNG/SAI</h2>
+                      </div>
+                    )}
+                    {isFirstShort && shortQuestions.length > 0 && (
+                      <div className="my-1">
+                        <h2 className="text-lg font-bold text-left">PHẦN III: TỰ LUẬN</h2>
+                      </div>
+                    )}
+
+                    <div className="mb-6">
                   {question.type === "multiple" && (
                     <div>
                       <p className="font-medium text-gray-900 mb-2">
@@ -177,6 +202,29 @@ export default function ExamPreview({
                       <p className="font-medium text-gray-900 mb-2">
                         Câu {question.index}: {question.question}
                       </p>
+                      {question.illustrationImage && (
+                        <div className="mb-3">
+                          <img
+                            src={question.illustrationImage}
+                            alt="Hình minh họa"
+                            className="max-w-xs max-h-48 rounded border"
+                            onLoad={() => {
+                              console.log(
+                                "✅ Image loaded successfully:",
+                                question.illustrationImage
+                              );
+                            }}
+                            onError={(e) => {
+                              console.error(
+                                "❌ Image load error:",
+                                question.illustrationImage,
+                                e
+                              );
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        </div>
+                      )}
                       <div className="grid grid-cols-1 gap-1 ml-4">
                         <p className="text-gray-700">
                           a) {question.statements.a.text}
@@ -199,15 +247,40 @@ export default function ExamPreview({
                       <p className="font-medium text-gray-900 mb-3">
                         Câu {question.index}: {question.question}
                       </p>
-                      <div className="space-y-2">
+                      {question.illustrationImage && (
+                        <div className="mb-3">
+                          <img
+                            src={question.illustrationImage}
+                            alt="Hình minh họa"
+                            className="max-w-xs max-h-48 rounded border"
+                            onLoad={() => {
+                              console.log(
+                                "✅ Image loaded successfully:",
+                                question.illustrationImage
+                              );
+                            }}
+                            onError={(e) => {
+                              console.error(
+                                "❌ Image load error:",
+                                question.illustrationImage,
+                                e
+                              );
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        </div>
+                      )}
+                      {/* <div className="space-y-2">
                         <div className="border-b border-dotted border-gray-400 h-6"></div>
                         <div className="border-b border-dotted border-gray-400 h-6"></div>
                         <div className="border-b border-dotted border-gray-400 h-6"></div>
-                      </div>
+                      </div> */}
                     </div>
                   )}
-                </div>
-              ))}
+                    </div>
+                  </div>
+                );
+              })}
 
               {/* Empty State */}
               {totalQuestions === 0 && (

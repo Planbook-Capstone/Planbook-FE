@@ -96,7 +96,7 @@ export default function ExamPreviewModal({
             examTitle="KỲ THI TỐT NGHIỆP TRUNG HỌC PHỔ THÔNG NĂM 2025"
             examSubject="HÓA HỌC"
             examTime="50 phút, không kể thời gian phát đề"
-            examDate={new Date().toLocaleDateString("vi-VN")}
+            
             examCode="0314"
           />
         </div>

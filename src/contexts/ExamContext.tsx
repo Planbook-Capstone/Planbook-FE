@@ -19,6 +19,8 @@ interface ExamContextType {
   addYesNoQuestion: () => void;
   addShortQuestion: () => void;
   updateQuestionImage: (questionId: string, imagePath: string) => void;
+  updateYesNoQuestionImage: (questionId: string, imagePath: string) => void;
+  updateShortQuestionImage: (questionId: string, imagePath: string) => void;
 }
 
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
@@ -110,9 +112,29 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
   };
 
   const updateQuestionImage = (questionId: string, imagePath: string) => {
-    setExamQuestions(prev => 
-      prev.map(q => 
-        q.id === questionId 
+    setExamQuestions(prev =>
+      prev.map(q =>
+        q.id === questionId
+          ? { ...q, illustrationImage: imagePath }
+          : q
+      )
+    );
+  };
+
+  const updateYesNoQuestionImage = (questionId: string, imagePath: string) => {
+    setExamYesNoQuestions(prev =>
+      prev.map(q =>
+        q.id === questionId
+          ? { ...q, illustrationImage: imagePath }
+          : q
+      )
+    );
+  };
+
+  const updateShortQuestionImage = (questionId: string, imagePath: string) => {
+    setExamShortQuestions(prev =>
+      prev.map(q =>
+        q.id === questionId
           ? { ...q, illustrationImage: imagePath }
           : q
       )
@@ -133,6 +155,8 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     addYesNoQuestion,
     addShortQuestion,
     updateQuestionImage,
+    updateYesNoQuestionImage,
+    updateShortQuestionImage,
   };
 
   return (

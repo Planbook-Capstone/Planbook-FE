@@ -4,6 +4,7 @@ export interface ShortQuestion {
   text?: string; // For backward compatibility
   answer: string;
   type: "short";
+  illustrationImage?: string; // URL or path to illustration image
 }
 
 export interface ShortQuestionItemProps {
