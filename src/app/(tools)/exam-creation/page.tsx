@@ -35,8 +35,9 @@ export default function ExamCreationPage() {
     setHasData(true);
   };
 
-  const handleImageDrop = (questionId: string, imageSrc: string) => {
-    console.log("🖼️ Image dropped on question:", questionId, imageSrc);
+  const handleImageDrop = (questionId: string, imageSrc: string, questionType: string = "multiple") => {
+    console.log("🖼️ Image dropped on question:", questionId, imageSrc, "Type:", questionType);
+    // This will be handled by the ExamContext in CanvaLayout
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -44,7 +45,7 @@ export default function ExamCreationPage() {
 
     if (!over) return;
 
-    // Check if dropping an image asset onto a question
+    // Check if dropping an image asset onto any type of question
     if (
       active.data.current?.type === "image" &&
       over.id.toString().includes("question") &&
@@ -53,15 +54,37 @@ export default function ExamCreationPage() {
       console.log("🖼️ Dropping image:", active.data.current.content);
       console.log("📍 Drop target:", over.id);
 
-      // Extract question ID from drop zone ID (format: question-{id}-image-drop)
-      const questionId = over.id
-        .toString()
-        .replace("question-", "")
-        .replace("-image-drop", "");
-      console.log("🎯 Question ID:", questionId);
+      let questionId = "";
+      let questionType = "";
 
-      // Call the image drop handler
-      handleImageDrop(questionId, active.data.current.content);
+      // Extract question ID and type from drop zone ID
+      if (over.id.toString().includes("yes-no-question")) {
+        // Format: yes-no-question-{id}-image-drop
+        questionId = over.id
+          .toString()
+          .replace("yes-no-question-", "")
+          .replace("-image-drop", "");
+        questionType = "yes-no";
+      } else if (over.id.toString().includes("short-question")) {
+        // Format: short-question-{id}-image-drop
+        questionId = over.id
+          .toString()
+          .replace("short-question-", "")
+          .replace("-image-drop", "");
+        questionType = "short";
+      } else {
+        // Format: question-{id}-image-drop (multiple choice)
+        questionId = over.id
+          .toString()
+          .replace("question-", "")
+          .replace("-image-drop", "");
+        questionType = "multiple";
+      }
+
+      console.log("🎯 Question ID:", questionId, "Type:", questionType);
+
+      // Call the appropriate image drop handler
+      handleImageDrop(questionId, active.data.current.content, questionType);
     }
   };
 
