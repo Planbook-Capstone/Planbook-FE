@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core";
 import AssetsPanel from "@/components/organisms/assets-panel";
 import CanvasArea from "@/components/organisms/canvas-area";
-import PreviewPanel from "@/components/organisms/preview-panel";
+import ExamPreviewModal from "@/components/organisms/exam-preview-modal";
 import { ExamProvider, useExamContext } from "@/contexts/ExamContext";
 import { useSearchParams } from "next/navigation";
 
@@ -25,7 +25,8 @@ export interface CanvasElement {
 function CanvaLayoutContent() {
   const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { updateQuestionImage } = useExamContext();
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const { updateQuestionImage, updateYesNoQuestionImage, updateShortQuestionImage } = useExamContext();
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -60,19 +61,40 @@ function CanvaLayoutContent() {
         }
       } else if (
         over.id &&
-        over.id.toString().includes("question-") &&
+        over.id.toString().includes("question") &&
         over.id.toString().includes("-image-drop")
       ) {
-        // Handle drop on question image area
+        // Handle drop on any type of question image area
         if (assetData.type === "image") {
-          // Extract question ID from drop zone ID
-          const questionId = over.id
-            .toString()
-            .replace("question-", "")
-            .replace("-image-drop", "");
+          console.log("🖼️ Dropping image on question:", over.id.toString());
 
-          // Update question's illustration image using context
-          updateQuestionImage(questionId, assetData.content);
+          let questionId = "";
+
+          if (over.id.toString().includes("yes-no-question-")) {
+            // Format: yes-no-question-{id}-image-drop
+            questionId = over.id
+              .toString()
+              .replace("yes-no-question-", "")
+              .replace("-image-drop", "");
+            console.log("🎯 Updating Yes/No question image:", questionId);
+            updateYesNoQuestionImage(questionId, assetData.content);
+          } else if (over.id.toString().includes("short-question-")) {
+            // Format: short-question-{id}-image-drop
+            questionId = over.id
+              .toString()
+              .replace("short-question-", "")
+              .replace("-image-drop", "");
+            console.log("🎯 Updating Short question image:", questionId);
+            updateShortQuestionImage(questionId, assetData.content);
+          } else if (over.id.toString().includes("question-")) {
+            // Format: question-{id}-image-drop (multiple choice)
+            questionId = over.id
+              .toString()
+              .replace("question-", "")
+              .replace("-image-drop", "");
+            console.log("🎯 Updating Multiple choice question image:", questionId);
+            updateQuestionImage(questionId, assetData.content);
+          }
         }
       }
     }
@@ -96,7 +118,18 @@ function CanvaLayoutContent() {
 
   const isPreviewing = searchParams.get("preview") === "true";
 
-  console.log(isPreviewing, "tran");
+  // Update modal state when URL parameter changes
+  useEffect(() => {
+    setIsPreviewModalOpen(isPreviewing);
+  }, [isPreviewing]);
+
+  const handleClosePreviewModal = () => {
+    setIsPreviewModalOpen(false);
+    // Optionally update URL to remove preview parameter
+    const url = new URL(window.location.href);
+    url.searchParams.delete("preview");
+    window.history.replaceState({}, "", url.toString());
+  };
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -108,19 +141,6 @@ function CanvaLayoutContent() {
 
         {/* Canvas Area - Scrollable */}
         <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-          <div className="h-16 flex items-center  border-gray-200 bg-white sticky top-0 z-10">
-            {/* <h1 className="text-xl font-calsans text-gray-800">
-              Tạo bài kiểm tra
-            </h1> */}
-            <div className="ml-auto flex space-x-2">
-              <button className="sm:hidden p-2 hover:bg-gray-100 rounded-lg">
-                Assets
-              </button>
-              <button className="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
-                Preview
-              </button>
-            </div>
-          </div>
           <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
             <CanvasArea
               elements={canvasElements}
@@ -130,13 +150,14 @@ function CanvaLayoutContent() {
           </div>
         </div>
 
-        {/* Preview Panel - Sticky */}
-        {isPreviewing && (
-          <div className="w-80 bg-white border-l border-gray-200 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
-            <PreviewPanel elements={canvasElements} />
-          </div>
-        )}
       </div>
+
+      {/* Preview Modal */}
+      <ExamPreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={handleClosePreviewModal}
+        elements={canvasElements}
+      />
 
       {/* Drag Overlay */}
       <DragOverlay>

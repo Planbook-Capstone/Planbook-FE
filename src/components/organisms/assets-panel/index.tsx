@@ -53,7 +53,7 @@ function DraggableAsset({ asset }: DraggableAssetProps) {
       {...listeners}
       {...attributes}
       className={`
-       font-questrial p-3 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 
+       font-questrial py-1 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 
         hover:shadow-md transition-all duration-200 bg-white
         ${isDragging ? "opacity-50" : ""}
       `}
@@ -75,19 +75,6 @@ function DraggableAsset({ asset }: DraggableAssetProps) {
           </div>
         )}
 
-        {asset.type === "shape" && (
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
-            {asset.content === "rectangle" && (
-              <Square className="w-8 h-8 text-purple-600" />
-            )}
-            {asset.content === "circle" && (
-              <Circle className="w-8 h-8 text-purple-600" />
-            )}
-            {asset.content === "triangle" && (
-              <Triangle className="w-8 h-8 text-purple-600" />
-            )}
-          </div>
-        )}
         <span className="text-sm text-gray-600 text-center truncate max-w-20">
           {asset.preview}
         </span>
@@ -159,8 +146,8 @@ export default function AssetsPanel() {
   };
 
   const tabs = [
-    { id: "images", label: "Images", icon: Image },
-    { id: "upload", label: "Upload", icon: Upload },
+    { id: "images", label: "Hình ảnh", icon: Image },
+    { id: "upload", label: "Tải lên", icon: Upload },
     // { id: 'shapes', label: 'Shapes', icon: Square },
   ] as const;
 
@@ -174,7 +161,7 @@ export default function AssetsPanel() {
   return (
     <div
       className={`h-full flex flex-col font-questrial transition-all duration-200 ease-in-out ${
-        isCollapsed ? "w-12" : "w-full"
+        isCollapsed ? "w-12" : "w-72"
       }`}
     >
       {/* Header */}
@@ -220,7 +207,7 @@ export default function AssetsPanel() {
 
       {/* Assets Grid */}
       {!isCollapsed && (
-        <div className="flex-1 p-2 sm:p-4 overflow-y-auto w-64">
+        <div className="flex-1 p-2 sm:p-4 overflow-y-auto w-full">
           {activeTab === "upload" ? (
             <div className="space-y-4">
               {/* Upload Area */}
