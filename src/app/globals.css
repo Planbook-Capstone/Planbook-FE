@@ -20,6 +20,14 @@
   color: #cbd5e1;
 }
 
+/* Line clamp utilities */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* @custom-variant dark (&: is(.dark *)); */
 
 @theme inline {
@@ -195,13 +203,13 @@ body {
 .animation-delay-4000 {
   animation-delay: 4s;
 }
-  
+
 @layer components {
   /* Custom dotted input style */
   .dotted-input {
     background: transparent;
     border: none;
-    border-bottom: 1px dotted #9CA3AF;
+    border-bottom: 1px dotted #9ca3af;
     outline: none;
     padding: 2px 4px;
     border-radius: 0;
@@ -213,11 +221,11 @@ body {
   }
 
   .dotted-input:focus {
-    border-bottom: 1px solid #3B82F6;
+    border-bottom: 1px solid #3b82f6;
   }
 
   .dotted-input::placeholder {
-    color: #D1D5DB;
+    color: #d1d5db;
     font-weight: normal;
   }
 
