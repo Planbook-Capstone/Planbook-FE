@@ -1,8 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { MagneticButton } from "@/components/ui/MagneticButton";
-import { TypewriterText } from "@/components/ui/TypewriterText";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,7 +10,14 @@ export const LandingPageHeader = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="relative z-50">
+    <header
+      className="fixed z-50 w-full"
+      style={{
+        backdropFilter: "blur(0.5px)",
+        backgroundColor: "rgba(255, 255, 255, 0.1)",
+        WebkitBackdropFilter: "blur(12px)",
+      }}
+    >
       <div className="flex justify-between items-center py-4 px-4 md:px-6">
         {/* Logo */}
         <div className="flex items-center gap-2">
@@ -26,25 +31,23 @@ export const LandingPageHeader = () => {
           <h1 className="font-calsans text-xl">PlanBook</h1>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex gap-6 text-sm text-muted-foreground">
-          <a href="#" className="font-semibold text-black">
-            Trang chủ
-          </a>
-          <a href="#">Trợ giúp</a>
-          <a href="#">Liên hệ</a>
-        </nav>
+        <div className="flex items-center gap-12">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex gap-6 text-md text-muted-foreground">
+            <a href="#" className="font-semibold text-black">
+              Trang chủ
+            </a>
+            <a href="#">Trợ giúp</a>
+            <a href="#">Liên hệ</a>
+          </nav>
 
-        {/* Desktop Buttons */}
-        <div className="hidden md:flex gap-2">
-          <Button variant="outline">
-            <Link href="/login">Đăng nhập</Link>
-          </Button>
-          <Button>
-            <Link href="/login">Đăng ký</Link>
-          </Button>
+          {/* Desktop Buttons */}
+          <div className="hidden md:flex gap-2">
+            <Button className="rounded-full bg-lime-300 text-black">
+              <Link href="/login">Đăng ký</Link>
+            </Button>
+          </div>
         </div>
-
         {/* Mobile Hamburger Button */}
         <button
           className="md:hidden"
@@ -57,7 +60,15 @@ export const LandingPageHeader = () => {
 
       {/* Mobile Menu Overlay */}
       {mobileOpen && (
-        <div className="absolute top-0 left-0 w-full h-screen bg-white flex flex-col p-6 space-y-6 shadow-lg md:hidden">
+        <div
+          className="fixed z-50 w-full"
+          style={{
+            backdropFilter: "blur(12px)",
+            backgroundColor: "rgba(255, 255, 255, 0.1)",
+            WebkitBackdropFilter: "blur(12px)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+          }}
+        >
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Image
