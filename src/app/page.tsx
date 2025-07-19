@@ -8,6 +8,7 @@ import { PartnerSection } from "@/components/organisms/partner-section";
 import { PricingSection } from "@/components/organisms/pricing-section";
 import { ParallaxProvider } from "react-scroll-parallax";
 import { useEffect, useState } from "react";
+import { HeroSectionV2 } from "@/components/organisms/hero-section/hero-section-v2";
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -30,12 +31,12 @@ export default function LandingPage() {
         /> */}
         <div className="relative z-20">
           <LandingPageHeader />
-          <HeroSection />
-          <FeatureCardsSection />
+          <HeroSectionV2 />
+          {/* <FeatureCardsSection />
           <PricingSection />
           <FAQsSection />
           <PartnerSection />
-          <Footer />
+          <Footer /> */}
         </div>
       </ParallaxProvider>
     </div>
