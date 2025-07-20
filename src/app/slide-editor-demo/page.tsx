@@ -20,7 +20,7 @@ export default function SlideEditorDemo() {
     data: template,
     isLoading: isLoadingTemplate,
     error,
-  } = useSlideTemplateByIdService("5");
+  } = useSlideTemplateByIdService("6");
 
   // Process JSON template service
   const processJsonMutation = useProcessJsonTemplateService();
@@ -93,55 +93,55 @@ export default function SlideEditorDemo() {
     return filteredTemplate;
   };
 
-  // Function để merge template slides với processed slides
-  const mergeTemplateWithProcessedSlides = (
-    templateSlides: any[],
-    processedSlides: any[]
+  // Function để merge processed slides với template elements
+  const mergeProcessedSlidesWithTemplate = (
+    processedSlides: any[],
+    templateSlides: any[]
   ) => {
-    console.log("🔄 Merging template slides with processed slides...");
+    console.log("🔄 Merging processed slides with template elements...");
 
-    // Tạo map từ title để dễ tìm kiếm
-    const processedSlidesMap = new Map();
-    processedSlides.forEach((slide) => {
-      processedSlidesMap.set(slide.title, slide);
+    // Tạo map từ title để dễ tìm kiếm template slides
+    const templateSlidesMap = new Map();
+    templateSlides.forEach((slide) => {
+      templateSlidesMap.set(slide.title, slide);
     });
 
-    // Merge slides
-    const mergedSlides = templateSlides.map((templateSlide) => {
-      const processedSlide = processedSlidesMap.get(templateSlide.title);
+    // Merge slides - dùng processed slides làm gốc
+    const mergedSlides = processedSlides.map((processedSlide) => {
+      const templateSlide = templateSlidesMap.get(processedSlide.title);
 
-      if (!processedSlide) {
-        // Nếu không có processed slide tương ứng, giữ nguyên template slide
-        console.log(`⚠️ No processed slide found for: ${templateSlide.title}`);
-        return templateSlide;
+      if (!templateSlide) {
+        // Nếu không có template slide tương ứng, giữ nguyên processed slide
+        console.log(`⚠️ No template slide found for: ${processedSlide.title}`);
+        return processedSlide;
       }
 
-      // Lọc elements từ template: chỉ giữ images, loại bỏ text
+      // Lấy tất cả elements từ processed slide (giữ nguyên)
+      const processedElements = [...processedSlide.elements];
+
+      console.log(templateSlide);
+      // Lọc elements từ template: chỉ lấy những cái KHÔNG phải text
       const templateNonTextElements = templateSlide.elements.filter(
         (element: any) => element.type !== "text"
       );
 
-      // Lấy text elements từ processed slide
-      const processedTextElements = processedSlide.elements.filter(
-        (element: any) => element.type === "text"
-      );
-
-      // Merge: images từ template + text từ processed
+      // Merge: giữ nguyên processed elements + thêm non-text elements từ template
       const mergedElements = [
-        ...templateNonTextElements, // Images, shapes, etc từ template
-        ...processedTextElements, // Text content từ processed
+        ...processedElements, // Giữ nguyên tất cả elements từ processed
+        ...templateNonTextElements, // Thêm images, shapes, etc từ template
       ];
 
-      console.log(`✅ Merged slide: ${templateSlide.title}`, {
+      console.log(`✅ Merged slide: ${processedSlide.title}`, {
+        processedElements: processedElements.length,
         templateNonText: templateNonTextElements.length,
-        processedText: processedTextElements.length,
         total: mergedElements.length,
       });
 
       return {
-        ...templateSlide, // Giữ structure từ template
+        ...processedSlide, // Giữ structure từ processed slide
         elements: mergedElements, // Elements đã merge
-        // Có thể giữ background, isVisible từ template
+        // Có thể override background từ template nếu cần
+        background: templateSlide.background || processedSlide.background,
       };
     });
 
@@ -162,13 +162,13 @@ export default function SlideEditorDemo() {
 
       console.log("✅ Process result:", result);
 
-      // Merge template slides với processed slides
-      const templateSlides = templateData.slides;
+      // Merge processed slides với template elements
       const processedSlides = result.data.processed_template.slides;
+      const templateSlides = templateData.slides;
 
-      const mergedSlides = mergeTemplateWithProcessedSlides(
-        templateSlides,
-        processedSlides
+      const mergedSlides = mergeProcessedSlidesWithTemplate(
+        processedSlides,
+        template.data.textBlocks.slides
       );
 
       // Set merged slides vào editor
