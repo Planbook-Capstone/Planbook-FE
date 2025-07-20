@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
@@ -14,6 +14,7 @@ export default function YesNoQuestionItem({
   onDelete,
 }: YesNoQuestionItemProps) {
   const [showImageDropZone, setShowImageDropZone] = useState<boolean>(false);
+  const mainTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Drop zone for illustration image
   const { isOver, setNodeRef } = useDroppable({
@@ -123,22 +124,48 @@ export default function YesNoQuestionItem({
     setShowImageDropZone(!showImageDropZone);
   };
 
+  const resizeTextarea = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  };
+
+  const handleQuestionTextChangeWithResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    resizeTextarea(textarea);
+    handleQuestionTextChange(textarea.value);
+  };
+
+  const handleOptionTextChangeWithResize = (optionId: string, e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    resizeTextarea(textarea);
+    handleOptionTextChange(optionId, textarea.value);
+  };
+
+  // Auto-resize when data loads from API
+  useEffect(() => {
+    if (mainTextareaRef.current && getQuestionText()) {
+      resizeTextarea(mainTextareaRef.current);
+    }
+  }, [getQuestionText()]);
+
   return (
     <div className="flex space-y-4 w-full gap-1">
       <div className="w-full">
         {/* Question Header with Actions */}
-        <div className="flex items-center justify-between w-full gap-1">
-          <div className="font-calsans text-base font-medium text-nowrap">
+        <div className="flex items-start w-full gap-1">
+          <div className="font-calsans text-base font-medium text-nowrap mt-2">
             Câu {index + 1}:
           </div>
 
           <div className="w-full">
             <textarea
-              className="w-full font-calsans border resize-none text-sm bg-transparent p-2 rounded-md"
+              ref={mainTextareaRef}
+              className="w-full font-calsans border-none resize-none text-base bg-transparent p-2 rounded-md overflow-hidden"
               value={getQuestionText()}
-              onChange={(e) => handleQuestionTextChange(e.target.value)}
+              onChange={handleQuestionTextChangeWithResize}
               placeholder="Nhập câu hỏi đúng/sai..."
               rows={1}
+              style={{ minHeight: '40px' }}
             />
           </div>
         </div>
@@ -156,15 +183,16 @@ export default function YesNoQuestionItem({
                   {String.fromCharCode(97 + optionIndex)})
                 </div>
                 <textarea
-                  className="flex-1 border-none outline-none text-sm text-black bg-transparent py-2 resize-none"
+                  className="flex-1 border-none outline-none text-sm text-black bg-transparent py-2 resize-none overflow-hidden"
                   value={option.text}
                   onChange={(e) =>
-                    handleOptionTextChange(option.id, e.target.value)
+                    handleOptionTextChangeWithResize(option.id, e)
                   }
                   placeholder={`Phát biểu ${String.fromCharCode(
                     97 + optionIndex
                   )}`}
                   rows={1}
+                  style={{ minHeight: '32px' }}
                 />
                 {displayOptions.length > 1 && !question.statements && (
                   <Button

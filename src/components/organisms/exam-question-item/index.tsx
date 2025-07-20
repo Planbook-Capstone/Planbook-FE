@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
@@ -31,6 +31,7 @@ export default function QuestionItem({
     question.correctAnswer
   );
   const [showImageDropZone, setShowImageDropZone] = useState<boolean>(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Drop zone for illustration image
   const { isOver, setNodeRef } = useDroppable({
@@ -73,24 +74,42 @@ export default function QuestionItem({
     setShowImageDropZone(!showImageDropZone);
   };
 
+  const resizeTextarea = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  };
+
+  const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    resizeTextarea(textarea);
+    onUpdate({ ...question, question: textarea.value });
+  };
+
+  // Auto-resize when data loads from API
+  useEffect(() => {
+    if (textareaRef.current && question?.question) {
+      resizeTextarea(textareaRef.current);
+    }
+  }, [question?.question]);
+
   return (
     <div className="flex space-y-2 space-x-1 w-full pb-5">
       <div className="w-full">
         {/* Question Header with Actions */}
-        <div className="flex items-center justify-center gap-1 w-full">
-          <div className="font-calsans text-base font-medium text-nowrap">
+        <div className="flex items-start gap-1 w-full">
+          <div className="font-calsans text-base font-medium text-nowrap mt-2">
             Câu {index + 1}:
           </div>
           {/* Question Text */}
           <div className="w-full">
             <textarea
-              className="w-full font-calsans border resize-none text-sm bg-transparent p-2 rounded-md"
+              ref={textareaRef}
+              className="w-full border-none font-calsans text-base border resize-none bg-transparent p-2 rounded-md overflow-hidden"
               value={question?.question}
-              onChange={(e: any) =>
-                onUpdate({ ...question, question: e.target.value })
-              }
+              onChange={handleQuestionChange}
               placeholder="Nhập câu hỏi..."
               rows={1}
+              style={{ minHeight: '40px' }}
             />
           </div>
         </div>
