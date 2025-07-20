@@ -27,7 +27,7 @@ export const HeroSectionV2 = () => {
         <source src="/videos/hero-vertical.mp4" type="video/mp4" />
       </video>
 
-      <div className="absolute top-[0px] w-screen h-[400px] bg-[url('/Planbook.svg')] bg-no-repeat bg-contain bg-center"></div>
+      {/* <div className="absolute top-[0px] w-screen h-[400px] bg-[url('/Planbook.svg')] bg-no-repeat bg-contain bg-center"></div> */}
     </section>
   );
 };

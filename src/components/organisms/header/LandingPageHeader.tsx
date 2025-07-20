@@ -13,23 +13,22 @@ export const LandingPageHeader = () => {
     <header
       className="fixed z-50 w-full"
       style={{
-        backdropFilter: "blur(3px)",
+        backdropFilter: "blur(5px)",
         WebkitBackdropFilter: "blur(8px)",
         background:
-          "linear-gradient(to bottom, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0))",
+          "linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0))",
       }}
     >
       <div className="flex justify-between items-center py-4 px-4 md:px-6">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <Image
-            src="/images/logoPlanbook.png"
+            src="/images/planbook.svg"
             alt="PlanBook Logo"
-            width={30}
-            height={30}
+            width={130}
+            height={35}
             className="object-contain"
           />
-          <h1 className="font-calsans text-xl">PlanBook</h1>
         </div>
 
         <div className="flex items-center gap-12">
