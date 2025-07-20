@@ -4,19 +4,15 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { AlertCircle, Loader2 } from "lucide-react";
 import ExamFileUpload from "./ExamFileUpload";
-import { useExamImportService } from "@/services/examImportServices";
-import { toast } from "sonner";
 
 interface ExamFileImportProps {
-  onSubmit?: (files: File[], apiResponse?: any) => void;
+  onSubmit?: (files: File[]) => void;
+  isLoading?: boolean;
 }
 
-export default function ExamFileImport({ onSubmit }: ExamFileImportProps) {
+export default function ExamFileImport({ onSubmit, isLoading }: ExamFileImportProps) {
   const [testFiles, setTestFiles] = useState<File[]>([]);
   const [error, setError] = useState<string>("");
-
-  // Initialize the exam import service
-  const { mutate: importExam, isPending: isImporting } = useExamImportService();
 
   const handleFilesChange = (files: File[]) => {
     console.log("Files received from ExamFileUpload:", files);
@@ -38,35 +34,11 @@ export default function ExamFileImport({ onSubmit }: ExamFileImportProps) {
       lastModified: new Date(file.lastModified)
     })));
 
-    // Create FormData for file upload
-    const formData = new FormData();
+    // Clear any previous errors
+    setError("");
 
-    // Add each file to FormData
-    testFiles.forEach((file) => {
-      formData.append(`file`, file); // Use 'files' as the key for multiple files
-    });
-
-    // Log FormData contents
-    console.log("FormData contents:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
-    // Call the exam import service
-    importExam(formData, {
-      onSuccess: (response) => {
-        console.log("✅ Exam import successful:", response);
-        toast.success("Import đề thi thành công!");
-
-        // Call the onSubmit callback with files and API response
-        onSubmit?.(testFiles, response);
-      },
-      onError: (error) => {
-        console.error("❌ Exam import failed:", error);
-        toast.error("Import đề thi thất bại. Vui lòng thử lại!");
-        setError("Import thất bại. Vui lòng kiểm tra file và thử lại.");
-      }
-    });
+    // Call the onSubmit callback with files
+    onSubmit?.(testFiles);
   };
 
   return (
@@ -90,10 +62,10 @@ export default function ExamFileImport({ onSubmit }: ExamFileImportProps) {
       <div className="float-end mt-5">
         <Button
           onClick={handleSubmit}
-          disabled={testFiles.length === 0 || isImporting}
+          disabled={testFiles.length === 0 || isLoading}
           className="disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          {isImporting ? (
+          {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
               Đang xử lý...
