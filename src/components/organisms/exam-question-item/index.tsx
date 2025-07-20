@@ -30,6 +30,7 @@ export default function QuestionItem({
   const [selectedAnswer, setSelectedAnswer] = useState<number>(
     question.correctAnswer
   );
+  const [showImageDropZone, setShowImageDropZone] = useState<boolean>(false);
 
   // Drop zone for illustration image
   const { isOver, setNodeRef } = useDroppable({
@@ -66,6 +67,10 @@ export default function QuestionItem({
 
   const handleImageDrop = (imagePath: string) => {
     onUpdate({ ...question, illustrationImage: imagePath });
+  };
+
+  const handleEditClick = () => {
+    setShowImageDropZone(!showImageDropZone);
   };
 
   return (
@@ -142,22 +147,24 @@ export default function QuestionItem({
               </button>
             </div>
           ) : (
-            <div
-              ref={setNodeRef}
-              className={`
-                border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
-                ${
-                  isOver
-                    ? "border-blue-400 bg-blue-50"
-                    : "border-gray-300 hover:border-gray-400"
-                }
-              `}
-            >
-              <ImageIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm text-gray-500">
-                Kéo hình ảnh từ panel bên trái để thêm hình minh họa
-              </p>
-            </div>
+            showImageDropZone && (
+              <div
+                ref={setNodeRef}
+                className={`
+                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
+                  ${
+                    isOver
+                      ? "border-blue-400 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
+                  }
+                `}
+              >
+                <ImageIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-sm text-gray-500">
+                  Kéo hình ảnh từ panel bên trái để thêm hình minh họa
+                </p>
+              </div>
+            )
           )}
         </div>
       </div>
@@ -173,7 +180,10 @@ export default function QuestionItem({
         <Button
           variant="outline"
           size="icon"
-          className="p-2 text-gray-500 hover:text-gray-700"
+          className={`p-2 text-gray-500 hover:text-gray-700 ${
+            showImageDropZone ? "bg-blue-200 hover:bg-blue-300" : ""
+          }`}
+          onClick={handleEditClick}
         >
           {EditIcon}
         </Button>
