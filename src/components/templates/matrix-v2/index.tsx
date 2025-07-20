@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
 import BookSelector from "@/components/molecules/book-selector";
@@ -28,6 +28,9 @@ import {
   type DistributionLevel,
   type FormData,
 } from "./validation";
+import LoadingAI from "@/components/molecules/loading";
+import { useTaskStatusService } from "@/services/progressTaskServices";
+import DocumentItem from "@/components/molecules/document-item";
 
 export default function MatrixTemplate2() {
   // State cho chọn trường, lớp, môn
@@ -260,105 +263,146 @@ export default function MatrixTemplate2() {
     });
   };
 
-  
+  // Task status tracking
+  const [isTaskCompleted, setIsTaskCompleted] = useState(false);
+
+  const { data: taskStatus } = useTaskStatusService(response || "", {
+    enabled: !!response && !isTaskCompleted, // Chỉ fetch khi có response và chưa hoàn thành
+    refetchInterval: 2000, // Fetch mỗi 2 giây
+    refetchIntervalInBackground: true,
+  });
+
+  useEffect(() => {
+    if (taskStatus) {
+      console.log("Task Status:", taskStatus);
+
+      // Kiểm tra nếu progress = 100% hoặc status = completed
+      if (taskStatus.progress === 100 || taskStatus.status === "completed") {
+        setIsTaskCompleted(true);
+        toast.success("Đề thi đã được tạo xong!");
+      } else if (taskStatus.status === "failed") {
+        setIsTaskCompleted(true);
+        toast.error("Tạo đề thi thất bại!");
+      }
+    }
+  }, [taskStatus]);
+
+  // Hiển thị LoadingAI khi đang có task và chưa hoàn thành
+  if (response && !isTaskCompleted) {
+    return (
+      <div className="px-10">
+        <LoadingAI
+          message={taskStatus?.current_message || "Đang tạo đề thi..."}
+          progress={taskStatus?.current_progress || 0}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-full mx-auto px-12">
-      <div className="mb-4">
-        <BookSelector
-          title="Vui lòng chọn sách"
-          gradeOptions={grades?.data?.content || []}
-          subjectOptions={subjects?.data?.content || []}
-          bookOptions={books?.data?.content || []} // Không cần chọn sách ở đây
-          selectedGrade={selectedGrade}
-          selectedSubject={selectedSubject}
-          selectedBook={selectedBook}
-          onGradeChange={setSelectedGrade}
-          onSubjectChange={setSelectedSubject}
-          onBookChange={setSelectedBook}
-        />
-      </div>
-      <div className="grid grid-cols-3 gap-4 mb-6 font-questrial">
-        <div className="flex flex-col">
-          <FormField label="Tên trường" htmlFor="school-input">
-            <Input
-              id="school-input"
-              value={school}
-              onChange={(e: any) => {
-                setSchool(e.target.value);
-                // Clear error when user starts typing
-                if (errors.school) {
-                  setErrors((prev) => ({ ...prev, school: "" }));
-                }
-              }}
-              placeholder="Trường ABC"
-              className={
-                errors.school ? "border-red-500 focus:border-red-500" : ""
-              }
+      {taskStatus?.result ? null: (
+        <>
+          <div className="mb-4">
+            <BookSelector
+              title="Vui lòng chọn sách"
+              gradeOptions={grades?.data?.content || []}
+              subjectOptions={subjects?.data?.content || []}
+              bookOptions={books?.data?.content || []} // Không cần chọn sách ở đây
+              selectedGrade={selectedGrade}
+              selectedSubject={selectedSubject}
+              selectedBook={selectedBook}
+              onGradeChange={setSelectedGrade}
+              onSubjectChange={setSelectedSubject}
+              onBookChange={setSelectedBook}
             />
-          </FormField>
-          {/* Fixed height container for error message */}
-          <div className="h-6 mt-1">
-            {errors.school && (
-              <p className="text-red-500 text-sm">{errors.school}</p>
-            )}
           </div>
-        </div>
+          <div className="grid grid-cols-3 gap-4 mb-6 font-questrial">
+            <div className="flex flex-col">
+              <FormField label="Tên trường" htmlFor="school-input">
+                <Input
+                  id="school-input"
+                  value={school}
+                  onChange={(e: any) => {
+                    setSchool(e.target.value);
+                    // Clear error when user starts typing
+                    if (errors.school) {
+                      setErrors((prev) => ({ ...prev, school: "" }));
+                    }
+                  }}
+                  placeholder="Trường ABC"
+                  className={
+                    errors.school ? "border-red-500 focus:border-red-500" : ""
+                  }
+                />
+              </FormField>
+              {/* Fixed height container for error message */}
+              <div className="h-6 mt-1">
+                {errors.school && (
+                  <p className="text-red-500 text-sm">{errors.school}</p>
+                )}
+              </div>
+            </div>
 
-        <div className="flex flex-col">
-          <FormField label="Tên đề kiểm tra" htmlFor="exam-title-input">
-            <Input
-              id="exam-title-input"
-              value={examTitle}
-              onChange={(e: any) => {
-                setExamTitle(e.target.value);
-                // Clear error when user starts typing
-                if (errors.examTitle) {
-                  setErrors((prev) => ({ ...prev, examTitle: "" }));
-                }
-              }}
-              placeholder="Kiểm tra giữa kỳ 1"
-              className={
-                errors.examTitle ? "border-red-500 focus:border-red-500" : ""
-              }
-            />
-          </FormField>
-          {/* Fixed height container for error message */}
-          <div className="h-6 mt-1">
-            {errors.examTitle && (
-              <p className="text-red-500 text-sm">{errors.examTitle}</p>
-            )}
-          </div>
-        </div>
+            <div className="flex flex-col">
+              <FormField label="Tên đề kiểm tra" htmlFor="exam-title-input">
+                <Input
+                  id="exam-title-input"
+                  value={examTitle}
+                  onChange={(e: any) => {
+                    setExamTitle(e.target.value);
+                    // Clear error when user starts typing
+                    if (errors.examTitle) {
+                      setErrors((prev) => ({ ...prev, examTitle: "" }));
+                    }
+                  }}
+                  placeholder="Kiểm tra giữa kỳ 1"
+                  className={
+                    errors.examTitle
+                      ? "border-red-500 focus:border-red-500"
+                      : ""
+                  }
+                />
+              </FormField>
+              {/* Fixed height container for error message */}
+              <div className="h-6 mt-1">
+                {errors.examTitle && (
+                  <p className="text-red-500 text-sm">{errors.examTitle}</p>
+                )}
+              </div>
+            </div>
 
-        <div className="flex flex-col">
-          <FormField label="Thời gian (phút)" htmlFor="duration-input">
-            <Input
-              id="duration-input"
-              type="number"
-              value={duration}
-              min={15}
-              onChange={(e: any) => {
-                setDuration(Number(e.target.value));
-                // Clear error when user starts typing
-                if (errors.duration && Number(e.target.value) >= 15) {
-                  setErrors((prev) => ({ ...prev, duration: "" }));
-                }
-              }}
-              className={
-                errors.duration ? "border-red-500 focus:border-red-500" : ""
-              }
-              placeholder="Tối thiểu 15 phút"
-            />
-          </FormField>
-          {/* Fixed height container for error message */}
-          <div className="h-6 mt-1">
-            {errors.duration && (
-              <p className="text-red-500 text-sm">{errors.duration}</p>
-            )}
+            <div className="flex flex-col">
+              <FormField label="Thời gian (phút)" htmlFor="duration-input">
+                <Input
+                  id="duration-input"
+                  type="number"
+                  value={duration}
+                  min={15}
+                  onChange={(e: any) => {
+                    setDuration(Number(e.target.value));
+                    // Clear error when user starts typing
+                    if (errors.duration && Number(e.target.value) >= 15) {
+                      setErrors((prev) => ({ ...prev, duration: "" }));
+                    }
+                  }}
+                  className={
+                    errors.duration ? "border-red-500 focus:border-red-500" : ""
+                  }
+                  placeholder="Tối thiểu 15 phút"
+                />
+              </FormField>
+              {/* Fixed height container for error message */}
+              <div className="h-6 mt-1">
+                {errors.duration && (
+                  <p className="text-red-500 text-sm">{errors.duration}</p>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
+
       <div className="mb-4 mt-6">
         <h2 className="text-lg font-calsans">Ma trận đề thi</h2>
         <h3 className="text-base font-questrial text-neutral-500">
@@ -651,16 +695,44 @@ export default function MatrixTemplate2() {
       </Button>
 
       {/* Create Exam Button */}
-      <div className="mt-6 flex justify-end">
-        <Button
-          type="button"
-          className="px-8 py-3  text-white font-medium rounded-md"
-          onClick={handleCreateExam}
-          disabled={isPending}
-        >
-          Tạo đề thi
-        </Button>
-      </div>
+
+      {taskStatus?.result ? (
+        <div className="flex justify-between items-center mb-10 mt-5">
+          <div className="space-y-3">
+            <h1 className="font-calsans text-base">
+              Đã tạo thành công đề theo ma trận trên
+            </h1>
+            <div className="grid grid-cols-3">
+              <DocumentItem
+                type="DOCX"
+                name={taskStatus?.result?.message || "Không xác định"}
+                description="taskStatus"
+                onRemove={() => {
+                  console.log("remove");
+                }}
+              />
+            </div>
+          </div>
+          <Button
+            type="button"
+            className="px-8 py-3  text-white font-medium rounded-md"
+            disabled={isPending}
+          >
+            Tạo lại
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-6 flex justify-end">
+          <Button
+            type="button"
+            className="px-8 py-3  text-white font-medium rounded-md"
+            onClick={handleCreateExam}
+            disabled={isPending}
+          >
+            Tạo đề thi
+          </Button>
+        </div>
+      )}
 
       {/* <hr className="my-6" />
       <h3 className="font-bold mb-2">Matrix JSON</h3>
