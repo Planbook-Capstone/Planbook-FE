@@ -31,6 +31,8 @@ interface SlideEditorLayoutProps {
   onClearData?: () => void;
   isLoadingData?: boolean;
   hasLoadedData?: boolean;
+  onSave?: (slides: Slide[], textBlocks: string) => void;
+  onCancel?: () => void;
 }
 
 export default function SlideEditorLayout({
@@ -39,6 +41,8 @@ export default function SlideEditorLayout({
   onClearData,
   isLoadingData = false,
   hasLoadedData = false,
+  onSave,
+  onCancel,
 }: SlideEditorLayoutProps) {
   // Convert initialSlides to proper format if provided
   const getInitialSlides = (): Slide[] => {
@@ -709,6 +713,78 @@ export default function SlideEditorLayout({
     }
   }, [slides, slideFormat]);
 
+  // Helper function để convert blob URL thành base64
+  const convertBlobToBase64 = async (blobUrl: string): Promise<string> => {
+    try {
+      const response = await fetch(blobUrl);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Error converting blob to base64:", error);
+      return blobUrl; // Fallback to original URL
+    }
+  };
+
+  // Helper function để tạo textBlocks JSON string
+  const generateTextBlocks = useCallback(async () => {
+    try {
+      // Process slides và convert blob URLs thành base64
+      const processedSlides = await Promise.all(
+        slides.map(async (slide) => {
+          // Process background
+          let processedBackground = slide.background;
+          if (slide.background?.startsWith("blob:")) {
+            processedBackground = await convertBlobToBase64(slide.background);
+          } else if (slide.background?.startsWith("data:")) {
+            processedBackground = slide.background; // Giữ nguyên base64
+          }
+
+          // Process elements
+          const processedElements = await Promise.all(
+            slide.elements.map(async (element: any) => {
+              if (
+                element.type === "image" &&
+                element.src?.startsWith("blob:")
+              ) {
+                // Convert blob URL thành base64
+                const base64Src = await convertBlobToBase64(element.src);
+                return { ...element, src: base64Src };
+              }
+              return element;
+            })
+          );
+
+          return {
+            id: slide.id,
+            title: slide.title,
+            elements: processedElements,
+            isVisible: slide.isVisible,
+            background: processedBackground,
+          };
+        })
+      );
+
+      // Create export data
+      const exportData = {
+        version: "1.0",
+        createdAt: new Date().toISOString(),
+        slideFormat: slideFormat,
+        slides: processedSlides,
+      };
+
+      // Convert to JSON string
+      return JSON.stringify(exportData, null, 2);
+    } catch (error) {
+      console.error("Error generating textBlocks:", error);
+      return "{}";
+    }
+  }, [slides, slideFormat]);
+
   // Handle import JSON with coordinate validation
   const handleImport = useCallback(() => {
     const input = document.createElement("input");
@@ -842,17 +918,26 @@ export default function SlideEditorLayout({
       >
         {/* Header */}
         <SlideEditorHeader
-          onSave={handleSave}
+          onSave={
+            onSave
+              ? async () => {
+                  const textBlocks = await generateTextBlocks();
+                  onSave(slides, textBlocks);
+                }
+              : handleSave
+          }
           onExportPPTX={handleExportPPTX}
           onExportJSON={handleExportJSON}
           onImport={handleImport}
           onLoadSampleData={onLoadSampleData}
           onClearData={onClearData}
+          onCancel={onCancel}
           slideCount={slides.length}
           currentSlide={slides.findIndex((s) => s.id === currentSlideId) + 1}
           isExporting={isExporting}
           isLoadingData={isLoadingData}
           hasLoadedData={hasLoadedData}
+          showTemplateActions={!!(onSave && onCancel)}
         />
 
         {/* Main Content */}

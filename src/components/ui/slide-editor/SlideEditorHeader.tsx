@@ -21,11 +21,13 @@ interface SlideEditorHeaderProps {
   onPreview?: () => void;
   onLoadSampleData?: () => void;
   onClearData?: () => void;
+  onCancel?: () => void;
   slideCount?: number;
   currentSlide?: number;
   isExporting?: boolean;
   isLoadingData?: boolean;
   hasLoadedData?: boolean;
+  showTemplateActions?: boolean;
 }
 
 export default function SlideEditorHeader({
@@ -36,11 +38,13 @@ export default function SlideEditorHeader({
   onPreview,
   onLoadSampleData,
   onClearData,
+  onCancel,
   slideCount = 1,
   currentSlide = 1,
   isExporting = false,
   isLoadingData = false,
   hasLoadedData = false,
+  showTemplateActions = false,
 }: SlideEditorHeaderProps) {
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
@@ -118,14 +122,34 @@ export default function SlideEditorHeader({
           Tải JSON
         </button>
 
-        <button
-          onClick={onPreview}
-          className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
-          title="Preview Slideshow"
-        >
-          <Play className="w-4 h-4" />
-          Preview
-        </button>
+        {showTemplateActions ? (
+          <>
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-500 text-white text-sm rounded-full hover:bg-gray-600 transition-colors flex items-center gap-2"
+              title="Cancel and go back"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={onSave}
+              className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
+              title="Save Template"
+            >
+              <Save className="w-4 h-4" />
+              Lưu Template
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={onPreview}
+            className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
+            title="Preview Slideshow"
+          >
+            <Play className="w-4 h-4" />
+            Preview
+          </button>
+        )}
       </div>
     </header>
   );

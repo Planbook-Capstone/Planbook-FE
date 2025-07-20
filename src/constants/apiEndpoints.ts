@@ -6,8 +6,8 @@
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: "/auth-service-local/api/login",
-    LOGIN_GOOGLE: "/auth-service-local/api/login-google",
+    LOGIN: "/auth-service/api/login",
+    LOGIN_GOOGLE: "/auth-service/api/login-google",
   },
 
   // Academic Years
@@ -66,6 +66,11 @@ export const API_ENDPOINTS = {
 
   // External Tools
   EXTERNAL_TOOLS: "external-tool-config-service/api/external-tools",
+
+  // Slide Templates
+  SLIDE_TEMPLATES: "slide-template-service/api/slide-templates",
+
+  SLIDE_PROCESS_JSON_TEMPLATE: "/slides/process-json-template",
 } as const;
 
 // PDF API Endpoints (Secondary API - Port 8000)
