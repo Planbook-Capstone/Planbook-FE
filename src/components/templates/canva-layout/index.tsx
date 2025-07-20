@@ -22,7 +22,7 @@ export interface CanvasElement {
   style?: Record<string, any>;
 }
 
-function CanvaLayoutContent() {
+export function CanvaLayoutContent() {
   const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
