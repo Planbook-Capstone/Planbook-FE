@@ -4,21 +4,19 @@ import React, { useState } from "react";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import ExamCreationTemplate from "@/components/templates/exam-creation";
 import ExamFileImport from "@/components/organisms/exam-file-import";
-import CanvaLayout from "@/components/templates/canva-layout";
+import { CanvaLayoutContent } from "@/components/templates/canva-layout";
 import { useExamImportService } from "@/services/examImportServices";
 import { toast } from "sonner";
+import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
 
-export default function ExamCreationPage() {
+function ExamCreationPageContent() {
   const [hasData, setHasData] = useState(false);
-  const [examData, setExamData] = useState<any>(null);
 
   // Initialize the exam import service
   const { mutate: importExam, isPending: isImporting } = useExamImportService();
 
-  const handleQuestionUpdate = (questions: any[]) => {
-    console.log("Questions updated:", questions);
-    // Handle question updates here - save to backend, etc.
-  };
+  // Get exam context
+  const { setExamFromApiResponse } = useExamContext();
 
   const handleFileSubmit = (files: File[]) => {
     console.log("=== FILE SUBMIT HANDLER ===");
@@ -50,8 +48,8 @@ export default function ExamCreationPage() {
         console.log("✅ Exam import successful:", response);
         toast.success("Import đề thi thành công!");
 
-        // Set exam data and show canvas
-        setExamData(response);
+        // Set exam data in context and show canvas
+        setExamFromApiResponse(response);
         setHasData(true);
       },
       onError: (error) => {
@@ -142,7 +140,15 @@ export default function ExamCreationPage() {
   // Show exam creation template when there's data
   return (
     <div className="h-screen w-full">
-      <CanvaLayout />
+      <CanvaLayoutContent />
     </div>
+  );
+}
+
+export default function ExamCreationPage() {
+  return (
+    <ExamProvider>
+      <ExamCreationPageContent />
+    </ExamProvider>
   );
 }

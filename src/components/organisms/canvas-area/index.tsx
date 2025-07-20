@@ -158,6 +158,7 @@ export default function CanvasArea({
     // Deselect all elements when clicking on empty canvas
   };
 
+  console.log(examQuestions,"tran")
   return (
     <div className="w-full h-full relative">
       <div
