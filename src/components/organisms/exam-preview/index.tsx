@@ -183,7 +183,7 @@ export default function ExamPreview({
                         {question.type === "multiple" && (
                           <div>
                             <p className="font-medium text-gray-900 mb-2">
-                              Câu {question.index}: {question.question}
+                              <span className="font-bold">Câu {question.index}:</span> {question.question}
                             </p>
                             {question.illustrationImage && (
                               <div className="mb-3">
@@ -235,7 +235,7 @@ export default function ExamPreview({
                         {question.type === "yesno" && (
                           <div>
                             <p className="font-medium text-gray-900 mb-2">
-                              Câu {question.index}: {question.question}
+                              <span className="font-bold">Câu {question.index}:</span> {question.question}
                             </p>
                             {question.illustrationImage && (
                               <div className="mb-3">
@@ -280,7 +280,7 @@ export default function ExamPreview({
                         {question.type === "short" && (
                           <div>
                             <p className="font-medium text-gray-900 mb-3">
-                              Câu {question.index}: {question.question}
+                               <span className="font-bold">Câu {question.index}:</span> {question.question}
                             </p>
                             {question.illustrationImage && (
                               <div className="mb-3">
