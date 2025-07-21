@@ -114,6 +114,8 @@ export const EXAM_ENDPOINTS = {
   GENERATE_EXAM: `/exam/generate-exam`,
   GENERATE_SMART_EXAM: `/exam/generate-smart-exam`,
   EXAM_IMPORT: `/exam/import-docx`,
+  // Exam Instances
+  EXAM_INSTANCES: `/exam-service/api/exam-instances`,
 } as const;
 
 export const LESSON_FRAMEWORK_ENDPOINTS = {

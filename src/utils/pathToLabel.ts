@@ -12,6 +12,8 @@ export const getPageLabel = (pathname: string): string => {
     "/lesson-plan-demo": "Lesson plan-demo",
     "/exam": "Tạo bài kiểm tra",
     "/exam-creation": "Tạo bài kiểm",
+    "/exam-templates": "Quản lý Template",
+    "/exam-instances": "Quản lý Exam Instances",
     "/grading-test": "Chấm điểm tự động",
     "/chats": "Tạo slide bài giảng",
     "/reports": "Báo cáo",
@@ -108,6 +110,22 @@ export const getPageActions = (pathname: string) => {
         icon: "FileText",
         onClick: togglePreview,
         variant: isPreviewing ? "default" : "outline",
+      },
+    ],
+    "/exam-instances": [
+      {
+        label: "Tạo Instance",
+        icon: "Plus",
+        onClick: () => console.log("Create instance"),
+        variant: "default",
+      },
+    ],
+    "/exam-templates": [
+      {
+        label: "Tạo Template",
+        icon: "Plus",
+        onClick: () => console.log("Create template"),
+        variant: "default",
       },
     ],
     "/lesson-plan-demo": [
