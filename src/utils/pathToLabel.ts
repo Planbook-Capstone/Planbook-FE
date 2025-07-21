@@ -105,14 +105,14 @@ export const getPageActions = (pathname: string) => {
   };
 
   const actionsMap: Record<string, any[]> = {
-    "/exam-creation": [
-      {
-        label: isPreviewing ? "Ẩn xem trước" : "Xem trước",
-        icon: "FileText",
-        onClick: togglePreview,
-        variant: isPreviewing ? "default" : "outline",
-      },
-    ],
+    //  "/exam-creation": [
+    //     {
+    //       label: isPreviewing ? "Ẩn xem trước" : "Xem trước",
+    //       icon: "FileText",
+    //       onClick: togglePreview,
+    //       variant: isPreviewing ? "default" : "outline",
+    //     },
+    //   ],
     "/exam-instances": [
       {
         label: "Tạo Instance",

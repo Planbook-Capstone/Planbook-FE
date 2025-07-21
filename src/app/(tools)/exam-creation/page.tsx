@@ -100,7 +100,7 @@ function ExamCreationPageContent() {
     // Call the exam import service
     importExam(formData, {
       onSuccess: (response) => {
-        console.log("✅ Exam import successful:", response);
+        console.log("Exam import successful:", response);
         toast.success("Import đề thi thành công!");
 
         if (isTemplateMode) {
@@ -114,7 +114,7 @@ function ExamCreationPageContent() {
         }
       },
       onError: (error) => {
-        console.error("❌ Exam import failed:", error);
+        console.error("Exam import failed:", error);
         toast.error("Import đề thi thất bại. Vui lòng thử lại!");
       },
     });
