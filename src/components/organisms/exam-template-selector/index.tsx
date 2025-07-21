@@ -19,6 +19,9 @@ export default function ExamTemplateSelector({
   const [selectedMode, setSelectedMode] = useState<
     "none" | "import" | "manual"
   >("none");
+  const [selectedMode, setSelectedMode] = useState<
+    "none" | "import" | "manual"
+  >("none");
 
   const handleModeSelect = (mode: "import" | "manual") => {
     setSelectedMode(mode);
@@ -125,6 +128,8 @@ export default function ExamTemplateSelector({
             Tải lên file DOCX để tự động tạo template đề thi
           </p>
         </div>
+
+        <ExamFileImport onSubmit={handleFileSubmit} isLoading={isImporting} />
 
         <ExamFileImport onSubmit={handleFileSubmit} isLoading={isImporting} />
       </div>

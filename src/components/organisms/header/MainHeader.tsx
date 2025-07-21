@@ -17,8 +17,8 @@ const MainHeader = (props: MainHeaderProps) => {
   const pathname = usePathname();
 
   return (
-    <header className="w-full px-4 py-3 bg-white">
-      <div className="container mx-auto flex justify-between items-center">
+    <header className="w-full py-3 pt-10 bg-white">
+      <div className="container mx-auto flex justify-between items-center px-5">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <Image
