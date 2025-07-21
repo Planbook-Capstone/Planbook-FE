@@ -116,6 +116,11 @@ export const EXAM_ENDPOINTS = {
   EXAM_IMPORT: `/exam/import-docx`,
   // Exam Instances
   EXAM_INSTANCES: `/exam-service/api/exam-instances`,
+  // Student Exam Taking
+  EXAM_BY_CODE: (code: string) =>
+    `/exam-service/api/exam-instances/code/${code}`,
+  SUBMIT_EXAM: (code: string) =>
+    `/exam-service/api/exam-instances/code/${code}/submit`,
 } as const;
 
 export const LESSON_FRAMEWORK_ENDPOINTS = {
