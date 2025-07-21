@@ -1,0 +1,319 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import AssetsPanel from "@/components/organisms/assets-panel";
+import CanvasArea from "@/components/organisms/canvas-area";
+import ExamPreviewModal from "@/components/organisms/exam-preview-modal";
+import GradingPanel from "@/components/organisms/grading-panel";
+import { useExamContext } from "@/contexts/ExamContext";
+import { useExamTemplateContext } from "@/contexts/ExamTemplateContext";
+import { Button } from "@/components/ui/Button";
+import { Save, Eye } from "lucide-react";
+import {
+  useCreateExamTemplateService,
+  useUpdateExamTemplateService,
+} from "@/services/examTemplateServices";
+import { toast } from "sonner";
+import { useSearchParams, usePathname } from "next/navigation";
+
+export interface CanvasElement {
+  id: string;
+  type: "image" | "text" | "shape";
+  content: string;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  style?: Record<string, any>;
+}
+
+export function TemplateCanvaLayoutContent() {
+  const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const {
+    updateQuestionImage,
+    updateYesNoQuestionImage,
+    updateShortQuestionImage,
+    examQuestions,
+    examYesNoQuestions,
+    examShortQuestions,
+  } = useExamContext();
+  const { isTemplateMode, templateMetadata } = useExamTemplateContext();
+
+  // Detect if we're editing an existing template
+  // Check if we're on exam-templates/[id] page (edit mode) or exam-creation page (create mode)
+  const isEditMode = pathname.includes("/exam-templates/");
+  const templateId = isEditMode ? pathname.split("/").pop() : null;
+
+  console.log("=== TEMPLATE MODE DETECTION ===");
+  console.log("Pathname:", pathname);
+  console.log("Is Edit Mode:", isEditMode);
+  console.log("Template ID:", templateId);
+
+  const { mutate: createTemplate, isLoading: isCreating } =
+    useCreateExamTemplateService();
+
+  const { mutate: updateTemplate, isLoading: isUpdating } =
+    useUpdateExamTemplateService();
+
+  const isSaving = isCreating || isUpdating;
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.data.current) {
+      const assetData = active.data.current;
+
+      // Handle image drops on questions
+      if (assetData.type === "image" && over.data.current) {
+        const targetData = over.data.current;
+
+        if (targetData.type === "question") {
+          const questionId = targetData.id;
+          const questionType = targetData.questionType;
+
+          // Call the appropriate image drop handler
+          handleImageDrop(
+            questionId,
+            active.data.current.content,
+            questionType
+          );
+        }
+      }
+    }
+
+    setActiveId(null);
+  };
+
+  const handleImageDrop = (
+    questionId: string,
+    imageSrc: string,
+    questionType: string
+  ) => {
+    // Update the appropriate question type with the image
+    if (questionType === "multiple-choice") {
+      updateQuestionImage(questionId, imageSrc);
+    } else if (questionType === "yes-no") {
+      updateYesNoQuestionImage(questionId, imageSrc);
+    } else if (questionType === "short-answer") {
+      updateShortQuestionImage(questionId, imageSrc);
+    }
+  };
+
+  const updateElement = (id: string, updates: Partial<CanvasElement>) => {
+    setCanvasElements((elements) =>
+      elements.map((el) => (el.id === id ? { ...el, ...updates } : el))
+    );
+  };
+
+  const deleteElement = (id: string) => {
+    setCanvasElements((elements) => elements.filter((el) => el.id !== id));
+  };
+
+  const handleOpenPreviewModal = () => {
+    setIsPreviewModalOpen(true);
+  };
+
+  const handleClosePreviewModal = () => {
+    setIsPreviewModalOpen(false);
+  };
+
+  const handleSaveTemplate = () => {
+    if (!templateMetadata) {
+      toast.error("Thông tin template chưa được thiết lập!");
+      return;
+    }
+
+    // Convert questions to template format
+    const parts: any[] = [];
+
+    // Process multiple choice questions
+    if (examQuestions.length > 0) {
+      parts.push({
+        part: "PHẦN I",
+        title: "Câu trắc nghiệm nhiều phương án lựa chọn",
+        questions: examQuestions.map((q, index) => ({
+          id: index + 1,
+          question: q.question,
+          options: {
+            A: q.options[0] || "",
+            B: q.options[1] || "",
+            C: q.options[2] || "",
+            D: q.options[3] || "",
+          },
+          answer: ["A", "B", "C", "D"][q.correctAnswer] || "A",
+        })),
+      });
+    }
+
+    // Process yes/no questions if needed
+    if (examYesNoQuestions.length > 0) {
+      parts.push({
+        part: "PHẦN II",
+        title: "Câu hỏi Đúng/Sai",
+        questions: examYesNoQuestions.map((q, index) => ({
+          id: index + 1,
+          question: q.question,
+          options: {
+            A: "Đúng",
+            B: "Sai",
+          },
+          answer: q.isTrue ? "A" : "B",
+        })),
+      });
+    }
+
+    // Process short answer questions if needed
+    if (examShortQuestions.length > 0) {
+      parts.push({
+        part: "PHẦN III",
+        title: "Câu hỏi tự luận",
+        questions: examShortQuestions.map((q, index) => ({
+          id: index + 1,
+          question: q.question,
+          options: {
+            A: "Tự luận",
+          },
+          answer: q.answer || "Tự luận",
+        })),
+      });
+    }
+
+    // Create template data
+    const templateData = {
+      name: templateMetadata.name,
+      subject: templateMetadata.subject,
+      grade: templateMetadata.grade,
+      durationMinutes: templateMetadata.durationMinutes,
+      totalScore: templateMetadata.totalScore,
+      gradingConfig: templateMetadata.gradingConfig,
+      contentJson: {
+        parts,
+      },
+    };
+
+    // Call appropriate API based on mode
+    if (isEditMode && templateId) {
+      // Update existing template
+      console.log("=== UPDATING TEMPLATE ===");
+      console.log("Template ID:", templateId);
+      console.log("Template Data:", templateData);
+      console.log("Update payload:", { id: templateId, data: templateData });
+
+      updateTemplate(
+        { id: templateId, data: templateData },
+        {
+          onSuccess: (response) => {
+            console.log("✅ Template updated successfully:", response);
+            toast.success("Template đã được cập nhật thành công!");
+          },
+          onError: (error) => {
+            console.error("❌ Template update failed:", error);
+            console.error("Error details:", error.response?.data);
+            console.error("Error status:", error.response?.status);
+            toast.error(
+              `Cập nhật template thất bại: ${
+                error.response?.data?.message || error.message
+              }`
+            );
+          },
+        }
+      );
+    } else {
+      // Create new template
+      createTemplate(templateData, {
+        onSuccess: (response) => {
+          console.log("✅ Template created successfully:", response);
+          toast.success("Template đã được tạo thành công!");
+        },
+        onError: (error) => {
+          console.error("❌ Template creation failed:", error);
+          toast.error("Tạo template thất bại. Vui lòng thử lại!");
+        },
+      });
+    }
+  };
+
+  return (
+    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="flex h-screen flex-col">
+        {/* Template info header */}
+        {isTemplateMode && templateMetadata && (
+          <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
+            <div>
+              <h2 className="font-semibold">{templateMetadata.name}</h2>
+              <p className="text-sm text-gray-500">
+                {templateMetadata.subject} - Lớp {templateMetadata.grade} -{" "}
+                {templateMetadata.durationMinutes} phút
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOpenPreviewModal}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Xem trước
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveTemplate}
+                disabled={isSaving}
+              >
+                <Save className="h-4 w-4 mr-1" />
+                {isSaving
+                  ? isEditMode
+                    ? "Đang cập nhật..."
+                    : "Đang tạo..."
+                  : isEditMode
+                  ? "Cập nhật template"
+                  : "Tạo template"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Assets Panel - Left */}
+          <div className="bg-white border-r border-gray-200 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+            <AssetsPanel />
+          </div>
+
+          {/* Canvas Area - Center */}
+          <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+            <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
+              <CanvasArea
+                elements={canvasElements}
+                onUpdateElement={updateElement}
+                onDeleteElement={deleteElement}
+              />
+            </div>
+          </div>
+
+          {/* Grading Panel - Right */}
+          <GradingPanel />
+        </div>
+
+        {/* Preview Modal */}
+        <ExamPreviewModal
+          isOpen={isPreviewModalOpen}
+          onClose={handleClosePreviewModal}
+          elements={canvasElements}
+        />
+      </div>
+    </DndContext>
+  );
+}
