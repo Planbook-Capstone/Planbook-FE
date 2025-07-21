@@ -16,6 +16,7 @@ import ImageLibrarySidebar from "./ImageLibrarySidebar";
 
 import { ImageElement } from "@/types";
 import { TextColorProvider } from "./TextColorContext";
+import { SlideTemplateTempData } from "@/contexts/SlideTemplateContext";
 
 interface Slide {
   id: string;
@@ -33,10 +34,12 @@ interface SlideEditorLayoutProps {
   hasLoadedData?: boolean;
   onSave?: (slides: Slide[], textBlocks: string) => void;
   onCancel?: () => void;
+  templateData?: SlideTemplateTempData;
 }
 
 export default function SlideEditorLayout({
   initialSlides,
+  templateData,
   onLoadSampleData,
   onClearData,
   isLoadingData = false,
@@ -926,6 +929,7 @@ export default function SlideEditorLayout({
                 }
               : handleSave
           }
+          templateData={templateData}
           onExportPPTX={handleExportPPTX}
           onExportJSON={handleExportJSON}
           onImport={handleImport}

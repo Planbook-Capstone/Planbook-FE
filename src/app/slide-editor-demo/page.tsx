@@ -9,18 +9,20 @@ import {
   useSlideTemplateByIdService,
   useProcessJsonTemplateService,
 } from "@/services/slideTemplateServices";
+import Loading from "@/components/ui/loading";
 
 export default function SlideEditorDemo() {
   const [slides, setSlides] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoadedData, setHasLoadedData] = useState(false);
+  const [isProcessingTemplate, setIsProcessingTemplate] = useState(false);
 
   // Get template
   const {
     data: template,
     isLoading: isLoadingTemplate,
     error,
-  } = useSlideTemplateByIdService("6");
+  } = useSlideTemplateByIdService("20");
 
   // Process JSON template service
   const processJsonMutation = useProcessJsonTemplateService();
@@ -152,10 +154,11 @@ export default function SlideEditorDemo() {
   // Function để post data về BE
   const handleProcessTemplate = async (templateData: any) => {
     try {
+      setIsProcessingTemplate(true);
       console.log("📤 Posting template data to BE...");
 
       const result = await processJsonMutation.mutateAsync({
-        lesson_id: "1", // Mặc định là 1
+        lesson_id: "123", // Mặc định là 1
         template: templateData, // Template data từ API
         config_prompt: "", // Trống
       });
@@ -164,7 +167,6 @@ export default function SlideEditorDemo() {
 
       // Merge processed slides với template elements
       const processedSlides = result.data.processed_template.slides;
-      const templateSlides = templateData.slides;
 
       const mergedSlides = mergeProcessedSlidesWithTemplate(
         processedSlides,
@@ -178,6 +180,8 @@ export default function SlideEditorDemo() {
       console.log("🎉 Merged slides loaded into editor!");
     } catch (error) {
       console.error("❌ Error processing template:", error);
+    } finally {
+      setIsProcessingTemplate(false);
     }
   };
 
@@ -247,7 +251,21 @@ export default function SlideEditorDemo() {
   };
 
   return (
-    <div className="h-screen">
+    <div className="h-screen relative">
+      {/* Loading overlay khi đang process template */}
+      {isProcessingTemplate && (
+        <div className="fixed inset-0 bg-white bg-opacity-70 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
+            <div className="flex flex-col items-center gap-3">
+              <Loading />
+              <span className="text-gray-700 font-questrial">
+                Đang xử lý template...
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <SlideEditorLayout
         initialSlides={slides}
         onLoadSampleData={handleLoadSampleData}

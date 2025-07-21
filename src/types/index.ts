@@ -85,6 +85,81 @@ export type TagResponse = {
   description: string | null;
 };
 
+// Types for slide template API
+export type SlideTemplateStatus = "ACTIVE" | "INACTIVE";
+
+export interface CreateSlideTemplateRequest {
+  name: string;
+  description?: string;
+  textBlocks?: Record<string, any>;
+  imageBlocks?: Record<string, string>;
+}
+
+export interface UpdateSlideTemplateRequest {
+  name?: string;
+  description?: string;
+  textBlocks?: Record<string, any>;
+  imageBlocks?: Record<string, string>;
+}
+
+export interface SlideTemplateResponse {
+  id: any;
+  name: string;
+  status: SlideTemplateStatus;
+  description?: string;
+  textBlocks?: Record<string, any>;
+  imageBlocks?: Record<string, string>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Helper types for form handling
+export interface TextBlockItem {
+  key: string;
+  value: any;
+}
+
+export interface ImageBlockItem {
+  key: string;
+  value: string;
+}
+
+// Types for process JSON template API
+export interface ProcessJsonTemplateRequest {
+  lesson_id: string;
+  template: Record<string, any>;
+  config_prompt: string;
+}
+
+export interface SlideTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail?: string;
+  category: "education" | "business" | "presentation" | "other";
+  slides: SlideTemplateSlide[];
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  isPublic: boolean;
+  tags: string[];
+}
+
+export interface SlideTemplateSlide {
+  id: string;
+  title: string;
+  elements: SlideElement[];
+  background?: string;
+  isVisible: boolean;
+}
+
+export interface SlideTemplateFormData {
+  name: string;
+  description?: string;
+  status: SlideTemplateStatus;
+  imageBlocks: Record<string, string>;
+}
+
 // // User types
 // export interface User {
 //   id: string;

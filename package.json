@@ -52,6 +52,7 @@
         "date-fns": "^4.1.0",
         "docx": "^9.5.1",
         "file-saver": "^2.0.5",
+        "html2canvas": "^1.4.1",
         "jszip": "^3.10.1",
         "lucide-react": "^0.511.0",
         "mammoth": "^1.9.1",
@@ -87,6 +88,7 @@
     "devDependencies": {
         "@eslint/eslintrc": "^3",
         "@tailwindcss/postcss": "^4.1.7",
+        "@types/html2canvas": "^0.5.35",
         "@types/jquery": "^3.5.32",
         "@types/jszip": "^3.4.0",
         "@types/matter-js": "^0.19.8",

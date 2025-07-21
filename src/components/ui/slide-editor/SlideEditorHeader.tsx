@@ -12,6 +12,7 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
+import { SlideTemplateTempData } from "@/contexts/SlideTemplateContext";
 
 interface SlideEditorHeaderProps {
   onSave?: () => void;
@@ -28,6 +29,7 @@ interface SlideEditorHeaderProps {
   isLoadingData?: boolean;
   hasLoadedData?: boolean;
   showTemplateActions?: boolean;
+  templateData?: SlideTemplateTempData;
 }
 
 export default function SlideEditorHeader({
@@ -41,6 +43,7 @@ export default function SlideEditorHeader({
   onCancel,
   slideCount = 1,
   currentSlide = 1,
+  templateData,
   isExporting = false,
   isLoadingData = false,
   hasLoadedData = false,
@@ -51,7 +54,9 @@ export default function SlideEditorHeader({
       {/* Left Section - Logo & Title */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-calsans text-gray-900">Slide Editor</h1>
+          <h1 className="text-xl font-calsans text-gray-900">
+            {templateData?.name}
+          </h1>
         </div>
       </div>
 

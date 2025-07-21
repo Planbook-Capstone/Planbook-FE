@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { SlideTemplate, TEMPLATE_CATEGORIES } from "@/types/slide-template";
-import { mockSlideTemplates } from "@/data/slide-templates";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Eye,
   Edit,
@@ -29,38 +29,45 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CreateSlideTemplateForm from "@/components/organisms/create-slide-template-form";
 import { useSlideTemplateContext } from "@/contexts/SlideTemplateContext";
+import { SlideTemplateResponse } from "@/types";
 
 interface SlideTemplatesListProps {
-  onEdit: (template: SlideTemplate) => void;
+  onEdit: (template: SlideTemplateResponse) => void;
   onDelete: (templateId: string) => void;
   showCreateButton?: boolean;
+  initialTemplates?: SlideTemplateResponse[];
 }
 
 export default function SlideTemplatesList({
   onEdit,
   onDelete,
   showCreateButton = false,
+  initialTemplates,
 }: SlideTemplatesListProps) {
   const router = useRouter();
   const { setTempData } = useSlideTemplateContext();
 
   // State management
-  const [templates, setTemplates] =
-    useState<SlideTemplate[]>(mockSlideTemplates);
+  const [templates, setTemplates] = useState(initialTemplates || []);
   const [searchValue, setSearchValue] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Debug logs
-  console.log("SlideTemplatesList rendered with:", {
-    showCreateButton,
-    templatesCount: templates.length,
-    searchValue,
-  });
+  // Update templates when initialTemplates changes
+  useEffect(() => {
+    if (initialTemplates) {
+      setTemplates(initialTemplates);
+    }
+  }, [initialTemplates]);
 
   // Modal states
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] =
-    useState<SlideTemplate | null>(null);
+    useState<SlideTemplateResponse | null>(null);
+
+  // Selected thumbnail state
+  const [selectedThumbnailIndex, setSelectedThumbnailIndex] =
+    useState<number>(0);
 
   // Filter and search logic
   const filteredTemplates = useMemo(() => {
@@ -68,51 +75,45 @@ export default function SlideTemplatesList({
       // Search filter (name, description, or tags)
       const searchMatch =
         template.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        template.description
-          ?.toLowerCase()
-          .includes(searchValue.toLowerCase()) ||
-        template.tags.some((tag) =>
-          tag.toLowerCase().includes(searchValue.toLowerCase())
-        );
+        template.description?.toLowerCase().includes(searchValue.toLowerCase());
 
-      return searchMatch;
+      // Status filter
+      const statusMatch =
+        statusFilter === "all" ||
+        (statusFilter === "active" && template.status === "ACTIVE") ||
+        (statusFilter === "inactive" && template.status === "INACTIVE");
+
+      return searchMatch && statusMatch;
     });
-  }, [templates, searchValue]);
+  }, [templates, searchValue, statusFilter]);
 
   // Handlers
-  const handleViewTemplate = (template: SlideTemplate) => {
+  const handleViewTemplate = (template: SlideTemplateResponse) => {
     setSelectedTemplate(template);
+    setSelectedThumbnailIndex(0); // Reset to first slide
     setIsViewModalOpen(true);
   };
 
   const handleDeleteTemplate = (templateId: string) => {
     if (confirm("Bạn có chắc chắn muốn xóa template này?")) {
-      setTemplates((prev) => prev.filter((t) => t.id !== templateId));
+      setTemplates((prev: any) => prev.filter((t: any) => t.id !== templateId));
       onDelete(templateId);
     }
   };
 
-  const handleDesignTemplate = (template: SlideTemplate) => {
-    router.push(`/slide-template-editor/edit/${template.id}`);
-  };
-
-  // Get category label
-  const getCategoryLabel = (category: string) => {
-    const categoryOption = TEMPLATE_CATEGORIES.find(
-      (cat) => cat.value === category
-    );
-    return categoryOption?.label || category;
+  const handleDesignTemplate = (template: SlideTemplateResponse) => {
+    router.push(`/staff/slide-templates/edit/${template.id}`);
   };
 
   // Template card component
-  const TemplateCard = ({ template }: { template: SlideTemplate }) => {
+  const TemplateCard = ({ template }: { template: SlideTemplateResponse }) => {
     return (
       <div className="group relative bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200">
         {/* Template Thumbnail */}
         <div className="aspect-[16/9] bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
-          {template.thumbnail ? (
+          {Object.values(template.imageBlocks ?? {})[0] ? (
             <img
-              src={template.thumbnail}
+              src={Object.values(template.imageBlocks ?? {})[0]}
               alt={template.name}
               className="w-full h-full object-cover"
             />
@@ -191,50 +192,49 @@ export default function SlideTemplatesList({
         </div>
 
         {/* Template Info */}
-        <div className="p-4">
-          <h3 className="font-calsans text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
+        {/* <div className="p-4 absolute bottom-0 bg-white rounded-tr-2xl">
+          <h3 className="font-calsans text-lg text-gray-900 mb-2 line-clamp-1">
             {template.name}
           </h3>
           <p className="text-sm text-gray-600 font-questrial mb-3 line-clamp-2">
             {template.description || "Không có mô tả"}
           </p>
-
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 font-questrial">
-              {template.slides.length} slide
-              {template.slides.length > 1 ? "s" : ""}
-            </span>
-            <span
-              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                template.isPublic
-                  ? "bg-green-100 text-green-800"
-                  : "bg-yellow-100 text-yellow-800"
-              }`}
-            >
-              {template.isPublic ? "Công khai" : "Riêng tư"}
-            </span>
-          </div>
-        </div>
+        </div> */}
       </div>
     );
   };
 
   return (
     <div>
-      {/* Header with Search and Create Button */}
+      {/* Header with Search, Filter and Create Button */}
       <div className="flex justify-between items-center mb-6">
-        {/* Search Input */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            type="text"
-            placeholder="Tìm kiếm theo tên, mô tả hoặc tag..."
-            value={searchValue}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearchValue(e.target.value)
-            }
-            className="pl-10"
-          />
+        {/* Left side - Search and Filter */}
+        <div className="flex items-center gap-4">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Tìm kiếm theo tên, mô tả..."
+              value={searchValue}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSearchValue(e.target.value)
+              }
+              className="pl-10 w-80"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Lọc theo trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="active">Hoạt động</SelectItem>
+              <SelectItem value="inactive">Vô hiệu hoá</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Create Button */}
@@ -270,89 +270,179 @@ export default function SlideTemplatesList({
 
       {/* View Template Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-calsans">
-              Chi tiết Template
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="min-w-7xl max-h-[100vh] p-0 overflow-hidden">
           {selectedTemplate && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Tên Template
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedTemplate.name}
-                  </p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 h-full w-full">
+              {/* Left side - Template Preview */}
+              <div className="lg:col-span-2 bg-gray-50 p-6 flex flex-col">
+                {/* Template Main Preview */}
+                <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
+                  <div className="aspect-[16/9] bg-gradient-to-br from-blue-50 to-purple-50 relative">
+                    {Object.values(selectedTemplate.imageBlocks ?? {})[
+                      selectedThumbnailIndex
+                    ] ? (
+                      <img
+                        src={
+                          Object.values(selectedTemplate.imageBlocks ?? {})[
+                            selectedThumbnailIndex
+                          ]
+                        }
+                        alt={`${selectedTemplate.name} - Slide ${
+                          selectedThumbnailIndex + 1
+                        }`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <Palette className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <h3 className="text-xl font-calsans text-gray-700 mb-2">
+                            {selectedTemplate.name}
+                          </h3>
+                          <p className="text-gray-500 font-questrial">
+                            Template Preview - Slide{" "}
+                            {selectedThumbnailIndex + 1}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Danh mục
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {getCategoryLabel(selectedTemplate.category)}
-                  </p>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-gray-600">
-                    Mô tả
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedTemplate.description || "Không có mô tả"}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Số slide
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedTemplate.slides.length} slide
-                    {selectedTemplate.slides.length > 1 ? "s" : ""}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Trạng thái
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedTemplate.isPublic ? "Công khai" : "Riêng tư"}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Ngày tạo
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedTemplate.createdAt.toLocaleDateString("vi-VN")}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Cập nhật lần cuối
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedTemplate.updatedAt.toLocaleDateString("vi-VN")}
-                  </p>
+
+                {/* Slide Thumbnails */}
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {Object.entries(selectedTemplate.imageBlocks || {}).map(
+                    ([key, imageUrl], index) => (
+                      <div
+                        key={key}
+                        onClick={() => setSelectedThumbnailIndex(index)}
+                        className={`flex-shrink-0 w-20 h-12 bg-white rounded border-2 overflow-hidden cursor-pointer transition-all hover:border-blue-400 ${
+                          selectedThumbnailIndex === index
+                            ? "border-blue-500 ring-2 ring-blue-200"
+                            : "border-gray-200"
+                        }`}
+                      >
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={`Slide ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-xs text-gray-400">
+                              {index + 1}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  )}
+                  {/* Show at least one thumbnail if no imageBlocks */}
+                  {(!selectedTemplate.imageBlocks ||
+                    Object.keys(selectedTemplate.imageBlocks).length === 0) && (
+                    <div className="flex-shrink-0 w-20 h-12 bg-white rounded border border-gray-200 flex items-center justify-center">
+                      <span className="text-xs text-gray-400">1</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsViewModalOpen(false)}
-                >
-                  Đóng
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsViewModalOpen(false);
-                    onEdit(selectedTemplate);
-                  }}
-                >
-                  Chỉnh sửa
-                </Button>
+              {/* Right side - Template Info */}
+              <div className="bg-white p-6 flex flex-col">
+                <div className="flex-1">
+                  {/* Header */}
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-calsans text-gray-900 mb-2">
+                      {selectedTemplate.name}
+                    </h2>
+                    <p className="text-sm text-gray-600 font-questrial mb-4">
+                      {selectedTemplate.description || "Không có mô tả"}
+                    </p>
+
+                    {/* Template ID info */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          Template #{selectedTemplate.id}
+                        </p>
+                        <p className="text-xs text-gray-500">ID Template</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Template Details */}
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Trạng thái
+                      </label>
+                      <div className="mt-1">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            selectedTemplate.status === "ACTIVE"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {selectedTemplate.status === "ACTIVE"
+                            ? "Hoạt động"
+                            : "Vô hiệu hoá"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Ngày tạo
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900 font-questrial">
+                        {selectedTemplate.createdAt}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Cập nhật lần cuối
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900 font-questrial">
+                        {selectedTemplate.updatedAt}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="border-t border-gray-200 pt-4">
+                  <Button
+                    onClick={() => handleDesignTemplate(selectedTemplate)}
+                    className="w-full mb-3 bg-cyan-400 hover:bg-lime-300"
+                  >
+                    <Palette className="w-4 h-4 mr-2" />
+                    Tùy chỉnh mẫu này
+                  </Button>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsViewModalOpen(false)}
+                      className="flex-1"
+                    >
+                      Đóng
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsViewModalOpen(false);
+                        onEdit(selectedTemplate);
+                      }}
+                      className="flex-1"
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Chỉnh sửa
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

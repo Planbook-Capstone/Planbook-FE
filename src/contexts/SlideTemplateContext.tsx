@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-interface SlideTemplateTempData {
+export interface SlideTemplateTempData {
   name: string;
   description?: string;
   imageBlocks?: Record<string, string>;
@@ -14,9 +14,9 @@ interface SlideTemplateContextType {
   clearTempData: () => void;
 }
 
-const SlideTemplateContext = createContext<SlideTemplateContextType | undefined>(
-  undefined
-);
+const SlideTemplateContext = createContext<
+  SlideTemplateContextType | undefined
+>(undefined);
 
 export const useSlideTemplateContext = () => {
   const context = useContext(SlideTemplateContext);
