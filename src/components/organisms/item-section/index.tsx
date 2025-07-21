@@ -15,12 +15,12 @@ interface ItemSectionProps {
 
 export default function ItemSection({ title, action }: ItemSectionProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <div className="flex flex-col md:my-10 sm:flex-row sm:justify-between sm:items-center gap-4">
       <h1 className="flex gap-1 items-center text-xl font-calsans">{title}</h1>
 
       <div className="flex justify-end items-center gap-2.5 w-full sm:w-1/2">
         <Select defaultValue="light">
-          <SelectTrigger className="min-w-[120px] w-fit">
+          <SelectTrigger className="min-w-[120px] w-fit rounded-full">
             <SelectValue placeholder="Sắp xếp" />
           </SelectTrigger>
           <SelectContent>
