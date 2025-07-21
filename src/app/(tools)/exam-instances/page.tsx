@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { TemplateSelector } from "@/components/organisms/template-selector";
 import { CreateInstanceForm } from "@/components/organisms/create-instance-form";
-import { InstanceDetails } from "@/components/organisms/instance-details";
 import {
   useExamInstancesService,
   useCreateExamInstanceService,
@@ -31,21 +31,31 @@ interface TemplateInfo {
 
 const statusConfig = {
   DRAFT: { label: "Nháp", color: "bg-gray-100 text-gray-800" },
+  SCHEDULED: { label: "Đã lên lịch", color: "bg-yellow-100 text-yellow-800" },
   ACTIVE: { label: "Đang hoạt động", color: "bg-green-100 text-green-800" },
+  PAUSED: { label: "Tạm dừng", color: "bg-orange-100 text-orange-800" },
   COMPLETED: { label: "Đã hoàn thành", color: "bg-blue-100 text-blue-800" },
   CANCELLED: { label: "Đã hủy", color: "bg-red-100 text-red-800" },
 };
 
 export default function ExamInstancesPage() {
+  const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateInfo | null>(null);
-  const [selectedInstance, setSelectedInstance] = useState<ExamInstanceData | null>(null);
-  const [step, setStep] = useState<"select-template" | "create-form">("select-template");
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateInfo | null>(
+    null
+  );
+  const [step, setStep] = useState<"select-template" | "create-form">(
+    "select-template"
+  );
 
   // API hooks
-  const { data: instancesResponse, isLoading, refetch } = useExamInstancesService();
-  const { mutate: createInstance, isPending: isCreating } = useCreateExamInstanceService();
+  const {
+    data: instancesResponse,
+    isLoading,
+    refetch,
+  } = useExamInstancesService();
+  const { mutate: createInstance, isPending: isCreating } =
+    useCreateExamInstanceService();
 
   const instances = instancesResponse?.data || [];
 
@@ -55,7 +65,10 @@ export default function ExamInstancesPage() {
     setSelectedTemplate(null);
   };
 
-  const handleSelectTemplate = (templateId: string, templateData: TemplateInfo) => {
+  const handleSelectTemplate = (
+    templateId: string,
+    templateData: TemplateInfo
+  ) => {
     setSelectedTemplate(templateData);
     setStep("create-form");
   };
@@ -70,14 +83,15 @@ export default function ExamInstancesPage() {
         refetch();
       },
       onError: (error: any) => {
-        toast.error(error?.response?.data?.message || "Có lỗi xảy ra khi tạo instance");
+        toast.error(
+          error?.response?.data?.message || "Có lỗi xảy ra khi tạo instance"
+        );
       },
     });
   };
 
   const handleViewDetails = (instance: ExamInstanceData) => {
-    setSelectedInstance(instance);
-    setShowDetailsModal(true);
+    router.push(`/exam-instances/${instance.id}`);
   };
 
   const handleCloseCreateModal = () => {
@@ -107,8 +121,12 @@ export default function ExamInstancesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý Exam Instances</h1>
-          <p className="text-gray-600 mt-1">Tạo và quản lý các instance từ templates</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Quản lý Exam Instances
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Tạo và quản lý các instance từ templates
+          </p>
         </div>
         <Button onClick={handleCreateNew} className="flex items-center gap-2">
           <Plus className="w-4 h-4" />
@@ -121,7 +139,10 @@ export default function ExamInstancesPage() {
         {instances.map((instance: ExamInstanceData) => {
           const statusInfo = statusConfig[instance.status];
           return (
-            <Card key={instance.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={instance.id}
+              className="hover:shadow-md transition-shadow"
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -132,9 +153,7 @@ export default function ExamInstancesPage() {
                       Mã: {instance.code}
                     </p>
                   </div>
-                  <Badge className={statusInfo.color}>
-                    {statusInfo.label}
-                  </Badge>
+                  <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -161,10 +180,16 @@ export default function ExamInstancesPage() {
                 {/* Time Info */}
                 <div className="text-xs text-gray-500 space-y-1">
                   <p>
-                    Bắt đầu: {format(new Date(instance.startAt), "dd/MM/yyyy HH:mm", { locale: vi })}
+                    Bắt đầu:{" "}
+                    {format(new Date(instance.startAt), "dd/MM/yyyy HH:mm", {
+                      locale: vi,
+                    })}
                   </p>
                   <p>
-                    Kết thúc: {format(new Date(instance.endAt), "dd/MM/yyyy HH:mm", { locale: vi })}
+                    Kết thúc:{" "}
+                    {format(new Date(instance.endAt), "dd/MM/yyyy HH:mm", {
+                      locale: vi,
+                    })}
                   </p>
                 </div>
 
@@ -197,9 +222,7 @@ export default function ExamInstancesPage() {
           <p className="text-gray-600 mb-4">
             Tạo instance đầu tiên từ các template có sẵn
           </p>
-          <Button onClick={handleCreateNew}>
-            Tạo Instance Mới
-          </Button>
+          <Button onClick={handleCreateNew}>Tạo Instance Mới</Button>
         </div>
       )}
 
@@ -223,20 +246,6 @@ export default function ExamInstancesPage() {
             isLoading={isCreating}
           />
         ) : null}
-      </Modal>
-
-      {/* Instance Details Modal */}
-      <Modal
-        isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
-        size="xl"
-      >
-        {selectedInstance && (
-          <InstanceDetails
-            instance={selectedInstance}
-            onClose={() => setShowDetailsModal(false)}
-          />
-        )}
       </Modal>
     </div>
   );
