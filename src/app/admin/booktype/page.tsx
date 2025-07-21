@@ -97,6 +97,7 @@ function BookTypePage() {
             tokenCostPerQuery: selected[0].original.tokenCostPerQuery || 0,
             priority: selected[0].original.priority || 0,
             icon: selected[0].original.icon || undefined,
+            href:selected[0].original?.href || "",
           }}
         />
       )}
