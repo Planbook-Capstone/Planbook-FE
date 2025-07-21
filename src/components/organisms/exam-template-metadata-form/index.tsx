@@ -134,7 +134,9 @@ export default function ExamTemplateMetadataForm({
   return (
     <div className="w-full max-w-2xl mx-auto p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2">Thông Tin Template Đề Thi</h2>
+        <h2 className="text-2xl font-calsans mb-2">
+          Thông Tin Template Đề Thi
+        </h2>
         <p className="text-gray-600">
           Nhập thông tin cơ bản cho template đề thi. Template này có thể được sử
           dụng để tạo nhiều đề thi khác nhau.
@@ -144,7 +146,7 @@ export default function ExamTemplateMetadataForm({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Thông tin cơ bản</h3>
+          <h3 className="text-lg font-calsans">Thông tin cơ bản</h3>
 
           <FormField label="Tên template" required>
             <Input
@@ -233,7 +235,7 @@ export default function ExamTemplateMetadataForm({
         {/* Grading Configuration */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Cấu hình điểm số</h3>
+            <h3 className="text-lg font-calsans">Cấu hình điểm số</h3>
             <Button
               type="button"
               variant="outline"

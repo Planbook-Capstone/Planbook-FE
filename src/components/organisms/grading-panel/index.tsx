@@ -256,9 +256,8 @@ export default function GradingPanel() {
       <div className="p-4">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
-          <Settings className="h-5 w-5 text-gray-600" />
           <div className="flex-1">
-            <h2 className="text-lg font-semibold">Cấu hình & Đáp án</h2>
+            <h2 className="text-lg font-calsans">Cấu hình & Đáp án</h2>
             {isResizing && (
               <div className="text-xs text-gray-500">
                 Độ rộng: {panelWidth}px
@@ -271,10 +270,9 @@ export default function GradingPanel() {
         <div className="mb-6">
           <button
             onClick={() => toggleSection("grading")}
-            className="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-3 p-2 hover:bg-gray-50 rounded transition-colors"
+            className="w-full flex items-center justify-between text-sm font-calsans border shadow-2xs text-gray-700 mb-3 p-2 hover:bg-gray-50 rounded-sm transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
               <span>Thang điểm</span>
             </div>
             {collapsedSections.grading ? (
@@ -290,9 +288,9 @@ export default function GradingPanel() {
                   {Object.entries(gradingConfig).map(([part, score]) => (
                     <div
                       key={part}
-                      className="flex items-center justify-between p-2 bg-blue-50 rounded"
+                      className="flex items-center justify-between p-2 rounded"
                     >
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-calsans text-gray-700">
                         {part}
                       </span>
                       <div className="flex items-center gap-2">
@@ -341,17 +339,16 @@ export default function GradingPanel() {
             <div>
               <button
                 onClick={() => toggleSection("part1")}
-                className="w-full text-sm font-medium text-gray-700 mb-3 flex items-center gap-2 p-2 bg-green-50 rounded hover:bg-green-100 transition-colors"
+                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-amber-300 rounded  transition-colors"
               >
-                <Edit3 className="h-4 w-4 text-green-600" />
-                <span>PHẦN I - Trắc nghiệm</span>
-                <span className="ml-auto text-xs bg-green-100 px-2 py-1 rounded-full">
+                <span className="text-white">PHẦN I - Trắc nghiệm</span>
+                <span className="ml-auto text-xs bg-white px-2 py-1 rounded-full">
                   {examQuestions.length} câu
                 </span>
                 {collapsedSections.part1 ? (
-                  <ChevronRight className="h-4 w-4 text-green-600" />
+                  <ChevronRight className="h-4 w-4 text-amber-600" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-green-600" />
+                  <ChevronDown className="h-4 w-4 text-amber-600" />
                 )}
               </button>
               {!collapsedSections.part1 && (
@@ -359,14 +356,11 @@ export default function GradingPanel() {
                   {examQuestions.map((question, index) => (
                     <div
                       key={question.id}
-                      className="p-3 bg-gray-50 rounded-lg border-l-4 border-green-400"
+                      className="p-3 bg-amber-50 border-l-2 border-amber-500"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-calsans text-gray-700">
                           Câu {index + 1}
-                        </span>
-                        <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded">
-                          {["A", "B", "C", "D"][question.correctAnswer]}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-1">
@@ -379,9 +373,9 @@ export default function GradingPanel() {
                                 optionIndex
                               )
                             }
-                            className={`px-2 py-1 text-xs rounded transition-colors font-medium ${
+                            className={`px-2 py-1 text-xs rounded transition-colors font-calsans ${
                               question.correctAnswer === optionIndex
-                                ? "bg-green-500 text-white shadow-sm"
+                                ? "bg-neutral-600 text-white shadow-sm"
                                 : "bg-white border border-gray-300 hover:bg-gray-100 hover:border-gray-400"
                             }`}
                           >
@@ -401,11 +395,10 @@ export default function GradingPanel() {
             <div>
               <button
                 onClick={() => toggleSection("part2")}
-                className="w-full text-sm font-medium text-gray-700 mb-3 flex items-center gap-2 p-2 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-blue-300 rounded hover:bg-blue-100 transition-colors"
               >
-                <Edit3 className="h-4 w-4 text-blue-600" />
-                <span>PHẦN II - Đúng/Sai</span>
-                <span className="ml-auto text-xs bg-blue-100 px-2 py-1 rounded-full">
+                <span className="text-white">PHẦN II - Đúng/Sai</span>
+                <span className="ml-auto text-xs bg-white px-2 py-1 rounded-full">
                   {examYesNoQuestions.length} câu
                 </span>
                 {collapsedSections.part2 ? (
@@ -419,9 +412,9 @@ export default function GradingPanel() {
                   {examYesNoQuestions.map((question, index) => (
                     <div
                       key={question.id}
-                      className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-400"
+                      className="p-3 bg-sky-50 border-l-2 border-blue-400"
                     >
-                      <div className="text-sm font-medium text-gray-700 mb-2">
+                      <div className="text-sm font-calsans text-gray-700 mb-2">
                         Câu {examQuestions.length + index + 1}
                       </div>
                       {question.statements && (
@@ -430,7 +423,7 @@ export default function GradingPanel() {
                             ([key, statement]) => (
                               <div
                                 key={key}
-                                className="flex items-center justify-between"
+                                className="flex items-center gap-2"
                               >
                                 <span className="text-xs text-gray-600">
                                   {key.toUpperCase()})
@@ -446,7 +439,7 @@ export default function GradingPanel() {
                                     }
                                     className={`px-2 py-1 text-xs rounded transition-colors ${
                                       statement.answer === true
-                                        ? "bg-green-500 text-white"
+                                        ? "bg-neutral-600 text-white"
                                         : "bg-white border border-gray-300 hover:bg-gray-100"
                                     }`}
                                   >
@@ -462,7 +455,7 @@ export default function GradingPanel() {
                                     }
                                     className={`px-2 py-1 text-xs rounded transition-colors ${
                                       statement.answer === false
-                                        ? "bg-red-500 text-white"
+                                        ? "bg-neutral-600 text-white"
                                         : "bg-white border border-gray-300 hover:bg-gray-100"
                                     }`}
                                   >
@@ -486,11 +479,10 @@ export default function GradingPanel() {
             <div>
               <button
                 onClick={() => toggleSection("part3")}
-                className="w-full text-sm font-medium text-gray-700 mb-3 flex items-center gap-2 p-2 bg-orange-50 rounded hover:bg-orange-100 transition-colors"
+                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-orange-400 rounded hover:bg-orange-100 transition-colors"
               >
-                <Edit3 className="h-4 w-4 text-orange-600" />
-                <span>PHẦN III - Tự luận</span>
-                <span className="ml-auto text-xs bg-orange-100 px-2 py-1 rounded-full">
+                <span className="text-white">PHẦN III - Tự luận</span>
+                <span className="ml-auto text-xs bg-white px-2 py-1 rounded-full">
                   {examShortQuestions.length} câu
                 </span>
                 {collapsedSections.part3 ? (
@@ -504,9 +496,9 @@ export default function GradingPanel() {
                   {examShortQuestions.map((question, index) => (
                     <div
                       key={question.id}
-                      className="p-3 bg-gray-50 rounded-lg border-l-4 border-orange-400"
+                      className="p-3 bg-orange-50 border-l-2 border-orange-400"
                     >
-                      <div className="text-sm font-medium text-gray-700 mb-2">
+                      <div className="text-sm font-calsans text-gray-700 mb-2">
                         Câu{" "}
                         {examQuestions.length +
                           examYesNoQuestions.length +
@@ -523,7 +515,7 @@ export default function GradingPanel() {
                           )
                         }
                         placeholder="Nhập đáp án..."
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       />
                     </div>
                   ))}
