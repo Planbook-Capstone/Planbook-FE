@@ -127,6 +127,8 @@ export default function ExamTemplateSelector({
         </div>
 
         <ExamFileImport onSubmit={handleFileSubmit} isLoading={isImporting} />
+
+        <ExamFileImport onSubmit={handleFileSubmit} isLoading={isImporting} />
       </div>
     );
   }

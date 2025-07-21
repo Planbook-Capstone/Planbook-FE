@@ -76,22 +76,44 @@ const GridDistortion = ({
 
     // Load video or image
     if (videoSrc) {
+      console.log("🎬 Loading video:", videoSrc);
       const video = document.createElement("video");
       video.src = videoSrc;
       video.loop = true;
       video.muted = true;
       video.autoplay = true;
       video.playsInline = true;
+      video.crossOrigin = "anonymous";
 
       video.addEventListener("loadedmetadata", () => {
+        console.log(
+          "✅ Video loaded:",
+          video.videoWidth,
+          "x",
+          video.videoHeight
+        );
+        console.log("📹 Video readyState:", video.readyState);
+        console.log("📹 Video currentTime:", video.currentTime);
+        console.log("📹 Video paused:", video.paused);
+
         imageAspectRef.current = video.videoWidth / video.videoHeight;
         const videoTexture = new THREE.VideoTexture(video);
         videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBAFormat;
+        videoTexture.needsUpdate = true;
         uniforms.uTexture.value = videoTexture;
+
+        console.log("🎨 VideoTexture created:", videoTexture);
         handleResize();
       });
 
-      video.play();
+      video
+        .play()
+        .then(() => {})
+        .catch((error) => {
+          console.error("Video play failed:", error);
+        });
     } else if (imageSrc) {
       const textureLoader = new THREE.TextureLoader();
       textureLoader.load(imageSrc, (texture) => {
@@ -166,6 +188,16 @@ const GridDistortion = ({
       mouseState.vX = x - mouseState.prevX;
       mouseState.vY = y - mouseState.prevY;
       Object.assign(mouseState, { x, y, prevX: x, prevY: y });
+
+      // Debug mouse movement
+      if (Math.abs(mouseState.vX) > 0.01 || Math.abs(mouseState.vY) > 0.01) {
+        console.log("🖱️ Mouse move:", {
+          x,
+          y,
+          vX: mouseState.vX,
+          vY: mouseState.vY,
+        });
+      }
     };
 
     const handleMouseLeave = () => {
@@ -185,6 +217,7 @@ const GridDistortion = ({
     window.addEventListener("resize", handleResize);
     handleResize();
 
+    let frameCount = 0;
     const animate = () => {
       requestAnimationFrame(animate);
       uniforms.time.value += 0.05;
@@ -199,6 +232,7 @@ const GridDistortion = ({
       const gridMouseY = size * mouseState.y;
       const maxDist = size * mouse;
 
+      let effectApplied = false;
       for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
           const distance =
@@ -208,8 +242,20 @@ const GridDistortion = ({
             const power = Math.min(maxDist / Math.sqrt(distance), 10);
             data[index] += strength * 100 * mouseState.vX * power;
             data[index + 1] -= strength * 100 * mouseState.vY * power;
+            effectApplied = true;
           }
         }
+      }
+
+      // Debug animation every 60 frames
+      frameCount++;
+      if (frameCount % 60 === 0) {
+        console.log("🎬 Animation frame:", {
+          time: uniforms.time.value,
+          mouseState,
+          effectApplied,
+          textureLoaded: !!uniforms.uTexture.value,
+        });
       }
 
       dataTexture.needsUpdate = true;
@@ -228,7 +274,7 @@ const GridDistortion = ({
       if (uniforms.uTexture.value)
         (uniforms.uTexture.value as THREE.Texture).dispose();
     };
-  }, [grid, mouse, strength, relaxation, imageSrc]);
+  }, [grid, mouse, strength, relaxation, imageSrc, videoSrc]);
 
   return (
     <div
