@@ -24,6 +24,8 @@ import {
   Trash2,
 } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
+import { useLessonPlanService } from "@/services/lessonPlanServices";
+import { useLessonPlanAllNodeService } from "@/services/lessonPlanNodeServices";
 
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -40,6 +42,7 @@ interface UploadedFile {
 }
 
 export default function LessonPlanTemplatePage() {
+  const { data: lessonPlanData } = useLessonPlanService();
   const [templates, setTemplates] = useState<LessonPlanTemplate[]>([
     { ...getDefaultTemplate(), isActive: true },
     {
@@ -109,8 +112,9 @@ export default function LessonPlanTemplatePage() {
     }
   };
 
+  const { data: allNode } = useLessonPlanAllNodeService("1")();
   // Filter templates based on search query
-  const filteredTemplates = templates.filter(
+  const filteredTemplates = lessonPlanData?.data?.content?.filter(
     (template) =>
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -128,10 +132,11 @@ export default function LessonPlanTemplatePage() {
   };
 
   const handleEditTemplate = (template: LessonPlanTemplate) => {
-    setCurrentTemplate(template);
-    setSelectedTemplate(template);
-    setIsEditing(true);
-    setShowBuilder(true);
+    console.log(template, "tran");
+    // setCurrentTemplate(template);
+    // setSelectedTemplate(template);
+    // setIsEditing(true);
+    // setShowBuilder(true);
   };
 
   const handleDeleteTemplate = (templateId: string) => {
@@ -300,7 +305,7 @@ export default function LessonPlanTemplatePage() {
               placeholder="Tìm kiếm template..."
               className="w-80"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: any) => setSearchQuery(e.target.value)}
             />
             {activeTab === "references" && (
               <Button
@@ -317,7 +322,7 @@ export default function LessonPlanTemplatePage() {
 
         <TabsContent value="template" className="mt-3">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTemplates.map((template) => (
+            {filteredTemplates?.map((template) => (
               <div
                 key={template.id}
                 className={`rounded-lg p-4 hover:shadow-md transition-shadow ${
@@ -330,17 +335,17 @@ export default function LessonPlanTemplatePage() {
                   <div className="flex-1">
                     <h3
                       className={`font-calsans text-base mb-1 ${
-                        template.isActive ? "text-white" : "text-gray-900"
+                        template?.isActive ? "text-white" : "text-gray-900"
                       }`}
                     >
-                      {template.name}
+                      {template?.name}
                     </h3>
                     <p
                       className={`text-sm line-clamp-2 ${
-                        template.isActive ? "text-blue-100" : "text-gray-600"
+                        template?.isActive ? "text-blue-100" : "text-gray-600"
                       }`}
                     >
-                      {template.description}
+                      {template?.description}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 ml-2"></div>
