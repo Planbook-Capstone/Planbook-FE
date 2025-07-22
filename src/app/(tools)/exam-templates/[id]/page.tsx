@@ -115,6 +115,11 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
         }
       };
 
+      console.log("=== LOADING TEMPLATE DATA ===");
+      console.log("Original template:", template);
+      console.log("Transformed parts:", transformedParts);
+      console.log("API Response Format:", apiResponseFormat);
+
       // Use the existing setExamFromApiResponse method
       setExamFromApiResponse(apiResponseFormat);
     }

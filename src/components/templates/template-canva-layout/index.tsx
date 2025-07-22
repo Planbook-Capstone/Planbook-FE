@@ -11,6 +11,7 @@ import AssetsPanel from "@/components/organisms/assets-panel";
 import CanvasArea from "@/components/organisms/canvas-area";
 import ExamPreviewModal from "@/components/organisms/exam-preview-modal";
 import GradingPanel from "@/components/organisms/grading-panel";
+
 import { useExamContext } from "@/contexts/ExamContext";
 import { useExamTemplateContext } from "@/contexts/ExamTemplateContext";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +22,7 @@ import {
 } from "@/services/examTemplateServices";
 import { toast } from "sonner";
 import { useSearchParams, usePathname } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
 
 export interface CanvasElement {
   id: string;
@@ -35,6 +37,7 @@ export function TemplateCanvaLayoutContent() {
   const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -131,63 +134,114 @@ export function TemplateCanvaLayoutContent() {
   };
 
   const handleSaveTemplate = () => {
+    console.log("=== SAVE TEMPLATE BUTTON CLICKED ===");
+    console.log("Template metadata:", templateMetadata);
+
     if (!templateMetadata) {
+      console.error("❌ Template metadata is null!");
       toast.error("Thông tin template chưa được thiết lập!");
       return;
     }
+
+    if (!templateMetadata.gradingConfig) {
+      console.error("❌ Grading config is missing!");
+      toast.error("Cấu hình thang điểm chưa được thiết lập!");
+      return;
+    }
+
+    console.log("=== SAVING TEMPLATE ===");
+    console.log("Template metadata:", templateMetadata);
+    console.log("Grading config:", templateMetadata.gradingConfig);
+    console.log("Current exam questions:", examQuestions);
+    console.log("Current yes/no questions:", examYesNoQuestions);
+    console.log("Current short questions:", examShortQuestions);
 
     // Convert questions to template format
     const parts: any[] = [];
 
     // Process multiple choice questions
     if (examQuestions.length > 0) {
+      const part1Questions = examQuestions.map((q, index) => {
+        // Preserve original ID if it exists, otherwise create new UUID
+        const questionId =
+          typeof q.id === "string" && q.id.includes("-")
+            ? q.id // Keep original format like "0-0", "0-1", etc.
+            : q.id || uuidv4(); // Use existing ID or create new UUID
+
+        return {
+          id: questionId,
+          questionNumber: index + 1, // Reset về 1 cho mỗi phần: 1, 2, 3...
+          question: q.question,
+          options: Array.isArray(q.options)
+            ? {
+                A: q.options[0] || "",
+                B: q.options[1] || "",
+                C: q.options[2] || "",
+                D: q.options[3] || "",
+              }
+            : q.options || { A: "", B: "", C: "", D: "" },
+          answer: q.answer || ["A", "B", "C", "D"][q.correctAnswer] || "A",
+        };
+      });
+
       parts.push({
         part: "PHẦN I",
         title: "Câu trắc nghiệm nhiều phương án lựa chọn",
-        questions: examQuestions.map((q, index) => ({
-          id: index + 1,
-          question: q.question,
-          options: {
-            A: q.options[0] || "",
-            B: q.options[1] || "",
-            C: q.options[2] || "",
-            D: q.options[3] || "",
-          },
-          answer: ["A", "B", "C", "D"][q.correctAnswer] || "A",
-        })),
+        questions: part1Questions,
       });
     }
 
     // Process yes/no questions if needed
     if (examYesNoQuestions.length > 0) {
+      const part2Questions = examYesNoQuestions.map((q, index) => {
+        // Preserve original ID if it exists, otherwise create new UUID
+        const questionId =
+          typeof q.id === "string" && q.id.includes("-")
+            ? q.id // Keep original format like "1-0", "1-1", etc.
+            : q.id || uuidv4(); // Use existing ID or create new UUID
+
+        return {
+          id: questionId,
+          questionNumber: index + 1, // Reset về 1 cho phần này: 1, 2, 3...
+          question: q.question,
+          // Lưu statements với các luận điểm con
+          statements: {
+            a: { text: q.statements.a.text, answer: q.statements.a.answer },
+            b: { text: q.statements.b.text, answer: q.statements.b.answer },
+            c: { text: q.statements.c.text, answer: q.statements.c.answer },
+            d: { text: q.statements.d.text, answer: q.statements.d.answer },
+          },
+        };
+      });
+
       parts.push({
         part: "PHẦN II",
         title: "Câu hỏi Đúng/Sai",
-        questions: examYesNoQuestions.map((q, index) => ({
-          id: index + 1,
-          question: q.question,
-          options: {
-            A: "Đúng",
-            B: "Sai",
-          },
-          answer: q.isTrue ? "A" : "B",
-        })),
+        questions: part2Questions,
       });
     }
 
     // Process short answer questions if needed
     if (examShortQuestions.length > 0) {
+      const part3Questions = examShortQuestions.map((q, index) => {
+        // Preserve original ID if it exists, otherwise create new UUID
+        const questionId =
+          typeof q.id === "string" && q.id.includes("-")
+            ? q.id // Keep original format like "2-0", "2-1", etc.
+            : q.id || uuidv4(); // Use existing ID or create new UUID
+
+        return {
+          id: questionId,
+          questionNumber: index + 1, // Reset về 1 cho phần này: 1, 2, 3...
+          question: q.question || q.text || "", // Support both question and text fields
+          answer: q.answer || "", // Chỉ có question và answer, không có options
+        };
+      });
+
       parts.push({
         part: "PHẦN III",
         title: "Câu hỏi tự luận",
-        questions: examShortQuestions.map((q, index) => ({
-          id: index + 1,
-          question: q.question,
-          options: {
-            A: "Tự luận",
-          },
-          answer: q.answer || "Tự luận",
-        })),
+        questions: part3Questions,
       });
     }
 
@@ -203,6 +257,9 @@ export function TemplateCanvaLayoutContent() {
         parts,
       },
     };
+
+    console.log("=== TEMPLATE DATA TO SAVE ===");
+    console.log("Template Data:", JSON.stringify(templateData, null, 2));
 
     // Call appropriate API based on mode
     if (isEditMode && templateId) {
@@ -250,13 +307,16 @@ export function TemplateCanvaLayoutContent() {
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex h-screen flex-col">
         {/* Template info header */}
-        {isTemplateMode && templateMetadata && (
+        {isTemplateMode && (
           <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
             <div>
-              <h2 className="font-semibold">{templateMetadata.name}</h2>
+              <h2 className="font-semibold">
+                {templateMetadata?.name || "Template mới"}
+              </h2>
               <p className="text-sm text-gray-500">
-                {templateMetadata.subject} - Lớp {templateMetadata.grade} -{" "}
-                {templateMetadata.durationMinutes} phút
+                {templateMetadata
+                  ? `${templateMetadata.subject} - Lớp ${templateMetadata.grade} - ${templateMetadata.durationMinutes} phút`
+                  : "Chưa có thông tin template"}
               </p>
             </div>
             <div className="flex gap-2">

@@ -36,11 +36,30 @@ export default function GradingPanel() {
   const panelRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
 
-  const gradingConfig = templateMetadata?.gradingConfig || {
+  const defaultGradingConfig = {
     "PHẦN I": 0.25,
     "PHẦN II": 1.0,
     "PHẦN III": 0.25,
   };
+
+  const gradingConfig = templateMetadata?.gradingConfig || defaultGradingConfig;
+
+  // Effect to ensure gradingConfig is synced to templateMetadata
+  useEffect(() => {
+    if (templateMetadata && !templateMetadata.gradingConfig) {
+      console.log("=== SYNCING DEFAULT GRADING CONFIG ===");
+      console.log("Current template metadata:", templateMetadata);
+      console.log("Default grading config:", defaultGradingConfig);
+
+      const updatedMetadata = {
+        ...templateMetadata,
+        gradingConfig: defaultGradingConfig,
+      };
+
+      console.log("Updated metadata with grading config:", updatedMetadata);
+      setTemplateMetadata(updatedMetadata);
+    }
+  }, [templateMetadata, setTemplateMetadata]);
 
   // Resize functionality
   useEffect(() => {
@@ -117,8 +136,9 @@ export default function GradingPanel() {
     console.log("Value:", value);
     console.log("Current template metadata:", templateMetadata);
 
+    const newGradingConfig = { ...gradingConfig, [part]: value };
+
     if (templateMetadata) {
-      const newGradingConfig = { ...gradingConfig, [part]: value };
       const updatedMetadata = {
         ...templateMetadata,
         gradingConfig: newGradingConfig,
@@ -129,7 +149,19 @@ export default function GradingPanel() {
 
       setTemplateMetadata(updatedMetadata);
     } else {
-      console.warn("No template metadata available");
+      // Create default template metadata if it doesn't exist
+      const defaultMetadata = {
+        name: "Template mới",
+        subject: "Chưa xác định",
+        grade: 10,
+        durationMinutes: 90,
+        totalScore: 10,
+        gradingConfig: newGradingConfig,
+        description: "",
+      };
+
+      console.log("Creating default template metadata:", defaultMetadata);
+      setTemplateMetadata(defaultMetadata);
     }
   };
 

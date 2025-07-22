@@ -1,10 +1,13 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Question } from '@/components/organisms/exam-question-item/types';
-import { YesNoQuestion } from '@/components/organisms/yes-no-question-item/types';
-import { ShortQuestion } from '@/components/organisms/short-question-item/types';
-import { BasicExamInfo, defaultBasicExamInfo } from "@/components/organisms/basic-exam-info/types";
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { Question } from "@/components/organisms/exam-question-item/types";
+import { YesNoQuestion } from "@/components/organisms/yes-no-question-item/types";
+import { ShortQuestion } from "@/components/organisms/short-question-item/types";
+import {
+  BasicExamInfo,
+  defaultBasicExamInfo,
+} from "@/components/organisms/basic-exam-info/types";
 
 interface ExamContextType {
   basicExamInfo: BasicExamInfo;
@@ -32,7 +35,7 @@ const ExamContext = createContext<ExamContextType | undefined>(undefined);
 export const useExamContext = () => {
   const context = useContext(ExamContext);
   if (!context) {
-    throw new Error('useExamContext must be used within an ExamProvider');
+    throw new Error("useExamContext must be used within an ExamProvider");
   }
   return context;
 };
@@ -42,106 +45,111 @@ interface ExamProviderProps {
 }
 
 export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
-  const [basicExamInfo, setBasicExamInfo] = useState<BasicExamInfo>(defaultBasicExamInfo);
+  const [basicExamInfo, setBasicExamInfo] =
+    useState<BasicExamInfo>(defaultBasicExamInfo);
   const [examQuestions, setExamQuestions] = useState<Question[]>([
     {
-      id: '1',
-      question: 'Câu hỏi mẫu?',
-      options: ['Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D'],
+      id: "1",
+      question: "Câu hỏi mẫu?",
+      options: ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"],
       correctAnswer: 0,
-      type: 'single'
-    }
+      type: "single",
+    },
   ]);
-  
-  const [examYesNoQuestions, setExamYesNoQuestions] = useState<YesNoQuestion[]>([]);
-  const [examShortQuestions, setExamShortQuestions] = useState<ShortQuestion[]>([]);
+
+  const [examYesNoQuestions, setExamYesNoQuestions] = useState<YesNoQuestion[]>(
+    []
+  );
+  const [examShortQuestions, setExamShortQuestions] = useState<ShortQuestion[]>(
+    []
+  );
 
   const updateQuestion = (question: Question) => {
-    setExamQuestions(prev => prev.map(q => q.id === question.id ? question : q));
+    setExamQuestions((prev) =>
+      prev.map((q) => (q.id === question.id ? question : q))
+    );
   };
 
   const updateYesNoQuestion = (question: YesNoQuestion) => {
-    setExamYesNoQuestions(prev => prev.map(q => q.id === question.id ? question : q));
+    setExamYesNoQuestions((prev) =>
+      prev.map((q) => (q.id === question.id ? question : q))
+    );
   };
 
   const updateShortQuestion = (question: ShortQuestion) => {
-    setExamShortQuestions(prev => prev.map(q => q.id === question.id ? question : q));
+    setExamShortQuestions((prev) =>
+      prev.map((q) => (q.id === question.id ? question : q))
+    );
   };
 
   const deleteQuestion = (questionId: string) => {
-    setExamQuestions(prev => prev.filter(q => q.id !== questionId));
+    setExamQuestions((prev) => prev.filter((q) => q.id !== questionId));
   };
 
   const deleteYesNoQuestion = (questionId: string) => {
-    setExamYesNoQuestions(prev => prev.filter(q => q.id !== questionId));
+    setExamYesNoQuestions((prev) => prev.filter((q) => q.id !== questionId));
   };
 
   const deleteShortQuestion = (questionId: string) => {
-    setExamShortQuestions(prev => prev.filter(q => q.id !== questionId));
+    setExamShortQuestions((prev) => prev.filter((q) => q.id !== questionId));
   };
 
   const addQuestion = () => {
     const newQuestion: Question = {
       id: Date.now().toString(),
-      question: '',
-      options: ['', '', '', ''],
+      question: "",
+      options: ["", "", "", ""],
       correctAnswer: 0,
-      type: 'single'
+      type: "single",
     };
-    setExamQuestions(prev => [...prev, newQuestion]);
+    setExamQuestions((prev) => [...prev, newQuestion]);
   };
 
   const addYesNoQuestion = () => {
     const newQuestion: YesNoQuestion = {
       id: Date.now().toString(),
-      question: '',
+      question: "",
       statements: {
-        a: { text: '', answer: true },
-        b: { text: '', answer: false },
-        c: { text: '', answer: true },
-        d: { text: '', answer: false }
+        a: { text: "", answer: true },
+        b: { text: "", answer: false },
+        c: { text: "", answer: true },
+        d: { text: "", answer: false },
       },
-      type: 'yes-no'
+      type: "yes-no",
     };
-    setExamYesNoQuestions(prev => [...prev, newQuestion]);
+    setExamYesNoQuestions((prev) => [...prev, newQuestion]);
   };
 
   const addShortQuestion = () => {
     const newQuestion: ShortQuestion = {
       id: Date.now().toString(),
-      question: '',
-      answer: '',
-      type: 'short'
+      question: "",
+      answer: "",
+      type: "short",
     };
-    setExamShortQuestions(prev => [...prev, newQuestion]);
+    setExamShortQuestions((prev) => [...prev, newQuestion]);
   };
 
   const updateQuestionImage = (questionId: string, imagePath: string) => {
-    setExamQuestions(prev =>
-      prev.map(q =>
-        q.id === questionId
-          ? { ...q, illustrationImage: imagePath }
-          : q
+    setExamQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId ? { ...q, illustrationImage: imagePath } : q
       )
     );
   };
 
   const updateYesNoQuestionImage = (questionId: string, imagePath: string) => {
-    setExamYesNoQuestions(prev =>
-      prev.map(q =>
-        q.id === questionId
-          ? { ...q, illustrationImage: imagePath }
-          : q
+    setExamYesNoQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId ? { ...q, illustrationImage: imagePath } : q
       )
     );
   };
 
   const updateShortQuestionImage = (questionId: string, imagePath: string) => {
-    setExamShortQuestions(prev =>
-      prev.map(q =>
-        q.id === questionId
-          ? { ...q, illustrationImage: imagePath }
-          : q
+    setExamShortQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId ? { ...q, illustrationImage: imagePath } : q
       )
     );
   };
@@ -181,18 +189,35 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
       const questions = part.questions || [];
 
       questions.forEach((q: any, qIndex: number) => {
-        const questionId = `${partIndex}-${qIndex}`;
+        // Use original ID if available, otherwise create format-based ID
+        const questionId = q.id || `${partIndex}-${qIndex}`;
 
         // Determine question type based on part index
         if (partIndex === 0) {
           // PHẦN I - Multiple choice questions (parts[0])
+          // Handle both array and object format for options
+          let options: string[];
+          if (Array.isArray(q.options)) {
+            options = q.options;
+          } else if (q.options && typeof q.options === "object") {
+            // Convert object format {A: "...", B: "...", C: "...", D: "..."} to array
+            options = [
+              q.options.A || q.options.a || "",
+              q.options.B || q.options.b || "",
+              q.options.C || q.options.c || "",
+              q.options.D || q.options.d || "",
+            ];
+          } else {
+            options = ["", "", "", ""];
+          }
+
           const question: Question = {
             id: questionId,
             question: q.question || "",
-            options: q.options || ["", "", "", ""],
-            correctAnswer: q.answer ? (q.answer.charCodeAt(0) - 65) : 0, // Convert A,B,C,D to 0,1,2,3
+            options: options,
+            correctAnswer: q.answer ? q.answer.charCodeAt(0) - 65 : 0, // Convert A,B,C,D to 0,1,2,3
             answer: q.answer,
-            type: "single"
+            type: "single",
           };
           allQuestions.push(question);
         } else if (partIndex === 1) {
@@ -204,9 +229,9 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
               a: { text: "", answer: true },
               b: { text: "", answer: false },
               c: { text: "", answer: true },
-              d: { text: "", answer: false }
+              d: { text: "", answer: false },
             },
-            type: "yes-no"
+            type: "yes-no",
           };
           allYesNoQuestions.push(question);
         } else if (partIndex === 2) {
@@ -215,7 +240,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
             id: questionId,
             question: q.question || "",
             answer: q.answer || "",
-            type: "short"
+            type: "short",
           };
           allShortQuestions.push(question);
         }
@@ -225,7 +250,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     console.log("Processed questions:", {
       multipleChoice: allQuestions.length,
       yesNo: allYesNoQuestions.length,
-      short: allShortQuestions.length
+      short: allShortQuestions.length,
     });
 
     // Update state
@@ -255,9 +280,5 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     setExamFromApiResponse,
   };
 
-  return (
-    <ExamContext.Provider value={value}>
-      {children}
-    </ExamContext.Provider>
-  );
+  return <ExamContext.Provider value={value}>{children}</ExamContext.Provider>;
 };
