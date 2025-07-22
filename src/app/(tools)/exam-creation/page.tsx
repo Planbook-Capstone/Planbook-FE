@@ -26,7 +26,8 @@ function ExamCreationPageContent() {
 
   // Get exam context
   const { setExamFromApiResponse } = useExamContext();
-  const { setTemplateMode, setTemplateMetadata } = useExamTemplateContext();
+  const { setTemplateMode, setTemplateMetadata, templateMetadata } =
+    useExamTemplateContext();
   const searchParams = useSearchParams();
   const hasInitializedPreview = useRef(false);
 
@@ -68,11 +69,30 @@ function ExamCreationPageContent() {
         hasInitializedPreview.current = true;
       } else if (!hasInitializedPreview.current) {
         // Normal template mode - show canvas with config panel
+        // Set default template metadata if not already set
+        if (!templateMetadata) {
+          console.log(
+            "Normal template mode - setting default template metadata"
+          );
+          setTemplateMetadata({
+            name: "Template mới",
+            subject: "Chưa xác định",
+            grade: 10,
+            durationMinutes: 90,
+            totalScore: 10,
+            gradingConfig: {
+              "PHẦN I": 0.25,
+              "PHẦN II": 1.0,
+              "PHẦN III": 0.25,
+            },
+            description: "",
+          });
+        }
         setHasData(true);
         hasInitializedPreview.current = true;
       }
     }
-  }, [searchParams, setTemplateMode, setTemplateMetadata]);
+  }, [searchParams, setTemplateMode, setTemplateMetadata, templateMetadata]);
 
   const handleFileSubmit = (files: File[]) => {
     console.log("=== FILE SUBMIT HANDLER ===");

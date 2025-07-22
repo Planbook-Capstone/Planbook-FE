@@ -36,11 +36,30 @@ export default function GradingPanel() {
   const panelRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
 
-  const gradingConfig = templateMetadata?.gradingConfig || {
+  const defaultGradingConfig = {
     "PHẦN I": 0.25,
     "PHẦN II": 1.0,
     "PHẦN III": 0.25,
   };
+
+  const gradingConfig = templateMetadata?.gradingConfig || defaultGradingConfig;
+
+  // Effect to ensure gradingConfig is synced to templateMetadata
+  useEffect(() => {
+    if (templateMetadata && !templateMetadata.gradingConfig) {
+      console.log("=== SYNCING DEFAULT GRADING CONFIG ===");
+      console.log("Current template metadata:", templateMetadata);
+      console.log("Default grading config:", defaultGradingConfig);
+
+      const updatedMetadata = {
+        ...templateMetadata,
+        gradingConfig: defaultGradingConfig,
+      };
+
+      console.log("Updated metadata with grading config:", updatedMetadata);
+      setTemplateMetadata(updatedMetadata);
+    }
+  }, [templateMetadata, setTemplateMetadata]);
 
   // Resize functionality
   useEffect(() => {
