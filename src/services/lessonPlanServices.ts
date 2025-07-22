@@ -26,10 +26,14 @@ export const useLessonPlanService = createQueryHook(
   API_ENDPOINTS.LESSON_PLANS.BASE
 );
 
+//GET LESSON PLAN BY ID
+export const useLessonPlanByIdService = createQueryWithPathParamHook(
+  "lesson-plan",
+  API_ENDPOINTS.LESSON_PLANS.BASE
+);
+
 //CREATE LESSON PLAN
 export const useCreateLessonPlanService = createMutationHook(
   "lesson-plan",
   API_ENDPOINTS.LESSON_PLANS.BASE
 );
-
-
