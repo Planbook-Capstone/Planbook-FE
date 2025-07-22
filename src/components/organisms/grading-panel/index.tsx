@@ -117,8 +117,9 @@ export default function GradingPanel() {
     console.log("Value:", value);
     console.log("Current template metadata:", templateMetadata);
 
+    const newGradingConfig = { ...gradingConfig, [part]: value };
+
     if (templateMetadata) {
-      const newGradingConfig = { ...gradingConfig, [part]: value };
       const updatedMetadata = {
         ...templateMetadata,
         gradingConfig: newGradingConfig,
@@ -129,7 +130,19 @@ export default function GradingPanel() {
 
       setTemplateMetadata(updatedMetadata);
     } else {
-      console.warn("No template metadata available");
+      // Create default template metadata if it doesn't exist
+      const defaultMetadata = {
+        name: "Template mới",
+        subject: "Chưa xác định",
+        grade: 10,
+        durationMinutes: 90,
+        totalScore: 10,
+        gradingConfig: newGradingConfig,
+        description: "",
+      };
+
+      console.log("Creating default template metadata:", defaultMetadata);
+      setTemplateMetadata(defaultMetadata);
     }
   };
 
