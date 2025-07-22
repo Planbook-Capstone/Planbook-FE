@@ -66,6 +66,10 @@ function ExamCreationPageContent() {
 
         setHasData(true);
         hasInitializedPreview.current = true;
+      } else if (!hasInitializedPreview.current) {
+        // Normal template mode - show canvas with config panel
+        setHasData(true);
+        hasInitializedPreview.current = true;
       }
     }
   }, [searchParams, setTemplateMode, setTemplateMetadata]);

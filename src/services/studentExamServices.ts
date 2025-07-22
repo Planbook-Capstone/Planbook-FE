@@ -7,26 +7,19 @@ import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
  * Interface for exam content data
  */
 export interface ExamQuestion {
-  id: number;
+  id: string; // UUID từ backend
   question: string;
   questionNumber: number;
-  originalQuestionNumber: number;
+  originalQuestionNumber?: number; // Số thứ tự gốc
   options?: Record<string, string>; // For multiple choice questions
-  subQuestions?: SubQuestion[]; // For true/false questions
-}
-
-export interface SubQuestion {
-  id: string;
-  statement: string;
-  answer: boolean;
+  answer?: string; // For short answer questions
+  statements?: Record<string, { text: string; answer?: boolean }>; // For true/false questions
 }
 
 export interface ExamPart {
   part: string;
   title: string;
-  instruction: string;
   questions: ExamQuestion[];
-  gradingRules?: Record<string, number>;
 }
 
 export interface ExamInfo {
@@ -46,7 +39,7 @@ export interface ExamContentData {
   durationMinutes: number;
   contentJson: {
     parts: ExamPart[];
-    examInfo: ExamInfo;
+    examInfo?: ExamInfo; // Optional vì format mới có thể không có
   };
   startAt: string;
   endAt: string;

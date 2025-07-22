@@ -8,7 +8,7 @@ import { Clock, CheckCircle, Circle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QuestionStatus {
-  questionId: number;
+  questionId: string;
   questionNumber: number;
   partType: "PHẦN I" | "PHẦN II" | "PHẦN III";
   isAnswered: boolean;
@@ -16,8 +16,8 @@ interface QuestionStatus {
 
 interface QuestionNavigationProps {
   questions: QuestionStatus[];
-  currentQuestionId: number;
-  onQuestionSelect: (questionId: number) => void;
+  currentQuestionId: string;
+  onQuestionSelect: (questionId: string) => void;
   timeRemaining: number; // in seconds
   onSubmit: () => void;
   className?: string;
@@ -35,11 +35,15 @@ export function QuestionNavigation({
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const getTimeColor = () => {
@@ -56,25 +60,32 @@ export function QuestionNavigation({
     return acc;
   }, {} as Record<string, QuestionStatus[]>);
 
-  const answeredCount = questions.filter(q => q.isAnswered).length;
+  const answeredCount = questions.filter((q) => q.isAnswered).length;
   const totalCount = questions.length;
 
   return (
     <Card className={cn("sticky top-4", className)}>
       <CardHeader className="pb-4">
         <CardTitle className="text-lg">Điều hướng câu hỏi</CardTitle>
-        
+
         {/* Timer */}
-        <div className={cn("flex items-center gap-2 text-lg font-mono", getTimeColor())}>
+        <div
+          className={cn(
+            "flex items-center gap-2 text-lg font-mono",
+            getTimeColor()
+          )}
+        >
           <Clock className="w-5 h-5" />
           <span>{formatTime(timeRemaining)}</span>
         </div>
-        
+
         {/* Progress */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Tiến độ</span>
-            <span>{answeredCount}/{totalCount}</span>
+            <span>
+              {answeredCount}/{totalCount}
+            </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
@@ -84,7 +95,7 @@ export function QuestionNavigation({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Question Grid by Parts */}
         {Object.entries(groupedQuestions).map(([partType, partQuestions]) => (
@@ -145,9 +156,11 @@ export function QuestionNavigation({
             size="lg"
             variant={answeredCount === totalCount ? "default" : "outline"}
           >
-            {answeredCount === totalCount ? "Nộp bài" : `Nộp bài (${answeredCount}/${totalCount})`}
+            {answeredCount === totalCount
+              ? "Nộp bài"
+              : `Nộp bài (${answeredCount}/${totalCount})`}
           </Button>
-          
+
           {answeredCount < totalCount && (
             <p className="text-xs text-gray-500 mt-2 text-center">
               Bạn chưa trả lời hết tất cả câu hỏi

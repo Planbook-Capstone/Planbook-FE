@@ -28,8 +28,8 @@ export default function ExamPage({ params }: ExamPageProps) {
   const router = useRouter();
   const [studentName, setStudentName] = useState<string>("");
   const [hasStarted, setHasStarted] = useState(false);
-  const [currentQuestionId, setCurrentQuestionId] = useState<number>(0);
-  const [answers, setAnswers] = useState<Record<number, any>>({});
+  const [currentQuestionId, setCurrentQuestionId] = useState<string>("");
+  const [answers, setAnswers] = useState<Record<string, any>>({});
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,8 +68,7 @@ export default function ExamPage({ params }: ExamPageProps) {
 
     if (savedStudentName) setStudentName(savedStudentName);
     if (savedHasStarted === "true") setHasStarted(true);
-    if (savedCurrentQuestionId)
-      setCurrentQuestionId(parseInt(savedCurrentQuestionId));
+    if (savedCurrentQuestionId) setCurrentQuestionId(savedCurrentQuestionId);
     if (savedAnswers) {
       try {
         setAnswers(JSON.parse(savedAnswers));
@@ -127,7 +126,7 @@ export default function ExamPage({ params }: ExamPageProps) {
 
   // Set first question as current when exam starts
   useEffect(() => {
-    if (hasStarted && examData && currentQuestionId === 0) {
+    if (hasStarted && examData && currentQuestionId === "") {
       const firstQuestion = examData.contentJson.parts[0]?.questions[0];
       if (firstQuestion) {
         setCurrentQuestionId(firstQuestion.id);
@@ -171,7 +170,7 @@ export default function ExamPage({ params }: ExamPageProps) {
     }
   };
 
-  const handleAnswerChange = (questionId: number, answer: any) => {
+  const handleAnswerChange = (questionId: string, answer: any) => {
     const newAnswers = {
       ...answers,
       [questionId]: answer,
@@ -182,9 +181,9 @@ export default function ExamPage({ params }: ExamPageProps) {
     localStorage.setItem(STORAGE_KEYS.answers, JSON.stringify(newAnswers));
   };
 
-  const handleQuestionSelect = (questionId: number) => {
+  const handleQuestionSelect = (questionId: string) => {
     setCurrentQuestionId(questionId);
-    localStorage.setItem(STORAGE_KEYS.currentQuestionId, questionId.toString());
+    localStorage.setItem(STORAGE_KEYS.currentQuestionId, questionId);
   };
 
   const handleAutoSubmit = () => {
