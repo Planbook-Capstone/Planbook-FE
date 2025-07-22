@@ -139,23 +139,38 @@ export function TemplateCanvaLayoutContent() {
       return;
     }
 
+    console.log("=== SAVING TEMPLATE ===");
+    console.log("Current exam questions:", examQuestions);
+    console.log("Current yes/no questions:", examYesNoQuestions);
+    console.log("Current short questions:", examShortQuestions);
+
     // Convert questions to template format
     const parts: any[] = [];
 
     // Process multiple choice questions
     if (examQuestions.length > 0) {
-      const part1Questions = examQuestions.map((q, index) => ({
-        id: uuidv4(), // UUID để tránh trùng lặp
-        questionNumber: index + 1, // Reset về 1 cho mỗi phần: 1, 2, 3...
-        question: q.question,
-        options: {
-          A: q.options[0] || "",
-          B: q.options[1] || "",
-          C: q.options[2] || "",
-          D: q.options[3] || "",
-        },
-        answer: ["A", "B", "C", "D"][q.correctAnswer] || "A",
-      }));
+      const part1Questions = examQuestions.map((q, index) => {
+        // Preserve original ID if it exists, otherwise create new UUID
+        const questionId =
+          typeof q.id === "string" && q.id.includes("-")
+            ? q.id // Keep original format like "0-0", "0-1", etc.
+            : q.id || uuidv4(); // Use existing ID or create new UUID
+
+        return {
+          id: questionId,
+          questionNumber: index + 1, // Reset về 1 cho mỗi phần: 1, 2, 3...
+          question: q.question,
+          options: Array.isArray(q.options)
+            ? {
+                A: q.options[0] || "",
+                B: q.options[1] || "",
+                C: q.options[2] || "",
+                D: q.options[3] || "",
+              }
+            : q.options || { A: "", B: "", C: "", D: "" },
+          answer: q.answer || ["A", "B", "C", "D"][q.correctAnswer] || "A",
+        };
+      });
 
       parts.push({
         part: "PHẦN I",
@@ -166,18 +181,26 @@ export function TemplateCanvaLayoutContent() {
 
     // Process yes/no questions if needed
     if (examYesNoQuestions.length > 0) {
-      const part2Questions = examYesNoQuestions.map((q, index) => ({
-        id: uuidv4(), // UUID để tránh trùng lặp
-        questionNumber: index + 1, // Reset về 1 cho phần này: 1, 2, 3...
-        question: q.question,
-        // Lưu statements với các luận điểm con
-        statements: {
-          a: { text: q.statements.a.text, answer: q.statements.a.answer },
-          b: { text: q.statements.b.text, answer: q.statements.b.answer },
-          c: { text: q.statements.c.text, answer: q.statements.c.answer },
-          d: { text: q.statements.d.text, answer: q.statements.d.answer },
-        },
-      }));
+      const part2Questions = examYesNoQuestions.map((q, index) => {
+        // Preserve original ID if it exists, otherwise create new UUID
+        const questionId =
+          typeof q.id === "string" && q.id.includes("-")
+            ? q.id // Keep original format like "1-0", "1-1", etc.
+            : q.id || uuidv4(); // Use existing ID or create new UUID
+
+        return {
+          id: questionId,
+          questionNumber: index + 1, // Reset về 1 cho phần này: 1, 2, 3...
+          question: q.question,
+          // Lưu statements với các luận điểm con
+          statements: {
+            a: { text: q.statements.a.text, answer: q.statements.a.answer },
+            b: { text: q.statements.b.text, answer: q.statements.b.answer },
+            c: { text: q.statements.c.text, answer: q.statements.c.answer },
+            d: { text: q.statements.d.text, answer: q.statements.d.answer },
+          },
+        };
+      });
 
       parts.push({
         part: "PHẦN II",
@@ -188,12 +211,20 @@ export function TemplateCanvaLayoutContent() {
 
     // Process short answer questions if needed
     if (examShortQuestions.length > 0) {
-      const part3Questions = examShortQuestions.map((q, index) => ({
-        id: uuidv4(), // UUID để tránh trùng lặp
-        questionNumber: index + 1, // Reset về 1 cho phần này: 1, 2, 3...
-        question: q.question,
-        answer: q.answer || "", // Chỉ có question và answer, không có options
-      }));
+      const part3Questions = examShortQuestions.map((q, index) => {
+        // Preserve original ID if it exists, otherwise create new UUID
+        const questionId =
+          typeof q.id === "string" && q.id.includes("-")
+            ? q.id // Keep original format like "2-0", "2-1", etc.
+            : q.id || uuidv4(); // Use existing ID or create new UUID
+
+        return {
+          id: questionId,
+          questionNumber: index + 1, // Reset về 1 cho phần này: 1, 2, 3...
+          question: q.question || q.text || "", // Support both question and text fields
+          answer: q.answer || "", // Chỉ có question và answer, không có options
+        };
+      });
 
       parts.push({
         part: "PHẦN III",
@@ -214,6 +245,9 @@ export function TemplateCanvaLayoutContent() {
         parts,
       },
     };
+
+    console.log("=== TEMPLATE DATA TO SAVE ===");
+    console.log("Template Data:", JSON.stringify(templateData, null, 2));
 
     // Call appropriate API based on mode
     if (isEditMode && templateId) {
