@@ -44,6 +44,7 @@
         "@tiptap/react": "^2.24.2",
         "@tiptap/starter-kit": "^2.24.2",
         "@types/file-saver": "^2.0.7",
+        "@types/three": "^0.178.1",
         "@types/uuid": "^10.0.0",
         "antd": "^5.25.2",
         "axios": "^1.9.0",

@@ -18,13 +18,14 @@ import HistoryCard from "@/components/organisms/history-card";
 import HistoryList from "@/components/organisms/history-list";
 import { useSearchParams } from "next/navigation";
 import { useBookTypesService } from "@/services/bookTypeServices";
+import SpotlightCard from "@/components/ui/SpotlightCard";
+import BannerWithOverlay from "@/components/organisms/banner/BannerWithOverlay";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
   const { data: bookTypes } = useBookTypesService();
 
-  
   // Dữ liệu điểm đến được AI khuyên dùng
   const aiRecommendedDestinations = [
     {
@@ -100,7 +101,19 @@ export default function Home() {
 
   return (
     <MainLayout>
-      <Banner />
+      {/* <Banner /> */}
+      <BannerWithOverlay
+        imageSrc="/images/background/abstract-bg.svg"
+        videoSrc="/video/banner-01.mp4"
+        userName="Nguyễn Văn A"
+        onSearch={(query) => console.log("Searching for:", query)}
+        height="h-80"
+        grid={10}
+        mouse={0.1}
+        strength={0.15}
+        relaxation={0.9}
+        className="mb-8"
+      />
 
       <section className="grid grid-cols-1 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2 gap-5">
         {bookTypes?.data?.content
@@ -114,6 +127,36 @@ export default function Home() {
               href={feature.href}
             />
           ))}
+      </section>
+
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+        <SpotlightCard
+          className="!p-0 !bg-transparent !border-0 w-full aspect-[4/3] rounded-lg overflow-hidden"
+          spotlightColor="rgba(59, 130, 246, 0.3)"
+        >
+          <img
+            src="/images/background/LessonPlanCreation.svg"
+            className="w-full h-full object-cover"
+          />
+        </SpotlightCard>
+        <SpotlightCard
+          className="!p-0 !bg-transparent !border-0 w-full aspect-[4/3] rounded-lg overflow-hidden"
+          spotlightColor="rgba(34, 197, 94, 0.3)"
+        >
+          <img
+            src="/images/background/ExamCreation.svg"
+            className="w-full h-full object-cover"
+          />
+        </SpotlightCard>
+        <SpotlightCard
+          className="!p-0 !bg-transparent !border-0 w-full aspect-[4/3] rounded-lg overflow-hidden"
+          spotlightColor="rgba(168, 85, 247, 0.3)"
+        >
+          <img
+            src="/images/background/SlideCreation.svg"
+            className="w-full h-full object-cover"
+          />
+        </SpotlightCard>
       </section>
 
       <ItemSection
