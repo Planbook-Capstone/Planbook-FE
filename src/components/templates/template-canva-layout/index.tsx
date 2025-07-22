@@ -134,12 +134,24 @@ export function TemplateCanvaLayoutContent() {
   };
 
   const handleSaveTemplate = () => {
+    console.log("=== SAVE TEMPLATE BUTTON CLICKED ===");
+    console.log("Template metadata:", templateMetadata);
+
     if (!templateMetadata) {
+      console.error("❌ Template metadata is null!");
       toast.error("Thông tin template chưa được thiết lập!");
       return;
     }
 
+    if (!templateMetadata.gradingConfig) {
+      console.error("❌ Grading config is missing!");
+      toast.error("Cấu hình thang điểm chưa được thiết lập!");
+      return;
+    }
+
     console.log("=== SAVING TEMPLATE ===");
+    console.log("Template metadata:", templateMetadata);
+    console.log("Grading config:", templateMetadata.gradingConfig);
     console.log("Current exam questions:", examQuestions);
     console.log("Current yes/no questions:", examYesNoQuestions);
     console.log("Current short questions:", examShortQuestions);
