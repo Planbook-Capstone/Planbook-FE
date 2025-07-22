@@ -4,15 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Upload,
-  Eye,
-  Download,
-  Trash2,
-  Plus,
-  MoreVertical,
-  Edit,
-} from "lucide-react";
+import { Upload, Plus, MoreVertical, Edit } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,9 +17,13 @@ import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { toast } from "sonner";
 import {
   useCreateLessonPlanService,
+  useLessonPlanByIdService,
   useLessonPlanService,
 } from "@/services/lessonPlanServices";
-import { useCreateLessonPlanNodeService } from "@/services/lessonPlanNodeServices";
+import {
+  useCreateLessonPlanNodeService,
+  useLessonPlanAllNodeService,
+} from "@/services/lessonPlanNodeServices";
 
 // Interface for uploaded files
 interface UploadedFile {
@@ -46,6 +42,13 @@ export default function LessonPlanPage() {
   const { mutate: lessonPlanNode } = useCreateLessonPlanNodeService();
 
   const { data: lessonPlanData } = useLessonPlanService();
+
+  const [selected, setSelected] = useState<LessonPlanTemplate>();
+  const { data: lessonPlanById } = useLessonPlanByIdService(selected?.id || "");
+  const { data: allNode } = useLessonPlanAllNodeService(selected?.id || "")();
+
+  console.log(lessonPlanById?.data, "tran");
+  console.log(allNode?.data, "thy");
 
   const [templates, setTemplates] = useState<LessonPlanTemplate[]>([
     { ...getDefaultTemplate(), isActive: true },
@@ -173,9 +176,10 @@ export default function LessonPlanPage() {
     setShowBuilder(true);
   };
 
-  const handleEditTemplate = (template: LessonPlanTemplate) => {
+  const handleEditTemplate = () => {
     // setCurrentTemplate(template);
-    // setShowBuilder(true);
+    setShowBuilder(true);
+    
   };
 
   const handleDeleteTemplate = (templateId: string) => {
@@ -331,7 +335,7 @@ export default function LessonPlanPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  if (showBuilder) {
+  if (showBuilder && allNode?.data) {
     return (
       <LessonPlanTemplateBuilder
         initialTemplate={currentTemplate || undefined}
@@ -424,7 +428,10 @@ export default function LessonPlanPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => handleEditTemplate(template)}
+                        onClick={() => {
+                          setSelected(template);
+                          handleEditTemplate();
+                        }}
                       >
                         <Edit className="w-4 h-4 mr-2" />
                         Chỉnh sửa
