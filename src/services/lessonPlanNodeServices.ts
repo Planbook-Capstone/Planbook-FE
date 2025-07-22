@@ -17,3 +17,8 @@ export const useLessonPlanNodeChildrenService = (id: string) =>
     `lesson-plan-node-chidren-${id}`,
     API_ENDPOINTS.LESSON_PLANS.CHIDREN(id)
   );
+export const useLessonPlanAllNodeService = (id: string) =>
+  createQueryHook(
+    `lesson-plan-node-tree-${id}`,
+    API_ENDPOINTS.LESSON_PLANS.ALL_NODES(id)
+  );
