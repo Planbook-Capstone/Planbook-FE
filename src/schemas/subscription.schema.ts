@@ -32,6 +32,15 @@ export const subscriptionSchema = z.object({
     .min(10, "Mô tả phải có ít nhất 10 ký tự")
     .max(500, "Mô tả không được quá 500 ký tự")
     .transform((val) => val.trim()),
+
+  highlight: z
+    .boolean()
+    .default(false),
+
+  features: z
+    .array(z.string().min(1, "Tính năng không được để trống"))
+    .min(1, "Phải có ít nhất 1 tính năng")
+    .max(10, "Không được quá 10 tính năng"),
 });
 
 // Type inference
@@ -43,6 +52,8 @@ export interface CreateSubscriptionRequest {
   tokenAmount: number;
   price: number;
   description: string;
+  highlight: boolean;
+  features: string[];
 }
 
 // Update subscription request type (for edit functionality)

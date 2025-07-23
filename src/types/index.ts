@@ -63,6 +63,8 @@ export type SubscriptionResponse = {
   tokenAmount: number;
   price: number;
   description: string;
+  highlight: boolean;
+  features: string[];
   status: "ACTIVE" | "INACTIVE";
   createdAt: string;
   updatedAt: string;

@@ -8,17 +8,35 @@ import { SubscriptionResponse } from "@/types";
 import { Input } from "@/components/ui/input";
 import CreateSubscriptionModal from "@/components/organisms/create-subscription-modal";
 import EditSubscriptionModal from "@/components/organisms/edit-subscription-modal";
+import { useDeleteSubscriptionService } from "@/services/subscriptionServices";
+import { toast } from "sonner";
 
 function SubscriptionManagementPage() {
   const [selected, setSelected] = useState<Row<SubscriptionResponse>[]>([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
     useState<SubscriptionResponse | null>(null);
+  const { mutate, isPending } = useDeleteSubscriptionService();
 
   const handleEditClick = () => {
     if (selected.length === 1) {
       setSelectedSubscription(selected[0].original);
       setEditModalOpen(true);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selected.length === 1) {
+      setSelectedSubscription(selected[0].original);
+      mutate(String(selected[0].original.id), {
+        onSuccess: () => {
+          toast.success("Xóa gói thành công");
+          setSelected([]);
+        },
+        onError: (error) => {
+          toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+        },
+      });
     }
   };
 
@@ -38,7 +56,12 @@ function SubscriptionManagementPage() {
             >
               Chỉnh sửa
             </Button>
-            <Button disabled={selected.length !== 1}>Xoá</Button>
+            <Button
+              onClick={handleDelete}
+              disabled={selected.length !== 1 || isPending}
+            >
+              Xoá
+            </Button>
           </div>
         ) : (
           <CreateSubscriptionModal />

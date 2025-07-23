@@ -5,7 +5,7 @@ const SERVICES = {
   ACADEMIC_RESOURCE: "academic-resource-service",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
-  SUBSCRIPTION: "subscription-service",
+  SUBSCRIPTION: "purchase-service",
 } as const;
 
 const buildEndpoint = (service: string, path: string) =>

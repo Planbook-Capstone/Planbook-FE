@@ -3,6 +3,7 @@ import {
   createQueryHook,
   updateMutationHook,
   patchMutationHook,
+  deleteMutationHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
@@ -23,5 +24,10 @@ export const useUpdateSubscriptionService = updateMutationHook(
 
 export const useUpdateSubscriptionStatus = patchMutationHook(
   "subscriptions", 
+  API_ENDPOINTS.SUBSCRIPTIONS
+);
+
+export const useDeleteSubscriptionService = deleteMutationHook(
+  "subscriptions",
   API_ENDPOINTS.SUBSCRIPTIONS
 );

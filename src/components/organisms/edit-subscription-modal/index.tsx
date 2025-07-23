@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import SubscriptionForm from "@/components/organisms/subscription-form";
 import { SubscriptionResponse } from "@/types";
 
@@ -21,18 +21,20 @@ function EditSubscriptionModal({
   subscription,
 }: EditSubscriptionModalProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Chỉnh sửa gói subscription</DialogTitle>
-        </DialogHeader>
-        <SubscriptionForm 
-          onClose={() => onOpenChange(false)} 
-          subscription={subscription}
-          mode="edit"
-        />
-      </DialogContent>
-    </Dialog>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-1/2 !max-w-none max-h-screen overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="font-bold text-xl">Chỉnh sửa gói subscription</SheetTitle>
+        </SheetHeader>
+        <div className="px-5">
+          <SubscriptionForm
+            onClose={() => onOpenChange(false)}
+            subscription={subscription}
+            mode="edit"
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
