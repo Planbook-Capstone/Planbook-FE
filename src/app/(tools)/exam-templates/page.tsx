@@ -81,9 +81,9 @@ function ExamTemplatesPageContent() {
       onSuccess: (response) => {
         console.log("Exam import successful:", response);
         toast.success("Import đề thi thành công!");
-        
+
         // Store imported data in context
-        setExamFromApiResponse(response.data);
+        setExamFromApiResponse(response);
 
         // Close modal and navigate to exam-creation
         setShowCreationModal(false);
