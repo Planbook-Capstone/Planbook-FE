@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/config/supabaseClient";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
+import { useQueryClient } from "@tanstack/react-query";
 
 const LoginPage = () => {
   const { mutate } = useUserServices();
@@ -16,15 +17,14 @@ const LoginPage = () => {
   const [isRegister, setIsRegister] = React.useState(false);
   const [showRegisterOptions, setShowRegisterOptions] = React.useState(false);
   const router = useRouter();
-
+  const queryClient = useQueryClient();
   const onFinish = (values: any) => {
-    console.log("Form values:", values);
     mutate(values, {
       onSuccess: (data) => {
         toast.success("Đăng nhập thành công");
         localStorage.setItem("token", data?.data?.data?.token);
         localStorage.setItem("refreshToken", data?.data?.data?.refreshToken);
-
+        queryClient.setQueryData(["currentUser"], data?.data?.data);
         if (data.data.data.role === "ADMIN") {
           router.push("/admin");
         } else if (data.data.data.role === "STAFF") {
