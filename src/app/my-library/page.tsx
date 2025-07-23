@@ -141,7 +141,7 @@ function MyLibrary() {
         style={{
           backgroundImage: `url(${"/images/background/bgHome.svg"})`,
         }}
-        className="w-full h-[210px] bg-cover bg-center bg-no-repeat text-black rounded-2xl border border-[#DFDFDF] relative overflow-hidden"
+        className="w-full md:h-[300px] h-[210px] bg-cover bg-center bg-no-repeat text-black rounded-2xl border border-[#DFDFDF] relative overflow-hidden"
       >
         <div className="absolute lg:left-[40%] pt-10 text-center">
           <h1 className="text-3xl md:text-3xl sm:text-xl mb-3 font-calsans">
