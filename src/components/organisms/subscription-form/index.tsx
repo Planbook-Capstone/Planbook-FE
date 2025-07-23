@@ -50,9 +50,9 @@ function SubscriptionForm({
     if (subscription && mode === "edit") {
       form.reset({
         name: subscription.name || "",
-        tokenAmount: (subscription as any).tokenAmount || 100, // Use existing or default
+        tokenAmount: subscription.tokenAmount || 100,
         price: subscription.price || 0,
-        description: (subscription as any).description || "Basic access", // Use existing or default
+        description: subscription.description || "Basic access",
       });
     }
   }, [subscription, form, mode]);
@@ -136,7 +136,7 @@ function SubscriptionForm({
                   type="number"
                   placeholder="Nhập số lượng token (VD: 100)"
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(e:any) => field.onChange(Number(e.target.value))}
                   disabled={isLoading}
                 />
               </FormControl>
@@ -156,7 +156,7 @@ function SubscriptionForm({
                   type="number"
                   placeholder="Nhập giá (VD: 99000)"
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(e:any) => field.onChange(Number(e.target.value))}
                   disabled={isLoading}
                 />
               </FormControl>
