@@ -15,7 +15,7 @@ import GradingPanel from "@/components/organisms/grading-panel";
 import { useExamContext } from "@/contexts/ExamContext";
 import { useExamTemplateContext } from "@/contexts/ExamTemplateContext";
 import { Button } from "@/components/ui/Button";
-import { Save, Eye } from "lucide-react";
+import { Save, Eye, RotateCcw } from "lucide-react";
 import {
   useCreateExamTemplateService,
   useUpdateExamTemplateService,
@@ -47,6 +47,9 @@ export function TemplateCanvaLayoutContent() {
     examQuestions,
     examYesNoQuestions,
     examShortQuestions,
+    clearExamData,
+    hasUnsavedChanges,
+    markAsSaved,
   } = useExamContext();
   const { templateMetadata } = useExamTemplateContext();
 
@@ -123,6 +126,18 @@ export function TemplateCanvaLayoutContent() {
 
   const handleClosePreviewModal = () => {
     setIsPreviewModalOpen(false);
+  };
+
+  const handleResetData = () => {
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa tất cả dữ liệu? Hành động này không thể hoàn tác."
+    );
+
+    if (confirmed) {
+      clearExamData();
+      setCanvasElements([]);
+      toast.success("Đã xóa tất cả dữ liệu thành công!");
+    }
   };
 
   const handleSaveTemplate = () => {
@@ -271,6 +286,7 @@ export function TemplateCanvaLayoutContent() {
         {
           onSuccess: (response) => {
             toast.success("Template đã được cập nhật thành công!");
+            markAsSaved();
           },
           onError: (error) => {
             toast.error(
@@ -286,6 +302,7 @@ export function TemplateCanvaLayoutContent() {
       createTemplate(templateData, {
         onSuccess: (response) => {
           toast.success("Template đã được tạo thành công!");
+          markAsSaved();
         },
         onError: (error) => {
           toast.error("Tạo template thất bại. Vui lòng thử lại!");
@@ -300,9 +317,16 @@ export function TemplateCanvaLayoutContent() {
         {/* Header with template info and actions */}
         <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
           <div>
-            <h2 className="font-semibold">
-              {templateMetadata?.name || "Template mới"}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold">
+                {templateMetadata?.name || "Template mới"}
+              </h2>
+              {hasUnsavedChanges && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  Chưa lưu
+                </span>
+              )}
+            </div>
             <p className="text-sm text-gray-500">
               {templateMetadata
                 ? `${templateMetadata.subject} - Lớp ${templateMetadata.grade} - ${templateMetadata.durationMinutes} phút`
@@ -310,6 +334,15 @@ export function TemplateCanvaLayoutContent() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetData}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Reset
+            </Button>
             <Button
               variant="outline"
               size="sm"
