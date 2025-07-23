@@ -218,6 +218,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
             correctAnswer: q.answer ? q.answer.charCodeAt(0) - 65 : 0, // Convert A,B,C,D to 0,1,2,3
             answer: q.answer,
             type: "single",
+            illustrationImage: q.illustrationImage || undefined,
           };
           allQuestions.push(question);
         } else if (partIndex === 1) {
@@ -232,6 +233,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
               d: { text: "", answer: false },
             },
             type: "yes-no",
+            illustrationImage: q.illustrationImage || undefined,
           };
           allYesNoQuestions.push(question);
         } else if (partIndex === 2) {
@@ -241,6 +243,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
             question: q.question || "",
             answer: q.answer || "",
             type: "short",
+            illustrationImage: q.illustrationImage || undefined,
           };
           allShortQuestions.push(question);
         }
@@ -248,9 +251,9 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     });
 
     console.log("Processed questions:", {
-      multipleChoice: allQuestions.length,
-      yesNo: allYesNoQuestions.length,
-      short: allShortQuestions.length,
+      multipleChoice: allQuestions,
+      yesNo: allYesNoQuestions,
+      short: allShortQuestions,
     });
 
     // Update state
