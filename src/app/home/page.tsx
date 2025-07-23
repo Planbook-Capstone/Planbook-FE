@@ -104,7 +104,7 @@ export default function Home() {
       {/* <Banner /> */}
       <BannerWithOverlay
         imageSrc="/images/background/abstract-bg.svg"
-        videoSrc="/video/banner-01.mp4"
+        videoSrc="https://res.cloudinary.com/dpo0ad3aq/video/upload/Scene_03_-_4K_3840x2160_h0awgk.mp4"
         userName="Nguyễn Văn A"
         onSearch={(query) => console.log("Searching for:", query)}
         height="h-80"
