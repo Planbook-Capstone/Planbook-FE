@@ -46,6 +46,12 @@ export const subscriptionColumns: ColumnDef<SubscriptionResponse>[] = [
       </span>
     ),
   },
+  // {
+  //   accessorKey: "priority",
+  //   header: "Thứ tự",
+  //   cell: ({ row }) => <span>{row.original.priority || "N/A"}</span>,
+  // },
+
   {
     accessorKey: "updatedAt",
     header: "Ngày cập nhật",
