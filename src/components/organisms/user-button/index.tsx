@@ -16,11 +16,17 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 function UserButton() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
   const handleLogout = () => {
+    queryClient.clear();
     router.push("/login");
   };
+  const userData = queryClient.getQueryData(["currentUser"]);
+
   return (
     <div className="flex justify-end items-center gap-2.5">
       <Select defaultValue="2025">
@@ -53,7 +59,7 @@ function UserButton() {
               className="object-cover"
             />
             <AvatarFallback className="rounded-md bg-neutral-200 font-medium text-neutral-500 flex items-center justify-center">
-              Test
+              {userData?.username}
             </AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
@@ -70,8 +76,11 @@ function UserButton() {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-start justify-center">
-              <p className="text-sm font-medium text-neutral-900">Test</p>
-              <p className="text-xs  text-neutral-500">tran@gmail.com</p>
+              <p className="text-sm font-medium text-neutral-900">
+                {" "}
+                {userData?.username}
+              </p>
+              <p className="text-xs  text-neutral-500"> {userData?.email}</p>
             </div>
           </div>
 
