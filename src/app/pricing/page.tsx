@@ -10,7 +10,7 @@ function PricingPage() {
         <p className="text-xl text-slate-900">
           Tùy chỉnh theo nhu cầu – linh hoạt cho mọi quy mô
         </p>
-        <div className="flex justify-center gap-2.5 px-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3">
           <PricingCard />
           <PricingCard />
           <PricingCard />
