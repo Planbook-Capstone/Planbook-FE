@@ -17,6 +17,23 @@ import ScoringConfigPanel, {
 } from "@/components/organisms/scoring-config-panel";
 import { useExamTemplateContext } from "@/contexts/ExamTemplateContext";
 
+// Step types
+export interface ExamStep {
+  id: string;
+  title: string;
+  description?: string;
+  component: React.ComponentType<any>;
+  isCompleted: boolean;
+  isRequired: boolean;
+}
+
+export type StepId =
+  | "basic-info"
+  | "scoring-config"
+  | "section-1"
+  | "section-2"
+  | "section-3";
+
 interface ExamContentProps {
   questions: Question[];
   yesNoQuestions: YesNoQuestion[];

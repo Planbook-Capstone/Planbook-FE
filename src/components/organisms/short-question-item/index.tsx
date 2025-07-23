@@ -98,7 +98,7 @@ export default function ShortQuestionItem({
           <p className="text-sm font-bold text-nowrap">Đáp án:</p>
 
           <Input
-            className="border-none text-blue-700"
+            className="border text-sky-700"
             type="text"
             value={question.answer}
             onChange={(e: any) => handleAnswerChange(e.target.value)}

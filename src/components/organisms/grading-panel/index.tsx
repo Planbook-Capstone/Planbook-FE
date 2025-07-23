@@ -200,15 +200,15 @@ export default function GradingPanel() {
       {/* Resize Handle */}
       <div
         ref={resizeRef}
-        className={`absolute left-0 top-0 w-2 h-full cursor-col-resize hover:bg-blue-500 transition-colors z-10 ${
-          isResizing ? "bg-blue-500" : "bg-transparent"
+        className={`absolute left-0 top-0 w-2 h-full cursor-col-resize hover:bg-neutral-500 transition-colors z-10 ${
+          isResizing ? "bg-neutral-500" : "bg-transparent"
         }`}
         onMouseDown={handleResizeStart}
         title="Kéo để thay đổi kích thước"
       >
         <div
           className={`absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1 rounded-full p-1 transition-colors ${
-            isResizing ? "bg-blue-500" : "bg-gray-300 hover:bg-blue-500"
+            isResizing ? "bg-neutral-500" : "bg-gray-300 hover:bg-neutral-500"
           }`}
         >
           <GripVertical
@@ -248,31 +248,28 @@ export default function GradingPanel() {
             <div>
               <button
                 onClick={() => toggleSection("part1")}
-                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-amber-300 rounded  transition-colors"
+                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-neutral-700 rounded  transition-colors"
               >
                 <span className="text-white">PHẦN I - Trắc nghiệm</span>
                 <span className="ml-auto text-xs bg-white px-2 py-1 rounded-full">
                   {examQuestions.length} câu
                 </span>
                 {collapsedSections.part1 ? (
-                  <ChevronRight className="h-4 w-4 text-amber-600" />
+                  <ChevronRight className="h-4 w-4 text-neutral-100" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-amber-600" />
+                  <ChevronDown className="h-4 w-4 text-neutral-100" />
                 )}
               </button>
               {!collapsedSections.part1 && (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {examQuestions.map((question, index) => (
-                    <div
-                      key={question.id}
-                      className="p-3 bg-amber-50 border-l-2 border-amber-500"
-                    >
+                    <div key={question.id} className="p-3 ">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-calsans text-gray-700">
                           Câu {index + 1}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-1">
+                      <div className="grid grid-cols-4 gap-1">
                         {["A", "B", "C", "D"].map((option, optionIndex) => (
                           <button
                             key={option}
@@ -304,30 +301,27 @@ export default function GradingPanel() {
             <div>
               <button
                 onClick={() => toggleSection("part2")}
-                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-blue-300 rounded hover:bg-blue-100 transition-colors"
+                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-neutral-500 rounded transition-colors"
               >
                 <span className="text-white">PHẦN II - Đúng/Sai</span>
                 <span className="ml-auto text-xs bg-white px-2 py-1 rounded-full">
                   {examYesNoQuestions.length} câu
                 </span>
                 {collapsedSections.part2 ? (
-                  <ChevronRight className="h-4 w-4 text-blue-600" />
+                  <ChevronRight className="h-4 w-4 text-neutral-100" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-blue-600" />
+                  <ChevronDown className="h-4 w-4 text-neutral-100" />
                 )}
               </button>
               {!collapsedSections.part2 && (
-                <div className="space-y-3 max-h-60 overflow-y-auto">
+                <div className="space-y-3 max-h-60 overflow-y-auto font-questrial">
                   {examYesNoQuestions.map((question, index) => (
-                    <div
-                      key={question.id}
-                      className="p-3 bg-sky-50 border-l-2 border-blue-400"
-                    >
+                    <div key={question.id} className="p-3 ">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-calsans text-gray-700">
                           Câu {index + 1}
                         </span>
-                        <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        <div className="text-xs bg-neutral-100 text-neutral-700 px-2 py-1 rounded">
                           {getCorrectAnswersCount(question)}/4 ý đúng ={" "}
                           {getYesNoQuestionScore(question).toFixed(2)} điểm
                         </div>
@@ -394,25 +388,22 @@ export default function GradingPanel() {
             <div>
               <button
                 onClick={() => toggleSection("part3")}
-                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-orange-400 rounded hover:bg-orange-100 transition-colors"
+                className="w-full text-sm font-calsans text-gray-700 mb-3 flex items-center gap-2 p-2 bg-neutral-200 rounded transition-colors"
               >
-                <span className="text-white">PHẦN III - Tự luận</span>
+                <span className="text-neutral-700">PHẦN III - Tự luận</span>
                 <span className="ml-auto text-xs bg-white px-2 py-1 rounded-full">
                   {examShortQuestions.length} câu
                 </span>
                 {collapsedSections.part3 ? (
-                  <ChevronRight className="h-4 w-4 text-orange-600" />
+                  <ChevronRight className="h-4 w-4 text-neutral-500" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-orange-600" />
+                  <ChevronDown className="h-4 w-4 text-neutral-500" />
                 )}
               </button>
               {!collapsedSections.part3 && (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {examShortQuestions.map((question, index) => (
-                    <div
-                      key={question.id}
-                      className="p-3 bg-orange-50 border-l-2 border-orange-400"
-                    >
+                    <div key={question.id} className="p-3 ">
                       <div className="text-sm font-calsans text-gray-700 mb-2">
                         Câu {index + 1}
                       </div>
@@ -426,7 +417,7 @@ export default function GradingPanel() {
                           )
                         }
                         placeholder="Nhập đáp án..."
-                        className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       />
                     </div>
                   ))}

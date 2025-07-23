@@ -205,10 +205,7 @@ export default function YesNoQuestionItem({
         {/* Sub-questions with True/False options */}
         <div className="space-y-3 ml-16 font-questrial">
           {displayOptions?.map((option, optionIndex) => (
-            <div
-              key={option.id}
-              className="space-y-2 border p-1.5 rounded-md bg-neutral-50"
-            >
+            <div key={option.id} className="space-y-2 p-1.5 rounded-md">
               {/* Sub-question text */}
               <div className="flex items-start gap-3">
                 <div className="font-medium text-sm text-gray-700 mt-2">

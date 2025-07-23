@@ -2,7 +2,7 @@ const SERVICES = {
   AUTH: "auth-service",
   MASTER_DATA: "master-data-service-local",
   LESSON_PLAN: "lesson-plan-service",
-  ACADEMIC_RESOURCE: "academic-resource-service",
+  ACADEMIC_RESOURCE: "academic-resource-service-local",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
 } as const;
@@ -62,7 +62,11 @@ export const API_ENDPOINTS = {
     CHIDREN: (nodeId: string) =>
       `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
 
-    ALL_NODES: (lessonPlanId :string) => buildEndpoint(SERVICES.LESSON_PLAN, `/admin/lesson-nodes/${lessonPlanId}/all-nodes`)
+    ALL_NODES: (lessonPlanId: string) =>
+      buildEndpoint(
+        SERVICES.LESSON_PLAN,
+        `/admin/lesson-nodes/${lessonPlanId}/all-nodes`
+      ),
   },
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
   UPLOAD_DOCX_TO_ONLINE: "/lesson/upload-docx-to-online",

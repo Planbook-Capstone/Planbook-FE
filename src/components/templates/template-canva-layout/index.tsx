@@ -8,14 +8,22 @@ import {
   DragStartEvent,
 } from "@dnd-kit/core";
 import AssetsPanel from "@/components/organisms/assets-panel";
-import CanvasArea from "@/components/organisms/canvas-area";
 import ExamPreviewModal from "@/components/organisms/exam-preview-modal";
 import GradingPanel from "@/components/organisms/grading-panel";
+import StepContainer from "@/components/organisms/exam-steps/StepContainer";
+import { StepProvider } from "@/contexts/StepContext";
 
 import { useExamContext } from "@/contexts/ExamContext";
 import { useExamTemplateContext } from "@/contexts/ExamTemplateContext";
 import { Button } from "@/components/ui/Button";
-import { Save, Eye, RotateCcw } from "lucide-react";
+import {
+  Save,
+  Eye,
+  RotateCcw,
+  Cloud,
+  CloudAlert,
+  CloudUpload,
+} from "lucide-react";
 import {
   useCreateExamTemplateService,
   useUpdateExamTemplateService,
@@ -56,10 +64,10 @@ export function TemplateCanvaLayoutContent() {
   const isEditMode = pathname.includes("/exam-templates/");
   const templateId = isEditMode ? pathname.split("/").pop() : null;
 
-  const { mutate: createTemplate, isLoading: isCreating } =
+  const { mutate: createTemplate, isPending: isCreating } =
     useCreateExamTemplateService();
 
-  const { mutate: updateTemplate, isLoading: isUpdating } =
+  const { mutate: updateTemplate, isPending: isUpdating } =
     useUpdateExamTemplateService();
 
   const isSaving = isCreating || isUpdating;
@@ -108,16 +116,6 @@ export function TemplateCanvaLayoutContent() {
     } else if (questionType === "short-answer") {
       updateShortQuestionImage(questionId, imageSrc);
     }
-  };
-
-  const updateElement = (id: string, updates: Partial<CanvasElement>) => {
-    setCanvasElements((elements) =>
-      elements.map((el) => (el.id === id ? { ...el, ...updates } : el))
-    );
-  };
-
-  const deleteElement = (id: string) => {
-    setCanvasElements((elements) => elements.filter((el) => el.id !== id));
   };
 
   const handleOpenPreviewModal = () => {
@@ -284,7 +282,7 @@ export function TemplateCanvaLayoutContent() {
       updateTemplate(
         { id: templateId, data: templateData },
         {
-          onSuccess: (response) => {
+          onSuccess: () => {
             toast.success("Template đã được cập nhật thành công!");
             markAsSaved();
           },
@@ -300,11 +298,11 @@ export function TemplateCanvaLayoutContent() {
     } else {
       // Create new template
       createTemplate(templateData, {
-        onSuccess: (response) => {
+        onSuccess: () => {
           toast.success("Template đã được tạo thành công!");
           markAsSaved();
         },
-        onError: (error) => {
+        onError: () => {
           toast.error("Tạo template thất bại. Vui lòng thử lại!");
         },
       });
@@ -312,86 +310,88 @@ export function TemplateCanvaLayoutContent() {
   };
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex h-screen flex-col">
-        {/* Header with template info and actions */}
-        <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="font-semibold">
-                {templateMetadata?.name || "Template mới"}
-              </h2>
-              {hasUnsavedChanges && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  Chưa lưu
-                </span>
-              )}
+    <StepProvider>
+      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="flex h-screen flex-col">
+          {/* Header with template info and actions */}
+          <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-calsans text-base">
+                  {templateMetadata?.name || "Template mới"}
+                </h2>
+                {hasUnsavedChanges && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-neutral-800">
+                    <CloudAlert />
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 font-questrial">
+                {templateMetadata
+                  ? `${templateMetadata.subject} - Lớp ${templateMetadata.grade} - ${templateMetadata.durationMinutes} phút`
+                  : "Chưa có thông tin template"}
+              </p>
             </div>
-            <p className="text-sm text-gray-500">
-              {templateMetadata
-                ? `${templateMetadata.subject} - Lớp ${templateMetadata.grade} - ${templateMetadata.durationMinutes} phút`
-                : "Chưa có thông tin template"}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleResetData}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <RotateCcw className="h-4 w-4 mr-1" />
-              Reset
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenPreviewModal}
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              Xem trước
-            </Button>
-            <Button size="sm" onClick={handleSaveTemplate} disabled={isSaving}>
-              <Save className="h-4 w-4 mr-1" />
-              {isSaving
-                ? isEditMode
-                  ? "Đang cập nhật..."
-                  : "Đang tạo..."
-                : isEditMode
-                ? "Cập nhật template"
-                : "Tạo template"}
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex flex-1 overflow-hidden">
-          {/* Assets Panel - Left */}
-          <div className="bg-white border-r border-gray-200 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
-            <AssetsPanel />
-          </div>
-
-          {/* Canvas Area - Center */}
-          <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-            <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
-              <CanvasArea
-                elements={canvasElements}
-                onUpdateElement={updateElement}
-                onDeleteElement={deleteElement}
-              />
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetData}
+                className="text-neutral-800 font-questrial hover:text-red-700 hover:bg-red-50 py-5 rounded-full"
+              >
+                <RotateCcw className="h-4 w-4 mr-1" />
+                Reset
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOpenPreviewModal}
+                className="py-5 rounded-full font-questrial"
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Xem trước
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveTemplate}
+                disabled={isSaving}
+                className="py-5 rounded-full font-questrial bg-[linear-gradient(227deg,_#20DCDF_30%,_#25BEE5_50%,_#2C99EE_70%,_#368BEB_80%,_#3860D2_90%)]"
+              >
+                <CloudUpload className="h-4 w-4 mr-1" />
+                {isSaving
+                  ? isEditMode
+                    ? "Đang cập nhật..."
+                    : "Đang tạo..."
+                  : isEditMode
+                  ? "Cập nhật template"
+                  : "Tạo template"}
+              </Button>
             </div>
           </div>
 
-          {/* Grading Panel - Right */}
-          <GradingPanel />
-        </div>
+          <div className="flex flex-1 overflow-hidden">
+            {/* Assets Panel - Left */}
+            <div className="bg-white border-r border-gray-200 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+              <AssetsPanel />
+            </div>
 
-        {/* Preview Modal */}
-        <ExamPreviewModal
-          isOpen={isPreviewModalOpen}
-          onClose={handleClosePreviewModal}
-          elements={canvasElements}
-        />
-      </div>
-    </DndContext>
+            {/* Step Container - Center */}
+            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+              <StepContainer className="h-full flex flex-col p-2 sm:p-4" />
+            </div>
+
+            {/* Grading Panel - Right */}
+            <GradingPanel />
+          </div>
+
+          {/* Preview Modal */}
+          <ExamPreviewModal
+            isOpen={isPreviewModalOpen}
+            onClose={handleClosePreviewModal}
+            elements={canvasElements}
+          />
+        </div>
+      </DndContext>
+    </StepProvider>
   );
 }
