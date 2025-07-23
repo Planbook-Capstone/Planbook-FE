@@ -2,15 +2,14 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useExamContext } from "@/contexts/ExamContext";
-import { useExamTemplateContext } from "@/contexts/ExamTemplateContext";
-import { Button } from "@/components/ui/Button";
+
+import { Edit3, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 import {
-  Settings,
-  Edit3,
-  ChevronDown,
-  ChevronRight,
-  GripVertical,
-} from "lucide-react";
+  calculateYesNoQuestionScore,
+  calculateYesNoQuestionScoreStandard,
+} from "@/utils/scoringUtils";
+import { useExamTemplateContext } from "@/contexts/ExamTemplateContext";
+import { defaultScoringConfig } from "@/components/organisms/scoring-config-panel";
 
 export default function GradingPanel() {
   const {
@@ -21,13 +20,15 @@ export default function GradingPanel() {
     updateYesNoQuestion,
     updateShortQuestion,
   } = useExamContext();
-  const { templateMetadata, setTemplateMetadata } = useExamTemplateContext();
+
+  const { templateMetadata } = useExamTemplateContext();
+  const currentScoringConfig =
+    templateMetadata?.scoringConfig || defaultScoringConfig;
 
   // State for panel width and collapse
   const [panelWidth, setPanelWidth] = useState(320); // Default 320px (w-80)
   const [isResizing, setIsResizing] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({
-    grading: false,
     part1: false,
     part2: false,
     part3: false,
@@ -35,31 +36,6 @@ export default function GradingPanel() {
 
   const panelRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
-
-  const defaultGradingConfig = {
-    "PHẦN I": 0.25,
-    "PHẦN II": 1.0,
-    "PHẦN III": 0.25,
-  };
-
-  const gradingConfig = templateMetadata?.gradingConfig || defaultGradingConfig;
-
-  // Effect to ensure gradingConfig is synced to templateMetadata
-  useEffect(() => {
-    if (templateMetadata && !templateMetadata.gradingConfig) {
-      console.log("=== SYNCING DEFAULT GRADING CONFIG ===");
-      console.log("Current template metadata:", templateMetadata);
-      console.log("Default grading config:", defaultGradingConfig);
-
-      const updatedMetadata = {
-        ...templateMetadata,
-        gradingConfig: defaultGradingConfig,
-      };
-
-      console.log("Updated metadata with grading config:", updatedMetadata);
-      setTemplateMetadata(updatedMetadata);
-    }
-  }, [templateMetadata, setTemplateMetadata]);
 
   // Resize functionality
   useEffect(() => {
@@ -107,10 +83,6 @@ export default function GradingPanel() {
             e.preventDefault();
             toggleSection("part3");
             break;
-          case "0":
-            e.preventDefault();
-            toggleSection("grading");
-            break;
         }
       }
     };
@@ -130,38 +102,34 @@ export default function GradingPanel() {
     }));
   };
 
-  const handleGradingConfigChange = (part: string, value: number) => {
-    console.log("=== UPDATING GRADING CONFIG ===");
-    console.log("Part:", part);
-    console.log("Value:", value);
-    console.log("Current template metadata:", templateMetadata);
+  // Calculate number of correct answers for Yes/No question
+  const getCorrectAnswersCount = (question: any): number => {
+    if (!question.statements) return 0;
 
-    const newGradingConfig = { ...gradingConfig, [part]: value };
+    return Object.values(question.statements).filter(
+      (statement: any) => statement.answer === true
+    ).length;
+  };
 
-    if (templateMetadata) {
-      const updatedMetadata = {
-        ...templateMetadata,
-        gradingConfig: newGradingConfig,
-      };
+  // Calculate score for Yes/No question based on current scoring config
+  const getYesNoQuestionScore = (question: any): number => {
+    const correctCount = getCorrectAnswersCount(question);
 
-      console.log("New grading config:", newGradingConfig);
-      console.log("Updated metadata:", updatedMetadata);
-
-      setTemplateMetadata(updatedMetadata);
+    if (currentScoringConfig.part2ScoringType === "standard") {
+      // Chuẩn: 0.1/0.25/0.5/1.0
+      return calculateYesNoQuestionScoreStandard(correctCount);
+    } else if (currentScoringConfig.part2ScoringType === "auto") {
+      // Tự động: điểm tối đa ÷ 4
+      return calculateYesNoQuestionScore(
+        correctCount,
+        currentScoringConfig.part2CustomScore
+      );
     } else {
-      // Create default template metadata if it doesn't exist
-      const defaultMetadata = {
-        name: "Template mới",
-        subject: "Chưa xác định",
-        grade: 10,
-        durationMinutes: 90,
-        totalScore: 10,
-        gradingConfig: newGradingConfig,
-        description: "",
-      };
-
-      console.log("Creating default template metadata:", defaultMetadata);
-      setTemplateMetadata(defaultMetadata);
+      // Manual: sử dụng điểm đã cấu hình cho từng số ý đúng
+      return (
+        currentScoringConfig.part2ManualScores[correctCount as 1 | 2 | 3 | 4] ||
+        0
+      );
     }
   };
 
@@ -169,30 +137,16 @@ export default function GradingPanel() {
     questionId: string,
     newAnswer: number
   ) => {
-    console.log("=== UPDATING MULTIPLE CHOICE ANSWER ===");
-    console.log("Question ID:", questionId, typeof questionId);
-    console.log("New Answer:", newAnswer);
-    console.log(
-      "All questions:",
-      examQuestions.map((q) => ({ id: q.id, type: typeof q.id }))
-    );
-
-    // Try both string and number comparison
     const question = examQuestions.find(
       (q) => String(q.id) === String(questionId) || q.id === questionId
     );
-
-    console.log("Found question:", question);
 
     if (question) {
       const updatedQuestion = {
         ...question,
         correctAnswer: newAnswer,
       };
-      console.log("Updating question to:", updatedQuestion);
       updateQuestion(updatedQuestion);
-    } else {
-      console.warn("Question not found for ID:", questionId);
     }
   };
 
@@ -201,17 +155,9 @@ export default function GradingPanel() {
     statementKey: string,
     newAnswer: boolean
   ) => {
-    console.log("=== UPDATING YES/NO ANSWER ===");
-    console.log("Question ID:", questionId, typeof questionId);
-    console.log("Statement Key:", statementKey);
-    console.log("New Answer:", newAnswer);
-
-    // Try both string and number comparison
     const question = examYesNoQuestions.find(
       (q) => String(q.id) === String(questionId) || q.id === questionId
     );
-
-    console.log("Found YesNo question:", question);
 
     if (question && question.statements) {
       const newStatements = { ...question.statements };
@@ -225,34 +171,21 @@ export default function GradingPanel() {
         ...question,
         statements: newStatements,
       };
-      console.log("Updating YesNo question to:", updatedQuestion);
       updateYesNoQuestion(updatedQuestion);
-    } else {
-      console.warn("YesNo question not found for ID:", questionId);
     }
   };
 
   const handleShortAnswerChange = (questionId: string, newAnswer: string) => {
-    console.log("=== UPDATING SHORT ANSWER ===");
-    console.log("Question ID:", questionId, typeof questionId);
-    console.log("New Answer:", newAnswer);
-
-    // Try both string and number comparison
     const question = examShortQuestions.find(
       (q) => String(q.id) === String(questionId) || q.id === questionId
     );
-
-    console.log("Found Short question:", question);
 
     if (question) {
       const updatedQuestion = {
         ...question,
         answer: newAnswer,
       };
-      console.log("Updating Short question to:", updatedQuestion);
       updateShortQuestion(updatedQuestion);
-    } else {
-      console.warn("Short question not found for ID:", questionId);
     }
   };
 
@@ -296,62 +229,6 @@ export default function GradingPanel() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Grading Configuration */}
-        <div className="mb-6">
-          <button
-            onClick={() => toggleSection("grading")}
-            className="w-full flex items-center justify-between text-sm font-calsans border shadow-2xs text-gray-700 mb-3 p-2 hover:bg-gray-50 rounded-sm transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <span>Thang điểm</span>
-            </div>
-            {collapsedSections.grading ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </button>
-          {!collapsedSections.grading && (
-            <>
-              {Object.keys(gradingConfig).length > 0 ? (
-                <div className="space-y-3">
-                  {Object.entries(gradingConfig).map(([part, score]) => (
-                    <div
-                      key={part}
-                      className="flex items-center justify-between p-2 rounded"
-                    >
-                      <span className="text-sm font-calsans text-gray-700">
-                        {part}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          step="0.25"
-                          min="0"
-                          max="10"
-                          value={score}
-                          onChange={(e) =>
-                            handleGradingConfigChange(
-                              part,
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-xs text-gray-500">điểm/câu</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500 italic">
-                  Chưa có cấu hình thang điểm
-                </div>
-              )}
-            </>
-          )}
         </div>
 
         {/* Questions and Answers */}
@@ -446,8 +323,14 @@ export default function GradingPanel() {
                       key={question.id}
                       className="p-3 bg-sky-50 border-l-2 border-blue-400"
                     >
-                      <div className="text-sm font-calsans text-gray-700 mb-2">
-                        Câu {examQuestions.length + index + 1}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-calsans text-gray-700">
+                          Câu {index + 1}
+                        </span>
+                        <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          {getCorrectAnswersCount(question)}/4 ý đúng ={" "}
+                          {getYesNoQuestionScore(question).toFixed(2)} điểm
+                        </div>
                       </div>
                       {question.statements && (
                         <div className="space-y-2">
@@ -531,11 +414,7 @@ export default function GradingPanel() {
                       className="p-3 bg-orange-50 border-l-2 border-orange-400"
                     >
                       <div className="text-sm font-calsans text-gray-700 mb-2">
-                        Câu{" "}
-                        {examQuestions.length +
-                          examYesNoQuestions.length +
-                          index +
-                          1}
+                        Câu {index + 1}
                       </div>
                       <input
                         type="text"

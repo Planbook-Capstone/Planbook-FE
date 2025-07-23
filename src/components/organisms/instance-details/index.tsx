@@ -35,6 +35,7 @@ import {
   ChangeStatusData,
   SubmissionData,
 } from "@/services/examInstanceServices";
+import { SubmissionDetails } from "@/components/organisms/submission-details";
 import { cn } from "@/lib/utils";
 
 interface InstanceDetailsProps {
@@ -558,49 +559,14 @@ export function InstanceDetails({
                       <h4 className="font-medium text-gray-900 mb-3">
                         Danh sách kết quả chi tiết
                       </h4>
-                      <div className="max-h-96 overflow-y-auto space-y-2">
+                      <div className="max-h-[600px] overflow-y-auto space-y-4">
                         {submissions.map(
                           (submission: SubmissionData, index: number) => (
-                            <div
-                              key={submission.submissionId}
-                              className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-colors"
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <span className="text-sm font-medium text-blue-700">
-                                    {index + 1}
-                                  </span>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-900">
-                                    {submission.studentName}
-                                  </p>
-                                  <p className="text-sm text-gray-500">
-                                    Nộp lúc:{" "}
-                                    {format(
-                                      new Date(submission.submittedAt),
-                                      "dd/MM/yyyy HH:mm",
-                                      { locale: vi }
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-lg font-bold text-blue-600">
-                                    {submission.score}
-                                  </span>
-                                  <span className="text-gray-400">/</span>
-                                  <span className="text-lg font-medium text-gray-600">
-                                    {submission.maxScore}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-gray-500">
-                                  {submission.correctCount}/
-                                  {submission.totalQuestions} câu đúng
-                                </p>
-                              </div>
-                            </div>
+                            <SubmissionDetails
+                              key={submission.id}
+                              submission={submission}
+                              index={index}
+                            />
                           )
                         )}
                       </div>

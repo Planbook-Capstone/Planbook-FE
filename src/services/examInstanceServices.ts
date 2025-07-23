@@ -68,16 +68,31 @@ export interface UpdateInstanceData {
 }
 
 /**
+ * Interface for result details
+ */
+export interface ResultDetail {
+  questionId: string;
+  studentAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+}
+
+/**
  * Interface for submission data
  */
 export interface SubmissionData {
-  submissionId: string;
+  id: string;
+  examInstanceId: string;
   studentName: string;
   score: number;
   correctCount: number;
   totalQuestions: number;
   maxScore: number;
   submittedAt: string;
+  answersJson?: {
+    answers: any[];
+  };
+  resultDetails?: ResultDetail[];
 }
 
 /**

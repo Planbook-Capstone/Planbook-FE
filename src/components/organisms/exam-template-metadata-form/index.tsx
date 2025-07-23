@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2 } from "lucide-react";
+import { ScoringConfig } from "@/types/scoring";
 
 export interface ExamTemplateMetadata {
   name: string;
@@ -20,8 +21,8 @@ export interface ExamTemplateMetadata {
   grade: number;
   durationMinutes: number;
   totalScore: number;
-  gradingConfig: Record<string, number>;
   description?: string;
+  scoringConfig?: ScoringConfig;
 }
 
 interface ExamTemplateMetadataFormProps {
@@ -41,30 +42,7 @@ export default function ExamTemplateMetadataForm({
     grade: initialData?.grade || 10,
     durationMinutes: initialData?.durationMinutes || 90,
     totalScore: initialData?.totalScore || 10,
-    gradingConfig: initialData?.gradingConfig || {},
     description: initialData?.description || "",
-  });
-
-  const [gradingParts, setGradingParts] = useState<
-    Array<{ part: string; weight: number }>
-  >(() => {
-    if (
-      initialData?.gradingConfig &&
-      Object.keys(initialData.gradingConfig).length > 0
-    ) {
-      return Object.entries(initialData.gradingConfig).map(
-        ([part, weight]) => ({
-          part,
-          weight,
-        })
-      );
-    }
-    // Default grading config
-    return [
-      { part: "PHẦN I", weight: 0.25 },
-      { part: "PHẦN II", weight: 1.0 },
-      { part: "PHẦN III", weight: 0.25 },
-    ];
   });
 
   const handleInputChange = (field: keyof ExamTemplateMetadata, value: any) => {
@@ -74,43 +52,11 @@ export default function ExamTemplateMetadataForm({
     }));
   };
 
-  const handleAddGradingPart = () => {
-    setGradingParts((prev) => [
-      ...prev,
-      { part: `PHẦN ${prev.length + 1}`, weight: 1.0 },
-    ]);
-  };
-
-  const handleRemoveGradingPart = (index: number) => {
-    if (gradingParts.length > 1) {
-      setGradingParts((prev) => prev.filter((_, i) => i !== index));
-    }
-  };
-
-  const handleGradingPartChange = (
-    index: number,
-    field: "part" | "weight",
-    value: string | number
-  ) => {
-    setGradingParts((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
-    );
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Convert grading parts to gradingConfig object
-    const gradingConfig = gradingParts.reduce((acc, { part, weight }) => {
-      if (part.trim()) {
-        acc[part.trim()] = weight;
-      }
-      return acc;
-    }, {} as Record<string, number>);
-
     const metadata: ExamTemplateMetadata = {
       ...formData,
-      gradingConfig,
     };
 
     onSubmit(metadata);
@@ -232,66 +178,16 @@ export default function ExamTemplateMetadataForm({
           </FormField>
         </div>
 
-        {/* Grading Configuration */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-calsans">Cấu hình điểm số</h3>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAddGradingPart}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Thêm phần
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            {gradingParts.map((part, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div className="flex-1">
-                  <Input
-                    value={part.part}
-                    onChange={(e) =>
-                      handleGradingPartChange(index, "part", e.target.value)
-                    }
-                    placeholder="Tên phần (ví dụ: PHẦN I)"
-                  />
-                </div>
-                <div className="w-32">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={part.weight}
-                    onChange={(e) =>
-                      handleGradingPartChange(
-                        index,
-                        "weight",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                    placeholder="Trọng số"
-                  />
-                </div>
-                {gradingParts.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveGradingPart(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <p className="text-sm text-gray-500">
-            Trọng số xác định tỷ lệ điểm của từng phần trong tổng điểm cuối
-            cùng.
+        {/* Note about scoring */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-blue-800 mb-2">
+            📝 Hệ thống chấm điểm
+          </h3>
+          <p className="text-sm text-blue-700">
+            Điểm số sẽ được tính tự động dựa trên số câu hỏi. Mỗi câu hỏi = 0.25
+            điểm.
+            <br />
+            Ví dụ: 40 câu hỏi = 10 điểm tối đa.
           </p>
         </div>
 

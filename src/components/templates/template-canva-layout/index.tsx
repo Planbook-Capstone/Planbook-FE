@@ -126,20 +126,13 @@ export function TemplateCanvaLayoutContent() {
   };
 
   const handleSaveTemplate = () => {
-    console.log("=== SAVE TEMPLATE BUTTON CLICKED ===");
-    console.log("Template metadata:", templateMetadata);
-
     if (!templateMetadata) {
-      console.error("❌ Template metadata is null!");
       toast.error("Thông tin template chưa được thiết lập!");
       return;
     }
 
-    if (!templateMetadata.gradingConfig) {
-      console.error("❌ Grading config is missing!");
-      toast.error("Cấu hình thang điểm chưa được thiết lập!");
-      return;
-    }
+    // Get scoring config first
+    const scoringConfig = templateMetadata?.scoringConfig;
 
     // Convert questions to template format
     const parts: any[] = [];
@@ -230,41 +223,53 @@ export function TemplateCanvaLayoutContent() {
       });
     }
 
+    // Calculate total score based on scoring config
+    let calculatedTotalScore: number;
+
+    if (scoringConfig && !scoringConfig.useStandardScoring) {
+      // Tùy chỉnh
+      const part1Score = examQuestions.length * scoringConfig.part1Score;
+      const part2Score =
+        examYesNoQuestions.length *
+        (scoringConfig.part2ScoringType === "standard"
+          ? 1.0
+          : scoringConfig.part2ScoringType === "auto"
+          ? scoringConfig.part2CustomScore
+          : scoringConfig.part2ManualScores[4]);
+      const part3Score = examShortQuestions.length * scoringConfig.part3Score;
+      calculatedTotalScore = part1Score + part2Score + part3Score;
+    } else {
+      // Chuẩn: Phần 1 = 0.25, Phần 2 = 1.0, Phần 3 = 0.25
+      calculatedTotalScore =
+        examQuestions.length * 0.25 +
+        examYesNoQuestions.length * 1.0 +
+        examShortQuestions.length * 0.25;
+    }
+
     // Create template data
     const templateData = {
       name: templateMetadata.name,
       subject: templateMetadata.subject,
       grade: templateMetadata.grade,
       durationMinutes: templateMetadata.durationMinutes,
-      totalScore: templateMetadata.totalScore,
-      gradingConfig: templateMetadata.gradingConfig,
+      totalScore: calculatedTotalScore, // Tính tự động dựa trên số câu hỏi
+      scoringConfig: scoringConfig, // Thêm cấu hình chấm điểm
       contentJson: {
         parts,
       },
     };
 
-    console.log("=== TEMPLATE DATA TO SAVE ===");
-    console.log("Template Data:", JSON.stringify(templateData, null, 2));
-
     // Call appropriate API based on mode
     if (isEditMode && templateId) {
       // Update existing template
-      console.log("=== UPDATING TEMPLATE ===");
-      console.log("Template ID:", templateId);
-      console.log("Template Data:", templateData);
-      console.log("Update payload:", { id: templateId, data: templateData });
 
       updateTemplate(
         { id: templateId, data: templateData },
         {
           onSuccess: (response) => {
-            console.log("✅ Template updated successfully:", response);
             toast.success("Template đã được cập nhật thành công!");
           },
           onError: (error) => {
-            console.error("❌ Template update failed:", error);
-            console.error("Error details:", error.response?.data);
-            console.error("Error status:", error.response?.status);
             toast.error(
               `Cập nhật template thất bại: ${
                 error.response?.data?.message || error.message
@@ -277,11 +282,9 @@ export function TemplateCanvaLayoutContent() {
       // Create new template
       createTemplate(templateData, {
         onSuccess: (response) => {
-          console.log("✅ Template created successfully:", response);
           toast.success("Template đã được tạo thành công!");
         },
         onError: (error) => {
-          console.error("❌ Template creation failed:", error);
           toast.error("Tạo template thất bại. Vui lòng thử lại!");
         },
       });

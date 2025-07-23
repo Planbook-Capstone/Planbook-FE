@@ -7,6 +7,7 @@ import {
   ExamTemplateProvider,
   useExamTemplateContext,
 } from "@/contexts/ExamTemplateContext";
+import { defaultScoringConfig } from "@/components/organisms/scoring-config-panel";
 
 function ExamCreationPageContent() {
   // Get exam context
@@ -37,13 +38,13 @@ function ExamCreationPageContent() {
           subject: basicExamInfo.subject || "Hóa học",
           grade: basicExamInfo.grade || 10,
           durationMinutes: basicExamInfo.duration_minutes || 90,
-          totalScore: 10,
-          gradingConfig: {
-            "PHẦN I": 0.25,
-            "PHẦN II": 1.0,
-            "PHẦN III": 0.25,
-          },
+          totalScore:
+            (examQuestions.length +
+              examYesNoQuestions.length +
+              examShortQuestions.length) *
+            0.25,
           description: `Template được tạo từ đề thi ${basicExamInfo.subject}`,
+          scoringConfig: defaultScoringConfig,
         });
       } else {
         // Use default metadata for manual creation
@@ -55,12 +56,8 @@ function ExamCreationPageContent() {
           grade: 10,
           durationMinutes: 90,
           totalScore: 10,
-          gradingConfig: {
-            "PHẦN I": 0.25,
-            "PHẦN II": 1.0,
-            "PHẦN III": 0.25,
-          },
           description: "",
+          scoringConfig: defaultScoringConfig,
         });
       }
     }

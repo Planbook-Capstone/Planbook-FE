@@ -41,7 +41,6 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
         grade: template.grade,
         durationMinutes: template.durationMinutes,
         totalScore: template.totalScore,
-        gradingConfig: template.gradingConfig,
       });
 
       // Mark as initialized
@@ -53,9 +52,9 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
       const transformedParts = [];
 
       // Find and transform parts by their names
-      const part1 = parts.find((p) => p.part === "PHẦN I");
-      const part2 = parts.find((p) => p.part === "PHẦN II");
-      const part3 = parts.find((p) => p.part === "PHẦN III");
+      const part1 = parts.find((p: any) => p.part === "PHẦN I");
+      const part2 = parts.find((p: any) => p.part === "PHẦN II");
+      const part3 = parts.find((p: any) => p.part === "PHẦN III");
 
       // Transform PHẦN I (Multiple Choice) - keep as is
       if (part1) {
@@ -105,7 +104,7 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
       }
 
       // Add any remaining parts
-      parts.forEach((part) => {
+      parts.forEach((part: any) => {
         if (
           part.part !== "PHẦN I" &&
           part.part !== "PHẦN II" &&
