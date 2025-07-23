@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -21,7 +21,7 @@ import {
   useUpdateExamTemplateService,
 } from "@/services/examTemplateServices";
 import { toast } from "sonner";
-import { useSearchParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
 export interface CanvasElement {
@@ -38,7 +38,6 @@ export function TemplateCanvaLayoutContent() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
-  const searchParams = useSearchParams();
   const pathname = usePathname();
 
   const {
@@ -49,17 +48,10 @@ export function TemplateCanvaLayoutContent() {
     examYesNoQuestions,
     examShortQuestions,
   } = useExamContext();
-  const { isTemplateMode, templateMetadata } = useExamTemplateContext();
+  const { templateMetadata } = useExamTemplateContext();
 
-  // Detect if we're editing an existing template
-  // Check if we're on exam-templates/[id] page (edit mode) or exam-creation page (create mode)
   const isEditMode = pathname.includes("/exam-templates/");
   const templateId = isEditMode ? pathname.split("/").pop() : null;
-
-  console.log("=== TEMPLATE MODE DETECTION ===");
-  console.log("Pathname:", pathname);
-  console.log("Is Edit Mode:", isEditMode);
-  console.log("Template ID:", templateId);
 
   const { mutate: createTemplate, isLoading: isCreating } =
     useCreateExamTemplateService();
@@ -148,13 +140,6 @@ export function TemplateCanvaLayoutContent() {
       toast.error("Cấu hình thang điểm chưa được thiết lập!");
       return;
     }
-
-    console.log("=== SAVING TEMPLATE ===");
-    console.log("Template metadata:", templateMetadata);
-    console.log("Grading config:", templateMetadata.gradingConfig);
-    console.log("Current exam questions:", examQuestions);
-    console.log("Current yes/no questions:", examYesNoQuestions);
-    console.log("Current short questions:", examShortQuestions);
 
     // Convert questions to template format
     const parts: any[] = [];
@@ -306,45 +291,39 @@ export function TemplateCanvaLayoutContent() {
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex h-screen flex-col">
-        {/* Template info header */}
-        {isTemplateMode && (
-          <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
-            <div>
-              <h2 className="font-semibold">
-                {templateMetadata?.name || "Template mới"}
-              </h2>
-              <p className="text-sm text-gray-500">
-                {templateMetadata
-                  ? `${templateMetadata.subject} - Lớp ${templateMetadata.grade} - ${templateMetadata.durationMinutes} phút`
-                  : "Chưa có thông tin template"}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleOpenPreviewModal}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                Xem trước
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSaveTemplate}
-                disabled={isSaving}
-              >
-                <Save className="h-4 w-4 mr-1" />
-                {isSaving
-                  ? isEditMode
-                    ? "Đang cập nhật..."
-                    : "Đang tạo..."
-                  : isEditMode
-                  ? "Cập nhật template"
-                  : "Tạo template"}
-              </Button>
-            </div>
+        {/* Header with template info and actions */}
+        <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
+          <div>
+            <h2 className="font-semibold">
+              {templateMetadata?.name || "Template mới"}
+            </h2>
+            <p className="text-sm text-gray-500">
+              {templateMetadata
+                ? `${templateMetadata.subject} - Lớp ${templateMetadata.grade} - ${templateMetadata.durationMinutes} phút`
+                : "Chưa có thông tin template"}
+            </p>
           </div>
-        )}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenPreviewModal}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Xem trước
+            </Button>
+            <Button size="sm" onClick={handleSaveTemplate} disabled={isSaving}>
+              <Save className="h-4 w-4 mr-1" />
+              {isSaving
+                ? isEditMode
+                  ? "Đang cập nhật..."
+                  : "Đang tạo..."
+                : isEditMode
+                ? "Cập nhật template"
+                : "Tạo template"}
+            </Button>
+          </div>
+        </div>
 
         <div className="flex flex-1 overflow-hidden">
           {/* Assets Panel - Left */}

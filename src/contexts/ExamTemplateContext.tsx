@@ -4,9 +4,7 @@ import React, { createContext, useContext, useState } from "react";
 import { ExamTemplateMetadata } from "@/components/organisms/exam-template-metadata-form";
 
 interface ExamTemplateContextType {
-  isTemplateMode: boolean;
   templateMetadata: ExamTemplateMetadata | null;
-  setTemplateMode: (isTemplate: boolean) => void;
   setTemplateMetadata: (metadata: ExamTemplateMetadata) => void;
   convertToTemplateFormat: () => any;
 }
@@ -32,7 +30,6 @@ interface ExamTemplateProviderProps {
 export const ExamTemplateProvider: React.FC<ExamTemplateProviderProps> = ({
   children,
 }) => {
-  const [isTemplateMode, setIsTemplateMode] = useState<boolean>(false);
   const [templateMetadata, setTemplateMetadata] =
     useState<ExamTemplateMetadata | null>(null);
 
@@ -57,19 +54,8 @@ export const ExamTemplateProvider: React.FC<ExamTemplateProviderProps> = ({
     };
   };
 
-  const setTemplateMode = (isTemplate: boolean) => {
-    setIsTemplateMode(isTemplate);
-    if (!isTemplate) {
-      setTemplateMetadata(null);
-    }
-    // Don't auto-set default metadata here to avoid infinite loops
-    // Default metadata will be set in the form component instead
-  };
-
   const value: ExamTemplateContextType = {
-    isTemplateMode,
     templateMetadata,
-    setTemplateMode,
     setTemplateMetadata,
     convertToTemplateFormat,
   };

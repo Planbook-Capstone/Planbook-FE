@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use, useRef } from "react";
+import React, { useEffect, use, useRef } from "react";
 import { useExamTemplateByIdService } from "@/services/examTemplateServices";
 import { TemplateCanvaLayoutContent } from "@/components/templates/template-canva-layout";
 import { ExamProvider, useExamContext } from "@/contexts/ExamContext";
@@ -25,7 +25,7 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
   } = useExamTemplateByIdService(templateId);
 
   const { setExamFromApiResponse } = useExamContext();
-  const { setTemplateMode, setTemplateMetadata } = useExamTemplateContext();
+  const { setTemplateMetadata } = useExamTemplateContext();
   const hasInitialized = useRef(false);
 
   useEffect(() => {
@@ -33,9 +33,6 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
       const template = templateData.data;
       console.log("=== TEMPLATE DATA RECEIVED ===");
       console.log("Template:", template);
-
-      // Set template mode
-      setTemplateMode(true);
 
       // Set template metadata
       setTemplateMetadata({
@@ -56,9 +53,9 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
       const transformedParts = [];
 
       // Find and transform parts by their names
-      const part1 = parts.find(p => p.part === "PHẦN I");
-      const part2 = parts.find(p => p.part === "PHẦN II");
-      const part3 = parts.find(p => p.part === "PHẦN III");
+      const part1 = parts.find((p) => p.part === "PHẦN I");
+      const part2 = parts.find((p) => p.part === "PHẦN II");
+      const part3 = parts.find((p) => p.part === "PHẦN III");
 
       // Transform PHẦN I (Multiple Choice) - keep as is
       if (part1) {
@@ -69,22 +66,35 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
       if (part2) {
         const transformedPart2 = {
           ...part2,
-          questions: part2.questions?.map((q: any) => {
-            if (q.subQuestions) {
-              // Convert subQuestions to statements format
-              const statements = {
-                a: { text: q.subQuestions[0]?.statement || "", answer: q.subQuestions[0]?.answer || false },
-                b: { text: q.subQuestions[1]?.statement || "", answer: q.subQuestions[1]?.answer || false },
-                c: { text: q.subQuestions[2]?.statement || "", answer: q.subQuestions[2]?.answer || false },
-                d: { text: q.subQuestions[3]?.statement || "", answer: q.subQuestions[3]?.answer || false },
-              };
-              return {
-                ...q,
-                statements
-              };
-            }
-            return q;
-          }) || []
+          questions:
+            part2.questions?.map((q: any) => {
+              if (q.subQuestions) {
+                // Convert subQuestions to statements format
+                const statements = {
+                  a: {
+                    text: q.subQuestions[0]?.statement || "",
+                    answer: q.subQuestions[0]?.answer || false,
+                  },
+                  b: {
+                    text: q.subQuestions[1]?.statement || "",
+                    answer: q.subQuestions[1]?.answer || false,
+                  },
+                  c: {
+                    text: q.subQuestions[2]?.statement || "",
+                    answer: q.subQuestions[2]?.answer || false,
+                  },
+                  d: {
+                    text: q.subQuestions[3]?.statement || "",
+                    answer: q.subQuestions[3]?.answer || false,
+                  },
+                };
+                return {
+                  ...q,
+                  statements,
+                };
+              }
+              return q;
+            }) || [],
         };
         transformedParts.push(transformedPart2);
       }
@@ -95,8 +105,12 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
       }
 
       // Add any remaining parts
-      parts.forEach(part => {
-        if (part.part !== "PHẦN I" && part.part !== "PHẦN II" && part.part !== "PHẦN III") {
+      parts.forEach((part) => {
+        if (
+          part.part !== "PHẦN I" &&
+          part.part !== "PHẦN II" &&
+          part.part !== "PHẦN III"
+        ) {
           transformedParts.push(part);
         }
       });
@@ -110,9 +124,9 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
             school: template.contentJson?.examInfo?.header || "",
             exam_code: template.contentJson?.examInfo?.examCode || "",
             atomic_masses: null,
-            parts: transformedParts
-          }
-        }
+            parts: transformedParts,
+          },
+        },
       };
 
       console.log("=== LOADING TEMPLATE DATA ===");
@@ -167,4 +181,4 @@ export default function ExamTemplateDetails({
       </ExamTemplateProvider>
     </ExamProvider>
   );
-
+}

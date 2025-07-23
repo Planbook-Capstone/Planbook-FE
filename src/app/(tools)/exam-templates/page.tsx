@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useExamTemplatesService } from "@/services/examTemplateServices";
 import { Button } from "@/components/ui/Button";
 import { Plus, Edit, Trash2, Copy, Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import ExamCreationModal from "@/components/organisms/exam-creation-modal";
+import { useExamImportService } from "@/services/examImportServices";
+import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
+import { ExamTemplateProvider } from "@/contexts/ExamTemplateContext";
 
 interface ExamTemplate {
   id: string;
@@ -18,23 +22,32 @@ interface ExamTemplate {
   updatedAt: string;
 }
 
-export default function ExamTemplatesPage() {
+function ExamTemplatesPageContent() {
   const router = useRouter();
-  const { data: templates, isLoading, refetch } = useExamTemplatesService();
+  const { data: templates, isLoading } = useExamTemplatesService();
   const [searchTerm, setSearchTerm] = useState("");
+  const [showCreationModal, setShowCreationModal] = useState(false);
+
+  // Initialize the exam import service
+  const { mutate: importExam, isPending: isImporting } = useExamImportService();
+
+  // Get exam context to store imported data
+  const { setExamFromApiResponse } = useExamContext();
 
   // Filter templates based on search term
-  const filteredTemplates = templates?.data?.filter((template: ExamTemplate) => 
-    template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    template.subject.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredTemplates =
+    templates?.data?.filter(
+      (template: ExamTemplate) =>
+        template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.subject.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
   const handleCreateTemplate = () => {
-    router.push("/exam-creation?mode=template");
+    setShowCreationModal(true);
   };
 
   const handleEditTemplate = (templateId: string) => {
-    router.push(`/exam-creation?mode=template&id=${templateId}`);
+    router.push(`/exam-templates/${templateId}`);
   };
 
   const handleViewTemplate = (templateId: string) => {
@@ -43,12 +56,54 @@ export default function ExamTemplatesPage() {
 
   const handleDuplicateTemplate = (templateId: string) => {
     // Implement duplicate functionality
-    toast.info("Chức năng nhân bản template sẽ được phát triển trong tương lai");
+    toast.info(
+      "Chức năng nhân bản template sẽ được phát triển trong tương lai"
+    );
   };
 
   const handleDeleteTemplate = (templateId: string) => {
     // Implement delete functionality
     toast.info("Chức năng xóa template sẽ được phát triển trong tương lai");
+  };
+
+  const handleFileSubmit = (files: File[]) => {
+    console.log("=== FILE SUBMIT HANDLER ===");
+    console.log("Number of files:", files.length);
+
+    // Create FormData for file upload
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append(`file`, file);
+    });
+
+    // Call the exam import service
+    importExam(formData, {
+      onSuccess: (response) => {
+        console.log("Exam import successful:", response);
+        toast.success("Import đề thi thành công!");
+        
+        // Store imported data in context
+        setExamFromApiResponse(response.data);
+
+        // Close modal and navigate to exam-creation
+        setShowCreationModal(false);
+        router.push("/exam-creation");
+      },
+      onError: (error) => {
+        console.error("Exam import failed:", error);
+        toast.error("Import đề thi thất bại. Vui lòng thử lại!");
+      },
+    });
+  };
+
+  const handleCreateManually = () => {
+    setShowCreationModal(false);
+    // Navigate to exam-creation for manual creation
+    router.push("/exam-creation");
+  };
+
+  const handleModalClose = () => {
+    setShowCreationModal(false);
   };
 
   return (
@@ -139,12 +194,32 @@ export default function ExamTemplatesPage() {
                 <span>{template.totalScore} điểm</span>
               </div>
               <div className="mt-4 pt-2 border-t text-xs text-gray-400">
-                Cập nhật: {new Date(template.updatedAt).toLocaleDateString("vi-VN")}
+                Cập nhật:{" "}
+                {new Date(template.updatedAt).toLocaleDateString("vi-VN")}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Creation Modal */}
+      <ExamCreationModal
+        isOpen={showCreationModal}
+        onClose={handleModalClose}
+        onImportFile={handleFileSubmit}
+        onCreateManually={handleCreateManually}
+        isImporting={isImporting}
+      />
     </div>
+  );
+}
+
+export default function ExamTemplatesPage() {
+  return (
+    <ExamProvider>
+      <ExamTemplateProvider>
+        <ExamTemplatesPageContent />
+      </ExamTemplateProvider>
+    </ExamProvider>
   );
 }
