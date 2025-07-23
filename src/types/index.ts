@@ -58,14 +58,14 @@ export type LessonPlanResponse = {
 };
 
 export type SubscriptionResponse = {
-  id: string | number;
+  id: string;
   name: string;
-  status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL";
-  duration_months: number;
+  tokenAmount: number;
   price: number;
-  currency: "VND" | "USD";
-  created_at: string;
-  updated_at: string;
+  description: string;
+  status: "ACTIVE" | "INACTIVE";
+  createdAt: string;
+  updatedAt: string;
 };
 export type BookTypeResponse = {
   id: bigint;

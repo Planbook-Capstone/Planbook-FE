@@ -5,6 +5,7 @@ const SERVICES = {
   ACADEMIC_RESOURCE: "academic-resource-service",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
+  SUBSCRIPTION: "subscription-service",
 } as const;
 
 const buildEndpoint = (service: string, path: string) =>
@@ -45,6 +46,9 @@ export const API_ENDPOINTS = {
   SUBJECTS: buildEndpoint(SERVICES.MASTER_DATA, "/subjects"),
   SUBJECTS_BY_GRADE: buildEndpoint(SERVICES.MASTER_DATA, "/subjects/by-grade"),
 
+  // Subscriptions
+  SUBSCRIPTIONS: buildEndpoint(SERVICES.SUBSCRIPTION, "/subscription-packages"),
+
   //EXECUTE-TOOL
   EXECUTE_TOOL: "aggregator/api/tool/execute",
 
@@ -62,7 +66,11 @@ export const API_ENDPOINTS = {
     CHIDREN: (nodeId: string) =>
       `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
 
-    ALL_NODES: (lessonPlanId :string) => buildEndpoint(SERVICES.LESSON_PLAN, `/admin/lesson-nodes/${lessonPlanId}/all-nodes`)
+    ALL_NODES: (lessonPlanId: string) =>
+      buildEndpoint(
+        SERVICES.LESSON_PLAN,
+        `/admin/lesson-nodes/${lessonPlanId}/all-nodes`
+      ),
   },
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
   UPLOAD_DOCX_TO_ONLINE: "/lesson/upload-docx-to-online",
