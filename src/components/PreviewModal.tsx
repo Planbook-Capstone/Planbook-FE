@@ -44,6 +44,7 @@ interface PreviewModalProps {
   data: DemoNode[];
   onDownload: () => void;
   lesson: any;
+  mode?: boolean;
 }
 
 export default function PreviewModal({
@@ -52,6 +53,7 @@ export default function PreviewModal({
   data,
   onDownload,
   lesson,
+  mode = true,
 }: PreviewModalProps) {
   if (!isOpen) return null;
   const { mutate } = useUploadDocxToOnlineService();
@@ -476,14 +478,18 @@ export default function PreviewModal({
             Xem trước giáo án
           </h2>
           <div className="flex items-center gap-3">
-            <Button onClick={onDownload}>
-              {DowloadIcon}
-              <span>Tải về</span>
-            </Button>
-            <Button onClick={() => {}} variant={"custom"}>
-              <Share2 />
-              <span>Export docx online</span>
-            </Button>
+            {mode && (
+              <>
+                <Button onClick={onDownload}>
+                  {DowloadIcon}
+                  <span>Tải về</span>
+                </Button>
+                <Button onClick={() => {}} variant={"custom"}>
+                  <Share2 />
+                  <span>Export docx online</span>
+                </Button>
+              </>
+            )}
             <Button onClick={onClose} variant={"outline"}>
               Đóng
             </Button>

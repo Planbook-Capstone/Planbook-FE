@@ -61,6 +61,8 @@ export const API_ENDPOINTS = {
 
     CHIDREN: (nodeId: string) =>
       `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
+
+    ALL_NODES: (lessonPlanId :string) => buildEndpoint(SERVICES.LESSON_PLAN, `/admin/lesson-nodes/${lessonPlanId}/all-nodes`)
   },
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
   UPLOAD_DOCX_TO_ONLINE: "/lesson/upload-docx-to-online",
