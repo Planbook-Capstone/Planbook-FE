@@ -159,6 +159,7 @@ export function TemplateCanvaLayoutContent() {
               }
             : q.options || { A: "", B: "", C: "", D: "" },
           answer: q.answer || ["A", "B", "C", "D"][q.correctAnswer] || "A",
+          illustrationImage: q.illustrationImage, // Include image data
         };
       });
 
@@ -189,6 +190,7 @@ export function TemplateCanvaLayoutContent() {
             c: { text: q.statements.c.text, answer: q.statements.c.answer },
             d: { text: q.statements.d.text, answer: q.statements.d.answer },
           },
+          illustrationImage: q.illustrationImage, // Include image data
         };
       });
 
@@ -213,6 +215,7 @@ export function TemplateCanvaLayoutContent() {
           questionNumber: index + 1, // Reset về 1 cho phần này: 1, 2, 3...
           question: q.question || q.text || "", // Support both question and text fields
           answer: q.answer || "", // Chỉ có question và answer, không có options
+          illustrationImage: q.illustrationImage, // Include image data
         };
       });
 

@@ -223,19 +223,16 @@ export default function ExamPage({ params }: ExamPageProps) {
 
     submitExam(submitData, {
       onSuccess: (response: any) => {
-        console.log("🎉 Submit success response:", response);
         toast.success("Nộp bài thành công!");
         setShowSubmitModal(false);
 
         // Store result data and redirect to success page
         const resultData = response?.data;
-        console.log("📊 Result data to store:", resultData);
 
         if (resultData) {
           const storageKey = `exam_result_${resolvedParams.code}`;
           const dataToStore = JSON.stringify(resultData);
           localStorage.setItem(storageKey, dataToStore);
-          console.log("💾 Stored in localStorage:", storageKey, dataToStore);
         }
 
         // Clear exam progress data from localStorage

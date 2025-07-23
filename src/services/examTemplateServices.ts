@@ -30,6 +30,7 @@ export interface ExamTemplateData {
         question: string;
         options: Record<string, string>;
         answer: string;
+        illustrationImage?: string;
       }[];
     }[];
   };

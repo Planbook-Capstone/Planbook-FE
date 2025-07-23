@@ -36,9 +36,19 @@ export default function QuestionItem({
   // Drop zone for illustration image
   const { isOver, setNodeRef } = useDroppable({
     id: `question-${question.id}-image-drop`,
+    data: {
+      type: "question",
+      id: question.id,
+      questionType: "multiple-choice",
+    },
   });
 
-  console.log('🎯 Question drop zone ID:', `question-${question.id}-image-drop`, 'isOver:', isOver);
+  console.log(
+    "🎯 Question drop zone ID:",
+    `question-${question.id}-image-drop`,
+    "isOver:",
+    isOver
+  );
 
   const handleOptionChange = (optionIndex: number, value: string) => {
     const newOptions = [...normalizedOptions];
@@ -66,17 +76,13 @@ export default function QuestionItem({
     onUpdate({ ...question, illustrationImage: undefined });
   };
 
-  const handleImageDrop = (imagePath: string) => {
-    onUpdate({ ...question, illustrationImage: imagePath });
-  };
-
   const handleEditClick = () => {
     setShowImageDropZone(!showImageDropZone);
   };
 
   const resizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
   };
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -109,7 +115,7 @@ export default function QuestionItem({
               onChange={handleQuestionChange}
               placeholder="Nhập câu hỏi..."
               rows={1}
-              style={{ minHeight: '40px' }}
+              style={{ minHeight: "40px" }}
             />
           </div>
         </div>
@@ -152,25 +158,36 @@ export default function QuestionItem({
         {/* Illustration Image Section */}
         <div className="py-2">
           {question.illustrationImage ? (
-            <div className="relative inline-block">
-              <img
-                src={question.illustrationImage}
-                alt="Hình minh họa"
-                className="max-w-xs max-h-48 rounded-lg border"
-              />
-              <button
-                onClick={handleRemoveImage}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ) : (
-            showImageDropZone && (
+            <div className="space-y-2">
+              <div className="mb-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Hình minh họa
+                </label>
+              </div>
+              <div className="relative inline-block">
+                <img
+                  src={question.illustrationImage}
+                  alt="Hình minh họa"
+                  className="max-w-xs max-h-48 rounded-lg border"
+                  onError={() => {
+                    console.error(
+                      "Failed to load image:",
+                      question.illustrationImage
+                    );
+                  }}
+                />
+                <button
+                  onClick={handleRemoveImage}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+              {/* Drop zone for replacing image */}
               <div
                 ref={setNodeRef}
                 className={`
-                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
+                  border-2 border-dashed rounded-lg p-2 text-center cursor-pointer transition-colors
                   ${
                     isOver
                       ? "border-blue-400 bg-blue-50"
@@ -178,10 +195,35 @@ export default function QuestionItem({
                   }
                 `}
               >
-                <ImageIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-500">
-                  Kéo hình ảnh từ panel bên trái để thêm hình minh họa
+                <p className="text-xs text-gray-500">
+                  Kéo hình ảnh khác để thay thế
                 </p>
+              </div>
+            </div>
+          ) : (
+            showImageDropZone && (
+              <div>
+                <div className="mb-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Hình minh họa
+                  </label>
+                </div>
+                <div
+                  ref={setNodeRef}
+                  className={`
+                    border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
+                    ${
+                      isOver
+                        ? "border-blue-400 bg-blue-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }
+                  `}
+                >
+                  <ImageIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p className="text-sm text-gray-500">
+                    Kéo hình ảnh vào đây để thêm hình minh họa
+                  </p>
+                </div>
               </div>
             )
           )}
@@ -206,6 +248,7 @@ export default function QuestionItem({
         >
           {EditIcon}
         </Button>
+
         <Button
           variant="outline"
           size="icon"

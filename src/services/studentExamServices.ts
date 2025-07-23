@@ -14,6 +14,7 @@ export interface ExamQuestion {
   options?: Record<string, string>; // For multiple choice questions
   answer?: string; // For short answer questions
   statements?: Record<string, { text: string; answer?: boolean }>; // For true/false questions
+  illustrationImage?: string; // URL to illustration image
 }
 
 export interface ExamPart {

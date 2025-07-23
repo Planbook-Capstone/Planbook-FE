@@ -70,38 +70,6 @@ function ExamCreationPageContent() {
     examShortQuestions,
   ]);
 
-  // Log imported data for debugging
-  useEffect(() => {
-    if (
-      examQuestions.length > 0 ||
-      examYesNoQuestions.length > 0 ||
-      examShortQuestions.length > 0
-    ) {
-      console.log("=== IMPORTED EXAM DATA SUMMARY ===");
-      console.log(
-        "📝 PHẦN I - Multiple Choice Questions:",
-        examQuestions.length
-      );
-      console.log("✅ PHẦN II - Yes/No Questions:", examYesNoQuestions.length);
-      console.log(
-        "📋 PHẦN III - Short Answer Questions:",
-        examShortQuestions.length
-      );
-      console.log("📊 Basic Info:", basicExamInfo);
-
-      // Log sample questions for verification
-      if (examQuestions.length > 0) {
-        console.log("📝 Sample Multiple Choice Question:", examQuestions[0]);
-      }
-      if (examYesNoQuestions.length > 0) {
-        console.log("✅ Sample Yes/No Question:", examYesNoQuestions[0]);
-      }
-      if (examShortQuestions.length > 0) {
-        console.log("📋 Sample Short Answer Question:", examShortQuestions[0]);
-      }
-    }
-  }, [examQuestions, examYesNoQuestions, examShortQuestions, basicExamInfo]);
-
   // Show canvas directly
   return (
     <div className="h-screen w-full">

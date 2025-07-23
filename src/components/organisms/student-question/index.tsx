@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,26 @@ export function StudentQuestion({
               </span>{" "}
               {question.question}
             </h3>
+
+            {/* Illustration Image */}
+            {question.illustrationImage && (
+              <div className="my-4 relative">
+                <Image
+                  src={question.illustrationImage}
+                  alt="Hình minh họa câu hỏi"
+                  width={600}
+                  height={400}
+                  className="max-w-full h-auto rounded-lg border shadow-sm"
+                  style={{ maxHeight: "16rem" }}
+                  onError={(e) => {
+                    console.error(
+                      "Failed to load question image:",
+                      question.illustrationImage
+                    );
+                  }}
+                />
+              </div>
+            )}
 
             <div className="space-y-3">
               {Object.entries(question.options).map(([key, value]) => (
@@ -87,6 +108,26 @@ export function StudentQuestion({
               </span>{" "}
               {question.question}
             </h3>
+
+            {/* Illustration Image */}
+            {question.illustrationImage && (
+              <div className="my-4 relative">
+                <Image
+                  src={question.illustrationImage}
+                  alt="Hình minh họa câu hỏi"
+                  width={600}
+                  height={400}
+                  className="max-w-full h-auto rounded-lg border shadow-sm"
+                  style={{ maxHeight: "16rem" }}
+                  onError={(e) => {
+                    console.error(
+                      "Failed to load question image:",
+                      question.illustrationImage
+                    );
+                  }}
+                />
+              </div>
+            )}
 
             <div className="space-y-4">
               {Object.entries(question.statements).map(([key, statement]) => (
@@ -164,6 +205,26 @@ export function StudentQuestion({
               </span>{" "}
               {question.question}
             </h3>
+
+            {/* Illustration Image */}
+            {question.illustrationImage && (
+              <div className="my-4 relative">
+                <Image
+                  src={question.illustrationImage}
+                  alt="Hình minh họa câu hỏi"
+                  width={600}
+                  height={400}
+                  className="max-w-full h-auto rounded-lg border shadow-sm"
+                  style={{ maxHeight: "16rem" }}
+                  onError={(e) => {
+                    console.error(
+                      "Failed to load question image:",
+                      question.illustrationImage
+                    );
+                  }}
+                />
+              </div>
+            )}
 
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700">
