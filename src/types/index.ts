@@ -64,7 +64,8 @@ export type SubscriptionResponse = {
   price: number;
   description: string;
   highlight: boolean;
-  features: string[];
+  features: Record<string, string>;
+  priority: number;
   status: "ACTIVE" | "INACTIVE";
   createdAt: string;
   updatedAt: string;

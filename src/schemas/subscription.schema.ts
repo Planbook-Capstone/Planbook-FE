@@ -38,9 +38,22 @@ export const subscriptionSchema = z.object({
     .default(false),
 
   features: z
-    .array(z.string().min(1, "Tính năng không được để trống"))
-    .min(1, "Phải có ít nhất 1 tính năng")
-    .max(10, "Không được quá 10 tính năng"),
+    .record(z.string().min(1, "Tính năng không được để trống"))
+    .refine((features) => Object.keys(features).length >= 1, {
+      message: "Phải có ít nhất 1 tính năng"
+    })
+    .refine((features) => Object.keys(features).length <= 10, {
+      message: "Không được quá 10 tính năng"
+    }),
+
+  // priority: z
+  //   .number({
+  //     required_error: "Thứ tự ưu tiên không được để trống",
+  //     invalid_type_error: "Thứ tự ưu tiên phải là số",
+  //   })
+  //   .int("Thứ tự ưu tiên phải là số nguyên")
+  //   .min(1, "Thứ tự ưu tiên phải lớn hơn 0")
+  //   .max(999, "Thứ tự ưu tiên không được quá 999"),
 });
 
 // Type inference
@@ -53,7 +66,8 @@ export interface CreateSubscriptionRequest {
   price: number;
   description: string;
   highlight: boolean;
-  features: string[];
+  features: Record<string, string>;
+  priority: number;
 }
 
 // Update subscription request type (for edit functionality)

@@ -8,7 +8,7 @@ import { SubscriptionResponse } from "@/types";
 import { Input } from "@/components/ui/input";
 import CreateSubscriptionModal from "@/components/organisms/create-subscription-modal";
 import EditSubscriptionModal from "@/components/organisms/edit-subscription-modal";
-import { useDeleteSubscriptionService } from "@/services/subscriptionServices";
+import { useUpdateSubscriptionStatus } from "@/services/subscriptionServices";
 import { toast } from "sonner";
 
 function SubscriptionManagementPage() {
@@ -16,7 +16,7 @@ function SubscriptionManagementPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedSubscription, setSelectedSubscription] =
     useState<SubscriptionResponse | null>(null);
-  const { mutate, isPending } = useDeleteSubscriptionService();
+  const { mutate, isPending } = useUpdateSubscriptionStatus();
 
   const handleEditClick = () => {
     if (selected.length === 1) {
@@ -26,17 +26,30 @@ function SubscriptionManagementPage() {
   };
 
   const handleDelete = () => {
+    const newStatus =
+      selected[0]?.original?.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     if (selected.length === 1) {
       setSelectedSubscription(selected[0].original);
-      mutate(String(selected[0].original.id), {
-        onSuccess: () => {
-          toast.success("Xóa gói thành công");
-          setSelected([]);
+      mutate(
+        {
+          id: String(selected[0]?.original?.id),
+          field: "status",
+          queryParams: { newStatus }, // ✅ dùng biến động },
         },
-        onError: (error) => {
-          toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
-        },
-      });
+        {
+          onSuccess: () => {
+            toast.success(
+              newStatus === "INACTIVE"
+                ? "Xóa gói thành công"
+                : "Khôi phục gói thành công"
+            );
+            setSelected([]);
+          },
+          onError: (error) => {
+            toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+          },
+        }
+      );
     }
   };
 
@@ -60,7 +73,9 @@ function SubscriptionManagementPage() {
               onClick={handleDelete}
               disabled={selected.length !== 1 || isPending}
             >
-              Xoá
+              {selected.length === 1 && selected[0]?.original?.status === "ACTIVE"
+                ? "Xoá"
+                : "Khôi phục"}
             </Button>
           </div>
         ) : (

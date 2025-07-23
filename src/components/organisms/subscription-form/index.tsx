@@ -44,26 +44,37 @@ function SubscriptionForm({
       price: 0,
       description: "",
       highlight: false,
-      features: ["Tính năng mới"],
+      features: { "1": "Tính năng mới" },
+      // priority: 1,
     },
     mode: "onSubmit", // Changed from onChange to onSubmit to avoid immediate validation
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "features",
-  });
+  // Convert features object to array for form handling
+  const featuresArray = Object.entries(form.watch("features") || {}).map(([key, value]) => ({ key, value }));
 
   // Reset form when subscription data changes (for edit mode)
   useEffect(() => {
     if (subscription && mode === "edit") {
+      // Convert features array to object if needed (for backward compatibility)
+      let featuresObj: Record<string, string> = {};
+      if (Array.isArray(subscription.features)) {
+        // Convert old array format to new object format
+        subscription.features.forEach((feature, index) => {
+          featuresObj[String(index + 1)] = feature;
+        });
+      } else {
+        featuresObj = subscription.features || {};
+      }
+
       form.reset({
         name: subscription.name || "",
         tokenAmount: subscription.tokenAmount || 100,
         price: subscription.price || 0,
         description: subscription.description || "Basic access",
         highlight: subscription.highlight || false,
-        features: subscription.features?.length > 0 ? subscription.features : ["Tính năng mới"],
+        features: Object.keys(featuresObj).length > 0 ? featuresObj : { "1": "Tính năng mới" },
+        priority: subscription.priority || 1,
       });
     } else if (mode === "create") {
       // Ensure create mode has proper default values
@@ -73,12 +84,21 @@ function SubscriptionForm({
         price: 0,
         description: "",
         highlight: false,
-        features: ["Tính năng mới"],
+        features: { "1": "Tính năng mới" },
+        priority: 1,
       });
     }
   }, [subscription, form, mode]);
 
   function onSubmit(data: SubscriptionFormData) {
+    // Filter out empty features
+    const filteredFeatures: Record<string, string> = {};
+    Object.entries(data.features).forEach(([key, value]) => {
+      if (value.trim() !== "") {
+        filteredFeatures[key] = value.trim();
+      }
+    });
+
     if (mode === "edit" && subscription) {
       // Update existing subscription
       updateMutation.mutate(
@@ -90,7 +110,8 @@ function SubscriptionForm({
             price: data.price,
             description: data.description,
             highlight: data.highlight,
-            features: data.features.filter(feature => feature.trim() !== ""),
+            features: filteredFeatures,
+            // priority: data.priority,
           },
         },
         {
@@ -112,7 +133,8 @@ function SubscriptionForm({
           price: data.price,
           description: data.description,
           highlight: data.highlight,
-          features: data.features.filter(feature => feature.trim() !== ""),
+          features: filteredFeatures,
+          // priority: data.priority,
         },
         {
           onSuccess: () => {
@@ -210,6 +232,26 @@ function SubscriptionForm({
           )}
         />
 
+        {/* <FormField
+          control={form.control}
+          name="priority"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Thứ tự ưu tiên</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Nhập thứ tự ưu tiên (VD: 1)"
+                  {...field}
+                  onChange={(e:any) => field.onChange(Number(e.target.value))}
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        /> */}
+
         <FormField
           control={form.control}
           name="highlight"
@@ -234,48 +276,67 @@ function SubscriptionForm({
 
         <div className="space-y-4">
           <FormLabel>Tính năng</FormLabel>
-          {fields.map((fieldItem, index) => (
-            <FormField
-              key={fieldItem.id}
-              control={form.control}
-              name={`features.${index}`}
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input
-                        placeholder={`Tính năng ${index + 1}`}
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    {fields.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => remove(index)}
-                        disabled={isLoading}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {featuresArray.map((feature) => (
+            <div key={feature.key} className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Key (VD: 1, 2, 3...)"
+                  value={feature.key}
+                  onChange={(e: any) => {
+                    const newFeatures = { ...form.getValues("features") };
+                    delete newFeatures[feature.key];
+                    newFeatures[e.target.value] = feature.value;
+                    form.setValue("features", newFeatures);
+                  }}
+                  disabled={isLoading}
+                  className="w-32"
+                />
+                <Input
+                  placeholder="Tính năng"
+                  value={feature.value}
+                  onChange={(e: any) => {
+                    const newFeatures = { ...form.getValues("features") };
+                    newFeatures[feature.key] = e.target.value;
+                    form.setValue("features", newFeatures);
+                  }}
+                  disabled={isLoading}
+                  className="flex-1"
+                />
+                {featuresArray.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const newFeatures = { ...form.getValues("features") };
+                      delete newFeatures[feature.key];
+                      form.setValue("features", newFeatures);
+                    }}
+                    disabled={isLoading}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           ))}
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => append("Tính năng mới")}
-            disabled={isLoading || fields.length >= 10}
+            onClick={() => {
+              const currentFeatures = form.getValues("features");
+              const nextKey = String(Object.keys(currentFeatures).length + 1);
+              form.setValue("features", {
+                ...currentFeatures,
+                [nextKey]: "Tính năng mới"
+              });
+            }}
+            disabled={isLoading || featuresArray.length >= 10}
             className="w-full"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Thêm tính năng ({fields.length}/10)
+            Thêm tính năng ({featuresArray.length}/10)
           </Button>
         </div>
 
