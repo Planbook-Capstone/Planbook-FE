@@ -49,6 +49,8 @@ export const API_ENDPOINTS = {
   // Subscriptions
   SUBSCRIPTIONS: buildEndpoint(SERVICES.SUBSCRIPTION, "/subscription-packages"),
 
+  //Order
+  ORDERS: buildEndpoint(SERVICES.SUBSCRIPTION, "/orders"),
   //EXECUTE-TOOL
   EXECUTE_TOOL: "aggregator/api/tool/execute",
 
