@@ -23,7 +23,7 @@ function UserButton() {
 
   const handleLogout = () => {
     queryClient.clear();
-    router.push("/login");
+    router.push("/auth");
   };
   const userData = queryClient.getQueryData(["currentUser"]);
 
