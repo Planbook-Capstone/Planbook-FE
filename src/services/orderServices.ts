@@ -4,6 +4,7 @@ import {
   updateMutationHook,
   patchMutationHook,
   createSearchQueryHook,
+  createQueryWithPathParamHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
@@ -33,9 +34,13 @@ export const useUpdateOrderStatus = patchMutationHook(
   API_ENDPOINTS.ORDERS
 );
 
-export const useOrderDetailService = (orderId: string) => {
-  return createQueryHook(
-    `order-detail-${orderId}`,
-    `${API_ENDPOINTS.ORDERS}/${orderId}`
-  )();
-};
+export const useOrderDetailService = createQueryWithPathParamHook(
+  "order-detail",
+  API_ENDPOINTS.ORDERS
+);
+// export const useOrderDetailService = (orderId: string) => {
+//   return createQueryHook(
+//     `order-detail-${orderId}`,
+//     `${API_ENDPOINTS.ORDERS}/${orderId}`
+//   )();
+// };
