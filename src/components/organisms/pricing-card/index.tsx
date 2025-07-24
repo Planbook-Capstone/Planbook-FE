@@ -7,7 +7,7 @@ interface PricingCardProps {
   title?: string;
   description?: string;
   price?: number;
-  feature?: string[];
+  features?: string[];
   highlight?: boolean;
   tokenAmount?: number;
 }
@@ -17,17 +17,10 @@ const PricingCard = ({
   title,
   description,
   price,
-  feature,
+  features,
   highlight,
   tokenAmount,
 }: PricingCardProps) => {
-  const features = [
-    "Tạo giáo án tự động bằng AI",
-    "Tạo đề kiểm tra thông minh",
-    "Phân tích kết quả học tập học sinh",
-    "Tạo slide bài giảng từ giáo án",
-    "Chấm bài & nhận xét tự động",
-  ];
   return (
     <div
       className={`flex flex-col gap-3 px-9 py-12 rounded-3xl  ${
@@ -54,16 +47,18 @@ const PricingCard = ({
             </span>
             <span>Tặng ngay {tokenAmount} token AI</span>
           </li>
-          {features?.map((feature, index) => (
-            <li key={index} className="flex items-center gap-2">
-              <span
-                className={`${highlight ? "text-white" : "text-black"} mt-1`}
-              >
-                •
-              </span>
-              <span>{feature}</span>
-            </li>
-          ))}
+          {Object.entries(features)
+            .sort((a, b) => Number(a[0]) - Number(b[0])) // sort theo key số
+            .map(([key, f]) => (
+              <li key={key} className="flex items-center gap-2">
+                <span
+                  className={`${highlight ? "text-white" : "text-black"} mt-1`}
+                >
+                  •
+                </span>
+                <span>{f}</span>
+              </li>
+            ))}
         </ul>
       </div>
       {/* <div className="flex justify-start items-start gap-1.5 py-5"> */}
