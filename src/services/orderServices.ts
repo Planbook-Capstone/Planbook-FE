@@ -3,6 +3,7 @@ import {
   createQueryHook,
   updateMutationHook,
   patchMutationHook,
+  createSearchQueryHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
@@ -12,6 +13,15 @@ export const useCreateOrderService = createMutationHook(
   "order",
   API_ENDPOINTS.ORDERS
 );
+
+export const useOrderByUserIdService = (userId?: string) => {
+  const searchParams = userId ? { userId } : undefined;
+
+  return createSearchQueryHook(
+    "orderByUserId",
+    API_ENDPOINTS.ORDERS
+  )(searchParams);
+};
 
 export const useUpdateOrderService = updateMutationHook(
   "order",

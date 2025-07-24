@@ -88,6 +88,16 @@ export type TagResponse = {
   description: string | null;
 };
 
+export type OrderHistoryResponse = {
+  id: string;
+  orderId: string;
+  fromStatus: string | null;
+  toStatus: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 // // User types
 // export interface User {
 //   id: string;
