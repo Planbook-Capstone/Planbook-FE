@@ -1,5 +1,5 @@
 "use client";
-import MainLayout from "@/components/layout/MainLayout";
+
 import PricingCard from "@/components/organisms/pricing-card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -23,18 +23,20 @@ function PricingPage() {
               <Skeleton className="h-[550px] w-full rounded-xl bg-neutral-300" />
             </>
           ) : (
-            subscriptions?.data?.map((subscription: any) => (
-              <PricingCard
-                key={subscription.id}
-                title={subscription.name}
-                description={subscription.description}
-                price={subscription.price}
-                highlight={subscription.highlight}
-                tokenAmount={subscription.tokenAmount}
-                id={subscription.id}
-                features={subscription.features}
-              />
-            ))
+            subscriptions?.data
+              ?.sort((a: any, b: any) => a.priority - b.priority)
+              ?.map((subscription: any) => (
+                <PricingCard
+                  key={subscription.id}
+                  title={subscription.name}
+                  description={subscription.description}
+                  price={subscription.price}
+                  highlight={subscription.highlight}
+                  tokenAmount={subscription.tokenAmount}
+                  id={subscription.id}
+                  features={subscription.features}
+                />
+              ))
           )}
         </div>
       </div>

@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/Button";
 import { CheckIcon } from "@/constants/icon";
+import { useCreateOrderService } from "@/services/orderServices";
 import { hi } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface PricingCardProps {
   id?: string;
@@ -21,6 +23,23 @@ const PricingCard = ({
   highlight,
   tokenAmount,
 }: PricingCardProps) => {
+  const { mutate } = useCreateOrderService();
+  const handleOrder = () => {
+    mutate(
+      {
+        packageId: id,
+      },
+      {
+        onSuccess: (res) => {
+          toast.success("Tạo đơn thành công");
+          console.log(res, "tran");
+        },
+        onError: () => {
+          toast.error("Tạo đơn thất bại");
+        },
+      }
+    );
+  };
   return (
     <div
       className={`flex flex-col gap-3 px-9 py-12 rounded-3xl  ${
@@ -79,6 +98,7 @@ const PricingCard = ({
               : "bg-black text-white"
           }
         `}
+        onClick={handleOrder}
       >
         Trải nghiệm ngay
       </Button>
