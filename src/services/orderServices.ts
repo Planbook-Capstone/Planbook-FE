@@ -32,3 +32,10 @@ export const useUpdateOrderStatus = patchMutationHook(
   "order",
   API_ENDPOINTS.ORDERS
 );
+
+export const useOrderDetailService = (orderId: string) => {
+  return createQueryHook(
+    `order-detail-${orderId}`,
+    `${API_ENDPOINTS.ORDERS}/${orderId}`
+  )();
+};
