@@ -55,6 +55,7 @@ export function TemplateCanvaLayoutContent() {
     examQuestions,
     examYesNoQuestions,
     examShortQuestions,
+    basicExamInfo,
     clearExamData,
     hasUnsavedChanges,
     markAsSaved,
@@ -277,17 +278,28 @@ export function TemplateCanvaLayoutContent() {
     }
 
     // Create template data
+    console.log("💾 Creating template with basicExamInfo:", basicExamInfo);
+    console.log(
+      "💾 Creating template with templateMetadata:",
+      templateMetadata
+    );
+
     const templateData = {
       name: templateMetadata.name,
-      subject: templateMetadata.subject,
-      grade: templateMetadata.grade,
-      durationMinutes: templateMetadata.durationMinutes,
+      subject: basicExamInfo.subject, // Use from basicExamInfo instead of templateMetadata
+      grade: basicExamInfo.grade, // Use from basicExamInfo instead of templateMetadata
+      durationMinutes: basicExamInfo.duration_minutes, // Use from basicExamInfo instead of templateMetadata
+      school: basicExamInfo.school, // Add school info
+      examCode: basicExamInfo.exam_code, // Add exam code
+      atomicMasses: basicExamInfo.atomic_masses, // Add atomic masses
       totalScore: calculatedTotalScore, // Tính tự động dựa trên số câu hỏi
       scoringConfig: scoringConfig, // Thêm cấu hình chấm điểm
       contentJson: {
         parts,
       },
     };
+
+    console.log("💾 Final templateData being sent to API:", templateData);
 
     // Call appropriate API based on mode
     if (isEditMode && templateId) {

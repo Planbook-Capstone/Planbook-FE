@@ -342,14 +342,19 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     }
 
     // Update basic exam info
+    console.log("🔄 Mapping API data to basicExamInfo:", examData);
+
     const newBasicInfo: BasicExamInfo = {
       subject: examData.subject || "Hóa học",
       grade: examData.grade || 10,
-      duration_minutes: examData.duration_minutes || 45,
+      duration_minutes:
+        examData.durationMinutes || examData.duration_minutes || 45, // Map from API field name
       school: examData.school || "",
-      exam_code: examData.exam_code || "1234",
-      atomic_masses: examData.atomic_masses || null,
+      exam_code: examData.examCode || examData.exam_code || "1234", // Map from API field name
+      atomic_masses: examData.atomicMasses || examData.atomic_masses || null, // Map from API field name
     };
+
+    console.log("🔄 New basicExamInfo:", newBasicInfo);
     setBasicExamInfo(newBasicInfo);
 
     // Process parts and questions

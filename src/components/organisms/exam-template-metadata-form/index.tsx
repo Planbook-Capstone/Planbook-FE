@@ -23,6 +23,9 @@ export interface ExamTemplateMetadata {
   totalScore: number;
   description?: string;
   scoringConfig?: ScoringConfig;
+  school?: string;
+  examCode?: string;
+  atomicMasses?: string;
 }
 
 interface ExamTemplateMetadataFormProps {

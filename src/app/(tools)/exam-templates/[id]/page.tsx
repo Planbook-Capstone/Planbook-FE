@@ -41,6 +41,10 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
         grade: template.grade,
         durationMinutes: template.durationMinutes,
         totalScore: template.totalScore,
+        school: template.school,
+        examCode: template.examCode,
+        atomicMasses: template.atomicMasses,
+        scoringConfig: template.scoringConfig,
       });
 
       // Mark as initialized
@@ -119,10 +123,10 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
           data: {
             subject: template.subject,
             grade: template.grade,
-            duration_minutes: template.durationMinutes,
-            school: template.contentJson?.examInfo?.header || "",
-            exam_code: template.contentJson?.examInfo?.examCode || "",
-            atomic_masses: null,
+            durationMinutes: template.durationMinutes, // Use API field name
+            school: template.school || "",
+            examCode: template.examCode || "",
+            atomicMasses: template.atomicMasses || null,
             parts: transformedParts,
           },
         },
