@@ -205,9 +205,29 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
   }, [hasUnsavedChanges]);
 
   const updateQuestion = (question: Question) => {
-    setExamQuestions((prev) =>
-      prev.map((q) => (q.id === question.id ? question : q))
-    );
+    console.log("🔄 ExamContext - updateQuestion called with:", question);
+    setExamQuestions((prev) => {
+      const updated = prev.map((q) => {
+        // Use string comparison to handle both string and number IDs
+        if (String(q.id) === String(question.id)) {
+          console.log(
+            "🔄 ExamContext - Updating question:",
+            q.id,
+            "from correctAnswer:",
+            q.correctAnswer,
+            "to:",
+            question.correctAnswer
+          );
+          return question;
+        }
+        return q;
+      });
+      console.log(
+        "🔄 ExamContext - New questions array:",
+        updated.map((q) => ({ id: q.id, correctAnswer: q.correctAnswer }))
+      );
+      return updated;
+    });
     setHasUnsavedChanges(true);
   };
 

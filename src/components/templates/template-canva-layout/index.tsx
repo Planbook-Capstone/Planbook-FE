@@ -152,6 +152,15 @@ export function TemplateCanvaLayoutContent() {
 
     // Process multiple choice questions
     if (examQuestions.length > 0) {
+      console.log(
+        "💾 Save Template - Current examQuestions:",
+        examQuestions.map((q) => ({
+          id: q.id,
+          correctAnswer: q.correctAnswer,
+          answer: q.answer,
+        }))
+      );
+
       const part1Questions = examQuestions.map((q, index) => {
         // Preserve original ID if it exists, otherwise create new UUID
         const questionId =
@@ -159,7 +168,7 @@ export function TemplateCanvaLayoutContent() {
             ? q.id // Keep original format like "0-0", "0-1", etc.
             : q.id || uuidv4(); // Use existing ID or create new UUID
 
-        return {
+        const convertedQuestion = {
           id: questionId,
           questionNumber: index + 1, // Reset về 1 cho mỗi phần: 1, 2, 3...
           question: q.question,
@@ -171,9 +180,14 @@ export function TemplateCanvaLayoutContent() {
                 D: q.options[3] || "",
               }
             : q.options || { A: "", B: "", C: "", D: "" },
-          answer: q.answer || ["A", "B", "C", "D"][q.correctAnswer] || "A",
+          answer: ["A", "B", "C", "D"][q.correctAnswer] || "A", // Always use current correctAnswer
           illustrationImage: q.illustrationImage, // Include image data
         };
+
+        console.log(
+          `💾 Question ${q.id}: correctAnswer=${q.correctAnswer} → answer=${convertedQuestion.answer}`
+        );
+        return convertedQuestion;
       });
 
       parts.push({

@@ -57,8 +57,16 @@ export default function QuestionItem({
   };
 
   const handleAnswerSelect = (optionIndex: number) => {
+    console.log(
+      "📝 QuestionItem - Answer selected for question:",
+      question.id,
+      "option:",
+      optionIndex
+    );
     setSelectedAnswer(optionIndex);
-    onUpdate({ ...question, correctAnswer: optionIndex });
+    const updatedQuestion = { ...question, correctAnswer: optionIndex };
+    console.log("📝 QuestionItem - Calling onUpdate with:", updatedQuestion);
+    onUpdate(updatedQuestion);
   };
 
   const handleCopy = async () => {
@@ -97,6 +105,17 @@ export default function QuestionItem({
       resizeTextarea(textareaRef.current);
     }
   }, [question?.question]);
+
+  // Sync selectedAnswer when correctAnswer changes from external source
+  useEffect(() => {
+    console.log(
+      "📝 QuestionItem - Syncing selectedAnswer for question:",
+      question.id,
+      "correctAnswer:",
+      question.correctAnswer
+    );
+    setSelectedAnswer(question.correctAnswer);
+  }, [question.correctAnswer, question.id]);
 
   return (
     <div className="flex space-y-2 space-x-1 w-full pb-5">

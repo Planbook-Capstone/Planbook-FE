@@ -137,16 +137,32 @@ export default function GradingPanel() {
     questionId: string,
     newAnswer: number
   ) => {
+    console.log(
+      "🔍 Grading Panel - Changing answer for question:",
+      questionId,
+      "to:",
+      newAnswer
+    );
+    console.log(
+      "🔍 Available questions:",
+      examQuestions.map((q) => ({ id: q.id, correctAnswer: q.correctAnswer }))
+    );
+
     const question = examQuestions.find(
       (q) => String(q.id) === String(questionId) || q.id === questionId
     );
+
+    console.log("🔍 Found question:", question);
 
     if (question) {
       const updatedQuestion = {
         ...question,
         correctAnswer: newAnswer,
       };
+      console.log("🔍 Updating question with:", updatedQuestion);
       updateQuestion(updatedQuestion);
+    } else {
+      console.error("❌ Question not found with ID:", questionId);
     }
   };
 
