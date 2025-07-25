@@ -27,8 +27,9 @@ const LoginPage = () => {
       onSuccess: (data) => {
         toast.success("Đăng nhập thành công");
 
-        // Save to Zustand store
-        setUser(data?.data?.data);
+        // Save to Zustand store (exclude wallet field)
+        const { wallet, ...userDataWithoutWallet } = data?.data?.data || {};
+        setUser(userDataWithoutWallet);
 
         // Keep localStorage for backward compatibility
         localStorage.setItem("token", data?.data?.data?.token);
