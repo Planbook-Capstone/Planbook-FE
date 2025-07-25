@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { ColumnDef } from "@tanstack/react-table";
+
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,19 +11,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DataTable } from "@/components/organisms/data-table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
-import { User, mockUsers, roleLabels } from "@/data/users";
-import { Plus, Eye, UserX, UserCheck, Search } from "lucide-react";
+import { User, mockUsers } from "@/data/users";
+import { Plus, Search } from "lucide-react";
 import CreateUserModal from "@/components/organisms/create-user-modal";
-import { roleOptions } from "@/schemas";
+import { roleOptions, type CreateUserFormData } from "@/schemas";
 import UserTable from "@/components/organisms/user-table";
+import {
+  useAllUsersService,
+  useCreateUserService,
+} from "@/services/userService";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -43,6 +41,12 @@ export default function StaffUsersManagementPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const { data: allUsers } = useAllUsersService();
+
+  console.log(allUsers?.data?.content, "all");
+
+  // API hooks
+  const createUserMutation = useCreateUserService();
 
   // Filter and search logic
   const filteredUsers = useMemo(() => {
@@ -62,7 +66,18 @@ export default function StaffUsersManagementPage() {
   }, [users, searchValue, filterValue]);
 
   // Handlers
-  const handleCreateUser = () => {};
+  const handleCreateUser = async (data: CreateUserFormData) => {
+    createUserMutation.mutate(data, {
+      onSuccess: (response) => {
+        setIsCreateModalOpen(false);
+        toast.success("Tạo người dùng thành công!");
+      },
+      onError: (error) => {
+        console.error("Error creating user:", error);
+        toast.error("Có lỗi xảy ra khi tạo người dùng!");
+      },
+    });
+  };
 
   const handleViewUser = (user: User) => {
     setSelectedUser(user);
@@ -128,85 +143,13 @@ export default function StaffUsersManagementPage() {
       {/* Main Content */}
       <div className="mx-auto px-0 py-2">
         {/* Users Table */}
-        <UserTable users={filteredUsers} />
+        <UserTable users={allUsers?.data?.content || []} />
       </div>
       <CreateUserModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateUser}
       />
-
-      {/* View User Modal */}
-      {/* <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-calsans">
-              Chi tiết người dùng
-            </DialogTitle>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Họ và tên
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedUser.fullName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Email
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedUser.email}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Username
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {selectedUser.username}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Vai trò
-                  </label>
-                  <p className="font-questrial text-gray-900">
-                    {roleLabels[selectedUser.role]}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Trạng thái
-                  </label>
-                  <p
-                    className={`font-questrial ${
-                      selectedUser.isDisabled
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {selectedUser.isDisabled ? "Đã vô hiệu hóa" : "Hoạt động"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsViewModalOpen(false)}
-                >
-                  Đóng
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog> */}
     </div>
   );
 }
