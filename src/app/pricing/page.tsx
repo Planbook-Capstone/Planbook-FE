@@ -2,11 +2,38 @@
 
 import PricingCard from "@/components/organisms/pricing-card";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import { useSubscriptionsService } from "@/services/subscriptionServices";
+import { useCreateOrderService } from "@/services/orderServices";
+import { toast } from "sonner";
+import { redirect, useRouter } from "next/navigation";
 
 function PricingPage() {
   const { data: subscriptions, isLoading } = useSubscriptionsService();
+  const { mutate } = useCreateOrderService();
+  const router = useRouter();
+
+  const handleOrder = (packageId: string) => {
+    mutate(
+      {
+        packageId,
+      },
+      {
+        onSuccess: (res) => {
+          toast.success("Tạo đơn thành công");
+          console.log(res?.data?.data, "ngoc");
+
+          // Redirect to payment page with order data
+          if (res?.data?.data?.id) {
+            // router.push(`/payment/${res?.data?.data?.id}`);
+            router.push(`${res?.data?.data?.checkoutUrl}`);
+          }
+        },
+        onError: (response) => {
+          toast.error(`${response?.response?.data}`);
+        },
+      }
+    );
+  };
 
   return (
     <div className="flex-1 justify-center items-center h-screen p-10">
@@ -35,6 +62,7 @@ function PricingPage() {
                   tokenAmount={subscription.tokenAmount}
                   id={subscription.id}
                   features={subscription.features}
+                  onOrder={handleOrder}
                 />
               ))
           )}

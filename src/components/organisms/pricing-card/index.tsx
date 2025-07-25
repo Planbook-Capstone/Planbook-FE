@@ -1,8 +1,5 @@
+"use client";
 import { Button } from "@/components/ui/Button";
-import { CheckIcon } from "@/constants/icon";
-import { useCreateOrderService } from "@/services/orderServices";
-import { hi } from "date-fns/locale";
-import { toast } from "sonner";
 
 interface PricingCardProps {
   id?: string;
@@ -12,6 +9,7 @@ interface PricingCardProps {
   features?: string[];
   highlight?: boolean;
   tokenAmount?: number;
+  onOrder?: (packageId: string) => void;
 }
 
 const PricingCard = ({
@@ -22,23 +20,12 @@ const PricingCard = ({
   features,
   highlight,
   tokenAmount,
+  onOrder,
 }: PricingCardProps) => {
-  const { mutate } = useCreateOrderService();
   const handleOrder = () => {
-    mutate(
-      {
-        packageId: id,
-      },
-      {
-        onSuccess: (res) => {
-          toast.success("Tạo đơn thành công");
-          console.log(res, "tran");
-        },
-        onError: () => {
-          toast.error("Tạo đơn thất bại");
-        },
-      }
-    );
+    if (onOrder && id) {
+      onOrder(id);
+    }
   };
   return (
     <div
@@ -66,18 +53,21 @@ const PricingCard = ({
             </span>
             <span>Tặng ngay {tokenAmount} token AI</span>
           </li>
-          {Object.entries(features)
-            .sort((a, b) => Number(a[0]) - Number(b[0])) // sort theo key số
-            .map(([key, f]) => (
-              <li key={key} className="flex items-center gap-2">
-                <span
-                  className={`${highlight ? "text-white" : "text-black"} mt-1`}
-                >
-                  •
-                </span>
-                <span>{f}</span>
-              </li>
-            ))}
+          {features &&
+            Object.entries(features)
+              .sort((a, b) => Number(a[0]) - Number(b[0])) // sort theo key số
+              .map(([key, f]) => (
+                <li key={key} className="flex items-center gap-2">
+                  <span
+                    className={`${
+                      highlight ? "text-white" : "text-black"
+                    } mt-1`}
+                  >
+                    •
+                  </span>
+                  <span>{f}</span>
+                </li>
+              ))}
         </ul>
       </div>
       {/* <div className="flex justify-start items-start gap-1.5 py-5"> */}
