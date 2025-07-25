@@ -12,14 +12,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FormField } from "@/components/ui/FormField";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  createUserSchema,
+  roleOptions,
+  type CreateUserFormData,
+} from "@/schemas/user.schema";
 
 interface CreateUserModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: CreateUserFormData) => void;
 }
 
 function CreateUserModal({
@@ -27,115 +41,142 @@ function CreateUserModal({
   onClose,
   onSubmit = () => {},
 }: CreateUserModalProps) {
-  const handleSubmit = (data: any) => {
+  const form = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      username: "",
+      password: "",
+      role: undefined,
+    },
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+  });
+
+  const handleSubmit = (data: CreateUserFormData) => {
     console.log("Modal received data:", data);
     onSubmit?.(data);
     onClose();
+    form.reset();
   };
+
+  const handleClose = () => {
+    form.reset();
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="font-calsans">Tạo người dùng mới</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              label="Họ và tên"
-              htmlFor="fullName"
-              error={formErrors.fullName}
-            >
-              <Input
-                id="fullName"
-                value={formData.fullName}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    fullName: e.target.value,
-                  }))
-                }
-                placeholder="Nhập họ và tên"
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Họ và tên</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nhập họ và tên" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </FormField>
 
-            <FormField label="Email" htmlFor="email" error={formErrors.email}>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, email: e.target.value }))
-                }
-                placeholder="Nhập địa chỉ email"
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Nhập địa chỉ email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </FormField>
 
-            <FormField
-              label="Username"
-              htmlFor="username"
-              error={formErrors.username}
-            >
-              <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    username: e.target.value,
-                  }))
-                }
-                placeholder="Nhập username"
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nhập username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </FormField>
 
-            <FormField
-              label="Mật khẩu"
-              htmlFor="password"
-              error={formErrors.password}
-            >
-              <Input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    password: e.target.value,
-                  }))
-                }
-                placeholder="Nhập mật khẩu"
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mật khẩu</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Nhập mật khẩu"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </FormField>
 
-            <FormField label="Vai trò" htmlFor="role" error={formErrors.role}>
-              <Select
-                value={formData.role}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, role: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn vai trò" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roleOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vai trò</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn vai trò" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {roleOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
-            <Button variant="outline" onClick={onClose}>
-              Hủy
-            </Button>
-            <Button onClick={handleSubmit}>Tạo mới</Button>
-          </div>
-        </div>
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Hủy
+              </Button>
+              <Button type="submit">Tạo mới</Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
