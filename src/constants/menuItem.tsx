@@ -36,6 +36,13 @@ export const adminItems = [
     active: "/icons/home-active.svg",
   },
   {
+    label: "Người dùng",
+    key: "/users-management",
+    icon: <HomeOutlined />,
+    image: "/icons/user.svg",
+    active: "/icons/user-active.svg",
+  },
+  {
     label: "Gói đăng ký",
     key: "subcription",
     icon: <HomeOutlined />,
