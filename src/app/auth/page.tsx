@@ -3,7 +3,7 @@ import { Button, Divider, Form, Input } from "antd";
 import { ArrowRight } from "lucide-react";
 import React from "react";
 import Image from "next/image";
-import { useUserServices } from "@/services/userService";
+import { useRegisterService, useUserServices } from "@/services/userService";
 import { toast } from "sonner";
 import { supabase } from "@/config/supabaseClient";
 import { useRouter } from "next/navigation";
@@ -13,6 +13,7 @@ import { useAppStore } from "@/store";
 
 const LoginPage = () => {
   const { mutate } = useUserServices();
+  const { mutate: register } = useRegisterService();
   const [form] = Form.useForm();
   const [registerForm] = Form.useForm();
   const [isRegister, setIsRegister] = React.useState(false);
@@ -54,12 +55,25 @@ const LoginPage = () => {
   };
 
   const onRegisterFinish = (values: any) => {
-    console.log("Register values:", values);
-    // TODO: Implement register API call
-    toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-    setIsRegister(false);
-    setShowRegisterOptions(false);
-    registerForm.resetFields();
+    const payload = {
+      fullName: values.fullName,
+      email: values.email,
+      username: values.username,
+      password: values.password,
+    };
+
+    register(payload, {
+      onSuccess: (data) => {
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+
+        setIsRegister(false);
+        setShowRegisterOptions(false);
+        registerForm.resetFields();
+      },
+      onError: () => {
+        toast.error("Đăng ký thất bại.Vui lòng kiểm tra kĩ thông tin đăng ký");
+      },
+    });
   };
 
   const handleShowRegisterOptions = () => {
