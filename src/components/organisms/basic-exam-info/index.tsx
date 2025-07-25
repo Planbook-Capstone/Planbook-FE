@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 export interface BasicExamInfo {
+  template_name?: string;
   subject: string;
   grade: number;
   duration_minutes: number;
@@ -73,6 +74,19 @@ export default function BasicExamInfoComponent({
 
   return (
     <div className="space-y-3 font-questrial">
+      {/* Template Name - Full width */}
+      <div className="space-y-2">
+        <Label htmlFor="template_name">Tên template</Label>
+        <Input
+          id="template_name"
+          value={examInfo.template_name || ""}
+          onChange={(e: any) =>
+            handleInputChange("template_name", e.target.value)
+          }
+          placeholder="Ví dụ: Template Hóa học - Lớp 10"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 ">
         {/* Subject */}
         <div className="space-y-2">

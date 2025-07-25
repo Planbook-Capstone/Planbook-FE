@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -60,10 +60,23 @@ export function TemplateCanvaLayoutContent() {
     hasUnsavedChanges,
     markAsSaved,
   } = useExamContext();
-  const { templateMetadata } = useExamTemplateContext();
+  const { templateMetadata, setTemplateMetadata } = useExamTemplateContext();
 
   const isEditMode = pathname.includes("/exam-templates/");
   const templateId = isEditMode ? pathname.split("/").pop() : null;
+
+  // Sync templateMetadata with basicExamInfo changes
+  useEffect(() => {
+    if (templateMetadata && basicExamInfo.template_name) {
+      // Update templateMetadata name when basicExamInfo.template_name changes
+      if (templateMetadata.name !== basicExamInfo.template_name) {
+        setTemplateMetadata({
+          ...templateMetadata,
+          name: basicExamInfo.template_name,
+        });
+      }
+    }
+  }, [basicExamInfo.template_name, templateMetadata, setTemplateMetadata]);
 
   const { mutate: createTemplate, isPending: isCreating } =
     useCreateExamTemplateService();
@@ -285,7 +298,7 @@ export function TemplateCanvaLayoutContent() {
     );
 
     const templateData = {
-      name: templateMetadata.name,
+      name: basicExamInfo.template_name || templateMetadata.name, // Use template_name from basicExamInfo first
       subject: basicExamInfo.subject, // Use from basicExamInfo instead of templateMetadata
       grade: basicExamInfo.grade, // Use from basicExamInfo instead of templateMetadata
       durationMinutes: basicExamInfo.duration_minutes, // Use from basicExamInfo instead of templateMetadata

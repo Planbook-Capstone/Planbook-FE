@@ -121,6 +121,8 @@ function ExamTemplateDetailsContent({ templateId }: { templateId: string }) {
       const apiResponseFormat = {
         data: {
           data: {
+            name: template.name, // Add template name for mapping to template_name
+            templateName: template.name, // Alternative field name
             subject: template.subject,
             grade: template.grade,
             durationMinutes: template.durationMinutes, // Use API field name

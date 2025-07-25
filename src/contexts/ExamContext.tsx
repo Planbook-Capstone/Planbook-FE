@@ -345,6 +345,8 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     console.log("🔄 Mapping API data to basicExamInfo:", examData);
 
     const newBasicInfo: BasicExamInfo = {
+      template_name:
+        examData.templateName || examData.template_name || examData.name || "",
       subject: examData.subject || "Hóa học",
       grade: examData.grade || 10,
       duration_minutes:
