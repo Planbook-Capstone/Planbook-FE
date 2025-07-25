@@ -98,8 +98,8 @@ export type OrderHistoryResponse = {
   updatedAt: string;
 };
 
-// // User types
-// export interface User {
+// User types
+// export interface UserResponse {
 //   id: string;
 //   name: string;
 //   email: string;
@@ -108,6 +108,43 @@ export type OrderHistoryResponse = {
 //   createdAt: string;
 //   updatedAt: string;
 // }
+
+// Transaction types
+export interface Transaction {
+  id: string;
+  amount: number;
+  type: 'DEPOSIT' | 'WITHDRAWAL' | 'PAYMENT' | 'REFUND';
+  description?: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Wallet types
+export interface Wallet {
+  id: string;
+  balance: number;
+  createdAt: string;
+  updatedAt: string;
+  transactions: Transaction[];
+}
+
+// Enhanced User Response with wallet
+export interface UserWithWalletResponse {
+  id: string;
+  fullName: string | null;
+  username: string;
+  email: string;
+  role: 'PARTNER' | 'STAFF' | 'USER' | 'ADMIN';
+  phone: string | null;
+  avatar: string | null;
+  gender: string | null;
+  birthday: string | null;
+  status: string | null;
+  createdAt: string;
+  updatedAt: string;
+  wallet: Wallet | null;
+}
 
 // // Product types
 // export interface Product {

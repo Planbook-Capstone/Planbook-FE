@@ -76,3 +76,22 @@ export const VALIDATION = {
   NAME_MIN_LENGTH: 2,
   NAME_MAX_LENGTH: 50,
 };
+
+// User roles
+export const ROLE_LABELS = {
+  ADMIN: "Quản trị viên",
+  STAFF: "Nhân viên",
+  PARTNER: "Đối tác",
+  USER: "Người dùng",
+  TEACHER: "Giáo viên",
+  "TOOL-MANAGER": "Quản lý công cụ",
+} as const;
+
+export const ROLE_COLORS = {
+  ADMIN: "bg-orange-100 text-orange-800",
+  STAFF: "bg-blue-100 text-blue-800",
+  PARTNER: "bg-green-100 text-green-800",
+  USER: "bg-gray-100 text-gray-800",
+  TEACHER: "bg-yellow-100 text-yellow-800",
+  "TOOL-MANAGER": "bg-purple-100 text-purple-800",
+} as const;

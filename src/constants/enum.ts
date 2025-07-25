@@ -47,3 +47,10 @@ export const OrderStatusLabel: Record<ORDER_STATUS, string> = {
   [ORDER_STATUS.RETRY]: "Đã thử thanh toán lại",
 };
 
+export enum ROLE {
+  TEACHER = "TEACHER",
+  ADMIN = "ADMIN",
+  STAFF = "STAFF",
+  PARTNER = "PARTNER",
+}
+
