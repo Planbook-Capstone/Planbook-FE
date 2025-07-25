@@ -1,12 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { useExamTemplatesService } from "@/services/examTemplateServices";
+import {
+  useExamTemplatesService,
+  useDeleteExamTemplateService,
+  useCloneExamTemplateService,
+} from "@/services/examTemplateServices";
 import { Button } from "@/components/ui/Button";
 import { Plus, Edit, Trash2, Copy, Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ExamCreationModal from "@/components/organisms/exam-creation-modal";
+import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import { useExamImportService } from "@/services/examImportServices";
 import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
 import { ExamTemplateProvider } from "@/contexts/ExamTemplateContext";
@@ -24,15 +29,23 @@ interface ExamTemplate {
 
 function ExamTemplatesPageContent() {
   const router = useRouter();
-  const { data: templates, isLoading } = useExamTemplatesService();
+  const { data: templates, isLoading, refetch } = useExamTemplatesService();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreationModal, setShowCreationModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
 
   // Initialize the exam import service
   const { mutate: importExam, isPending: isImporting } = useExamImportService();
 
   // Get exam context to store imported data
   const { setExamFromApiResponse } = useExamContext();
+
+  // Initialize clone and delete services
+  const { mutate: cloneTemplate, isPending: isCloning } =
+    useCloneExamTemplateService();
+  const { mutate: deleteTemplate, isPending: isDeleting } =
+    useDeleteExamTemplateService();
 
   // Filter templates based on search term
   const filteredTemplates =
@@ -55,15 +68,51 @@ function ExamTemplatesPageContent() {
   };
 
   const handleDuplicateTemplate = (templateId: string) => {
-    // Implement duplicate functionality
-    toast.info(
-      "Chức năng nhân bản template sẽ được phát triển trong tương lai"
-    );
+    if (isCloning) return;
+
+    cloneTemplate(templateId, {
+      onSuccess: () => {
+        toast.success("Nhân bản template thành công!");
+        refetch(); // Refresh the templates list
+      },
+      onError: (error: any) => {
+        console.error("Clone template failed:", error);
+        toast.error(
+          error?.response?.data?.message ||
+            "Nhân bản template thất bại. Vui lòng thử lại!"
+        );
+      },
+    });
   };
 
   const handleDeleteTemplate = (templateId: string) => {
-    // Implement delete functionality
-    toast.info("Chức năng xóa template sẽ được phát triển trong tương lai");
+    setTemplateToDelete(templateId);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!templateToDelete || isDeleting) return;
+
+    deleteTemplate(templateToDelete, {
+      onSuccess: () => {
+        toast.success("Xóa template thành công!");
+        setShowDeleteDialog(false);
+        setTemplateToDelete(null);
+        refetch(); // Refresh the templates list
+      },
+      onError: (error: any) => {
+        console.error("Delete template failed:", error);
+        toast.error(
+          error?.response?.data?.message ||
+            "Xóa template thất bại. Vui lòng thử lại!"
+        );
+      },
+    });
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteDialog(false);
+    setTemplateToDelete(null);
   };
 
   const handleFileSubmit = (files: File[]) => {
@@ -138,6 +187,13 @@ function ExamTemplatesPageContent() {
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>Đang tải dữ liệu...</p>
         </div>
+      ) : isCloning || isDeleting ? (
+        <div className="text-center py-10">
+          <div className="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>
+            {isCloning ? "Đang nhân bản template..." : "Đang xóa template..."}
+          </p>
+        </div>
       ) : filteredTemplates.length === 0 ? (
         <div className="text-center py-10 border border-dashed rounded-lg">
           <p className="text-gray-500 mb-4">Chưa có template nào</p>
@@ -172,14 +228,16 @@ function ExamTemplatesPageContent() {
                   </button>
                   <button
                     onClick={() => handleDuplicateTemplate(template.id)}
-                    className="p-1 text-gray-500 hover:text-purple-500"
+                    disabled={isCloning || isDeleting}
+                    className="p-1 text-gray-500 hover:text-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Nhân bản"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteTemplate(template.id)}
-                    className="p-1 text-gray-500 hover:text-red-500"
+                    disabled={isCloning || isDeleting}
+                    className="p-1 text-gray-500 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Xóa"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -209,6 +267,22 @@ function ExamTemplatesPageContent() {
         onImportFile={handleFileSubmit}
         onCreateManually={handleCreateManually}
         isImporting={isImporting}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận xóa template"
+        itemName={
+          templateToDelete
+            ? templates?.data?.find(
+                (t: ExamTemplate) => t.id === templateToDelete
+              )?.name
+            : undefined
+        }
+        isLoading={isDeleting}
       />
     </div>
   );

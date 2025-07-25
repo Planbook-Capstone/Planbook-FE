@@ -7,6 +7,8 @@ import {
   updateMutationHook,
   deleteMutationHook,
 } from "@/hooks/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/config/axios";
 
 // Define the base endpoint for exam templates
 const EXAM_TEMPLATES_ENDPOINT = "/exam-service/api/exam-templates";
@@ -75,3 +77,20 @@ export const useDeleteExamTemplateService = deleteMutationHook(
   "examTemplate",
   EXAM_TEMPLATES_ENDPOINT
 );
+
+/**
+ * Hook for cloning an exam template
+ */
+export const useCloneExamTemplateService = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (templateId: string) =>
+      api.post(`${EXAM_TEMPLATES_ENDPOINT}/${templateId}/clone`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["examTemplates"],
+      });
+    },
+  });
+};
