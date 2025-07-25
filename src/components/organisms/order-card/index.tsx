@@ -1,5 +1,7 @@
+"use client"
 import { Button } from "@/components/ui/Button";
 import { OrderHistoryResponse } from "@/types";
+import { useRouter } from "next/navigation";
 
 interface OrderCardProps {
   orderStatus: OrderHistoryResponse;
@@ -41,7 +43,7 @@ function OrderCard({ orderStatus }: OrderCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg p-5 border border-gray-200">
+    <div className="flex flex-col justify-between bg-white rounded-lg p-5 border border-gray-200">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -53,17 +55,17 @@ function OrderCard({ orderStatus }: OrderCardProps) {
               Order #{orderStatus?.orderId}
             </h3>
             <p className="text-sm text-gray-500">
-              {formatDate(orderStatus.createdAt)}
+              {formatDate(orderStatus?.createdAt)}
             </p>
           </div>
         </div>
         <div className="text-right">
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-              orderStatus.toStatus
+              orderStatus?.toStatus
             )}`}
           >
-            {orderStatus.toStatus.replace("_", " ")}
+            {orderStatus?.toStatus}
           </span>
           <p className="text-sm text-gray-500 mt-1">
             {formatTime(orderStatus.createdAt)}
@@ -79,18 +81,8 @@ function OrderCard({ orderStatus }: OrderCardProps) {
         </p>
       </div>
 
-      {/* Status Transition */}
-      {orderStatus.fromStatus && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">
-            Status changed from{" "}
-            <span className="font-medium">{orderStatus.fromStatus}</span> to{" "}
-            <span className="font-medium">{orderStatus.toStatus}</span>
-          </p>
-        </div>
-      )}
-
       {/* Actions */}
+
       <div className="flex justify-end items-center gap-2 w-full">
         <Button variant={"outline"}>Chi tiết</Button>
         <Button>Theo dõi đơn hàng</Button>

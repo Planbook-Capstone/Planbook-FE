@@ -1,3 +1,4 @@
+"use client"
 import { DataTable } from "@/components/organisms/data-table";
 import { SubscriptionResponse } from "@/types";
 import { Row } from "@tanstack/react-table";

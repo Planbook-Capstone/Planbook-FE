@@ -1,7 +1,7 @@
 "use client";
 
 import OrderCard from "@/components/organisms/order-card";
-import { OrderHistoryResponse } from "@/types";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { useOrderByUserIdService } from "@/services/orderServices";
 
@@ -17,10 +17,10 @@ function OrderHistoryPage() {
     data: ordersData,
     isLoading,
     error,
-  } = useOrderByUserIdService(userId);
+  } = useOrderByUserIdService("b15c2276-ebd4-4ce2-b1ec-275b6cb536f0");
 
   // Use API data if available
-  const orders = ordersData?.data?.content?.orderHistories || [];
+  const orders = ordersData?.data?.content || [];
 
   console.log(orders, "orders data");
   console.log(ordersData?.data?.content?.orderHistories, "full response");
@@ -51,8 +51,11 @@ function OrderHistoryPage() {
       {!isLoading && !error && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {orders && orders.length > 0 ? (
-            orders.map((order: OrderHistoryResponse) => (
-              <OrderCard key={order.id} orderStatus={order} />
+            orders?.map((order: any) => (
+              <OrderCard
+                key={order.id}
+                orderStatus={order?.orderHistories[0]}
+              />
             ))
           ) : (
             <div className="col-span-full text-center py-12">

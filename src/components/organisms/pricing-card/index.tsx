@@ -1,5 +1,5 @@
+"use client";
 import { Button } from "@/components/ui/Button";
-import { CheckIcon } from "@/constants/icon";
 
 interface PricingCardProps {
   id?: string;
@@ -53,18 +53,21 @@ const PricingCard = ({
             </span>
             <span>Tặng ngay {tokenAmount} token AI</span>
           </li>
-          {features && Object.entries(features)
-            .sort((a, b) => Number(a[0]) - Number(b[0])) // sort theo key số
-            .map(([key, f]) => (
-              <li key={key} className="flex items-center gap-2">
-                <span
-                  className={`${highlight ? "text-white" : "text-black"} mt-1`}
-                >
-                  •
-                </span>
-                <span>{f}</span>
-              </li>
-            ))}
+          {features &&
+            Object.entries(features)
+              .sort((a, b) => Number(a[0]) - Number(b[0])) // sort theo key số
+              .map(([key, f]) => (
+                <li key={key} className="flex items-center gap-2">
+                  <span
+                    className={`${
+                      highlight ? "text-white" : "text-black"
+                    } mt-1`}
+                  >
+                    •
+                  </span>
+                  <span>{f}</span>
+                </li>
+              ))}
         </ul>
       </div>
       {/* <div className="flex justify-start items-start gap-1.5 py-5"> */}
