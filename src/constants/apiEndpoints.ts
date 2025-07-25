@@ -19,9 +19,9 @@ export const API_ENDPOINTS = {
     LOGIN_GOOGLE: "/identity-service/api/login-google",
   },
 
-  USERS_MANAGEMENT:{
+  USERS_MANAGEMENT: {
     BASE: buildEndpoint(SERVICES.AUTH, "/users"),
-  }
+  },
 
   // Academic Years
   ACADEMIC_YEARS: "/academic-years",

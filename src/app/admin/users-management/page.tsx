@@ -22,8 +22,10 @@ import {
 import { User, mockUsers, roleLabels } from "@/data/users";
 import { Plus, Eye, UserX, UserCheck, Search } from "lucide-react";
 import CreateUserModal from "@/components/organisms/create-user-modal";
-import { roleOptions } from "@/schemas";
+import { roleOptions, type CreateUserFormData } from "@/schemas";
 import UserTable from "@/components/organisms/user-table";
+import { useAllUsersService, useCreateUserService } from "@/services/userService";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -43,6 +45,12 @@ export default function StaffUsersManagementPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const {data:allUsers} = useAllUsersService();
+
+  console.log(allUsers?.data?.content,"all")
+ 
+  // API hooks
+  const createUserMutation = useCreateUserService();
 
   // Filter and search logic
   const filteredUsers = useMemo(() => {
@@ -62,7 +70,18 @@ export default function StaffUsersManagementPage() {
   }, [users, searchValue, filterValue]);
 
   // Handlers
-  const handleCreateUser = () => {};
+  const handleCreateUser = async (data: CreateUserFormData) => {
+    createUserMutation.mutate(data, {
+      onSuccess: (response) => {
+        setIsCreateModalOpen(false);
+        toast.success("Tạo người dùng thành công!");
+      },
+      onError: (error) => {
+        console.error("Error creating user:", error);
+        toast.error("Có lỗi xảy ra khi tạo người dùng!");
+      },
+    });
+  };
 
   const handleViewUser = (user: User) => {
     setSelectedUser(user);
@@ -128,7 +147,7 @@ export default function StaffUsersManagementPage() {
       {/* Main Content */}
       <div className="mx-auto px-0 py-2">
         {/* Users Table */}
-        <UserTable users={filteredUsers} />
+        <UserTable users={allUsers?.data?.content || []} />
       </div>
       <CreateUserModal
         open={isCreateModalOpen}
