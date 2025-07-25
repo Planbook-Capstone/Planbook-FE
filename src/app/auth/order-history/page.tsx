@@ -2,22 +2,17 @@
 
 import OrderCard from "@/components/organisms/order-card";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { useOrderByUserIdService } from "@/services/orderServices";
+import { useAuth } from "@/hooks/useAuth";
 
 function OrderHistoryPage() {
-  const queryClient = useQueryClient();
-  const userData = queryClient.getQueryData(["currentUser"]);
+  const { user } = useAuth();
 
-  // Get userId
-  const user = userData as any;
-  const userId = user?.id;
-  console.log(userId, "userId");
   const {
     data: ordersData,
     isLoading,
     error,
-  } = useOrderByUserIdService("b15c2276-ebd4-4ce2-b1ec-275b6cb536f0");
+  } = useOrderByUserIdService(user?.id);
 
   // Use API data if available
   const orders = ordersData?.data?.content || [];

@@ -1,75 +1,96 @@
 "use client";
 
-/**
- * This is a placeholder for your state management solution
- * You can replace this with Redux, Zustand, Jotai, or any other state management library
- */
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
-import { createContext, useContext, useState, ReactNode } from "react";
+// Define user interface with all fields
+interface User {
+  id: string;
+  fullName: string | null;
+  username: string;
+  email: string;
+  role: string;
+  phone: string | null;
+  avatar: string | null;
+  gender: string | null;
+  birthday: string | null;
+  status: string | null;
+  createdAt: string;
+  updatedAt: string;
+  token: string;
+  refreshToken: string;
+}
 
-// Define your state types
+// Define app state interface
 interface AppState {
   theme: "light" | "dark";
   user: User | null;
+  // Actions
+  setTheme: (theme: "light" | "dark") => void;
+  setUser: (user: User | null) => void;
+  clearUser: () => void;
+  updateUser: (updates: Partial<User>) => void;
+  isAuthenticated: () => boolean;
 }
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
+// Create Zustand store with localStorage persistence
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      theme: "light",
+      user: null,
+
+      // Actions
+      setTheme: (theme) => set({ theme }),
+
+      setUser: (user) => set({ user }),
+
+      clearUser: () => set({ user: null }),
+
+      updateUser: (updates) => set((state) => ({
+        user: state.user ? { ...state.user, ...updates } : null
+      })),
+
+      isAuthenticated: () => {
+        const { user } = get();
+        return user !== null && user.token !== null;
+      },
+    }),
+    {
+      name: 'planbook-storage', // localStorage key
+      storage: createJSONStorage(() => localStorage),
+      // Only persist user data and theme
+      partialize: (state) => ({
+        user: state.user,
+        theme: state.theme
+      }),
+    }
+  )
+);
+
+// Legacy AppProvider for backward compatibility (can be removed if not needed)
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
 
-// Define your actions
-type Action =
-  | { type: "SET_THEME"; payload: "light" | "dark" }
-  | { type: "SET_USER"; payload: User | null };
-
-// Create the initial state
-const initialState: AppState = {
-  theme: "light",
-  user: null,
-};
-
-// Create the context
-const AppContext = createContext<{
-  state: AppState;
-  dispatch: (action: Action) => void;
-}>({
-  state: initialState,
-  dispatch: () => null,
-});
-
-// Create a reducer function
-function reducer(state: AppState, action: Action): AppState {
-  switch (action.type) {
-    case "SET_THEME":
-      return { ...state, theme: action.payload };
-    case "SET_USER":
-      return { ...state, user: action.payload };
-    default:
-      return state;
-  }
-}
-
-// Create a provider component
-export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AppState>(initialState);
-
-  const dispatch = (action: Action) => {
-    setState(reducer(state, action));
-  };
-
-  return (
-    <AppContext.Provider value={{ state, dispatch }}>
-      {children}
-    </AppContext.Provider>
-  );
-}
-
+// Legacy hook for backward compatibility (can be removed if not needed)
 export function useAppState() {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error("useAppState must be used within an AppProvider");
-  }
-  return context;
+  const store = useAppStore();
+  return {
+    state: {
+      theme: store.theme,
+      user: store.user,
+    },
+    dispatch: (action: any) => {
+      switch (action.type) {
+        case "SET_THEME":
+          store.setTheme(action.payload);
+          break;
+        case "SET_USER":
+          store.setUser(action.payload);
+          break;
+      }
+    },
+  };
 }

@@ -9,6 +9,7 @@ import { supabase } from "@/config/supabaseClient";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAppStore } from "@/store";
 
 const LoginPage = () => {
   const { mutate } = useUserServices();
@@ -18,13 +19,24 @@ const LoginPage = () => {
   const [showRegisterOptions, setShowRegisterOptions] = React.useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { setUser } = useAppStore();
+
   const onFinish = (values: any) => {
     mutate(values, {
       onSuccess: (data) => {
         toast.success("Đăng nhập thành công");
+
+        // Save to Zustand store
+        setUser(data?.data?.data);
+
+        // Keep localStorage for backward compatibility
         localStorage.setItem("token", data?.data?.data?.token);
         localStorage.setItem("refreshToken", data?.data?.data?.refreshToken);
+
+        // Keep React Query for backward compatibility
         queryClient.setQueryData(["currentUser"], data?.data?.data);
+
+        // Route based on role
         if (data.data.data.role === "ADMIN") {
           router.push("/admin");
         } else if (data.data.data.role === "STAFF") {
