@@ -24,7 +24,10 @@ const studentInfoSchema = z.object({
     .string()
     .min(2, "Tên học sinh phải có ít nhất 2 ký tự")
     .max(100, "Tên học sinh không được vượt quá 100 ký tự")
-    .regex(/^[a-zA-ZÀ-ỹ\s]+$/, "Tên học sinh chỉ được chứa chữ cái và khoảng trắng"),
+    .regex(
+      /^[a-zA-ZÀ-ỹ\s]+$/,
+      "Tên học sinh chỉ được chứa chữ cái và khoảng trắng"
+    ),
 });
 
 type StudentInfoFormData = z.infer<typeof studentInfoSchema>;
@@ -35,6 +38,10 @@ interface ExamInfo {
   grade: number;
   durationMinutes: number;
   code: string;
+  school?: string;
+  examCode?: string;
+  atomicMasses?: string;
+  totalScore?: number;
 }
 
 interface StudentInfoFormProps {
@@ -79,7 +86,9 @@ export function StudentInfoForm({
       {/* Exam Information */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl text-center">Thông tin bài thi</CardTitle>
+          <CardTitle className="text-xl text-center">
+            Thông tin bài thi
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -90,7 +99,7 @@ export function StudentInfoForm({
                 <p className="font-medium">{examInfo.subject}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <GraduationCap className="w-5 h-5 text-purple-600" />
               <div>
@@ -98,7 +107,7 @@ export function StudentInfoForm({
                 <p className="font-medium">Lớp {examInfo.grade}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <Clock className="w-5 h-5 text-green-600" />
               <div>
@@ -106,19 +115,70 @@ export function StudentInfoForm({
                 <p className="font-medium">{examInfo.durationMinutes} phút</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <div className="w-5 h-5 text-center text-orange-600 font-bold">#</div>
+              <div className="w-5 h-5 text-center text-orange-600 font-bold">
+                #
+              </div>
               <div>
                 <p className="text-sm text-gray-500">Mã đề</p>
                 <p className="font-medium font-mono">{examInfo.code}</p>
               </div>
             </div>
+
+            {examInfo.school && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="w-5 h-5 text-center text-indigo-600 font-bold">
+                  🏫
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Trường học</p>
+                  <p className="font-medium">{examInfo.school}</p>
+                </div>
+              </div>
+            )}
+
+            {examInfo.examCode && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="w-5 h-5 text-center text-red-600 font-bold">
+                  📝
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Mã đề thi</p>
+                  <p className="font-medium font-mono">{examInfo.examCode}</p>
+                </div>
+              </div>
+            )}
+
+            {examInfo.totalScore && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="w-5 h-5 text-center text-yellow-600 font-bold">
+                  ⭐
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Tổng điểm</p>
+                  <p className="font-medium">{examInfo.totalScore} điểm</p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-medium text-blue-900 mb-2">{examInfo.examName}</h3>
+            <h3 className="font-medium text-blue-900 mb-2">
+              {examInfo.examName}
+            </h3>
           </div>
+
+          {examInfo.atomicMasses && (
+            <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                📊 Dữ liệu hỗ trợ:
+              </h4>
+              <p className="text-sm text-yellow-700 font-mono break-words">
+                {examInfo.atomicMasses}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -129,7 +189,10 @@ export function StudentInfoForm({
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               <FormField
                 control={form.control}
                 name="studentName"
@@ -164,11 +227,17 @@ export function StudentInfoForm({
       {/* Instructions */}
       <Card className="border-yellow-200 bg-yellow-50">
         <CardContent className="pt-6">
-          <h3 className="font-medium text-yellow-800 mb-3">Lưu ý quan trọng:</h3>
+          <h3 className="font-medium text-yellow-800 mb-3">
+            Lưu ý quan trọng:
+          </h3>
           <ul className="text-sm text-yellow-700 space-y-2">
-            <li>• Đảm bảo kết nối internet ổn định trong suốt quá trình làm bài</li>
+            <li>
+              • Đảm bảo kết nối internet ổn định trong suốt quá trình làm bài
+            </li>
             <li>• Không được thoát khỏi trang web khi đang làm bài</li>
-            <li>• Thời gian làm bài sẽ được tính từ khi bạn nhấn "Bắt đầu làm bài"</li>
+            <li>
+              • Thời gian làm bài sẽ được tính từ khi bạn nhấn "Bắt đầu làm bài"
+            </li>
             <li>• Nhớ nhấn "Nộp bài" khi hoàn thành để lưu kết quả</li>
             <li>• Nếu gặp sự cố kỹ thuật, hãy liên hệ giám thị ngay lập tức</li>
           </ul>

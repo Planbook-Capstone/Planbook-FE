@@ -38,6 +38,10 @@ export interface ExamContentData {
   subject: string;
   grade: number;
   durationMinutes: number;
+  school?: string;
+  examCode?: string;
+  atomicMasses?: string;
+  totalScore?: number;
   contentJson: {
     parts: ExamPart[];
     examInfo?: ExamInfo; // Optional vì format mới có thể không có

@@ -328,6 +328,10 @@ export default function ExamPage({ params }: ExamPageProps) {
             grade: examData.grade,
             durationMinutes: examData.durationMinutes,
             code: examData.code,
+            school: examData.school,
+            examCode: examData.examCode,
+            atomicMasses: examData.atomicMasses,
+            totalScore: examData.totalScore,
           }}
           onSubmit={handleStartExam}
         />
