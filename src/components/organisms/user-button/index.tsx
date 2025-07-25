@@ -14,18 +14,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-function UserButton() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
+import { useAuth } from "@/hooks/useAuth";
 
-  const handleLogout = () => {
-    queryClient.clear();
-    router.push("/auth");
-  };
-  const userData = queryClient.getQueryData(["currentUser"]);
+function UserButton() {
+  const {
+    user,
+    logout,
+    displayName,
+    avatarUrl,
+    initials,
+    isAuthenticated
+  } = useAuth();
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex justify-end items-center gap-2.5">
@@ -55,11 +58,11 @@ function UserButton() {
         <DropdownMenuTrigger className="outline-none relative">
           <Avatar className="size-9 rounded-full hover:opacity-75 transition border border-neutral-300">
             <AvatarImage
-              src={"images/avatarLogo.png"}
+              src={avatarUrl || "/images/avatarLogo.png"}
               className="object-cover"
             />
             <AvatarFallback className="rounded-md bg-neutral-200 font-medium text-neutral-500 flex items-center justify-center">
-              {userData?.username}
+              {initials}
             </AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
@@ -71,21 +74,24 @@ function UserButton() {
         >
           <div className="flex items-center justify-start gap-2 px-2.5 py-4">
             <Avatar className="size-9 hover:opacity-75 transition border border-neutral-300">
+              <AvatarImage
+                src={avatarUrl || "/images/avatarLogo.png"}
+                className="object-cover"
+              />
               <AvatarFallback className="bg-neutral-200 font-medium text-neutral-500 flex items-center justify-center">
-                Test
+                {initials}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-start justify-center">
               <p className="text-sm font-medium text-neutral-900">
-                {" "}
-                {userData?.username}
+                {displayName}
               </p>
-              <p className="text-xs  text-neutral-500"> {userData?.email}</p>
+              <p className="text-xs text-neutral-500">{user?.email}</p>
             </div>
           </div>
 
           <DropdownMenuItem
-            onClick={handleLogout}
+            onClick={logout}
             className="h-10 flex items-center justify-center text-amber-700 font-medium cursor-pointer"
           >
             <LogOut className="size-4 mr-2" /> Log out

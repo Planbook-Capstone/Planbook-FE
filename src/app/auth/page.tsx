@@ -3,28 +3,42 @@ import { Button, Divider, Form, Input } from "antd";
 import { ArrowRight } from "lucide-react";
 import React from "react";
 import Image from "next/image";
-import { useUserServices } from "@/services/userService";
+import { useRegisterService, useUserServices } from "@/services/userService";
 import { toast } from "sonner";
 import { supabase } from "@/config/supabaseClient";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAppStore } from "@/store";
 
 const LoginPage = () => {
   const { mutate } = useUserServices();
+  const { mutate: register } = useRegisterService();
   const [form] = Form.useForm();
   const [registerForm] = Form.useForm();
   const [isRegister, setIsRegister] = React.useState(false);
   const [showRegisterOptions, setShowRegisterOptions] = React.useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { setUser } = useAppStore();
+
   const onFinish = (values: any) => {
     mutate(values, {
       onSuccess: (data) => {
         toast.success("Đăng nhập thành công");
+
+        // Save to Zustand store (exclude wallet field)
+        const { wallet, ...userDataWithoutWallet } = data?.data?.data || {};
+        setUser(userDataWithoutWallet);
+
+        // Keep localStorage for backward compatibility
         localStorage.setItem("token", data?.data?.data?.token);
         localStorage.setItem("refreshToken", data?.data?.data?.refreshToken);
+
+        // Keep React Query for backward compatibility
         queryClient.setQueryData(["currentUser"], data?.data?.data);
+
+        // Route based on role
         if (data.data.data.role === "ADMIN") {
           router.push("/admin");
         } else if (data.data.data.role === "STAFF") {
@@ -42,12 +56,25 @@ const LoginPage = () => {
   };
 
   const onRegisterFinish = (values: any) => {
-    console.log("Register values:", values);
-    // TODO: Implement register API call
-    toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-    setIsRegister(false);
-    setShowRegisterOptions(false);
-    registerForm.resetFields();
+    const payload = {
+      fullName: values.fullName,
+      email: values.email,
+      username: values.username,
+      password: values.password,
+    };
+
+    register(payload, {
+      onSuccess: (data) => {
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+
+        setIsRegister(false);
+        setShowRegisterOptions(false);
+        registerForm.resetFields();
+      },
+      onError: () => {
+        toast.error("Đăng ký thất bại.Vui lòng kiểm tra kĩ thông tin đăng ký");
+      },
+    });
   };
 
   const handleShowRegisterOptions = () => {

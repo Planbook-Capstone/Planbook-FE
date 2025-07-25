@@ -14,7 +14,8 @@ const buildEndpoint = (service: string, path: string) =>
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: "/identity-service/api/login",
+    LOGIN: buildEndpoint(SERVICES.AUTH, "/login"),
+    REGISTER: buildEndpoint(SERVICES.AUTH, "/register"),
     LOGIN_GOOGLE: "/identity-service/api/login-google",
   },
 
