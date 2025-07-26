@@ -102,4 +102,6 @@ export const ORDER_STATUS_COLOR = {
   COMPLETED: "bg-green-100 text-green-800",
   CANCELLED: "bg-red-100 text-red-800",
   FAILED: "bg-red-100 text-red-800",
+  EXPIRED: "bg-red-100 text-red-800",
+
 }

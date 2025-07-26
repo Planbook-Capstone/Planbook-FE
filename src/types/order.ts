@@ -1,9 +1,18 @@
 // Order related types
 
 // Union types for status values
-export type OrderStatus = "PENDING" | "PAID" | "COMPLETED" | "CANCELLED" | "FAILED";
+export type OrderStatus =
+  | "PENDING"
+  | "PAID"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "FAILED";
 export type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "PAYMENT" | "REFUND";
-export type TransactionStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
+export type TransactionStatus =
+  | "PENDING"
+  | "COMPLETED"
+  | "FAILED"
+  | "CANCELLED";
 export type PackageStatus = "ACTIVE" | "INACTIVE";
 export type SortDirection = "ASC" | "DESC";
 export type NullHandling = "NATIVE" | "NULLS_FIRST" | "NULLS_LAST";
@@ -16,6 +25,7 @@ export interface OrderTransaction {
   type: TransactionType;
   status: TransactionStatus;
   description?: string;
+  failureReason?: string;
   createdAt: string;
   updatedAt: string;
 }

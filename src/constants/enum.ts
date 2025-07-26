@@ -47,7 +47,7 @@ export const OrderStatusLabel: Record<ORDER_STATUS, string> = {
   [ORDER_STATUS.RETRY]: "Đã thử thanh toán lại",
 };
 
-export type OrderStatus = "PENDING" | "PAID" | "COMPLETED" | "CANCELLED" | "FAILED";
+export type OrderStatus = "PENDING" | "PAID" | "COMPLETED" | "CANCELLED" | "FAILED" | "EXPIRED";
 
 export const getOrderStatusLabel = (status: OrderStatus): string => {
   const labels: Record<OrderStatus, string> = {
@@ -56,6 +56,7 @@ export const getOrderStatusLabel = (status: OrderStatus): string => {
     COMPLETED: "Hoàn thành",
     CANCELLED: "Đã hủy",
     FAILED: "Thất bại",
+    EXPIRED: "Hết hạn",
   };
   return labels[status];
 };

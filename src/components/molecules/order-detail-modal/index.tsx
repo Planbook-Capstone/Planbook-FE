@@ -19,6 +19,8 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
   const colorClass =
     ORDER_STATUS_COLOR[order.status] || "bg-gray-100 text-gray-800";
 
+  console.log(order, "order");
+
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent
@@ -72,19 +74,93 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
                 <label className="text-sm font-medium text-gray-600">
                   Gói đăng ký
                 </label>
-                <div className="mt-1 p-3 bg-gray-50 rounded-lg">
-                  <p className="font-questrial text-gray-900 font-medium">
-                    {order.subscriptionPackage.name}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {order.subscriptionPackage.description}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Token: {order.subscriptionPackage.tokenAmount}
-                  </p>
+                <div className="w-1/2">
+                  <div className="bg-[url('/images/background/abstract-bg.png')] bg-[length:300%] bg-center text-white mt-1 p-5 rounded-lg space-y-3">
+                    <p className="font-calsans ">
+                      {order.subscriptionPackage.name}
+                    </p>
+                    <p className="text-sm ">
+                      {order.subscriptionPackage.description}
+                    </p>
+
+                    <div className="pt-2 space-y-2">
+                      <p className="text-sm font-medium mb-3 opacity-80">
+                        Tính năng bao gồm:
+                      </p>
+                      <ul>
+                        <li className="flex items-center gap-x-2">
+                          <span>•</span>
+                          <span>
+                            Tặng ngay {order.subscriptionPackage.tokenAmount}{" "}
+                            token AI
+                          </span>
+                        </li>
+                        {order.subscriptionPackage.features &&
+                          Object.entries(order.subscriptionPackage.features)
+                            .sort((a, b) => Number(a[0]) - Number(b[0])) // sort theo key số
+                            .map(([key, f]) => (
+                              <li key={key} className="flex items-center gap-2">
+                                <span className="mt-1">•</span>
+                                <span>{f}</span>
+                              </li>
+                            ))}
+                      </ul>
+                    </div>
+
+                    <h1 className="font-calsans text-3xl lg:text-6xl">
+                      {order.subscriptionPackage.price?.toLocaleString("vi-VN")}
+                    </h1>
+                    <p>
+                      Bắt đầu số hóa công việc giảng dạy. Tiết kiệm thời gian và
+                      nâng cao hiệu quả
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
+
+            <div>
+              <label className="text-lg font-calsans">Lịch sử thanh toán</label>
+              <div>
+                {order.transactions.map((transaction, index: number) => {
+                  const statusColor =
+                    ORDER_STATUS_COLOR[transaction.status] ||
+                    "bg-gray-100 text-gray-800";
+                  return (
+                    <div
+                      key={transaction.id}
+                      className="border rounded-lg p-3 shadow-sm"
+                    >
+                      <p className="flex justify-start items-center gap-2">
+                        Thanh toán cho Planbook
+                        <span
+                          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${colorClass}`}
+                        >
+                          {" " + getOrderStatusLabel(transaction.status)}
+                        </span>
+                      </p>
+                      <p>
+                        Lí do{" "}
+                        <span className="font-bold">
+                          {transaction?.failureReason
+                            ? transaction?.failureReason
+                            : "N/A"}
+                        </span>
+                      </p>
+
+                      <p>
+                        Vào lúc{" "}
+                        <span className="font-bold">
+                          {new Date(transaction.createdAt).toLocaleString(
+                            "vi-VN"
+                          )}
+                        </span>
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 
