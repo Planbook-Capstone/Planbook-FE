@@ -189,9 +189,9 @@ export type OrderHistoryResponse = {
 export interface Transaction {
   id: string;
   amount: number;
-  type: 'DEPOSIT' | 'WITHDRAWAL' | 'PAYMENT' | 'REFUND';
+  type: "DEPOSIT" | "WITHDRAWAL" | "PAYMENT" | "REFUND";
   description?: string;
-  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  status: "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
   createdAt: string;
   updatedAt: string;
 }
@@ -211,7 +211,7 @@ export interface UserWithWalletResponse {
   fullName: string | null;
   username: string;
   email: string;
-  role: 'PARTNER' | 'STAFF' | 'USER' | 'ADMIN';
+  role: "PARTNER" | "STAFF" | "USER" | "ADMIN";
   phone: string | null;
   avatar: string | null;
   gender: string | null;

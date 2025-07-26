@@ -1,19 +1,17 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Upload,
-  Palette,
-  Image as ImageIcon,
-  Trash2,
-  Check,
-  Plus,
-  ArrowLeft,
-} from "lucide-react";
-import Image from "next/image";
+import { Upload, Check, Plus, ArrowLeft } from "lucide-react";
 import { useTextColor } from "./TextColorContext";
 import { Gallery } from "../Gallery";
 import { Tabs } from "../simple-tabs";
+import {
+  useMaterialSearchService,
+  useMaterialInternalService,
+  useCreateMaterialInternalService,
+} from "@/services/materialServices";
+import { useTagService } from "@/services/tagServices";
+import { toast } from "sonner";
 
 interface BackgroundSidebarProps {
   currentBackground?: string;
@@ -22,7 +20,7 @@ interface BackgroundSidebarProps {
 
 interface BackgroundImage {
   id: string;
-  file: File;
+  file: File | null; // Allow null for server images
   url: string;
   name: string;
 }
@@ -75,11 +73,60 @@ export default function BackgroundSidebar({
   );
   const [customColor, setCustomColor] = useState("#ffffff");
   const [colorHistory, setColorHistory] = useState<string[]>([]);
+  const [activeTagId, setActiveTagId] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // API hooks
+  const { data: tag } = useTagService();
+  const { data: materials } = useMaterialSearchService(activeTagId);
+  const { data: materialInternal, refetch: refetchMaterialInternal } =
+    useMaterialInternalService();
+  const { mutate: createMaterialInternal } = useCreateMaterialInternalService();
 
   // Text color context
   const { isTextColorMode, setIsTextColorMode, onTextColorChange } =
     useTextColor();
+
+  // Set active tag ID when tags are loaded
+  useEffect(() => {
+    if (tag?.data?.length > 0 && !activeTagId) {
+      setActiveTagId(tag.data[0].id);
+    }
+  }, [tag?.data, activeTagId]);
+
+  // Merge server images with local images
+  const allBackgroundImages = React.useMemo(() => {
+    const serverImages: BackgroundImage[] = [];
+
+    // Add images from materials (external)
+    materials?.data?.content?.forEach((item: any, idx: number) => {
+      const ext = item?.url?.split(".").pop()?.toLowerCase();
+      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
+        serverImages.push({
+          id: `material-${idx}`,
+          file: null as any, // Server images don't have file objects
+          url: item.url,
+          name: item.name,
+        });
+      }
+    });
+
+    // Add images from internal materials
+    materialInternal?.data?.content?.forEach((item: any, idx: number) => {
+      const ext = item?.url?.split(".").pop()?.toLowerCase();
+      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
+        serverImages.push({
+          id: `internal-${idx}`,
+          file: null as any, // Server images don't have file objects
+          url: item.url,
+          name: item.name,
+        });
+      }
+    });
+
+    // Combine server images with local uploaded images
+    return [...serverImages, ...backgroundImages];
+  }, [materials, materialInternal, backgroundImages]);
 
   // Load color history from localStorage on mount
   useEffect(() => {
@@ -147,26 +194,40 @@ export default function BackgroundSidebar({
   // Process uploaded files
   const processFiles = (files: FileList | File[]) => {
     const fileArray = Array.from(files);
-    const validFiles: BackgroundImage[] = [];
 
     for (const file of fileArray) {
       const validation = validateFile(file);
       if (!validation.isValid) {
-        alert(validation.error);
+        toast.error(validation.error);
         continue;
       }
 
+      // Upload to server using API
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", file.name);
+      formData.append("type", "image");
+
+      createMaterialInternal(formData, {
+        onSuccess: () => {
+          toast.success(`Tải lên thành công: ${file.name}`);
+          refetchMaterialInternal();
+        },
+        onError: () => {
+          toast.error(`Tải lên thất bại: ${file.name}`);
+        },
+      });
+
+      // Also add to local state for immediate preview
       const imageUrl = URL.createObjectURL(file);
       const backgroundImage: BackgroundImage = {
-        id: `bg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `bg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         file,
         url: imageUrl,
         name: file.name,
       };
-      validFiles.push(backgroundImage);
+      setBackgroundImages((prev) => [...prev, backgroundImage]);
     }
-
-    setBackgroundImages((prev) => [...prev, ...validFiles]);
   };
 
   // Handle drag events
@@ -196,17 +257,6 @@ export default function BackgroundSidebar({
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
     }
-  };
-
-  // Remove background image
-  const removeBackgroundImage = (imageId: string) => {
-    setBackgroundImages((prev) => {
-      const imageToRemove = prev.find((img) => img.id === imageId);
-      if (imageToRemove) {
-        URL.revokeObjectURL(imageToRemove.url);
-      }
-      return prev.filter((img) => img.id !== imageId);
-    });
   };
 
   // Handle color change
@@ -240,7 +290,7 @@ export default function BackgroundSidebar({
   };
 
   // Convert background images to gallery format
-  const galleryImages = backgroundImages.map((image) => ({
+  const galleryImages = allBackgroundImages.map((image) => ({
     src: image.url,
     thumbnail: image.url,
     width: 150,
@@ -251,7 +301,7 @@ export default function BackgroundSidebar({
 
   // Handle gallery image selection
   const handleGallerySelect = (index: number) => {
-    const selectedImage = backgroundImages[index];
+    const selectedImage = allBackgroundImages[index];
     if (selectedImage) {
       handleImageBackground(selectedImage.url);
     }
@@ -440,7 +490,7 @@ export default function BackgroundSidebar({
                       </div>
 
                       {/* Background Images Grid */}
-                      {backgroundImages.length > 0 && (
+                      {allBackgroundImages.length > 0 ? (
                         <Gallery
                           images={galleryImages}
                           onSelect={handleGallerySelect}
@@ -448,6 +498,10 @@ export default function BackgroundSidebar({
                           rowHeight={120}
                           margin={8}
                         />
+                      ) : (
+                        <div className="text-center py-16 text-sm text-gray-500 font-questrial">
+                          Chưa có ảnh nền, vui lòng tải lên
+                        </div>
                       )}
                     </div>
                   </div>
