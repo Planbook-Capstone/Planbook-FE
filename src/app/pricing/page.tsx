@@ -42,7 +42,7 @@ function PricingPage() {
         <p className="text-xl text-slate-900">
           Tùy chỉnh theo nhu cầu – linh hoạt cho mọi quy mô
         </p>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5 w-full">
+        <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5 w-full">
           {isLoading ? (
             <>
               <Skeleton className="h-[550px] w-full rounded-xl bg-neutral-300" />
