@@ -55,7 +55,7 @@ function CreateUserModal({
   });
 
   const handleSubmit = (data: CreateUserFormData) => {
-    console.log("Modal received data:", data);
+   
     onSubmit?.(data);
     onClose();
     form.reset();

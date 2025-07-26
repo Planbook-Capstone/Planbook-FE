@@ -22,7 +22,6 @@ export default function CreateMaterialModal({
   onSubmit,
 }: CreateMaterialModalProps) {
   const handleSubmit = (data: MaterialFormData) => {
-    console.log("Modal received data:", data);
     onSubmit?.(data);
     onClose();
   };
@@ -35,12 +34,9 @@ export default function CreateMaterialModal({
             Tạo Material Mới
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="mt-4">
-          <CreateMaterialForm 
-            onClose={onClose} 
-            onSubmit={handleSubmit}
-          />
+          <CreateMaterialForm onClose={onClose} onSubmit={handleSubmit} />
         </div>
       </DialogContent>
     </Dialog>
