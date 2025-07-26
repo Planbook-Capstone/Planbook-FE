@@ -47,6 +47,19 @@ export const OrderStatusLabel: Record<ORDER_STATUS, string> = {
   [ORDER_STATUS.RETRY]: "Đã thử thanh toán lại",
 };
 
+export type OrderStatus = "PENDING" | "PAID" | "COMPLETED" | "CANCELLED" | "FAILED";
+
+export const getOrderStatusLabel = (status: OrderStatus): string => {
+  const labels: Record<OrderStatus, string> = {
+    PENDING: "Đang chờ xử lý",
+    PAID: "Thanh toán thành công",
+    COMPLETED: "Hoàn thành",
+    CANCELLED: "Đã hủy",
+    FAILED: "Thất bại",
+  };
+  return labels[status];
+};
+
 export enum ROLE {
   TEACHER = "TEACHER",
   ADMIN = "ADMIN",

@@ -163,15 +163,8 @@ export interface SlideTemplateFormData {
   imageBlocks: Record<string, string>;
 }
 
-export type OrderHistoryResponse = {
-  id: string;
-  orderId: string;
-  fromStatus: string | null;
-  toStatus: string;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
-};
+// Export order types from separate file
+export * from './order';
 
 // User types
 // export interface UserResponse {
