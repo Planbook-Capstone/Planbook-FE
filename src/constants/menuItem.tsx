@@ -107,6 +107,13 @@ export const staffItems = [
     active: "/icons/folder-active.svg",
   },
   {
+    label: "Mẫu Slide",
+    key: "slide-templates",
+    icon: <HomeOutlined />,
+    image: "/icons/cube.svg",
+    active: "/icons/cube-active.svg",
+  },
+  {
     label: "Giáo án",
     key: "lesson-plan",
     icon: <HomeOutlined />,

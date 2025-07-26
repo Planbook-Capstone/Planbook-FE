@@ -3,14 +3,13 @@ import { Button } from "./Button";
 import Image from "next/image";
 
 export function MenuItemButton({
-  icon,
   image,
   active,
   label,
   isActive,
   onClick,
 }: {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   image: string;
   active: string;
   label: string;
