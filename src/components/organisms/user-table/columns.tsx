@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/Button";
 import { Eye, UserCheck, UserX } from "lucide-react";
 import { toast } from "sonner";
 
-export const userColumns: ColumnDef<UserWithWalletResponse>[] = [
+// Handler function types
+interface UserColumnHandlers {
+  onViewUser: (user: UserWithWalletResponse) => void;
+  onToggleUserStatus: (user: UserWithWalletResponse) => void;
+}
+
+export const createUserColumns = (handlers: UserColumnHandlers): ColumnDef<UserWithWalletResponse>[] => [
   {
     id: "index",
     header: "STT",
@@ -58,56 +64,56 @@ export const userColumns: ColumnDef<UserWithWalletResponse>[] = [
     },
   },
 
-   {
-     accessorKey: "status",
-     header: "Trạng thái",
-     cell: ({ row }) => {
-       const isDisabled = row.original.status;
-       return (
-         <span
-           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-             isDisabled
-               ? "bg-red-100 text-red-800"
-               : "bg-green-100 text-green-800"
-           }`}
-         >
-           {isDisabled ? "Đã vô hiệu hóa" : "Hoạt động"}
-         </span>
-       );
-     },
-   },
+  {
+    accessorKey: "status",
+    header: "Trạng thái",
+    cell: ({ row }) => {
+      const isDisabled = row.original.status;
+      return (
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            isDisabled
+              ? "bg-red-100 text-red-800"
+              : "bg-green-100 text-green-800"
+          }`}
+        >
+          {isDisabled ? "Đã vô hiệu hóa" : "Hoạt động"}
+        </span>
+      );
+    },
+  },
 
-  //  {
-  //    id: "actions",
-  //    header: "Hành động",
-  //    cell: ({ row }) => {
-  //      const user = row.original;
-  //      return (
-  //        <div className="flex items-center gap-2">
-  //          <Button
-  //            variant="ghost"
-  //            size="sm"
-  //            onClick={() => handleViewUser(user)}
-  //            className="p-2 hover:bg-blue-50 hover:text-blue-600"
-  //            title="Xem chi tiết"
-  //          >
-  //            <Eye size={16} />
-  //          </Button>
-  //          <Button
-  //            variant="ghost"
-  //            size="sm"
-  //            onClick={() => handleToggleUserStatus(user)}
-  //            className={`p-2 ${
-  //              user.isDisabled
-  //                ? "hover:bg-green-50 hover:text-green-600"
-  //                : "hover:bg-red-50 hover:text-red-600"
-  //            }`}
-  //            title={user.isDisabled ? "Kích hoạt" : "Vô hiệu hóa"}
-  //          >
-  //            {user.isDisabled ? <UserCheck size={16} /> : <UserX size={16} />}
-  //          </Button>
-  //        </div>
-  //      );
-  //    },
-  //  },
+  {
+    id: "actions",
+    header: "Hành động",
+    cell: ({ row }) => {
+      const user = row.original;
+      return (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handlers.onViewUser(user)}
+            className="p-2 hover:bg-blue-50 hover:text-blue-600"
+            title="Xem chi tiết"
+          >
+            <Eye size={16} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handlers.onToggleUserStatus(user)}
+            className={`p-2 ${
+              user.status === "ACTIVE"
+                ? "hover:bg-red-50 hover:text-red-600"
+                : "hover:bg-green-50 hover:text-green-600"
+            }`}
+            title={user.status === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"}
+          >
+            {user.status === "ACTIVE" ? <UserX size={16} /> : <UserCheck size={16} />}
+          </Button>
+        </div>
+      );
+    },
+  },
 ];
