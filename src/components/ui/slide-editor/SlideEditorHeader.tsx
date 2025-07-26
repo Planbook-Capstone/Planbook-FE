@@ -23,6 +23,10 @@ interface SlideEditorHeaderProps {
   onLoadSampleData?: () => void;
   onClearData?: () => void;
   onCancel?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
   slideCount?: number;
   currentSlide?: number;
   isExporting?: boolean;
@@ -41,6 +45,10 @@ export default function SlideEditorHeader({
   onLoadSampleData,
   onClearData,
   onCancel,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
   slideCount = 1,
   currentSlide = 1,
   templateData,
@@ -62,6 +70,34 @@ export default function SlideEditorHeader({
 
       {/* Right Section - File Actions */}
       <div className="flex items-center gap-2">
+        {/* Undo/Redo Buttons */}
+        <div className="flex items-center gap-1 mr-2">
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+              canUndo
+                ? "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                : "text-gray-300 cursor-not-allowed"
+            }`}
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onRedo}
+            disabled={!canRedo}
+            className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+              canRedo
+                ? "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                : "text-gray-300 cursor-not-allowed"
+            }`}
+            title="Redo (Ctrl+Y)"
+          >
+            <Redo className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* Load Sample Data Button */}
         <button
           onClick={onLoadSampleData}
@@ -127,6 +163,16 @@ export default function SlideEditorHeader({
           Tải JSON
         </button>
 
+        {/* Presentation Button - Always visible */}
+        <button
+          onClick={onPreview}
+          className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
+          title="Trình chiếu slide (F5)"
+        >
+          <Play className="w-4 h-4" />
+          Trình chiếu
+        </button>
+
         {showTemplateActions ? (
           <>
             <button
@@ -145,16 +191,7 @@ export default function SlideEditorHeader({
               Lưu Template
             </button>
           </>
-        ) : (
-          <button
-            onClick={onPreview}
-            className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
-            title="Preview Slideshow"
-          >
-            <Play className="w-4 h-4" />
-            Preview
-          </button>
-        )}
+        ) : null}
       </div>
     </header>
   );
