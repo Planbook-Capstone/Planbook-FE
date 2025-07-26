@@ -606,7 +606,6 @@ export default function CreateSlideTemplatePage() {
   return (
     <div className="h-screen flex flex-col">
       {/* Slide Editor */}
-      <img height={30} width={30} />
 
       <div className="flex-1">
         <SlideEditorLayout

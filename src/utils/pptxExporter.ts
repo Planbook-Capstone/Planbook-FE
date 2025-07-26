@@ -136,10 +136,10 @@ function addTextElement(slide: any, element: ElementData) {
     italic: (style as any).italic || false,
     underline: (style as any).underline || false,
     align: (style as any).textAlign || "left",
-    valign: "top", // ✅ Keep text at top like canvas
-    wrap: true, // ✅ Allow text wrapping like canvas
-    autoFit: false, // ✅ Keep exact dimensions like canvas
-    shrinkText: true, // ✅ Shrink text if too much content
+    valign: "top",
+    wrap: true,
+    autoFit: false,
+    shrinkText: true,
     breakLine: true, // Allow manual line breaks (\n)
   };
 
@@ -199,33 +199,9 @@ async function setSlideBackground(slide: any, background?: string) {
     if (background.startsWith("url(")) {
       const imageUrl = background.slice(4, -1); // Remove url() wrapper
 
-      if (imageUrl.startsWith("blob:")) {
-        // Convert blob URL to base64
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-
-        // Validate file size (max 5MB for PPTX compatibility)
-        if (blob.size > 5 * 1024 * 1024) {
-          console.warn(
-            "Background image too large for PPTX export (>5MB), skipping"
-          );
-          return;
-        }
-
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const result = reader.result as string;
-            // Validate base64 format
-            if (result && result.startsWith("data:image/")) {
-              resolve(result);
-            } else {
-              reject(new Error("Invalid image format"));
-            }
-          };
-          reader.onerror = () => reject(new Error("Failed to read image"));
-          reader.readAsDataURL(blob);
-        });
+      try {
+        // Convert any image URL (blob, cloud URL, or base64) to base64
+        const base64 = await convertImageToBase64(imageUrl);
 
         // Add as full-size background image element instead of slide.background
         slide.addImage({
@@ -235,23 +211,8 @@ async function setSlideBackground(slide: any, background?: string) {
           w: "100%",
           h: "100%",
         });
-      } else {
-        // For direct URLs, validate format
-        if (
-          imageUrl.startsWith("data:image/") ||
-          imageUrl.match(/\.(jpg|jpeg|png|gif)$/i)
-        ) {
-          // Add as full-size background image element
-          slide.addImage({
-            data: imageUrl,
-            x: 0,
-            y: 0,
-            w: "100%",
-            h: "100%",
-          });
-        } else {
-          console.warn("Unsupported background image format for PPTX export");
-        }
+      } catch (error) {
+        console.warn("Failed to load background image for PPTX export:", error);
       }
       return;
     }
@@ -299,6 +260,115 @@ function calculateAspectRatioFit(
 }
 
 /**
+ * Convert GIF to static image (first frame) using Canvas
+ */
+async function convertGifToStaticImage(imageUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+      try {
+        // Create canvas to capture first frame
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx) {
+          reject(new Error("Failed to get canvas context"));
+          return;
+        }
+
+        // Set canvas size to image size
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+
+        // Draw the image (this captures the first frame for GIFs)
+        ctx.drawImage(img, 0, 0);
+
+        // Convert to PNG base64
+        const base64 = canvas.toDataURL("image/png");
+        resolve(base64);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    img.onerror = () => {
+      reject(new Error("Failed to load image for GIF conversion"));
+    };
+
+    img.src = imageUrl;
+  });
+}
+
+/**
+ * Convert image URL to base64 data URL
+ */
+async function convertImageToBase64(imageUrl: string): Promise<string> {
+  try {
+    // If already base64, return as is
+    if (imageUrl.startsWith("data:image/")) {
+      return imageUrl;
+    }
+
+    // Check if it's a GIF - convert to static image first
+    if (
+      imageUrl.toLowerCase().includes(".gif") ||
+      imageUrl.toLowerCase().includes("gif")
+    ) {
+      console.log("Converting GIF to static image for PPTX compatibility...");
+      return await convertGifToStaticImage(imageUrl);
+    }
+
+    // Fetch the image from URL (works for both blob URLs and cloud URLs)
+    const response = await fetch(imageUrl);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch image: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const blob = await response.blob();
+
+    // Double-check if it's a GIF by MIME type
+    if (blob.type === "image/gif") {
+      console.log("Detected GIF by MIME type, converting to static image...");
+      const blobUrl = URL.createObjectURL(blob);
+      const staticImage = await convertGifToStaticImage(blobUrl);
+      URL.revokeObjectURL(blobUrl); // Clean up
+      return staticImage;
+    }
+
+    // Validate file size (max 5MB for PPTX compatibility)
+    if (blob.size > 5 * 1024 * 1024) {
+      throw new Error("Image too large for PPTX export (>5MB)");
+    }
+
+    // Convert blob to base64
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Validate base64 format
+        if (result && result.startsWith("data:image/")) {
+          resolve(result);
+        } else {
+          reject(new Error("Invalid image format"));
+        }
+      };
+      reader.onerror = () => reject(new Error("Failed to read image"));
+      reader.readAsDataURL(blob);
+    });
+
+    return base64;
+  } catch (error) {
+    console.error("Error converting image to base64:", error);
+    throw error;
+  }
+}
+
+/**
  * Add image element to PowerPoint slide
  */
 async function addImageElement(slide: any, element: ElementData) {
@@ -312,20 +382,8 @@ async function addImageElement(slide: any, element: ElementData) {
   );
 
   try {
-    // Convert blob URL to base64 if needed
-    let imageSrc = element.src;
-
-    if (element.src.startsWith("blob:")) {
-      // For blob URLs, we need to fetch and convert to base64
-      const response = await fetch(element.src);
-      const blob = await response.blob();
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
-      imageSrc = base64;
-    }
+    // Convert any image URL (blob, cloud URL, or base64) to base64
+    const imageSrc = await convertImageToBase64(element.src);
 
     const imageOptions = {
       x: coords.x,
@@ -492,6 +550,37 @@ export function validateSlideData(slides: SlideData[]): {
             elemIndex + 1
           }: Image element has no source`
         );
+      }
+
+      // Validate image URLs and warn about GIF conversion
+      if (element.type === "image" && element.src) {
+        const src = element.src;
+
+        // Warn about potential accessibility issues
+        if (
+          !src.startsWith("data:image/") &&
+          !src.startsWith("blob:") &&
+          !src.startsWith("http://") &&
+          !src.startsWith("https://")
+        ) {
+          console.warn(
+            `Slide ${index + 1}, Element ${
+              elemIndex + 1
+            }: Image source may not be accessible: ${src}`
+          );
+        }
+
+        // Info about GIF conversion
+        if (
+          src.toLowerCase().includes(".gif") ||
+          src.toLowerCase().includes("gif")
+        ) {
+          console.info(
+            `Slide ${index + 1}, Element ${
+              elemIndex + 1
+            }: GIF will be converted to static image (first frame) for PPTX compatibility`
+          );
+        }
       }
     });
   });

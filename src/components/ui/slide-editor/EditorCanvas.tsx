@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { SlideElement } from "@/types";
 import TextElement from "./TextElement";
 import ImageElement from "./ImageElement";
@@ -114,16 +114,26 @@ export default function EditorCanvas({
   });
 
   // Handle canvas click to deselect elements
-  const handleCanvasClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === canvasRef.current) {
+  const handleCanvasClick = useCallback(() => {
+    // Always deselect when clicking on canvas - elements will stopPropagation if clicked
+    setSelectedElementId(null);
+    setEditingElementId(null);
+    onSelectElement?.(null);
+  }, [onSelectElement]);
+
+  // Handle escape key to deselect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
         setSelectedElementId(null);
         setEditingElementId(null);
         onSelectElement?.(null);
       }
-    },
-    [onSelectElement]
-  );
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onSelectElement]);
 
   // Handle element selection
   const handleSelectElement = useCallback(
@@ -360,7 +370,7 @@ export default function EditorCanvas({
               width: element.width,
               height: element.height,
               zIndex:
-                selectedElementId === element.id ? 9999 : element.zIndex ?? 0,
+                selectedElementId === element.id ? 999 : element.zIndex ?? 0,
               border:
                 selectedElementId === element.id
                   ? "2px solid #3b82f6"
@@ -412,6 +422,12 @@ export default function EditorCanvas({
               : getBackgroundStyle()),
           }}
           onClick={handleCanvasClick}
+          onMouseDown={(e) => {
+            // Additional handler for mousedown to ensure deselection
+            if (e.target === e.currentTarget) {
+              handleCanvasClick();
+            }
+          }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}

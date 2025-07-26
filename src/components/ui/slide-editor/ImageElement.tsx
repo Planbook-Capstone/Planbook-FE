@@ -104,6 +104,7 @@ export default function ImageElement({
       position={{ x: element.x, y: element.y }}
       minWidth={minSize.width}
       minHeight={minSize.height}
+      onClick={handleClick}
       onDrag={(e, d) => {
         // Handle snap during drag
         const snapResult = handleDragWithSnap(
@@ -155,7 +156,7 @@ export default function ImageElement({
         ${isSelected ? "ring-2 ring-blue-500" : ""}
       `}
       style={{
-        zIndex: isSelected ? 9999 : element.zIndex ?? 0,
+        zIndex: isSelected ? 999 : element.zIndex ?? 0,
       }}
       resizeHandleStyles={{
         bottomRight: {
