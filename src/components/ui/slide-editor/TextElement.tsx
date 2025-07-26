@@ -332,7 +332,7 @@ export default function TextElement({
         ${isEditing ? "ring-2 ring-green-500" : ""}
       `}
       style={{
-        zIndex: isEditing ? 10000 : isSelected ? 9999 : element.zIndex ?? 0,
+        zIndex: isEditing ? 1000 : isSelected ? 999 : element.zIndex ?? 0,
       }}
       resizeHandleStyles={{
         bottomRight: {
