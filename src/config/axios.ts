@@ -54,7 +54,7 @@ const setupInterceptors = (axiosInstance: AxiosInstance) => {
           // Redirect to login on refresh failure
           if (typeof window !== "undefined") {
             localStorage.removeItem("token");
-            window.location.href = "/login";
+            window.location.href = "/auth";
           }
         }
       }

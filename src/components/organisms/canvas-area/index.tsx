@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { CanvasElement } from '@/components/templates/canva-layout';
-import { Trash2, Move, RotateCw, Image as ImageIcon } from 'lucide-react';
-import ExamContent from '@/components/organisms/exam-content';
-import { useExamContext } from '@/contexts/ExamContext';
+import React, { useState, useEffect } from "react";
+import { useDroppable, useDraggable } from "@dnd-kit/core";
+import { CanvasElement } from "@/components/templates/canva-layout";
+import { Trash2, Move, RotateCw, Image as ImageIcon } from "lucide-react";
+import ExamContent from "@/components/organisms/exam-content";
+import { useExamContext } from "@/contexts/ExamContext";
 
 interface CanvasAreaProps {
   elements: CanvasElement[];
@@ -19,17 +19,24 @@ interface DraggableElementProps {
   onDelete: () => void;
 }
 
-function DraggableElement({ element, onUpdate, onDelete }: DraggableElementProps) {
+function DraggableElement({
+  element,
+  onUpdate,
+  onDelete,
+}: DraggableElementProps) {
   const [isSelected, setIsSelected] = useState(false);
   const [isDraggingElement, setIsDraggingElement] = useState(false);
-  
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: element.id,
-    data: { ...element, isCanvasElement: true }
-  });
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: element.id,
+      data: { ...element, isCanvasElement: true },
+    });
 
   const style = {
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transform: transform
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+      : undefined,
     left: element.position.x,
     top: element.position.y,
     width: element.size.width,
@@ -42,8 +49,8 @@ function DraggableElement({ element, onUpdate, onDelete }: DraggableElementProps
       onUpdate({
         position: {
           x: element.position.x + transform.x,
-          y: element.position.y + transform.y
-        }
+          y: element.position.y + transform.y,
+        },
       });
       setIsDraggingElement(false);
     } else if (isDragging && !isDraggingElement) {
@@ -56,74 +63,23 @@ function DraggableElement({ element, onUpdate, onDelete }: DraggableElementProps
     setIsSelected(!isSelected);
   };
 
-  const renderContent = () => {
-    switch (element.type) {
-      case 'image':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg overflow-hidden">
-            <img 
-              src={element.content} 
-              alt="Canvas element"
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-            <div className="w-full h-full hidden items-center justify-center">
-              <span className="text-blue-600 text-sm">Image</span>
-            </div>
-          </div>
-        );
-      case 'text':
-        return (
-          <div 
-            className="w-full h-full flex items-center justify-center p-2 text-center"
-            style={element.style}
-          >
-            {element.content}
-          </div>
-        );
-      case 'shape':
-        if (element.content === 'rectangle') {
-          return <div className="w-full h-full bg-purple-200 border-2 border-purple-400 rounded" />;
-        } else if (element.content === 'circle') {
-          return <div className="w-full h-full bg-purple-200 border-2 border-purple-400 rounded-full" />;
-        } else if (element.content === 'triangle') {
-          return (
-            <div className="w-full h-full flex items-center justify-center">
-              <div 
-                className="w-0 h-0"
-                style={{
-                  borderLeft: '25px solid transparent',
-                  borderRight: '25px solid transparent',
-                  borderBottom: '50px solid #c084fc'
-                }}
-              />
-            </div>
-          );
-        }
-        break;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={`
         absolute cursor-move border-2 transition-all duration-200
-        ${isSelected ? 'border-blue-500 shadow-lg' : 'border-transparent hover:border-gray-300'}
-        ${isDragging ? 'opacity-50 z-50' : 'z-10'}
+        ${
+          isSelected
+            ? "border-blue-500 shadow-lg"
+            : "border-transparent hover:border-gray-300"
+        }
+        ${isDragging ? "opacity-50 z-50" : "z-10"}
       `}
       onClick={handleClick}
       {...listeners}
       {...attributes}
     >
-      {renderContent()}
-      
       {/* Selection Controls */}
       {isSelected && (
         <div className="absolute -top-10 left-0 flex space-x-1 bg-white border border-gray-200 rounded-lg shadow-lg p-1">
@@ -159,7 +115,7 @@ function DraggableElement({ element, onUpdate, onDelete }: DraggableElementProps
           </button>
         </div>
       )}
-      
+
       {/* Resize Handles */}
       {isSelected && (
         <>
@@ -173,9 +129,13 @@ function DraggableElement({ element, onUpdate, onDelete }: DraggableElementProps
   );
 }
 
-export default function CanvasArea({ elements, onUpdateElement, onDeleteElement }: CanvasAreaProps) {
+export default function CanvasArea({
+  elements,
+  onUpdateElement,
+  onDeleteElement,
+}: CanvasAreaProps) {
   const { isOver, setNodeRef } = useDroppable({
-    id: 'canvas-drop-zone',
+    id: "canvas-drop-zone",
   });
 
   // Use exam context
@@ -194,12 +154,11 @@ export default function CanvasArea({ elements, onUpdateElement, onDeleteElement 
     addShortQuestion,
   } = useExamContext();
 
-
-
   const handleCanvasClick = () => {
     // Deselect all elements when clicking on empty canvas
   };
 
+  console.log(examQuestions,"tran")
   return (
     <div className="w-full h-full relative">
       <div

@@ -353,7 +353,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/nguyenngocynhi/Documents/Github/Planbook-FE/src/generated/client",
+      "value": "/Users/nguyenngocynhi/Desktop/Planbook-FE/src/generated/client",
       "fromEnvVar": null
     },
     "config": {
@@ -367,7 +367,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/nguyenngocynhi/Documents/Github/Planbook-FE/src/prisma/schema.prisma",
+    "sourceFilePath": "/Users/nguyenngocynhi/Desktop/Planbook-FE/src/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -380,7 +380,7 @@ const config = {
     "db"
   ],
   "activeProvider": "mysql",
-  "postinstall": false,
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {

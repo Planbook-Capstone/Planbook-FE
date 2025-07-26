@@ -1,8 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { MagneticButton } from "@/components/ui/MagneticButton";
-import { TypewriterText } from "@/components/ui/TypewriterText";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,70 +10,75 @@ export const LandingPageHeader = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="relative z-50">
+    <header
+      className="fixed z-50 w-full"
+      style={{
+        backdropFilter: "blur(5px)",
+        WebkitBackdropFilter: "blur(8px)",
+        background:
+          "linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0))",
+      }}
+    >
       <div className="flex justify-between items-center py-4 px-4 md:px-6">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <Image
-            src="/images/logoPlanbook.png"
+            src="/images/planbook.svg"
             alt="PlanBook Logo"
-            width={30}
-            height={30}
+            width={130}
+            height={35}
             className="object-contain"
           />
-          <h1 className="font-calsans text-xl">PlanBook</h1>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex gap-6 text-sm text-muted-foreground">
-          <a href="#" className="font-semibold text-black">
-            Trang chủ
-          </a>
-          <a href="#">Trợ giúp</a>
-          <a href="#">Liên hệ</a>
-        </nav>
+        <div className="flex items-center gap-12">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex gap-6 text-md text-muted-foreground">
+            <a href="#" className="font-calsans text-neutral-800">
+              Trang chủ
+            </a>
+            <a href="#" className="text-neutral-600">
+              Trợ giúp
+            </a>
+            <a href="#" className="text-neutral-600">
+              Liên hệ
+            </a>
+          </nav>
 
-        {/* Desktop Buttons */}
-        <div className="hidden md:flex gap-2">
-          <Button variant="outline">
-            <Link href="/login">Đăng nhập</Link>
-          </Button>
-          <Button>
-            <Link href="/login">Đăng ký</Link>
-          </Button>
+          {/* Desktop Buttons */}
+          <div className="hidden md:flex gap-2">
+            <Button className="rounded-full bg-lime-300 text-black">
+              <Link href="/auth">Đăng ký</Link>
+            </Button>
+          </div>
         </div>
-
-        {/* Mobile Hamburger Button */}
+        {/* Mobile Hamburger/Close Button */}
         <button
           className="md:hidden"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Mở menu"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
         >
-          <Menu className="h-6 w-6" />
+          {mobileOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
         </button>
       </div>
 
       {/* Mobile Menu Overlay */}
       {mobileOpen && (
-        <div className="absolute top-0 left-0 w-full h-screen bg-white flex flex-col p-6 space-y-6 shadow-lg md:hidden">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Image
-                src="/images/logoPlanbook.png"
-                alt="PlanBook Logo"
-                width={30}
-                height={30}
-                className="object-contain"
-              />
-              <h1 className="font-calsans text-xl">PlanBook</h1>
-            </div>
-            <button onClick={() => setMobileOpen(false)} aria-label="Đóng menu">
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-
-          <nav className="flex flex-col gap-4 text-base text-muted-foreground">
-            <a href="#" className="font-semibold text-black">
+        <div
+          className="fixed z-50 w-full p-5"
+          style={{
+            backdropFilter: "blur(12px)",
+            backgroundColor: "rgba(255, 255, 255)",
+            WebkitBackdropFilter: "blur(12px)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+          }}
+        >
+          <nav className="bg-white px-3 pb-3 flex flex-col gap-4 text-base text-muted-foreground">
+            <a href="#" className="font-calsans text-black">
               Trang chủ
             </a>
             <a href="#">Trợ giúp</a>
@@ -84,10 +87,10 @@ export const LandingPageHeader = () => {
 
           <div className="flex flex-col gap-3 mt-auto">
             <Button variant="outline">
-              <Link href="/login">Đăng nhập</Link>
+              <Link href="/auth">Đăng nhập</Link>
             </Button>
             <Button>
-              <Link href="/login">Đăng ký</Link>
+              <Link href="/auth">Đăng ký</Link>
             </Button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
 import BookSelector from "@/components/molecules/book-selector";
@@ -15,40 +15,32 @@ import { TrashIcon } from "lucide-react";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
+import { useChaptersByBookService } from "@/services/chapterServices";
+import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "sonner";
 import { useGenerateSmartExamService } from "@/services/examGenerateServices";
-
-// Dữ liệu ảo cho bài học, bạn có thể thay bằng API nếu cần
-const LESSON_OPTIONS = [
-  { id: "5", name: "Hình học Oxyz" },
-  { id: "4", name: "Hàm số" },
-  { id: "6", name: "Tích phân" },
-];
-
-type DistributionLevel = {
-  biet: number;
-  hieu: number;
-  vd: number;
-};
-
-type MatrixRow = {
-  lessonID: string;
-  distribution: {
-    part1: DistributionLevel;
-    part2: DistributionLevel;
-    part3: DistributionLevel;
-  };
-  total: number;
-};
+import {
+  validateMatrixForm,
+  calculateRowTotal,
+  calculateColumnTotals,
+  type MatrixRow,
+  type DistributionLevel,
+  type FormData,
+} from "./validation";
+import LoadingAI from "@/components/molecules/loading";
+import { useTaskStatusService } from "@/services/progressTaskServices";
+import DocumentItem from "@/components/molecules/document-item";
 
 export default function MatrixTemplate2() {
   // State cho chọn trường, lớp, môn
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedBook, setSelectedBook] = useState("");
   const [school, setSchool] = useState("");
   const [examTitle, setExamTitle] = useState("");
   const [duration, setDuration] = useState(45);
+  const [response, setResponse] = useState<any>(null);
 
   // State for validation errors
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -58,10 +50,28 @@ export default function MatrixTemplate2() {
   const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
     enabled: !!selectedGrade,
   });
+  const { data: books } = useBooksBySubjectService(selectedSubject, {
+    enabled: !!selectedSubject,
+  });
+
+  // Get chapters by selected book
+  const { data: chaptersResponse } = useChaptersByBookService(selectedBook, {
+    enabled: !!selectedBook,
+  });
+  const chapters = chaptersResponse?.data?.content || [];
+
+  // Get lessons by all chapter IDs
+  const lessonQueries = useLessonsByChaptersService(
+    chapters.map((ch: any) => ch.id)
+  );
+
+  // Flatten all lessons from all chapters
+  const allLessons = lessonQueries
+    .filter((query) => query.data?.data?.content)
+    .flatMap((query) => query.data.data.content)
+    .filter((lesson: any) => lesson && lesson.id && lesson.name);
 
   const { mutate, isPending } = useGenerateSmartExamService();
-  // Nếu muốn chọn sách thì mở dòng dưới, còn không thì bỏ qua
-  // const { data: books } = useBooksBySubjectService(selectedSubject, { enabled: !!selectedSubject });
 
   // State cho bảng matrix
   const [matrix, setMatrix] = useState<MatrixRow[]>([
@@ -127,26 +137,7 @@ export default function MatrixTemplate2() {
 
     // Clear part total errors when user changes values and totals become valid
     // Calculate new column totals with the updated matrix
-    const newColumnTotals = {
-      part1Total: 0,
-      part2Total: 0,
-      part3Total: 0,
-    };
-
-    updatedMatrix.forEach((row) => {
-      newColumnTotals.part1Total +=
-        row.distribution.part1.biet +
-        row.distribution.part1.hieu +
-        row.distribution.part1.vd;
-      newColumnTotals.part2Total +=
-        row.distribution.part2.biet +
-        row.distribution.part2.hieu +
-        row.distribution.part2.vd;
-      newColumnTotals.part3Total +=
-        row.distribution.part3.biet +
-        row.distribution.part3.hieu +
-        row.distribution.part3.vd;
-    });
+    const newColumnTotals = calculateColumnTotals(updatedMatrix);
 
     // Clear part total errors if they become valid
     if (errors.part1Total && newColumnTotals.part1Total <= 40) {
@@ -182,53 +173,6 @@ export default function MatrixTemplate2() {
     setMatrix(matrix.filter((_, i) => i !== idx));
   };
 
-  // Helper function để tính tổng số câu hỏi của 1 hàng
-  const calculateRowTotal = (row: MatrixRow) => {
-    return (
-      row.distribution.part1.biet +
-      row.distribution.part1.hieu +
-      row.distribution.part1.vd +
-      row.distribution.part2.biet +
-      row.distribution.part2.hieu +
-      row.distribution.part2.vd +
-      row.distribution.part3.biet +
-      row.distribution.part3.hieu +
-      row.distribution.part3.vd
-    );
-  };
-
-  // Helper function để tính tổng từng phần (NB+TH+VD của mỗi phần)
-  const calculateColumnTotals = () => {
-    const totals = {
-      part1Total: 0, // Tổng NB+TH+VD của phần 1
-      part2Total: 0, // Tổng NB+TH+VD của phần 2
-      part3Total: 0, // Tổng NB+TH+VD của phần 3
-      grandTotal: 0,
-    };
-
-    matrix.forEach((row) => {
-      // Tính tổng từng phần
-      totals.part1Total +=
-        row.distribution.part1.biet +
-        row.distribution.part1.hieu +
-        row.distribution.part1.vd;
-      totals.part2Total +=
-        row.distribution.part2.biet +
-        row.distribution.part2.hieu +
-        row.distribution.part2.vd;
-      totals.part3Total +=
-        row.distribution.part3.biet +
-        row.distribution.part3.hieu +
-        row.distribution.part3.vd;
-    });
-
-    // Tính tổng tổng
-    totals.grandTotal =
-      totals.part1Total + totals.part2Total + totals.part3Total;
-
-    return totals;
-  };
-
   // Map ra JSON đúng format
   function mapToBackend() {
     return {
@@ -237,11 +181,12 @@ export default function MatrixTemplate2() {
       grade: 12,
       subject: selectedSubject || "Hoa_hoc",
       examTitle,
+      examCode: "1234",
       duration: Number(duration),
       outputFormat: "docx",
       outputLink: "online",
       matrix: matrix.map((row) => ({
-        lessonId: row.lessonID,
+        lessonId: row.lessonID.toString(),
         totalQuestions: calculateRowTotal(row),
         parts: [
           {
@@ -273,106 +218,24 @@ export default function MatrixTemplate2() {
     };
   }
 
-  // Validation function
+  // Validation function using the extracted validation module
   const validateForm = () => {
-    const validationErrors: string[] = [];
-    const fieldErrors: { [key: string]: string } = {};
-
     // Clear previous errors
     setErrors({});
 
-    // Validate school name
-    if (!school.trim()) {
-      validationErrors.push("Tên trường không được để trống");
-      fieldErrors.school = "Tên trường không được để trống";
-    }
+    const formData: FormData = {
+      school,
+      examTitle,
+      duration,
+      matrix,
+    };
 
-    // Validate exam title
-    if (!examTitle.trim()) {
-      validationErrors.push("Tên đề kiểm tra không được để trống");
-      fieldErrors.examTitle = "Tên đề kiểm tra không được để trống";
-    }
-
-    // Validate duration
-    if (!duration || duration < 15) {
-      validationErrors.push("Thời gian làm bài phải ít nhất 15 phút");
-      fieldErrors.duration = "Thời gian làm bài phải ít nhất 15 phút";
-    }
-
-    // Validate grade and subject selection
-    // if (!selectedGrade) {
-    //   validationErrors.push("Vui lòng chọn khối lớp");
-    //   fieldErrors.grade = "Vui lòng chọn khối lớp";
-    // }
-
-    // if (!selectedSubject) {
-    //   validationErrors.push("Vui lòng chọn môn học");
-    //   fieldErrors.subject = "Vui lòng chọn môn học";
-    // }
-
-    // // Validate matrix rows
-    // if (matrix.length === 0) {
-    //   validationErrors.push("Phải có ít nhất một dòng trong ma trận đề thi");
-    //   fieldErrors.matrix = "Phải có ít nhất một dòng trong ma trận đề thi";
-    // }
-
-    matrix.forEach((row, index) => {
-      if (!row.lessonID) {
-        validationErrors.push(`Dòng ${index + 1}: Chưa chọn bài học`);
-        fieldErrors[`matrix_${index}_lesson`] = "Chưa chọn bài học";
-      }
-
-      // Validate individual input fields - chỉ kiểm tra số âm
-      (["part1", "part2", "part3"] as const).forEach((part) => {
-        (["biet", "hieu", "vd"] as const).forEach((level) => {
-          const value = row.distribution[part][level];
-          const fieldKey = `matrix_${index}_${part}_${level}`;
-
-          // Check for negative values only
-          if (value < 0) {
-            validationErrors.push(
-              `Dòng ${index + 1}: Số câu hỏi không được âm`
-            );
-            fieldErrors[fieldKey] = "Không được âm";
-          }
-        });
-      });
-
-      // Validate tổng số câu của hàng phải >= 1
-      const rowTotal = calculateRowTotal(row);
-      if (rowTotal < 1) {
-        validationErrors.push(
-          `Dòng ${index + 1}: Tổng số câu phải ít nhất 1 câu`
-        );
-        fieldErrors[`matrix_${index}_total`] = "Tổng số câu phải >= 1";
-      }
-    });
-
-    // Validate tổng số câu của từng phần
-    const columnTotals = calculateColumnTotals();
-
-    // Phần 1: không được quá 40 câu
-    if (columnTotals.part1Total > 40) {
-      validationErrors.push("Tổng số câu phần 1 không được vượt quá 40 câu");
-      fieldErrors.part1Total = "Không được vượt quá 40 câu";
-    }
-
-    // Phần 2: không được quá 64 câu
-    if (columnTotals.part2Total > 64) {
-      validationErrors.push("Tổng số câu phần 2 không được vượt quá 64 câu");
-      fieldErrors.part2Total = "Không được vượt quá 64 câu";
-    }
-
-    // Phần 3: không được quá 6 câu
-    if (columnTotals.part3Total > 6) {
-      validationErrors.push("Tổng số câu phần 3 không được vượt quá 6 câu");
-      fieldErrors.part3Total = "Không được vượt quá 6 câu";
-    }
+    const validationResult = validateMatrixForm(formData);
 
     // Set field errors for UI feedback
-    setErrors(fieldErrors);
+    setErrors(validationResult.fieldErrors);
 
-    return validationErrors;
+    return validationResult.errors;
   };
 
   // Handle create exam
@@ -389,119 +252,157 @@ export default function MatrixTemplate2() {
     const examData = mapToBackend();
 
     mutate(examData, {
-      onSuccess: () => {
+      onSuccess: (res) => {
         toast.success("Tạo đề thi thành công");
+        setResponse(res?.data?.task_id);
       },
       onError: (error) => {
         toast.error("Tạo đề thi thất bại");
         console.error(error);
       },
     });
-
-    // console.log("Creating exam with data:", examData);
-    // toast.success("Đề thi đã được tạo thành công!");
-
-    // Here you would typically call an API to create the exam
-    // Example: createExamAPI(examData);
   };
+
+  // Task status tracking
+  const [isTaskCompleted, setIsTaskCompleted] = useState(false);
+
+  const { data: taskStatus } = useTaskStatusService(response || "", {
+    enabled: !!response && !isTaskCompleted, // Chỉ fetch khi có response và chưa hoàn thành
+    refetchInterval: 2000, // Fetch mỗi 2 giây
+    refetchIntervalInBackground: true,
+  });
+
+  useEffect(() => {
+    if (taskStatus) {
+      console.log("Task Status:", taskStatus);
+
+      // Kiểm tra nếu progress = 100% hoặc status = completed
+      if (taskStatus.progress === 100 || taskStatus.status === "completed") {
+        setIsTaskCompleted(true);
+        toast.success("Đề thi đã được tạo xong!");
+      } else if (taskStatus.status === "failed") {
+        setIsTaskCompleted(true);
+        toast.error("Tạo đề thi thất bại!");
+      }
+    }
+  }, [taskStatus]);
+
+  // Hiển thị LoadingAI khi đang có task và chưa hoàn thành
+  if (response && !isTaskCompleted) {
+    return (
+      <div className="px-10">
+        <LoadingAI
+          message={taskStatus?.current_message || "Đang tạo đề thi..."}
+          progress={taskStatus?.current_progress || 0}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-full mx-auto px-12">
-      <div className="mb-4">
-        <BookSelector
-          title="Vui lòng chọn sách"
-          gradeOptions={grades?.data?.content || []}
-          subjectOptions={subjects?.data?.content || []}
-          bookOptions={[]} // Không cần chọn sách ở đây
-          selectedGrade={selectedGrade}
-          selectedSubject={selectedSubject}
-          selectedBook={""}
-          onGradeChange={setSelectedGrade}
-          onSubjectChange={setSelectedSubject}
-          onBookChange={() => {}}
-        />
-      </div>
-      <div className="grid grid-cols-3 gap-4 mb-6 font-questrial">
-        <div className="flex flex-col">
-          <FormField label="Tên trường" htmlFor="school-input">
-            <Input
-              id="school-input"
-              value={school}
-              onChange={(e: any) => {
-                setSchool(e.target.value);
-                // Clear error when user starts typing
-                if (errors.school) {
-                  setErrors((prev) => ({ ...prev, school: "" }));
-                }
-              }}
-              placeholder="Trường ABC"
-              className={
-                errors.school ? "border-red-500 focus:border-red-500" : ""
-              }
+      {taskStatus?.result ? null: (
+        <>
+          <div className="mb-4">
+            <BookSelector
+              title="Vui lòng chọn sách"
+              gradeOptions={grades?.data?.content || []}
+              subjectOptions={subjects?.data?.content || []}
+              bookOptions={books?.data?.content || []} // Không cần chọn sách ở đây
+              selectedGrade={selectedGrade}
+              selectedSubject={selectedSubject}
+              selectedBook={selectedBook}
+              onGradeChange={setSelectedGrade}
+              onSubjectChange={setSelectedSubject}
+              onBookChange={setSelectedBook}
             />
-          </FormField>
-          {/* Fixed height container for error message */}
-          <div className="h-6 mt-1">
-            {errors.school && (
-              <p className="text-red-500 text-sm">{errors.school}</p>
-            )}
           </div>
-        </div>
+          <div className="grid grid-cols-3 gap-4 mb-6 font-questrial">
+            <div className="flex flex-col">
+              <FormField label="Tên trường" htmlFor="school-input">
+                <Input
+                  id="school-input"
+                  value={school}
+                  onChange={(e: any) => {
+                    setSchool(e.target.value);
+                    // Clear error when user starts typing
+                    if (errors.school) {
+                      setErrors((prev) => ({ ...prev, school: "" }));
+                    }
+                  }}
+                  placeholder="Trường ABC"
+                  className={
+                    errors.school ? "border-red-500 focus:border-red-500" : ""
+                  }
+                />
+              </FormField>
+              {/* Fixed height container for error message */}
+              <div className="h-6 mt-1">
+                {errors.school && (
+                  <p className="text-red-500 text-sm">{errors.school}</p>
+                )}
+              </div>
+            </div>
 
-        <div className="flex flex-col">
-          <FormField label="Tên đề kiểm tra" htmlFor="exam-title-input">
-            <Input
-              id="exam-title-input"
-              value={examTitle}
-              onChange={(e: any) => {
-                setExamTitle(e.target.value);
-                // Clear error when user starts typing
-                if (errors.examTitle) {
-                  setErrors((prev) => ({ ...prev, examTitle: "" }));
-                }
-              }}
-              placeholder="Kiểm tra giữa kỳ 1"
-              className={
-                errors.examTitle ? "border-red-500 focus:border-red-500" : ""
-              }
-            />
-          </FormField>
-          {/* Fixed height container for error message */}
-          <div className="h-6 mt-1">
-            {errors.examTitle && (
-              <p className="text-red-500 text-sm">{errors.examTitle}</p>
-            )}
-          </div>
-        </div>
+            <div className="flex flex-col">
+              <FormField label="Tên đề kiểm tra" htmlFor="exam-title-input">
+                <Input
+                  id="exam-title-input"
+                  value={examTitle}
+                  onChange={(e: any) => {
+                    setExamTitle(e.target.value);
+                    // Clear error when user starts typing
+                    if (errors.examTitle) {
+                      setErrors((prev) => ({ ...prev, examTitle: "" }));
+                    }
+                  }}
+                  placeholder="Kiểm tra giữa kỳ 1"
+                  className={
+                    errors.examTitle
+                      ? "border-red-500 focus:border-red-500"
+                      : ""
+                  }
+                />
+              </FormField>
+              {/* Fixed height container for error message */}
+              <div className="h-6 mt-1">
+                {errors.examTitle && (
+                  <p className="text-red-500 text-sm">{errors.examTitle}</p>
+                )}
+              </div>
+            </div>
 
-        <div className="flex flex-col">
-          <FormField label="Thời gian (phút)" htmlFor="duration-input">
-            <Input
-              id="duration-input"
-              type="number"
-              value={duration}
-              min={15}
-              onChange={(e: any) => {
-                setDuration(Number(e.target.value));
-                // Clear error when user starts typing
-                if (errors.duration && Number(e.target.value) >= 15) {
-                  setErrors((prev) => ({ ...prev, duration: "" }));
-                }
-              }}
-              className={
-                errors.duration ? "border-red-500 focus:border-red-500" : ""
-              }
-              placeholder="Tối thiểu 15 phút"
-            />
-          </FormField>
-          {/* Fixed height container for error message */}
-          <div className="h-6 mt-1">
-            {errors.duration && (
-              <p className="text-red-500 text-sm">{errors.duration}</p>
-            )}
+            <div className="flex flex-col">
+              <FormField label="Thời gian (phút)" htmlFor="duration-input">
+                <Input
+                  id="duration-input"
+                  type="number"
+                  value={duration}
+                  min={15}
+                  onChange={(e: any) => {
+                    setDuration(Number(e.target.value));
+                    // Clear error when user starts typing
+                    if (errors.duration && Number(e.target.value) >= 15) {
+                      setErrors((prev) => ({ ...prev, duration: "" }));
+                    }
+                  }}
+                  className={
+                    errors.duration ? "border-red-500 focus:border-red-500" : ""
+                  }
+                  placeholder="Tối thiểu 15 phút"
+                />
+              </FormField>
+              {/* Fixed height container for error message */}
+              <div className="h-6 mt-1">
+                {errors.duration && (
+                  <p className="text-red-500 text-sm">{errors.duration}</p>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
+
       <div className="mb-4 mt-6">
         <h2 className="text-lg font-calsans">Ma trận đề thi</h2>
         <h3 className="text-base font-questrial text-neutral-500">
@@ -590,19 +491,21 @@ export default function MatrixTemplate2() {
                           -- Chọn bài học --
                         </span>
                       </SelectItem>
-                      {LESSON_OPTIONS.filter((item) => {
-                        // Lọc ra các bài học đã được chọn ở các hàng khác
-                        const selectedLessons = matrix
-                          .map((row, index) =>
-                            index !== rowIdx ? row.lessonID : null
-                          )
-                          .filter(Boolean);
-                        return !selectedLessons.includes(item.id);
-                      }).map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
+                      {allLessons
+                        .filter((item: any) => {
+                          // Lọc ra các bài học đã được chọn ở các hàng khác
+                          const selectedLessons = matrix
+                            .map((row, index) =>
+                              index !== rowIdx ? row.lessonID : null
+                            )
+                            .filter(Boolean);
+                          return !selectedLessons.includes(item.id);
+                        })
+                        .map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   {errors[`matrix_${rowIdx}_lesson`] && (
@@ -718,7 +621,7 @@ export default function MatrixTemplate2() {
                     errors.part1Total ? "text-red-700" : ""
                   }`}
                 >
-                  {calculateColumnTotals().part1Total}/40
+                  {calculateColumnTotals(matrix).part1Total}/40
                 </span>
                 {errors.part1Total && (
                   <span className="text-red-500 font-questrial text-xs mt-1">
@@ -740,7 +643,7 @@ export default function MatrixTemplate2() {
                     errors.part2Total ? "text-red-700" : ""
                   }`}
                 >
-                  {calculateColumnTotals().part2Total}/64
+                  {calculateColumnTotals(matrix).part2Total}/64
                 </span>
                 {errors.part2Total && (
                   <span className="text-red-500 font-questrial text-xs mt-1">
@@ -762,7 +665,7 @@ export default function MatrixTemplate2() {
                     errors.part3Total ? "text-red-700" : ""
                   }`}
                 >
-                  {calculateColumnTotals().part3Total}/6
+                  {calculateColumnTotals(matrix).part3Total}/6
                 </span>
                 {errors.part3Total && (
                   <span className="text-red-500 font-questrial text-xs mt-1">
@@ -774,7 +677,7 @@ export default function MatrixTemplate2() {
             {/* Tổng tổng */}
             <td className="border px-2 py-3 text-center">
               <span className=" font-bold font-questrial">
-                {calculateColumnTotals().grandTotal}
+                {calculateColumnTotals(matrix).grandTotal}
               </span>
             </td>
             {/* Cột thao tác trống */}
@@ -792,22 +695,50 @@ export default function MatrixTemplate2() {
       </Button>
 
       {/* Create Exam Button */}
-      <div className="mt-6 flex justify-end">
-        <Button
-          type="button"
-          className="px-8 py-3  text-white font-medium rounded-md"
-          onClick={handleCreateExam}
-          disabled={isPending}
-        >
-          Tạo đề thi
-        </Button>
-      </div>
 
-      <hr className="my-6" />
+      {taskStatus?.result ? (
+        <div className="flex justify-between items-center mb-10 mt-5">
+          <div className="space-y-3">
+            <h1 className="font-calsans text-base">
+              Đã tạo thành công đề theo ma trận trên
+            </h1>
+            <div className="grid grid-cols-3">
+              <DocumentItem
+                type="DOCX"
+                name={taskStatus?.result?.message || "Không xác định"}
+                description="taskStatus"
+                onRemove={() => {
+                  console.log("remove");
+                }}
+              />
+            </div>
+          </div>
+          <Button
+            type="button"
+            className="px-8 py-3  text-white font-medium rounded-md"
+            disabled={isPending}
+          >
+            Tạo lại
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-6 flex justify-end">
+          <Button
+            type="button"
+            className="px-8 py-3  text-white font-medium rounded-md"
+            onClick={handleCreateExam}
+            disabled={isPending}
+          >
+            Tạo đề thi
+          </Button>
+        </div>
+      )}
+
+      {/* <hr className="my-6" />
       <h3 className="font-bold mb-2">Matrix JSON</h3>
       <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
         {JSON.stringify(mapToBackend(), null, 2)}
-      </pre>
+      </pre> */}
     </div>
   );
 }

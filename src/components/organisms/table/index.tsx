@@ -61,12 +61,20 @@ export function Table({
     return defaultData;
   });
 
-  // Update when initialData changes
+  // Update when initialData changes (but prevent infinite loops)
+  const prevInitialDataRef = useRef<TableData | undefined>();
   useEffect(() => {
-    if (initialData && initialData.headers && initialData.rows) {
+    if (
+      initialData &&
+      initialData.headers &&
+      initialData.rows &&
+      JSON.stringify(prevInitialDataRef.current) !== JSON.stringify(initialData)
+    ) {
+      console.log("🔄 Table: Updating from initialData", initialData);
       setTableData(initialData);
+      prevInitialDataRef.current = initialData;
     }
-  }, [initialData]); // Run when initialData changes
+  }, [initialData]);
 
   // Stable callback for data changes
   const handleDataChange = useCallback(
@@ -76,14 +84,21 @@ export function Table({
     [onDataChange]
   );
 
-  // Only call onDataChange when tableData actually changes
+  // Only call onDataChange when tableData actually changes (debounced)
   const prevTableDataRef = useRef<TableData | undefined>();
   useEffect(() => {
+    // Skip first render and when data comes from initialData
     if (
       prevTableDataRef.current &&
-      JSON.stringify(prevTableDataRef.current) !== JSON.stringify(tableData)
+      JSON.stringify(prevTableDataRef.current) !== JSON.stringify(tableData) &&
+      JSON.stringify(prevInitialDataRef.current) !== JSON.stringify(tableData)
     ) {
-      handleDataChange(tableData);
+      console.log("📤 Table: Calling onDataChange", tableData);
+      const timeoutId = setTimeout(() => {
+        handleDataChange(tableData);
+      }, 100); // Debounce to prevent rapid calls
+
+      return () => clearTimeout(timeoutId);
     }
     prevTableDataRef.current = tableData;
   }, [tableData, handleDataChange]);

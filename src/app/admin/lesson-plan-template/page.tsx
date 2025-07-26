@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { LessonPlanTemplateBuilder } from "@/components/organisms/lesson-plan-template-builder";
-// import { TemplateReferenceManager } from "@/components/organisms/template-reference-manager";
 import { LessonPlanTemplate } from "@/types";
 import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { Button } from "@/components/ui/Button";
@@ -15,18 +14,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import {
-  Upload,
-  Eye,
-  Download,
-  Plus,
-  MoreVertical,
-  Trash2,
-} from "lucide-react";
-import * as pdfjsLib from "pdfjs-dist";
+import { Upload, MoreVertical } from "lucide-react";
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import {
+  useLessonPlanByIdService,
+  useLessonPlanService,
+} from "@/services/lessonPlanServices";
+import { useLessonPlanAllNodeService } from "@/services/lessonPlanNodeServices";
+import { set } from "date-fns";
+import PreviewModal from "@/components/PreviewModal";
 
 // Interface for uploaded files
 interface UploadedFile {
@@ -40,6 +36,11 @@ interface UploadedFile {
 }
 
 export default function LessonPlanTemplatePage() {
+  const { data: lessonPlanData } = useLessonPlanService();
+  const [selected, setSelected] = useState<LessonPlanTemplate>();
+  const { data: lessonPlanById } = useLessonPlanByIdService(selected?.id || "");
+  const { data: allNode } = useLessonPlanAllNodeService(selected?.id || "")();
+
   const [templates, setTemplates] = useState<LessonPlanTemplate[]>([
     { ...getDefaultTemplate(), isActive: true },
     {
@@ -72,45 +73,8 @@ export default function LessonPlanTemplatePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Function to generate PDF thumbnail
-  const generatePDFThumbnail = async (file: File): Promise<string | null> => {
-    try {
-      console.log("Generating thumbnail for:", file.name);
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-      const page = await pdf.getPage(1); // First page
-
-      const viewport = page.getViewport({ scale: 0.5 }); // Increase scale for better quality
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-
-      if (!context) {
-        console.error("Cannot get canvas context");
-        return null;
-      }
-
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      await page.render({
-        canvasContext: context,
-        viewport: viewport,
-      }).promise;
-
-      const thumbnail = canvas.toDataURL("image/jpeg", 0.8);
-      console.log(
-        "Thumbnail generated successfully, length:",
-        thumbnail.length
-      );
-      return thumbnail;
-    } catch (error) {
-      console.error("Error generating PDF thumbnail:", error);
-      return null;
-    }
-  };
-
   // Filter templates based on search query
-  const filteredTemplates = templates.filter(
+  const filteredTemplates = lessonPlanData?.data?.content?.filter(
     (template) =>
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -128,10 +92,12 @@ export default function LessonPlanTemplatePage() {
   };
 
   const handleEditTemplate = (template: LessonPlanTemplate) => {
-    setCurrentTemplate(template);
-    setSelectedTemplate(template);
-    setIsEditing(true);
-    setShowBuilder(true);
+    console.log(template, "tran");
+    setShowPreview(true);
+    // setCurrentTemplate(template);
+    // setSelectedTemplate(template);
+    // setIsEditing(true);
+    // setShowBuilder(true);
   };
 
   const handleDeleteTemplate = (templateId: string) => {
@@ -268,16 +234,20 @@ export default function LessonPlanTemplatePage() {
     }
     return "📄";
   };
+  const [showPreview, setShowPreview] = useState(false);
 
-  if (showBuilder) {
+  if (showPreview && allNode?.data) {
     return (
-      <LessonPlanTemplateBuilder
-        initialTemplate={currentTemplate}
-        onSave={handleSave}
-        onSaveDraft={handleSaveDraft}
-        onExit={() => setShowBuilder(false)}
-        mode="admin" // Admin mode - chỉ cấu hình cấu trúc template
-      />
+      <>
+        <PreviewModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          data={allNode?.data }
+          onDownload={() => {}}
+          lesson={lessonPlanById?.data}
+          mode={false}
+        />
+      </>
     );
   }
 
@@ -300,7 +270,7 @@ export default function LessonPlanTemplatePage() {
               placeholder="Tìm kiếm template..."
               className="w-80"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: any) => setSearchQuery(e.target.value)}
             />
             {activeTab === "references" && (
               <Button
@@ -317,7 +287,7 @@ export default function LessonPlanTemplatePage() {
 
         <TabsContent value="template" className="mt-3">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTemplates.map((template) => (
+            {filteredTemplates?.map((template) => (
               <div
                 key={template.id}
                 className={`rounded-lg p-4 hover:shadow-md transition-shadow ${
@@ -330,17 +300,17 @@ export default function LessonPlanTemplatePage() {
                   <div className="flex-1">
                     <h3
                       className={`font-calsans text-base mb-1 ${
-                        template.isActive ? "text-white" : "text-gray-900"
+                        template?.isActive ? "text-white" : "text-gray-900"
                       }`}
                     >
-                      {template.name}
+                      {template?.name}
                     </h3>
                     <p
                       className={`text-sm line-clamp-2 ${
-                        template.isActive ? "text-blue-100" : "text-gray-600"
+                        template?.isActive ? "text-blue-100" : "text-gray-600"
                       }`}
                     >
-                      {template.description}
+                      {template?.description}
                     </p>
                   </div>
                   <div className="flex items-center gap-1 ml-2"></div>
@@ -361,7 +331,10 @@ export default function LessonPlanTemplatePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEditTemplate(template)}
+                    onClick={() => {
+                      setSelected(template);
+                      handleEditTemplate(template);
+                    }}
                     className={`text-xs ${
                       template.isActive
                         ? "bg-neutral-800 text-white border-neutral-800 hover:bg-neutral-700"

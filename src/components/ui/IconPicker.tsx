@@ -93,14 +93,24 @@ const iconList = [
 type IconName = (typeof iconList)[number];
 
 const presetColors = [
-  "#9ca3af",
-  "#d97706",
-  "#ca8a04",
-  "#15803d",
-  "#0369a1",
+  "#46E9E4",
+  "#46DEE9",
+  "#00A4FF",
+  "#E9FF89",
+  "#E2F050",
   "#7c3aed",
-  "#db2777",
-  "#e11d48",
+  "#BFEE4A",
+  "#C151E3",
+  "#6C32EB",
+  "#3500A7",
+  "#FFA245",
+  "#EF4400",
+  "#FF7EAB",
+  "#D62E1F",
+  "#5CCA6A",
+  "#D5B0F8",
+  "#FFD8E8",
+  "#DA7EA4",
 ];
 
 interface IconPickerProps {

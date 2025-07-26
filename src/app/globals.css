@@ -20,6 +20,14 @@
   color: #cbd5e1;
 }
 
+/* Line clamp utilities */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* @custom-variant dark (&: is(.dark *)); */
 
 @theme inline {

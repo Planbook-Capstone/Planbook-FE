@@ -1,17 +1,204 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType, Footer, PageNumber, ImageRun } from "docx";
 import { saveAs } from "file-saver";
 
+// Helper function to load image via Image element and convert to canvas
+const loadImageViaCanvas = (imageUrl: string): Promise<ArrayBuffer | null> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous'; // Try to enable CORS
+
+    img.onload = () => {
+      try {
+        // Create canvas and draw image
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          console.error("❌ Could not get canvas context");
+          resolve(null);
+          return;
+        }
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        // Convert canvas to blob
+        canvas.toBlob((blob) => {
+          if (blob) {
+            blob.arrayBuffer().then(resolve).catch(() => resolve(null));
+          } else {
+            resolve(null);
+          }
+        }, 'image/png');
+      } catch (error) {
+        console.error("❌ Canvas conversion error:", error);
+        resolve(null);
+      }
+    };
+
+    img.onerror = () => {
+      console.error("❌ Image load error");
+      resolve(null);
+    };
+
+    // Set timeout to avoid hanging
+    setTimeout(() => {
+      console.error("❌ Image load timeout");
+      resolve(null);
+    }, 10000);
+
+    img.src = imageUrl;
+  });
+};
+
 // Utility function to convert image URL to buffer
 const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | null> => {
   try {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      console.error("Failed to fetch image:", response.statusText);
+    console.log("🔄 Converting image to buffer:", {
+      isDataUrl: imageUrl.startsWith('data:'),
+      urlLength: imageUrl.length,
+      urlStart: imageUrl.substring(0, 50)
+    });
+
+    // Handle data URLs (base64 images)
+    if (imageUrl.startsWith('data:')) {
+      console.log("🔍 Processing data URL:", {
+        fullUrl: imageUrl.substring(0, 100) + "...",
+        hasComma: imageUrl.includes(','),
+        mimeType: imageUrl.split(',')[0]
+      });
+
+      // Extract base64 data from data URL
+      const parts = imageUrl.split(',');
+      if (parts.length !== 2) {
+        console.error("❌ Invalid data URL format - no comma separator");
+        return null;
+      }
+
+      const base64Data = parts[1];
+      if (!base64Data) {
+        console.error("❌ Invalid data URL format - no base64 data");
+        return null;
+      }
+
+      console.log("🔍 Base64 data:", {
+        length: base64Data.length,
+        start: base64Data.substring(0, 50)
+      });
+
+      try {
+        // Convert base64 to ArrayBuffer
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        console.log("✅ Converted data URL to buffer:", bytes.buffer.byteLength, "bytes");
+        return bytes.buffer;
+      } catch (decodeError) {
+        console.error("❌ Error decoding base64:", decodeError);
+        return null;
+      }
+    } else if (imageUrl.startsWith('http')) {
+      // Handle HTTP URLs with multiple fallback strategies
+      console.log("🌐 Fetching HTTP URL:", imageUrl);
+
+      // Strategy 1: Try with CORS
+      try {
+        console.log("🔄 Trying CORS fetch...");
+        const response = await fetch(imageUrl, {
+          mode: 'cors',
+          headers: {
+            'Accept': 'image/*',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        });
+
+        if (response.ok) {
+          const buffer = await response.arrayBuffer();
+          console.log("✅ CORS fetch successful, size:", buffer.byteLength);
+          return buffer;
+        }
+        console.log("⚠️ CORS fetch failed:", response.status, "trying proxy...");
+      } catch (corsError) {
+        console.log("⚠️ CORS error:", corsError, "trying proxy...");
+      }
+
+      // Strategy 2: Try with CORS proxy
+      try {
+        const proxyUrl = `https://cors-anywhere.herokuapp.com/${imageUrl}`;
+        console.log("🔄 Trying CORS proxy:", proxyUrl);
+
+        const response = await fetch(proxyUrl, {
+          headers: {
+            'Accept': 'image/*',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+
+        if (response.ok) {
+          const buffer = await response.arrayBuffer();
+          console.log("✅ Proxy fetch successful, size:", buffer.byteLength);
+          return buffer;
+        }
+        console.log("⚠️ Proxy fetch failed:", response.status);
+      } catch (proxyError) {
+        console.log("⚠️ Proxy error:", proxyError);
+      }
+
+      // Strategy 3: Try alternative proxy
+      try {
+        const altProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`;
+        console.log("🔄 Trying alternative proxy:", altProxyUrl);
+
+        const response = await fetch(altProxyUrl);
+        if (response.ok) {
+          const buffer = await response.arrayBuffer();
+          console.log("✅ Alternative proxy successful, size:", buffer.byteLength);
+          return buffer;
+        }
+        console.log("⚠️ Alternative proxy failed:", response.status);
+      } catch (altProxyError) {
+        console.log("⚠️ Alternative proxy error:", altProxyError);
+      }
+
+      // Strategy 4: Try simple fetch without CORS (might work for some images)
+      try {
+        console.log("🔄 Trying simple fetch...");
+        const response = await fetch(imageUrl);
+        if (response.ok) {
+          const buffer = await response.arrayBuffer();
+          console.log("✅ Simple fetch successful, size:", buffer.byteLength);
+          return buffer;
+        }
+        console.log("⚠️ Simple fetch failed:", response.status);
+      } catch (simpleError) {
+        console.log("⚠️ Simple fetch error:", simpleError);
+      }
+
+      // Strategy 5: Try loading image via Image element and convert to canvas
+      try {
+        console.log("🔄 Trying Image element + canvas conversion...");
+        const buffer = await loadImageViaCanvas(imageUrl);
+        if (buffer) {
+          console.log("✅ Canvas conversion successful, size:", buffer.byteLength);
+          return buffer;
+        }
+        console.log("⚠️ Canvas conversion failed");
+      } catch (canvasError) {
+        console.log("⚠️ Canvas error:", canvasError);
+      }
+
+      console.error("❌ All HTTP fetch strategies failed for:", imageUrl);
+      return null;
+    } else {
+      console.error("❌ Unsupported image URL format:", imageUrl);
       return null;
     }
-    return await response.arrayBuffer();
   } catch (error) {
-    console.error("Error converting image to buffer:", error);
+    console.error("❌ Error converting image to buffer:", error);
     return null;
   }
 };
@@ -91,7 +278,6 @@ interface DemoNode {
   metadata?: any;
   status: "ACTIVE" | "DELETED";
   children: DemoNode[];
-  tableData?: TableData;
 }
 
 interface LessonPlanHeader {
@@ -143,7 +329,7 @@ const createLessonPlanHeader = (headerInfo: LessonPlanHeader = {}) => {
       children: [
         new TextRun({
           text: "(Kèm theo Công văn số 5512/BGDĐT-GDTrH ngày 18 tháng 12 năm 2020 của Bộ GDĐT)",
-          italic: true,
+          italics: true,
           size: 24,
         }),
       ],
@@ -275,9 +461,12 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
   const processNode = async (node: DemoNode, depth: number = 0): Promise<any[]> => {
     const elements: any[] = [];
 
+    // Store original type for title styling
+    const originalType = node.type;
+
     // Check fieldType first for special cases like TABLE
     if (node.fieldType === "TABLE") {
-      console.log("🎯 Processing TABLE fieldType node:", node.id);
+      console.log("🎯 Processing TABLE fieldType node:", node.id, "originalType:", originalType);
       // Handle TABLE fieldType regardless of node.type - jump to TABLE case
       node = { ...node, type: "TABLE" as any };
     }
@@ -461,21 +650,41 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
       case "TABLE":
         // Add table title if it's not default
         if (node.title && node.title !== "Mới: Table") {
-          elements.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: node.title,
-                  bold: true,
-                  size: 26, // 13pt
-                }),
-              ],
-              spacing: {
-                after: 60, // 3pt
-                before: 120, // 6pt
-              },
-            })
-          );
+          // Use different styling based on original type
+          if (originalType === "SUBSECTION") {
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: node.title,
+                    bold: true,
+                    size: 28, // 14pt - same as SUBSECTION
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_2,
+                spacing: {
+                  after: 120, // 6pt
+                  before: 240, // 12pt
+                },
+              })
+            );
+          } else {
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: node.title,
+                    bold: true,
+                    size: 26, // 13pt
+                  }),
+                ],
+                spacing: {
+                  after: 60, // 3pt
+                  before: 120, // 6pt
+                },
+              })
+            );
+          }
         }
 
         // Handle both old and new table data formats
@@ -483,7 +692,7 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         console.log("📋 Processing table node:", {
           nodeId: node.id,
-          hasTableData: !!node.tableData,
+          hasTableData: !!(node as any).tableData,
           hasContent: !!node.content,
           contentType: typeof node.content
         });
@@ -516,19 +725,64 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
                 )
                 .map((row: any) =>
                   row.cells.map((cell: any) => {
-                    // Combine title and content, preserve HTML formatting info
+                    // Combine title and content for text content
                     const title = cell.title || "";
                     const content = cell.content || "";
-                    let combined = "";
+                    let textContent = "";
 
                     if (title && content) {
-                      combined = `${title}\n${content}`;
+                      textContent = `${title}\n${content}`;
                     } else {
-                      combined = title || content;
+                      textContent = title || content;
                     }
 
-                    // Parse HTML and return object with text and formatting
-                    return parseHtmlToTextRuns(combined);
+                    // Check if this cell has HTML content with images
+                    // Look for <img> tags with any src (data:image/ or http/https URLs)
+                    const imgRegex = /<img[^>]+src=["']([^"']*)["'][^>]*>/gi;
+                    let imageMatch;
+                    let extractedImageUrl = null;
+                    let cleanTextContent = textContent;
+
+                    // Extract image URL from HTML content
+                    if ((imageMatch = imgRegex.exec(textContent)) !== null) {
+                      extractedImageUrl = imageMatch[1];
+                      // Remove the img tag from text content
+                      cleanTextContent = textContent.replace(/<img[^>]*>/gi, '').trim();
+                      // Clean up HTML tags and decode entities
+                      cleanTextContent = cleanTextContent
+                        .replace(/<[^>]*>/g, '') // Remove HTML tags
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&amp;/g, '&')
+                        .replace(/&quot;/g, '"')
+                        .trim();
+                    }
+
+                    if (extractedImageUrl) {
+                      console.log("🖼️ Found image in HTML content:", {
+                        originalContent: textContent.substring(0, 100),
+                        extractedUrl: extractedImageUrl.substring(0, 50) + "...",
+                        cleanText: cleanTextContent
+                      });
+
+                      return {
+                        text: cleanTextContent || "",
+                        image: {
+                          url: extractedImageUrl,
+                          name: "table-image"
+                        }
+                      } as CellContent;
+                    } else {
+                      // Regular text cell - clean HTML and return
+                      const cleanText = textContent
+                        .replace(/<[^>]*>/g, '') // Remove HTML tags
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&amp;/g, '&')
+                        .replace(/&quot;/g, '"')
+                        .trim();
+                      return cleanText;
+                    }
                   })
                 );
 
@@ -548,16 +802,17 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
           } catch (error) {
             console.error("❌ Error parsing rich table data:", error);
             // Fallback to tableData field or default
-            tableData = node.tableData || {
+            const nodeAny = node as any;
+            tableData = nodeAny.tableData || {
               headers: ["Cột 1", "Cột 2"],
               rows: [["", ""], ["", ""]],
             };
           }
         }
         // Fallback to tableData field (old format) if content parsing failed
-        else if (node.tableData && node.tableData.headers && node.tableData.rows) {
-          console.log("📋 Using tableData field as fallback:", node.tableData);
-          tableData = node.tableData;
+        else if ((node as any).tableData && (node as any).tableData.headers && (node as any).tableData.rows) {
+          console.log("📋 Using tableData field as fallback:", (node as any).tableData);
+          tableData = (node as any).tableData;
         }
         // Use default if no data available
         else {
@@ -599,54 +854,129 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
             ),
           }),
           // Data rows
-          ...tableData.rows.map(row =>
+          ...await Promise.all(tableData.rows.map(async (row) =>
             new TableRow({
-              children: row.map(cell => {
-                let cellTextRuns: any[] = [];
+              children: await Promise.all(row.map(async (cell) => {
+                const cellParagraphs: any[] = [];
 
                 if (typeof cell === 'string') {
                   // Parse HTML string to TextRuns with formatting
-                  cellTextRuns = parseHtmlToTextRuns(cell);
+                  const cellTextRuns = parseHtmlToTextRuns(cell);
+                  cellParagraphs.push(new Paragraph({
+                    children: cellTextRuns,
+                  }));
                 } else if (Array.isArray(cell)) {
-                  // Already parsed TextRuns array
-                  cellTextRuns = cell;
+                  // Already parsed TextRuns array (legacy)
+                  cellParagraphs.push(new Paragraph({
+                    children: cell,
+                  }));
                 } else if (cell && typeof cell === 'object') {
                   if ('text' in cell && 'image' in cell) {
-                    // New CellContent format
-                    if (cell.image) {
-                      cellTextRuns = [new TextRun({
-                        text: `[Hình ảnh: ${cell.image.name || 'image'}]`,
-                        size: 24,
-                      })];
-                    } else {
-                      cellTextRuns = parseHtmlToTextRuns(cell.text || '');
+                    // New CellContent format - handle mixed content
+                    const cellContent = cell as CellContent;
+
+                    // Add text content if exists
+                    if (cellContent.text) {
+                      const textRuns = parseHtmlToTextRuns(cellContent.text);
+                      cellParagraphs.push(new Paragraph({
+                        children: textRuns,
+                      }));
+                    }
+
+                    // Add image directly in cell if exists
+                    if (cellContent.image) {
+                      console.log("🖼️ Adding image directly to table cell:", {
+                        url: cellContent.image.url.substring(0, 50) + "...",
+                        isDataUrl: cellContent.image.url.startsWith('data:'),
+                        isHttpUrl: cellContent.image.url.startsWith('http')
+                      });
+
+                      try {
+                        const imageBuffer = await convertImageToBuffer(cellContent.image.url);
+                        if (imageBuffer) {
+                          // Detect image type
+                          let imageType = "png";
+                          if (cellContent.image.url.startsWith('data:image/')) {
+                            const mimeType = cellContent.image.url.split(',')[0].split(':')[1].split(';')[0];
+                            if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+                              imageType = "jpg";
+                            } else if (mimeType.includes('png')) {
+                              imageType = "png";
+                            }
+                          } else if (cellContent.image.url.includes('.jpg') || cellContent.image.url.includes('.jpeg')) {
+                            imageType = "jpg";
+                          } else if (cellContent.image.url.includes('.png')) {
+                            imageType = "png";
+                          }
+
+                          cellParagraphs.push(new Paragraph({
+                            children: [
+                              new ImageRun({
+                                data: new Uint8Array(imageBuffer),
+                                transformation: {
+                                  width: 200, // Smaller for table cells
+                                  height: 150,
+                                },
+                                type: imageType as any,
+                              }),
+                            ],
+                          }));
+                          console.log("✅ Successfully added image to table cell");
+                        } else {
+                          console.error("❌ Failed to convert image to buffer");
+                          cellParagraphs.push(new Paragraph({
+                            children: [
+                              new TextRun({
+                                text: `[Không thể tải ảnh: ${cellContent.image.name || 'image'}]`,
+                                italics: true,
+                                size: 20,
+                                color: "FF0000",
+                              }),
+                            ],
+                          }));
+                        }
+                      } catch (error) {
+                        console.error("❌ Error adding image to table cell:", error);
+                        cellParagraphs.push(new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: `[Lỗi tải ảnh: ${cellContent.image.name || 'image'}]`,
+                              italics: true,
+                              size: 20,
+                              color: "FF0000",
+                            }),
+                          ],
+                        }));
+                      }
                     }
                   } else if ('type' in cell && 'content' in cell) {
                     // Old format compatibility
-                    const text = cell.type === 'image' ? `[Hình ảnh: ${cell.content}]` : cell.content;
-                    cellTextRuns = parseHtmlToTextRuns(text);
+                    const cellData = cell as any;
+                    const text = cellData.type === 'image' ? `[📷 ${cellData.content}]` : String(cellData.content || '');
+                    const textRuns = parseHtmlToTextRuns(text);
+                    cellParagraphs.push(new Paragraph({
+                      children: textRuns,
+                    }));
                   }
                 }
 
-                // Ensure we have at least one TextRun
-                if (cellTextRuns.length === 0) {
-                  cellTextRuns = [new TextRun({ text: '', size: 24 })];
+                // Ensure at least one paragraph
+                if (cellParagraphs.length === 0) {
+                  cellParagraphs.push(new Paragraph({
+                    children: [new TextRun({ text: '', size: 24 })],
+                  }));
                 }
 
                 return new TableCell({
-                  children: [
-                    new Paragraph({
-                      children: cellTextRuns,
-                    }),
-                  ],
+                  children: cellParagraphs,
                   width: {
                     size: columnWidth,
                     type: WidthType.DXA,
                   },
                 });
-              }),
+              })),
             })
-          )
+          ))
         ];
 
         // Create table
@@ -660,7 +990,9 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         elements.push(table);
 
-        // Add spacing after table
+
+
+        // Add spacing after table and images
         elements.push(
           new Paragraph({
             children: [new TextRun({ text: "", size: 24 })],
@@ -712,6 +1044,7 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
                         width: 400,
                         height: 300,
                       },
+                      type: "png",
                     }),
                   ],
                   spacing: {

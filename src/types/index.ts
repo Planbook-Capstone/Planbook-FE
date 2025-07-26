@@ -58,14 +58,17 @@ export type LessonPlanResponse = {
 };
 
 export type SubscriptionResponse = {
-  id: string | number;
+  id: string;
   name: string;
-  status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL";
-  duration_months: number;
+  tokenAmount: number;
   price: number;
-  currency: "VND" | "USD";
-  created_at: string;
-  updated_at: string;
+  description: string;
+  highlight: boolean;
+  features: Record<string, string>;
+  priority: number;
+  status: "ACTIVE" | "INACTIVE";
+  createdAt: string;
+  updatedAt: string;
 };
 export type BookTypeResponse = {
   id: bigint;
@@ -160,8 +163,19 @@ export interface SlideTemplateFormData {
   imageBlocks: Record<string, string>;
 }
 
-// // User types
-// export interface User {
+export type OrderHistoryResponse = {
+  id: string;
+  orderId: string;
+  fromStatus: string | null;
+  toStatus: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// User types
+// export interface UserResponse {
+
 //   id: string;
 //   name: string;
 //   email: string;
@@ -170,6 +184,43 @@ export interface SlideTemplateFormData {
 //   createdAt: string;
 //   updatedAt: string;
 // }
+
+// Transaction types
+export interface Transaction {
+  id: string;
+  amount: number;
+  type: 'DEPOSIT' | 'WITHDRAWAL' | 'PAYMENT' | 'REFUND';
+  description?: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Wallet types
+export interface Wallet {
+  id: string;
+  balance: number;
+  createdAt: string;
+  updatedAt: string;
+  transactions: Transaction[];
+}
+
+// Enhanced User Response with wallet
+export interface UserWithWalletResponse {
+  id: string;
+  fullName: string | null;
+  username: string;
+  email: string;
+  role: 'PARTNER' | 'STAFF' | 'USER' | 'ADMIN';
+  phone: string | null;
+  avatar: string | null;
+  gender: string | null;
+  birthday: string | null;
+  status: string | null;
+  createdAt: string;
+  updatedAt: string;
+  wallet: Wallet | null;
+}
 
 // // Product types
 // export interface Product {

@@ -37,7 +37,9 @@
         "@solana/wallet-standard-features": "^1.3.0",
         "@stomp/stompjs": "^7.1.1",
         "@supabase/supabase-js": "^2.50.0",
+        "@tanstack/query-sync-storage-persister": "^5.83.0",
         "@tanstack/react-query": "^5.80.6",
+        "@tanstack/react-query-persist-client": "^5.83.0",
         "@tanstack/react-table": "^8.21.3",
         "@tiptap/extension-image": "^2.24.2",
         "@tiptap/extension-link": "^2.24.2",
@@ -64,6 +66,7 @@
         "pptx-parser": "^1.1.7-beta.9",
         "pptxgenjs": "^4.0.1",
         "re-resizable": "^6.11.2",
+        "qrcode": "^1.5.4",
         "react": "^19.0.0",
         "react-day-picker": "^9.7.0",
         "react-dom": "^19.0.0",
@@ -72,6 +75,7 @@
         "react-icons": "^5.5.0",
         "react-pdf": "^10.0.1",
         "react-rnd": "^10.5.2",
+        "react-qr-code": "^2.0.18",
         "react-scroll-parallax": "^3.4.5",
         "react-webcam": "^7.2.0",
         "recharts": "^3.1.0",
@@ -83,7 +87,8 @@
         "uuid": "^11.1.0",
         "wavesurfer.js": "^7.9.9",
         "xml2js": "^0.6.2",
-        "zod": "^3.25.28"
+        "zod": "^3.25.28",
+        "zustand": "^5.0.6"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
@@ -97,6 +102,7 @@
         "@types/react-dom": "^19",
         "@types/sockjs-client": "^1.5.4",
         "@types/xml2js": "^0.4.14",
+        "@types/three": "^0.178.1",
         "autoprefixer": "^10.4.21",
         "eslint": "^9",
         "eslint-config-next": "15.3.2",

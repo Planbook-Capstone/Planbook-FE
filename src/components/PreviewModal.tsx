@@ -1,7 +1,9 @@
 "use client";
 
+import { Share2 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { DowloadIcon } from "@/constants/icon";
+import { useUploadDocxToOnlineService } from "@/services/lessonPlanGenerationServices";
 
 interface CellContent {
   text?: string;
@@ -34,7 +36,6 @@ interface DemoNode {
   metadata?: any;
   status: "ACTIVE" | "DELETED";
   children: DemoNode[];
-  tableData?: TableData;
 }
 
 interface PreviewModalProps {
@@ -42,6 +43,8 @@ interface PreviewModalProps {
   onClose: () => void;
   data: DemoNode[];
   onDownload: () => void;
+  lesson: any;
+  mode?: boolean;
 }
 
 export default function PreviewModal({
@@ -49,15 +52,21 @@ export default function PreviewModal({
   onClose,
   data,
   onDownload,
+  lesson,
+  mode = true,
 }: PreviewModalProps) {
   if (!isOpen) return null;
-
+  const { mutate } = useUploadDocxToOnlineService();
   // Extract table rendering logic into separate function
-  const renderTablePreview = (node: DemoNode, marginLeft: number, depth: number): React.ReactNode => {
+  const renderTablePreview = (
+    node: DemoNode,
+    marginLeft: number,
+    depth: number
+  ): React.ReactNode => {
     // Parse table data from content field if it's a JSON string (same logic as NodeRenderer)
     let tableData: TableData;
     try {
-      if (node.content && typeof node.content === 'string') {
+      if (node.content && typeof node.content === "string") {
         const parsedContent = JSON.parse(node.content);
 
         // Convert API format to our TableData format
@@ -66,8 +75,9 @@ export default function PreviewModal({
           const rows: string[][] = [];
 
           // First pass: extract headers from header row
-          const headerRow = parsedContent.rows.find((row: any) =>
-            row.cells && row.cells.some((cell: any) => cell.isHeader)
+          const headerRow = parsedContent.rows.find(
+            (row: any) =>
+              row.cells && row.cells.some((cell: any) => cell.isHeader)
           );
 
           if (headerRow && headerRow.cells) {
@@ -75,9 +85,11 @@ export default function PreviewModal({
               if (cell.isHeader) {
                 // Decode HTML entities and extract text content
                 let headerText = cell.title || cell.content || "";
-                headerText = headerText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                headerText = headerText.replace(/<[^>]*>/g, ''); // Remove HTML tags
-                headerText = headerText.replace(/\n/g, ' ').trim();
+                headerText = headerText
+                  .replace(/&lt;/g, "<")
+                  .replace(/&gt;/g, ">");
+                headerText = headerText.replace(/<[^>]*>/g, ""); // Remove HTML tags
+                headerText = headerText.replace(/\n/g, " ").trim();
                 headers.push(headerText || `Cột ${headers.length + 1}`);
               }
             });
@@ -94,8 +106,12 @@ export default function PreviewModal({
                 let contentText = cell.content || "";
 
                 // Decode HTML entities
-                titleText = titleText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                contentText = contentText.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                titleText = titleText
+                  .replace(/&lt;/g, "<")
+                  .replace(/&gt;/g, ">");
+                contentText = contentText
+                  .replace(/&lt;/g, "<")
+                  .replace(/&gt;/g, ">");
 
                 // Combine title and content, keeping HTML formatting
                 let combinedText = "";
@@ -118,28 +134,43 @@ export default function PreviewModal({
 
           tableData = {
             headers: headers.length > 0 ? headers : ["Cột 1", "Cột 2"],
-            rows: rows.length > 0 ? rows : [["", ""], ["", ""]]
+            rows:
+              rows.length > 0
+                ? rows
+                : [
+                    ["", ""],
+                    ["", ""],
+                  ],
           };
         } else {
           // Fallback to default
           tableData = {
             headers: ["Cột 1", "Cột 2"],
-            rows: [["", ""], ["", ""]]
+            rows: [
+              ["", ""],
+              ["", ""],
+            ],
           };
         }
       } else {
-        // Use tableData if available, otherwise default
-        tableData = node.tableData || {
+        // Use default if no content available
+        tableData = {
           headers: ["Cột 1", "Cột 2"],
-          rows: [["", ""], ["", ""]]
+          rows: [
+            ["", ""],
+            ["", ""],
+          ],
         };
       }
     } catch (error) {
       console.error("Error parsing table content in preview:", error);
-      // Fallback to default or existing tableData
-      tableData = node.tableData || {
+      // Fallback to default
+      tableData = {
         headers: ["Cột 1", "Cột 2"],
-        rows: [["", ""], ["", ""]]
+        rows: [
+          ["", ""],
+          ["", ""],
+        ],
       };
     }
 
@@ -149,11 +180,17 @@ export default function PreviewModal({
         style={{ marginLeft: `${marginLeft}px` }}
         className="mb-4"
       >
-        {node.title && node.title !== "Mới: Table" && (
-          <h3 className="text-lg font-medium text-black mb-2">
-            {node.title}
-          </h3>
-        )}
+        {node.title &&
+          node.title !== "Mới: Table" &&
+          (node.type === "SUBSECTION" ? (
+            <h2 className="text-xl font-semibold text-black mb-3">
+              {node.title}
+            </h2>
+          ) : (
+            <h3 className="text-lg font-medium text-black mb-2">
+              {node.title}
+            </h3>
+          ))}
         <div className="border border-gray-400">
           <table className="w-full border-collapse table-fixed">
             <thead>
@@ -176,7 +213,7 @@ export default function PreviewModal({
                     try {
                       if (typeof cell === "string") {
                         // Check if it's HTML content
-                        if (cell.includes('<') && cell.includes('>')) {
+                        if (cell.includes("<") && cell.includes(">")) {
                           cellContent = (
                             <div
                               className="prose prose-sm max-w-none"
@@ -196,7 +233,7 @@ export default function PreviewModal({
                             }]`;
                           } else {
                             const text = cellContent_obj.text || "";
-                            if (text.includes('<') && text.includes('>')) {
+                            if (text.includes("<") && text.includes(">")) {
                               cellContent = (
                                 <div
                                   className="prose prose-sm max-w-none"
@@ -214,7 +251,10 @@ export default function PreviewModal({
                             cellContent = `[Hình ảnh: ${oldCell.content}]`;
                           } else {
                             const content = oldCell.content || "";
-                            if (content.includes('<') && content.includes('>')) {
+                            if (
+                              content.includes("<") &&
+                              content.includes(">")
+                            ) {
                               cellContent = (
                                 <div
                                   className="prose prose-sm max-w-none"
@@ -264,18 +304,17 @@ export default function PreviewModal({
     const marginLeft = depth * 20;
 
     // Debug: Log all nodes to see their properties
-    console.log("🔍 PreviewModal node:", {
-      id: node.id,
-      type: node.type,
-      fieldType: node.fieldType,
-      title: node.title,
-      hasContent: !!node.content,
-      contentPreview: node.content?.substring(0, 50) + "..."
-    });
+    // console.log("🔍 PreviewModal node:", {
+    //   id: node.id,
+    //   type: node.type,
+    //   fieldType: node.fieldType,
+    //   title: node.title,
+    //   hasContent: !!node.content,
+    //   contentPreview: node.content?.substring(0, 50) + "..."
+    // });
 
     // Check fieldType first for TABLE (regardless of node.type)
     if (node.fieldType === "TABLE") {
-      console.log("🎯 PreviewModal: Rendering table for node", node.id, "fieldType:", node.fieldType, "type:", node.type);
       return renderTablePreview(node, marginLeft, depth);
     }
 
@@ -380,8 +419,6 @@ export default function PreviewModal({
           </div>
         );
 
-
-
       case "IMAGE":
         return (
           <div
@@ -441,16 +478,18 @@ export default function PreviewModal({
             Xem trước giáo án
           </h2>
           <div className="flex items-center gap-3">
-            {/* <Button
-              onClick={onDownload}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center gap-2"
-            >
-              📥 Download DOCX
-            </Button> */}
-            <Button onClick={onDownload}>
-              {DowloadIcon}
-              <span>Tải về</span>
-            </Button>
+            {mode && (
+              <>
+                <Button onClick={onDownload}>
+                  {DowloadIcon}
+                  <span>Tải về</span>
+                </Button>
+                <Button onClick={() => {}} variant={"custom"}>
+                  <Share2 />
+                  <span>Export docx online</span>
+                </Button>
+              </>
+            )}
             <Button onClick={onClose} variant={"outline"}>
               Đóng
             </Button>
@@ -498,7 +537,7 @@ export default function PreviewModal({
                 <div className="text-center space-y-2 mt-6">
                   <div className="font-bold text-lg">
                     TÊN BÀI DẠY:
-                    ................................................
+                    {" " + lesson?.name?.toUpperCase()}
                   </div>
                   <div>
                     Môn học/Hoạt động giáo dục: ..........; lớp:........

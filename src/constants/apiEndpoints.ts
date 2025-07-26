@@ -1,69 +1,108 @@
-/**
- * API Endpoints Constants
- * Centralized management of all API endpoints
- */
+const SERVICES = {
+  AUTH: "identity-service",
+  MASTER_DATA: "master-data-service-local",
+  LESSON_PLAN: "lesson-plan-service",
+  ACADEMIC_RESOURCE: "academic-resource-service",
+  EXTERNAL_TOOL: "external-tool-config-service",
+  AGGREGATOR: "aggregator",
+  SUBSCRIPTION: "purchase-service",
+} as const;
+
+const buildEndpoint = (service: string, path: string) =>
+  `/${service}/api${path}`;
 
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: "/auth-service/api/login",
-    LOGIN_GOOGLE: "/auth-service/api/login-google",
+    LOGIN: buildEndpoint(SERVICES.AUTH, "/login"),
+    REGISTER: buildEndpoint(SERVICES.AUTH, "/register"),
+    LOGIN_GOOGLE: "/identity-service/api/login-google",
+  },
+  USERS_MANAGEMENT: {
+    BASE: buildEndpoint(SERVICES.AUTH, "/users"),
   },
 
   // Academic Years
   ACADEMIC_YEARS: "/academic-years",
 
   // Books
-  BOOKS: "master-data-service-local/api/books",
-  BOOKS_BY_SUBJECT: "master-data-service-local/api/books/by-subject",
+  BOOKS: buildEndpoint(SERVICES.MASTER_DATA, "/books"),
+  BOOKS_BY_SUBJECT: buildEndpoint(SERVICES.MASTER_DATA, "/books/by-subject"),
 
   // Book Types
-  BOOK_TYPES: "/book-types",
+  BOOK_TYPES: buildEndpoint(SERVICES.AUTH, "/book-types"),
 
   // Chapters
-  CHAPTERS: "master-data-service-local/api/chapters",
-  CHAPTERS_BY_BOOK: "master-data-service-local/api/chapters/by-book",
+  CHAPTERS: buildEndpoint(SERVICES.MASTER_DATA, "/chapters"),
+  CHAPTERS_BY_BOOK: buildEndpoint(SERVICES.MASTER_DATA, "/chapters/by-book"),
 
   // Grades
-  GRADES: "master-data-service-local/api/grades",
+  GRADES: buildEndpoint(SERVICES.MASTER_DATA, "/grades"),
 
   // Lessons
-  LESSONS: "master-data-service-local/api/lessons",
-  LESSONS_BY_CHAPTER: "master-data-service-local/api/lessons/by-chapter",
+  LESSONS: buildEndpoint(SERVICES.MASTER_DATA, "/lessons"),
+  LESSONS_BY_CHAPTER: buildEndpoint(
+    SERVICES.MASTER_DATA,
+    "/lessons/by-chapter"
+  ),
 
   // Subjects
-  SUBJECTS: "master-data-service-local/api/subjects",
-  SUBJECTS_BY_GRADE: "master-data-service-local/api/subjects/by-grade",
+  SUBJECTS: buildEndpoint(SERVICES.MASTER_DATA, "/subjects"),
+  SUBJECTS_BY_GRADE: buildEndpoint(SERVICES.MASTER_DATA, "/subjects/by-grade"),
+
+  // Subscriptions
+  SUBSCRIPTIONS: buildEndpoint(SERVICES.SUBSCRIPTION, "/subscription-packages"),
+
+  //Order
+  ORDERS: buildEndpoint(SERVICES.SUBSCRIPTION, "/orders"),
+  //EXECUTE-TOOL
+  EXECUTE_TOOL: "aggregator/api/tool/execute",
 
   // Forms (Lesson Plans)
   FORMS: "/forms",
 
-  // Lesson Plan Templates
-  LESSON_PLANS: "/lesson-plan-service-local/api/lesson-plans",
+  // Lesson Plan
 
-  LESSON_NODES: "/lesson-plan-service-local/api/lesson-nodes",
-  LESSON_NODES_TREE: (id: string) =>
-    `/lesson-plan-service-local/api/lesson-nodes/${id}/tree`,
+  LESSON_PLANS: {
+    BASE: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-plans"),
 
-  LESSON_NODE_CHIDREN: (nodeId: string) =>
-    `/lesson-plan-service-local/api/lesson-nodes/${nodeId}/children`,
+    NODES: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-nodes"),
+    TREE: (id: string) => `/lesson-plan-service/api/lesson-nodes/${id}/tree`,
 
+    CHIDREN: (nodeId: string) =>
+      `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
+
+    ALL_NODES: (lessonPlanId: string) =>
+      buildEndpoint(
+        SERVICES.LESSON_PLAN,
+        `/admin/lesson-nodes/${lessonPlanId}/all-nodes`
+      ),
+  },
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
+  UPLOAD_DOCX_TO_ONLINE: "/lesson/upload-docx-to-online",
 
   // Tags
-  TAGS: "/academic-resource-service-local/api/tags",
+  TAGS: buildEndpoint(SERVICES.ACADEMIC_RESOURCE, "/tags"),
 
   //ACADEMIC RESOURCE
-  ACADEMIC_RESOURCE: "academic-resource-service-local/api/academic-resources",
+  ACADEMIC_RESOURCE: buildEndpoint(
+    SERVICES.ACADEMIC_RESOURCE,
+    "/academic-resources"
+  ),
   //ACADEMIC RESOURCE SEARCH
-  ACADEMIC_RESOURCE_SEARCH:
-    "academic-resource-service-local/api/academic-resources/search",
-  ACADEMIC_RESOURCE_UPLOAD:
-    "/academic-resource-service-local/api/academic-resources/upload",
+  ACADEMIC_RESOURCE_SEARCH: buildEndpoint(
+    SERVICES.ACADEMIC_RESOURCE,
+    "/academic-resources/search"
+  ),
+  ACADEMIC_RESOURCE_UPLOAD: buildEndpoint(
+    SERVICES.ACADEMIC_RESOURCE,
+    "/academic-resources/upload"
+  ),
 
-  ACADEMIC_RESOURSE_INTERNAL:
-    "/academic-resource-service-local/api/academic-resources/internal",
-
+  ACADEMIC_RESOURSE_INTERNAL: buildEndpoint(
+    SERVICES.ACADEMIC_RESOURCE,
+    "/academic-resources/internal"
+  ),
   // External Tools
   EXTERNAL_TOOLS: "external-tool-config-service/api/external-tools",
 
@@ -85,7 +124,7 @@ export const PDF_API_ENDPOINTS = {
   QUICK_TEXTBOOK_ANALYSIS: "/pdf/import",
 
   //SEARCH
-  RAG_QUERY: "pdf/rag-query",
+  RAG_QUERY: "/rag/query",
 
   //Task-progress
   TASKS_STATUS: `/tasks/status`,

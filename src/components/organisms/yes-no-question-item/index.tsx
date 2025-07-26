@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/Button";
-import { Plus } from "lucide-react";
+import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
 import { YesNoQuestion, YesNoQuestionItemProps, YesNoOption } from "./types";
+import { useDroppable } from "@dnd-kit/core";
 
 export default function YesNoQuestionItem({
   question,
@@ -12,6 +13,14 @@ export default function YesNoQuestionItem({
   onUpdate,
   onDelete,
 }: YesNoQuestionItemProps) {
+  const [showImageDropZone, setShowImageDropZone] = useState<boolean>(false);
+  const mainTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Drop zone for illustration image
+  const { isOver, setNodeRef } = useDroppable({
+    id: `yes-no-question-${question.id}-image-drop`,
+  });
+
   // Normalize question data for both API and legacy formats
   const getQuestionText = () => question.question || question.text || "";
 
@@ -107,22 +116,56 @@ export default function YesNoQuestionItem({
     }
   };
 
+  const handleRemoveImage = () => {
+    onUpdate({ ...question, illustrationImage: undefined });
+  };
+
+  const handleEditClick = () => {
+    setShowImageDropZone(!showImageDropZone);
+  };
+
+  const resizeTextarea = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  };
+
+  const handleQuestionTextChangeWithResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    resizeTextarea(textarea);
+    handleQuestionTextChange(textarea.value);
+  };
+
+  const handleOptionTextChangeWithResize = (optionId: string, e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    resizeTextarea(textarea);
+    handleOptionTextChange(optionId, textarea.value);
+  };
+
+  // Auto-resize when data loads from API
+  useEffect(() => {
+    if (mainTextareaRef.current && getQuestionText()) {
+      resizeTextarea(mainTextareaRef.current);
+    }
+  }, [getQuestionText()]);
+
   return (
     <div className="flex space-y-4 w-full gap-1">
       <div className="w-full">
         {/* Question Header with Actions */}
-        <div className="flex items-center justify-between w-full gap-1">
-          <div className="font-calsans text-base font-medium text-nowrap">
+        <div className="flex items-start w-full gap-1">
+          <div className="font-calsans text-base font-medium text-nowrap mt-2">
             Câu {index + 1}:
           </div>
 
           <div className="w-full">
             <textarea
-              className="w-full font-calsans border resize-none text-sm bg-transparent p-2 rounded-md"
+              ref={mainTextareaRef}
+              className="w-full font-calsans border-none resize-none text-base bg-transparent p-2 rounded-md overflow-hidden"
               value={getQuestionText()}
-              onChange={(e) => handleQuestionTextChange(e.target.value)}
+              onChange={handleQuestionTextChangeWithResize}
               placeholder="Nhập câu hỏi đúng/sai..."
               rows={1}
+              style={{ minHeight: '40px' }}
             />
           </div>
         </div>
@@ -140,15 +183,16 @@ export default function YesNoQuestionItem({
                   {String.fromCharCode(97 + optionIndex)})
                 </div>
                 <textarea
-                  className="flex-1 border-none outline-none text-sm text-black bg-transparent py-2 resize-none"
+                  className="flex-1 border-none outline-none text-sm text-black bg-transparent py-2 resize-none overflow-hidden"
                   value={option.text}
                   onChange={(e) =>
-                    handleOptionTextChange(option.id, e.target.value)
+                    handleOptionTextChangeWithResize(option.id, e)
                   }
                   placeholder={`Phát biểu ${String.fromCharCode(
                     97 + optionIndex
                   )}`}
                   rows={1}
+                  style={{ minHeight: '32px' }}
                 />
                 {displayOptions.length > 1 && !question.statements && (
                   <Button
@@ -206,6 +250,44 @@ export default function YesNoQuestionItem({
             Thêm phát biểu
           </Button>
         </div>
+
+        {/* Illustration Image Section - Moved below answers */}
+        <div className="py-2">
+          {question.illustrationImage ? (
+            <div className="relative inline-block">
+              <img
+                src={question.illustrationImage}
+                alt="Hình minh họa"
+                className="max-w-xs max-h-48 rounded-lg border"
+              />
+              <button
+                onClick={handleRemoveImage}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            showImageDropZone && (
+              <div
+                ref={setNodeRef}
+                className={`
+                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
+                  ${
+                    isOver
+                      ? "border-blue-400 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
+                  }
+                `}
+              >
+                <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">
+                  Kéo hình ảnh vào đây để thêm hình minh họa
+                </p>
+              </div>
+            )
+          )}
+        </div>
       </div>
 
       {/* Action buttons */}
@@ -219,13 +301,16 @@ export default function YesNoQuestionItem({
         >
           {CoppyIcon}
         </Button>
-        {/* <Button
+        <Button
           variant="outline"
           size="icon"
-          className="p-2 text-gray-500 hover:text-gray-700"
+          className={`p-2 text-gray-500 hover:text-gray-700 ${
+            showImageDropZone ? "bg-blue-200 hover:bg-blue-300" : ""
+          }`}
+          onClick={handleEditClick}
         >
           {EditIcon}
-        </Button> */}
+        </Button>
         <Button
           variant="outline"
           size="icon"

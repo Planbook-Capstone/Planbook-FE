@@ -84,6 +84,7 @@ function ToolLayoutContent({ children }: ToolLayoutProps) {
             borderRadius: borderRadiusLG,
             position: "relative",
           }}
+          className="font-questrial"
         >
           {children}
         </div>

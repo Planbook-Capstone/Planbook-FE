@@ -7,10 +7,12 @@ import { useLoginGoogleService } from "@/services/userService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { da } from "date-fns/locale";
+import { useAppStore } from "@/store";
 
 const Callback = () => {
   const router = useRouter();
   const { mutate } = useLoginGoogleService();
+  const { setUser } = useAppStore();
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -35,7 +37,26 @@ const Callback = () => {
         { token: idToken },
         {
           onSuccess: (res) => {
-            console.log(res.data, "tran");
+            console.log(res.data, "Google login response");
+
+            // Save user to Zustand store
+            if (res?.data?.data) {
+              setUser(res.data.data);
+
+              // Save to localStorage for backward compatibility
+              localStorage.setItem("token", res.data.data.token);
+              localStorage.setItem("refreshToken", res.data.data.refreshToken);
+
+              // Route based on role
+              if (res.data.data.role === "ADMIN") {
+                router.push("/admin");
+              } else if (res.data.data.role === "STAFF") {
+                router.push("/staff");
+              } else {
+                router.push("/home");
+              }
+            }
+
             toast.success("Đăng nhập thành công");
           },
           onError: () => {

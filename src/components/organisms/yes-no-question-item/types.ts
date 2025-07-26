@@ -21,6 +21,7 @@ export interface YesNoQuestion {
     d: YesNoStatement;
   };
   type: "yes-no";
+  illustrationImage?: string; // URL or path to illustration image
 }
 
 export interface YesNoQuestionItemProps {

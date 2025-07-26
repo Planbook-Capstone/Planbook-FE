@@ -28,9 +28,9 @@ export const subscriptionColumns: ColumnDef<SubscriptionResponse>[] = [
     cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
   },
   {
-    accessorKey: "duration_months",
-    header: "Thời hạn (tháng)",
-    cell: ({ row }) => <span>{row.original.duration_months} tháng</span>,
+    accessorKey: "tokenAmount",
+    header: "Số token",
+    cell: ({ row }) => <span>{row.original.tokenAmount.toLocaleString()}</span>,
   },
   {
     accessorKey: "price",
@@ -38,15 +38,40 @@ export const subscriptionColumns: ColumnDef<SubscriptionResponse>[] = [
     cell: ({ row }) => <span>{row.original.price.toLocaleString()} đ</span>,
   },
   {
-    accessorKey: "updated_at",
+    accessorKey: "description",
+    header: "Mô tả",
+    cell: ({ row }) => (
+      <span className="max-w-xs truncate" title={row.original.description}>
+        {row.original.description}
+      </span>
+    ),
+  },
+  // {
+  //   accessorKey: "priority",
+  //   header: "Thứ tự",
+  //   cell: ({ row }) => <span>{row.original.priority || "N/A"}</span>,
+  // },
+
+  {
+    accessorKey: "updatedAt",
     header: "Ngày cập nhật",
-    cell: ({ row }) => <span>{row.original.updated_at}</span>,
+    cell: ({ row }) => (
+      <span>
+        {new Date(row.original.updatedAt).toLocaleDateString("vi-VN")}
+      </span>
+    ),
   },
   {
     accessorKey: "status",
     header: "Trạng thái",
     cell: ({ row }) => (
-      <span>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${
+          row.original.status === "ACTIVE"
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800"
+        }`}
+      >
         {row.original.status === "ACTIVE"
           ? "Đang hoạt động"
           : "Ngưng hoạt động"}

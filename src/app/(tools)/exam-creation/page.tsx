@@ -4,30 +4,59 @@ import React, { useState } from "react";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import ExamCreationTemplate from "@/components/templates/exam-creation";
 import ExamFileImport from "@/components/organisms/exam-file-import";
-import CanvaLayout from "@/components/templates/canva-layout";
+import { CanvaLayoutContent } from "@/components/templates/canva-layout";
+import { useExamImportService } from "@/services/examImportServices";
+import { toast } from "sonner";
+import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
 
-export default function ExamCreationPage() {
+function ExamCreationPageContent() {
   const [hasData, setHasData] = useState(false);
-  const [examData, setExamData] = useState<any>(null);
 
-  const handleQuestionUpdate = (questions: any[]) => {
-    console.log("Questions updated:", questions);
-    // Handle question updates here - save to backend, etc.
-  };
+  // Initialize the exam import service
+  const { mutate: importExam, isPending: isImporting } = useExamImportService();
 
-  const handleFileSubmit = (files: File[], apiResponse?: any) => {
+  // Get exam context
+  const { setExamFromApiResponse } = useExamContext();
+
+  const handleFileSubmit = (files: File[]) => {
     console.log("=== FILE SUBMIT HANDLER ===");
     console.log("Number of files:", files.length);
-    console.log("API Response:", apiResponse);
+    console.log("File details:", files.map(file => ({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: new Date(file.lastModified)
+    })));
 
-    if (apiResponse) {
-      console.log("Setting exam data from API response:", apiResponse);
-      setExamData(apiResponse);
-      setHasData(true);
-    } else {
-      console.log("No API response, creating manually");
-      setHasData(true);
+    // Create FormData for file upload
+    const formData = new FormData();
+
+    // Add each file to FormData
+    files.forEach((file) => {
+      formData.append(`file`, file);
+    });
+
+    // Log FormData contents
+    console.log("FormData contents:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
     }
+
+    // Call the exam import service
+    importExam(formData, {
+      onSuccess: (response) => {
+        console.log("✅ Exam import successful:", response);
+        toast.success("Import đề thi thành công!");
+
+        // Set exam data in context and show canvas
+        setExamFromApiResponse(response);
+        setHasData(true);
+      },
+      onError: (error) => {
+        console.error("❌ Exam import failed:", error);
+        toast.error("Import đề thi thất bại. Vui lòng thử lại!");
+      }
+    });
   };
 
   const handleCreateManually = () => {
@@ -35,8 +64,9 @@ export default function ExamCreationPage() {
     setHasData(true);
   };
 
-  const handleImageDrop = (questionId: string, imageSrc: string) => {
-    console.log("🖼️ Image dropped on question:", questionId, imageSrc);
+  const handleImageDrop = (questionId: string, imageSrc: string, questionType: string = "multiple") => {
+    console.log("🖼️ Image dropped on question:", questionId, imageSrc, "Type:", questionType);
+    // This will be handled by the ExamContext in CanvaLayout
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -44,7 +74,7 @@ export default function ExamCreationPage() {
 
     if (!over) return;
 
-    // Check if dropping an image asset onto a question
+    // Check if dropping an image asset onto any type of question
     if (
       active.data.current?.type === "image" &&
       over.id.toString().includes("question") &&
@@ -53,15 +83,37 @@ export default function ExamCreationPage() {
       console.log("🖼️ Dropping image:", active.data.current.content);
       console.log("📍 Drop target:", over.id);
 
-      // Extract question ID from drop zone ID (format: question-{id}-image-drop)
-      const questionId = over.id
-        .toString()
-        .replace("question-", "")
-        .replace("-image-drop", "");
-      console.log("🎯 Question ID:", questionId);
+      let questionId = "";
+      let questionType = "";
 
-      // Call the image drop handler
-      handleImageDrop(questionId, active.data.current.content);
+      // Extract question ID and type from drop zone ID
+      if (over.id.toString().includes("yes-no-question")) {
+        // Format: yes-no-question-{id}-image-drop
+        questionId = over.id
+          .toString()
+          .replace("yes-no-question-", "")
+          .replace("-image-drop", "");
+        questionType = "yes-no";
+      } else if (over.id.toString().includes("short-question")) {
+        // Format: short-question-{id}-image-drop
+        questionId = over.id
+          .toString()
+          .replace("short-question-", "")
+          .replace("-image-drop", "");
+        questionType = "short";
+      } else {
+        // Format: question-{id}-image-drop (multiple choice)
+        questionId = over.id
+          .toString()
+          .replace("question-", "")
+          .replace("-image-drop", "");
+        questionType = "multiple";
+      }
+
+      console.log("🎯 Question ID:", questionId, "Type:", questionType);
+
+      // Call the appropriate image drop handler
+      handleImageDrop(questionId, active.data.current.content, questionType);
     }
   };
 
@@ -74,18 +126,29 @@ export default function ExamCreationPage() {
   };
 
   // Show file import interface when there's no data
-  // if (!hasData) {
-  //   return (
-  //     <div className="w-full">
-  //       <ExamFileImport onSubmit={handleFileSubmit} />
-  //     </div>
-  //   );
-  // }
+  if (!hasData) {
+    return (
+      <div className="w-full">
+        <ExamFileImport
+          onSubmit={handleFileSubmit}
+          isLoading={isImporting}
+        />
+      </div>
+    );
+  }
 
   // Show exam creation template when there's data
   return (
     <div className="h-screen w-full">
-      <CanvaLayout />
+      <CanvaLayoutContent />
     </div>
+  );
+}
+
+export default function ExamCreationPage() {
+  return (
+    <ExamProvider>
+      <ExamCreationPageContent />
+    </ExamProvider>
   );
 }

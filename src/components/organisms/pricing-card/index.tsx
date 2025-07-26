@@ -1,50 +1,97 @@
+"use client";
 import { Button } from "@/components/ui/Button";
-import { CheckIcon } from "@/constants/icon";
 
 interface PricingCardProps {
+  id?: string;
   title?: string;
-  subTitle?: string;
+  description?: string;
   price?: number;
-  monthy_price?: number;
+  features?: string[];
+  highlight?: boolean;
+  tokenAmount?: number;
+  onOrder?: (packageId: string) => void;
 }
 
-const PricingCard = ({}: PricingCardProps) => {
-  const features = [
-    "Tạo giáo án tự động bằng AI",
-    "Tạo đề kiểm tra thông minh",
-    "Phân tích kết quả học tập học sinh",
-    "Tạo slide bài giảng từ giáo án",
-    "Chấm bài & nhận xét tự động",
-  ];
+const PricingCard = ({
+  id,
+  title,
+  description,
+  price,
+  features,
+  highlight,
+  tokenAmount,
+  onOrder,
+}: PricingCardProps) => {
+  const handleOrder = () => {
+    if (onOrder && id) {
+      onOrder(id);
+    }
+  };
   return (
-    <div className="flex flex-col gap-1.5 px-9 py-12 rounded-lg ">
-      <h1 className="font-calsans text-lg">Cơ Bản</h1>
-      <p className="text-slate-500 text-sm">
-        Phù hợp với giáo viên cá nhân muốn trải nghiệm nhanh các tính năng AI cơ
-        bản.
+    <div
+      className={`flex flex-col gap-3 px-9 py-12 rounded-3xl  ${
+        highlight
+          ? "bg-[url('/images/background/abstract-bg.png')] bg-[length:300%] bg-center text-white"
+          : "bg-white border"
+      }`}
+    >
+      <h1 className="font-calsans text-2xl lg:text-3xl">
+        {title?.toUpperCase() || "Free".toUpperCase()}
+      </h1>
+      <p className={`${highlight ? "text-white" : "text-slate-500"}  text-sm`}>
+        {description}
       </p>
-      <div className="flex justify-start items-center gap-1.5 py-5">
-        <h1 className="font-calsans text-5xl">$0</h1>
-        <p className="text-muted-foreground text-sm">/ Tháng</p>
+
+      <div className="pt-5 space-y-2">
+        <p className="text-sm font-medium mb-3 opacity-80">
+          Tính năng bao gồm:
+        </p>
+        <ul>
+          <li className="flex items-center gap-x-2">
+            <span className={`${highlight ? "text-white" : "text-black"} mt-1`}>
+              •
+            </span>
+            <span>Tặng ngay {tokenAmount} token AI</span>
+          </li>
+          {features &&
+            Object.entries(features)
+              .sort((a, b) => Number(a[0]) - Number(b[0])) // sort theo key số
+              .map(([key, f]) => (
+                <li key={key} className="flex items-center gap-2">
+                  <span
+                    className={`${
+                      highlight ? "text-white" : "text-black"
+                    } mt-1`}
+                  >
+                    •
+                  </span>
+                  <span>{f}</span>
+                </li>
+              ))}
+        </ul>
       </div>
+      {/* <div className="flex justify-start items-start gap-1.5 py-5"> */}
+      <h1 className="font-calsans text-3xl lg:text-6xl">
+        {price?.toLocaleString("vi-VN")}
+      </h1>
+      {/* <p className="text-muted-foreground text-sm">/ {tokenAmount}</p>
+      </div> */}
+      <p className="text-sm opacity-80 leading-relaxed">
+        Bắt đầu số hóa công việc giảng dạy. Tiết kiệm thời gian và nâng cao hiệu
+        quả
+      </p>
       <Button
-        variant={"outline"}
-        className="font-calsans text-sm text-blue-700 border-blue-700"
+        className={`w-full h-12 text-base rounded-full font-medium transition-all  border border-white/30 backdrop-blur-sm 
+          ${
+            highlight
+              ? "bg-white/10 hover:bg-white/30 text-white"
+              : "bg-black text-white"
+          }
+        `}
+        onClick={handleOrder}
       >
         Trải nghiệm ngay
       </Button>
-      <div className="pt-5 space-y-2">
-        {features.map((feature, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <div className="rounded-full bg-blue-50 max-w-fit p-2">
-              {CheckIcon}
-            </div>
-            <p className="text-sm text-neutral-800 font-manrope font-medium">
-              {feature}
-            </p>
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
