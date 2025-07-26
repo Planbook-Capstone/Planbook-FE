@@ -1,9 +1,9 @@
 "use client";
 
-import OrderCard from "@/components/organisms/order-card";
-
 import { useOrderByUserIdService } from "@/services/orderServices";
 import { useAuth } from "@/hooks/useAuth";
+import OrderTable from "@/components/organisms/table-order-history";
+import { Order } from "@/types";
 
 function OrderHistoryPage() {
   const { user } = useAuth();
@@ -19,6 +19,10 @@ function OrderHistoryPage() {
 
   console.log(orders, "orders data");
   console.log(ordersData?.data?.content?.orderHistories, "full response");
+  const handleViewDetail = (order: Order) => {
+    // You can implement modal/drawer logic here
+    console.log(order);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -44,19 +48,8 @@ function OrderHistoryPage() {
 
       {/* Order Cards */}
       {!isLoading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {orders && orders.length > 0 ? (
-            orders?.map((order: any) => (
-              <OrderCard
-                key={order.id}
-                orderStatus={order?.orderHistories[0]}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-gray-500">Không có đơn hàng nào</p>
-            </div>
-          )}
+        <div>
+          <OrderTable orders={orders} onViewDetail={handleViewDetail} />
         </div>
       )}
     </div>
