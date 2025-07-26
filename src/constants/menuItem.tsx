@@ -36,6 +36,13 @@ export const adminItems = [
     active: "/icons/home-active.svg",
   },
   {
+    label: "Người dùng",
+    key: "/users-management",
+    icon: <HomeOutlined />,
+    image: "/icons/user.svg",
+    active: "/icons/user-active.svg",
+  },
+  {
     label: "Gói đăng ký",
     key: "subcription",
     icon: <HomeOutlined />,
@@ -98,6 +105,13 @@ export const staffItems = [
     icon: <HomeOutlined />,
     image: "/icons/folder.svg",
     active: "/icons/folder-active.svg",
+  },
+  {
+    label: "Mẫu Slide",
+    key: "slide-templates",
+    icon: <HomeOutlined />,
+    image: "/icons/cube.svg",
+    active: "/icons/cube-active.svg",
   },
   {
     label: "Giáo án",

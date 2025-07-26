@@ -1,10 +1,11 @@
 const SERVICES = {
-  AUTH: "auth-service",
+  AUTH: "identity-service",
   MASTER_DATA: "master-data-service-local",
   LESSON_PLAN: "lesson-plan-service",
   ACADEMIC_RESOURCE: "academic-resource-service-local",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
+  SUBSCRIPTION: "purchase-service",
 } as const;
 
 const buildEndpoint = (service: string, path: string) =>
@@ -13,8 +14,12 @@ const buildEndpoint = (service: string, path: string) =>
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: "/auth-service/api/login",
-    LOGIN_GOOGLE: "/auth-service/api/login-google",
+    LOGIN: buildEndpoint(SERVICES.AUTH, "/login"),
+    REGISTER: buildEndpoint(SERVICES.AUTH, "/register"),
+    LOGIN_GOOGLE: "/identity-service/api/login-google",
+  },
+  USERS_MANAGEMENT: {
+    BASE: buildEndpoint(SERVICES.AUTH, "/users"),
   },
 
   // Academic Years
@@ -45,6 +50,11 @@ export const API_ENDPOINTS = {
   SUBJECTS: buildEndpoint(SERVICES.MASTER_DATA, "/subjects"),
   SUBJECTS_BY_GRADE: buildEndpoint(SERVICES.MASTER_DATA, "/subjects/by-grade"),
 
+  // Subscriptions
+  SUBSCRIPTIONS: buildEndpoint(SERVICES.SUBSCRIPTION, "/subscription-packages"),
+
+  //Order
+  ORDERS: buildEndpoint(SERVICES.SUBSCRIPTION, "/orders"),
   //EXECUTE-TOOL
   EXECUTE_TOOL: "aggregator/api/tool/execute",
 
@@ -95,6 +105,11 @@ export const API_ENDPOINTS = {
   ),
   // External Tools
   EXTERNAL_TOOLS: "external-tool-config-service/api/external-tools",
+
+  // Slide Templates
+  SLIDE_TEMPLATES: "slide-template-service/api/slide-templates",
+
+  SLIDE_PROCESS_JSON_TEMPLATE: "/slides/process-json-template",
 } as const;
 
 // PDF API Endpoints (Secondary API - Port 8000)

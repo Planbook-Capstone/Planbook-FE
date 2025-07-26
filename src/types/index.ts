@@ -58,14 +58,17 @@ export type LessonPlanResponse = {
 };
 
 export type SubscriptionResponse = {
-  id: string | number;
+  id: string;
   name: string;
-  status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL";
-  duration_months: number;
+  tokenAmount: number;
   price: number;
-  currency: "VND" | "USD";
-  created_at: string;
-  updated_at: string;
+  description: string;
+  highlight: boolean;
+  features: Record<string, string>;
+  priority: number;
+  status: "ACTIVE" | "INACTIVE";
+  createdAt: string;
+  updatedAt: string;
 };
 export type BookTypeResponse = {
   id: bigint;
@@ -85,8 +88,94 @@ export type TagResponse = {
   description: string | null;
 };
 
-// // User types
-// export interface User {
+// Types for slide template API
+export type SlideTemplateStatus = "ACTIVE" | "INACTIVE";
+
+export interface CreateSlideTemplateRequest {
+  name: string;
+  description?: string;
+  textBlocks?: Record<string, any>;
+  imageBlocks?: Record<string, string>;
+}
+
+export interface UpdateSlideTemplateRequest {
+  name?: string;
+  description?: string;
+  textBlocks?: Record<string, any>;
+  imageBlocks?: Record<string, string>;
+}
+
+export interface SlideTemplateResponse {
+  id: any;
+  name: string;
+  status: SlideTemplateStatus;
+  description?: string;
+  textBlocks?: Record<string, any>;
+  imageBlocks?: Record<string, string>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Helper types for form handling
+export interface TextBlockItem {
+  key: string;
+  value: any;
+}
+
+export interface ImageBlockItem {
+  key: string;
+  value: string;
+}
+
+// Types for process JSON template API
+export interface ProcessJsonTemplateRequest {
+  lesson_id: string;
+  template: Record<string, any>;
+  config_prompt: string;
+}
+
+export interface SlideTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail?: string;
+  category: "education" | "business" | "presentation" | "other";
+  slides: SlideTemplateSlide[];
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  isPublic: boolean;
+  tags: string[];
+}
+
+export interface SlideTemplateSlide {
+  id: string;
+  title: string;
+  elements: SlideElement[];
+  background?: string;
+  isVisible: boolean;
+}
+
+export interface SlideTemplateFormData {
+  name: string;
+  description?: string;
+  status: SlideTemplateStatus;
+  imageBlocks: Record<string, string>;
+}
+
+export type OrderHistoryResponse = {
+  id: string;
+  orderId: string;
+  fromStatus: string | null;
+  toStatus: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// User types
+// export interface UserResponse {
+
 //   id: string;
 //   name: string;
 //   email: string;
@@ -95,6 +184,43 @@ export type TagResponse = {
 //   createdAt: string;
 //   updatedAt: string;
 // }
+
+// Transaction types
+export interface Transaction {
+  id: string;
+  amount: number;
+  type: 'DEPOSIT' | 'WITHDRAWAL' | 'PAYMENT' | 'REFUND';
+  description?: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Wallet types
+export interface Wallet {
+  id: string;
+  balance: number;
+  createdAt: string;
+  updatedAt: string;
+  transactions: Transaction[];
+}
+
+// Enhanced User Response with wallet
+export interface UserWithWalletResponse {
+  id: string;
+  fullName: string | null;
+  username: string;
+  email: string;
+  role: 'PARTNER' | 'STAFF' | 'USER' | 'ADMIN';
+  phone: string | null;
+  avatar: string | null;
+  gender: string | null;
+  birthday: string | null;
+  status: string | null;
+  createdAt: string;
+  updatedAt: string;
+  wallet: Wallet | null;
+}
 
 // // Product types
 // export interface Product {
@@ -249,4 +375,73 @@ export interface LessonPlanStepContent {
     keywordId: string;
     value: string;
   }[];
+}
+
+// Slide Editor Types
+export interface TextStyle {
+  fontSize: number;
+  fontFamily: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  color?: string;
+  textAlign?: "left" | "center" | "right";
+}
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export interface TextElement {
+  id: string;
+  type: "text";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  text: string;
+  style: TextStyle;
+  zIndex?: number;
+  rotation?: number; // in degrees
+}
+
+export interface ImageElement {
+  id: string;
+  type: "image";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  src: string;
+  alt?: string;
+  zIndex?: number;
+}
+
+export interface ShapeElement {
+  id: string;
+  type: "shape";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  shapeType: "rectangle" | "circle" | "triangle";
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  zIndex?: number;
+  rotation?: number; // in degrees
+}
+
+export type SlideElement = TextElement | ImageElement | ShapeElement;
+
+export interface SlideData {
+  id: string;
+  elements: SlideElement[];
+  background?: string;
 }

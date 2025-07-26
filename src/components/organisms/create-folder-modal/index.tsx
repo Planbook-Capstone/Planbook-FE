@@ -63,7 +63,7 @@ function CreateFolderModal() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="rounded-full">
           <Plus color="white" />
           <span className="hidden lg:block"> Tạo thư mục mới</span>
         </Button>

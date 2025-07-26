@@ -235,3 +235,32 @@ body {
     max-height: 200px; /* Giới hạn chiều cao tối đa */
   }
 }
+
+/* Ant Design Upload Component Styles */
+.ant-upload-list-picture-card .ant-upload-list-item {
+  border-radius: 8px;
+}
+
+.ant-upload-list-picture-card .ant-upload-list-item-thumbnail img {
+  border-radius: 6px;
+}
+
+.ant-upload.ant-upload-select {
+  border-radius: 8px;
+  border: 2px dashed #d1d5db;
+  background-color: #fafafa;
+  transition: all 0.2s ease;
+}
+
+.ant-upload.ant-upload-select:hover {
+  border-color: #3b82f6;
+  background-color: #f8fafc;
+}
+
+.ant-upload-list-picture-card .ant-upload-list-item-error {
+  border-color: #ef4444;
+}
+
+.ant-upload-list-picture-card .ant-upload-list-item-uploading {
+  border-color: #3b82f6;
+}

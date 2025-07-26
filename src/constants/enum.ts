@@ -28,3 +28,29 @@ export const LessonPlanFieldTypeLabel: Record<LESSON_PLAN_FIELDTYPE, string> = {
   [LESSON_PLAN_FIELDTYPE.TABLE]: "Bảng",
   [LESSON_PLAN_FIELDTYPE.REFERENCES]: "Tài liệu tham khảo",
 };
+
+export enum ORDER_STATUS {
+  PENDING = "PENDING",        // Đang chờ thanh toán
+  PAID = "PAID",             // Đã thanh toán thành công (thay cho SUCCESS)
+  FAILED = "FAILED",         // Thất bại
+  CANCELLED = "CANCELLED",   // Đã hủy
+  EXPIRED = "EXPIRED",       // Đã hết hạn
+  RETRY = "RETRY"           // Đã thử thanh toán lại (tùy chọn, để theo dõi)
+}
+
+export const OrderStatusLabel: Record<ORDER_STATUS, string> = {
+  [ORDER_STATUS.PENDING]: "Đang chờ thanh toán",
+  [ORDER_STATUS.PAID]: "Đã thanh toán thành công",
+  [ORDER_STATUS.FAILED]: "Thất bại",
+  [ORDER_STATUS.CANCELLED]: "Đã hủy",
+  [ORDER_STATUS.EXPIRED]: "Đã hết hạn",
+  [ORDER_STATUS.RETRY]: "Đã thử thanh toán lại",
+};
+
+export enum ROLE {
+  TEACHER = "TEACHER",
+  ADMIN = "ADMIN",
+  STAFF = "STAFF",
+  PARTNER = "PARTNER",
+}
+

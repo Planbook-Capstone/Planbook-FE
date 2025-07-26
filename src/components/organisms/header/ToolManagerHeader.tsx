@@ -15,7 +15,7 @@ export default function ToolManagerHeader() {
   const router = useRouter();
 
   const handleLogout = () => {
-    router.push("/login");
+    router.push("/auth");
   };
 
   return (

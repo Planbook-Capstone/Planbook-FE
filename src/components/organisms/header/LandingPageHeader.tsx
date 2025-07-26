@@ -48,7 +48,7 @@ export const LandingPageHeader = () => {
           {/* Desktop Buttons */}
           <div className="hidden md:flex gap-2">
             <Button className="rounded-full bg-lime-300 text-black">
-              <Link href="/login">Đăng ký</Link>
+              <Link href="/auth">Đăng ký</Link>
             </Button>
           </div>
         </div>
@@ -87,10 +87,10 @@ export const LandingPageHeader = () => {
 
           <div className="flex flex-col gap-3 mt-auto">
             <Button variant="outline">
-              <Link href="/login">Đăng nhập</Link>
+              <Link href="/auth">Đăng nhập</Link>
             </Button>
             <Button>
-              <Link href="/login">Đăng ký</Link>
+              <Link href="/auth">Đăng ký</Link>
             </Button>
           </div>
         </div>
