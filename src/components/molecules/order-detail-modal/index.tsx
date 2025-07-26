@@ -25,7 +25,7 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent
         side="right"
-        className="w-1/2 !max-w-none max-h-screen overflow-y-auto"
+        className="w-2/5 !max-w-none max-h-screen overflow-y-auto"
       >
         <SheetHeader>
           <SheetTitle className="font-calsans font-normal text-xl">
@@ -40,7 +40,9 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
                 <label className="text-sm font-medium text-gray-600">
                   Mã đơn hàng
                 </label>
-                <p className="font-questrial text-gray-900 mt-1">{order.id}</p>
+                <p className="font-questrial font-bold text-gray-900 mt-1">
+                  {order.id}
+                </p>
               </div>
               <span
                 className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${colorClass}`}
@@ -76,7 +78,7 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
                 </label>
                 <div className="w-1/2">
                   <div className="bg-[url('/images/background/abstract-bg.png')] bg-[length:300%] bg-center text-white mt-1 p-5 rounded-lg space-y-3">
-                    <p className="font-calsans ">
+                    <p className="font-calsans text-base ">
                       {order.subscriptionPackage.name}
                     </p>
                     <p className="text-sm ">
@@ -120,8 +122,10 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
             )}
 
             <div>
-              <label className="text-lg font-calsans">Lịch sử thanh toán</label>
-              <div>
+              <label className="text-lg font-calsans ">
+                Lịch sử thanh toán
+              </label>
+              <div className="mt-2">
                 {order.transactions.map((transaction, index: number) => {
                   const statusColor =
                     ORDER_STATUS_COLOR[transaction.status] ||
@@ -131,14 +135,19 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
                       key={transaction.id}
                       className="border rounded-lg p-3 shadow-sm"
                     >
-                      <p className="flex justify-start items-center gap-2">
-                        Thanh toán cho Planbook
+                      <p className="flex justify-between items-center gap-2">
+                        <p>
+                          {" "}
+                          Mã giao dịch{" "}
+                          <span className="font-bold">{transaction.id}</span>
+                        </p>
                         <span
-                          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${colorClass}`}
+                          className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${statusColor}`}
                         >
                           {" " + getOrderStatusLabel(transaction.status)}
                         </span>
                       </p>
+
                       <p>
                         Lí do{" "}
                         <span className="font-bold">
@@ -164,10 +173,20 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex justify-end gap-3 pt-4 mb-5 border-t border-gray-200">
+          <Button variant="dash" onClick={onClose}>
             Đóng
           </Button>
+          {order.status === "PENDING" && (
+            <>
+              <Button variant="outline" onClick={onClose}>
+                Thanh toán lại
+              </Button>
+              <Button variant="destructive" onClick={onClose}>
+                Hủy đơn hàng
+              </Button>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>
