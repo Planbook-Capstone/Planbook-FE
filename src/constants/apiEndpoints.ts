@@ -18,7 +18,6 @@ export const API_ENDPOINTS = {
     REGISTER: buildEndpoint(SERVICES.AUTH, "/register"),
     LOGIN_GOOGLE: "/identity-service/api/login-google",
   },
-
   USERS_MANAGEMENT: {
     BASE: buildEndpoint(SERVICES.AUTH, "/users"),
   },
@@ -106,6 +105,11 @@ export const API_ENDPOINTS = {
   ),
   // External Tools
   EXTERNAL_TOOLS: "external-tool-config-service/api/external-tools",
+
+  // Slide Templates
+  SLIDE_TEMPLATES: "slide-template-service/api/slide-templates",
+
+  SLIDE_PROCESS_JSON_TEMPLATE: "/slides/process-json-template",
 } as const;
 
 // PDF API Endpoints (Secondary API - Port 8000)
