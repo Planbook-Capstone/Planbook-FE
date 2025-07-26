@@ -325,10 +325,7 @@ export default function TextElement({
       position={{ x: element.x, y: element.y }}
       minWidth={minSize.width}
       minHeight={minSize.height}
-      style={{
-        border: "1px dashed rgba(255, 0, 0, 0.3)", // Debug border
-        backgroundColor: "rgba(255, 255, 0, 0.1)", // Debug background
-      }}
+      onClick={handleClick}
       onDrag={(e, d) => {
         // Handle snap during drag
         const snapResult = handleDragWithSnap(
