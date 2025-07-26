@@ -20,6 +20,7 @@ import UserTable from "@/components/organisms/user-table";
 import {
   useAllUsersService,
   useCreateUserService,
+  useUpdateUserStatusService,
 } from "@/services/userService";
 import { toast } from "sonner";
 import { UserWithWalletResponse } from "@/types";
@@ -46,6 +47,7 @@ export default function StaffUsersManagementPage() {
 
   // API hooks
   const createUserMutation = useCreateUserService();
+  const updateUserStatusMutation = useUpdateUserStatusService();
 
   // Handlers
   const handleCreateUser = async (data: CreateUserFormData) => {
@@ -68,32 +70,33 @@ export default function StaffUsersManagementPage() {
   };
 
   const handleToggleUserStatus = (user: UserWithWalletResponse) => {
-    console.log("=== TOGGLE USER STATUS ===");
-    console.log("User ID:", user.id);
-    console.log("Current Status:", user.status);
-    console.log("User:", user.fullName || user.username);
-
     const newStatus = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    console.log("New Status:", newStatus);
-    console.log("==========================");
 
     // Show loading toast
     const loadingToast = toast.loading(
       `${newStatus === "ACTIVE" ? "Kích hoạt" : "Vô hiệu hóa"} người dùng...`
     );
-
-    // Simulate API call (replace with actual API call)
-    setTimeout(() => {
-      toast.dismiss(loadingToast);
-      toast.success(
-        `${
-          newStatus === "ACTIVE" ? "Kích hoạt" : "Vô hiệu hóa"
-        } người dùng thành công!`
-      );
-    }, 1000);
-
-    // TODO: Implement actual API call to update user status
-    // updateUserStatusMutation.mutate({ id: user.id, status: newStatus });
+    updateUserStatusMutation.mutate(
+      {
+        id: String(user.id),
+        field: "status",
+        queryParams: { status: newStatus }, // ✅ dùng biến động },
+      },
+      {
+        onSuccess: () => {
+          toast.dismiss(loadingToast);
+          toast.success(
+            `${
+              newStatus === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"
+            } người dùng thành công!`
+          );
+        },
+        onError: () => {
+          toast.dismiss(loadingToast);
+          toast.error("Cập nhật trạng thái thất bại");
+        },
+      }
+    );
   };
 
   return (
