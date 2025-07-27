@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useExamTemplatesService,
   useDeleteExamTemplateService,
   useCloneExamTemplateService,
 } from "@/services/examTemplateServices";
 import { Button } from "@/components/ui/Button";
-import { Plus, SearchIcon } from "lucide-react";
+import { Plus, SearchIcon, Edit, Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ExamCreationModal from "@/components/organisms/exam-creation-modal";
@@ -26,6 +26,11 @@ function ExamTemplatesPageContent() {
   const [showCreationModal, setShowCreationModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    templateId: string;
+  } | null>(null);
 
   // Initialize the exam import service
   const { mutate: importExam, isPending: isImporting } = useExamImportService();
@@ -38,6 +43,18 @@ function ExamTemplatesPageContent() {
     useCloneExamTemplateService();
   const { mutate: deleteTemplate, isPending: isDeleting } =
     useDeleteExamTemplateService();
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setContextMenu(null);
+    };
+
+    if (contextMenu) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [contextMenu]);
 
   // Filter templates based on search term
   const filteredTemplates =
@@ -80,6 +97,40 @@ function ExamTemplatesPageContent() {
   const handleDeleteTemplate = (templateId: string) => {
     setTemplateToDelete(templateId);
     setShowDeleteDialog(true);
+    setContextMenu(null);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent, templateId: string) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      templateId,
+    });
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  const handleContextMenuEdit = () => {
+    if (contextMenu) {
+      handleEditTemplate(contextMenu.templateId);
+      setContextMenu(null);
+    }
+  };
+
+  const handleContextMenuDuplicate = () => {
+    if (contextMenu) {
+      handleDuplicateTemplate(contextMenu.templateId);
+      setContextMenu(null);
+    }
+  };
+
+  const handleContextMenuDelete = () => {
+    if (contextMenu) {
+      handleDeleteTemplate(contextMenu.templateId);
+    }
   };
 
   const handleConfirmDelete = () => {
@@ -193,17 +244,57 @@ function ExamTemplatesPageContent() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template: ExamTemplate) => (
-            <ExamTemplateCard
+            <div
               key={template.id}
-              template={template}
-              onView={handleViewTemplate}
-              // onEdit={handleEditTemplate}
-              // onDuplicate={handleDuplicateTemplate}
-              // onDelete={handleDeleteTemplate}
-              // isCloning={isCloning}
-              // isDeleting={isDeleting}
-            />
+              onContextMenu={(e) => handleContextMenu(e, template.id)}
+            >
+              <ExamTemplateCard
+                template={template}
+                onView={handleViewTemplate}
+                // onEdit={handleEditTemplate}
+                // onDuplicate={handleDuplicateTemplate}
+                // onDelete={handleDeleteTemplate}
+                // isCloning={isCloning}
+                // isDeleting={isDeleting}
+              />
+            </div>
           ))}
+        </div>
+      )}
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50"
+          style={{
+            left: contextMenu.x,
+            top: contextMenu.y,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+            onClick={handleContextMenuEdit}
+          >
+            <Edit className="w-4 h-4" />
+            Chỉnh sửa
+          </button>
+          <button
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+            onClick={handleContextMenuDuplicate}
+            disabled={isCloning}
+          >
+            <Copy className="w-4 h-4" />
+            {isCloning ? "Đang sao chép..." : "Sao chép"}
+          </button>
+          <button
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600 flex items-center gap-2"
+            onClick={handleContextMenuDelete}
+            disabled={isDeleting}
+          >
+            <Trash2 className="w-4 h-4" />
+            {isDeleting ? "Đang xóa..." : "Xóa"}
+          </button>
         </div>
       )}
 
