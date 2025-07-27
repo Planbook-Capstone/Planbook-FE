@@ -1,7 +1,7 @@
 "use client";
 import MatrixTemplate2 from "@/components/templates/matrix-v2";
 
-function ExamPage() {
+function ExamMatrixPage() {
   return (
     <div className="h-screen space-y-6">
       <MatrixTemplate2 />
@@ -9,4 +9,4 @@ function ExamPage() {
   );
 }
 
-export default ExamPage;
+export default ExamMatrixPage;

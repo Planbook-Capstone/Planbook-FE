@@ -11,6 +11,8 @@ import AssetsPanel from "@/components/organisms/assets-panel";
 import CanvasArea from "@/components/organisms/canvas-area";
 import ExamPreviewModal from "@/components/organisms/exam-preview-modal";
 import { ExamProvider, useExamContext } from "@/contexts/ExamContext";
+import { StepProvider } from "@/contexts/StepContext";
+import { ExamTemplateProvider } from "@/contexts/ExamTemplateContext";
 import { useSearchParams } from "next/navigation";
 
 export interface CanvasElement {
@@ -26,7 +28,11 @@ export function CanvaLayoutContent() {
   const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const { updateQuestionImage, updateYesNoQuestionImage, updateShortQuestionImage } = useExamContext();
+  const {
+    updateQuestionImage,
+    updateYesNoQuestionImage,
+    updateShortQuestionImage,
+  } = useExamContext();
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -92,7 +98,10 @@ export function CanvaLayoutContent() {
               .toString()
               .replace("question-", "")
               .replace("-image-drop", "");
-            console.log("🎯 Updating Multiple choice question image:", questionId);
+            console.log(
+              "🎯 Updating Multiple choice question image:",
+              questionId
+            );
             updateQuestionImage(questionId, assetData.content);
           }
         }
@@ -149,7 +158,6 @@ export function CanvaLayoutContent() {
             />
           </div>
         </div>
-
       </div>
 
       {/* Preview Modal */}
@@ -174,7 +182,11 @@ export function CanvaLayoutContent() {
 export default function CanvaLayout() {
   return (
     <ExamProvider>
-      <CanvaLayoutContent />
+      <ExamTemplateProvider>
+        <StepProvider>
+          <CanvaLayoutContent />
+        </StepProvider>
+      </ExamTemplateProvider>
     </ExamProvider>
   );
 }

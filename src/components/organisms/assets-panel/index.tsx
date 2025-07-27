@@ -6,20 +6,22 @@ import { toast } from "sonner";
 import {
   Image,
   Upload,
-  Square,
-  Circle,
-  Triangle,
-  ChevronLeft,
-  ChevronRight,
+  CloudUpload,
+  Route,
   X,
   PanelRightClose,
   PanelRightOpen,
+  List,
+  CircleArrowOutDownLeft,
+  CircleArrowOutUpRight,
 } from "lucide-react";
 import {
   useCreateMaterialInternalService,
   useMaterialInternalService,
   useMaterialSearchService,
 } from "@/services/materialServices";
+import StepNavigation from "@/components/organisms/step-navigation";
+import { UploadCloudIcon } from "@/constants/icon";
 
 interface AssetItem {
   id: string;
@@ -53,39 +55,40 @@ function DraggableAsset({ asset }: DraggableAssetProps) {
       {...listeners}
       {...attributes}
       className={`
-       font-questrial py-1 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 
-        hover:shadow-md transition-all duration-200 bg-white
+        font-questrial border border-gray-200 rounded-lg cursor-grab hover:border-blue-300
+        hover:shadow-md transition-all duration-200 bg-white overflow-hidden group
         ${isDragging ? "opacity-50" : ""}
       `}
     >
-      <div className="flex flex-col items-center space-y-2">
-        {asset.type === "image" && (
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center overflow-hidden">
-            <img
-              src={asset.content}
-              alt={asset.preview}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                // Fallback to icon if image fails to load
-                e.currentTarget.style.display = "none";
-                e.currentTarget.nextElementSibling?.classList.remove("hidden");
-              }}
-            />
-            <Image className="w-8 h-8 text-blue-600 hidden" />
-          </div>
-        )}
+      {asset.type === "image" && (
+        <div className="relative w-full">
+          <img
+            src={asset.content}
+            alt={asset.preview}
+            className="w-full h-auto object-cover"
+            onError={(e) => {
+              // Fallback to icon if image fails to load
+              e.currentTarget.style.display = "none";
+              e.currentTarget.nextElementSibling?.classList.remove("hidden");
+            }}
+          />
+          <Image className="w-8 h-8 text-blue-600 hidden absolute inset-0 m-auto" />
 
-        <span className="text-sm text-gray-600 text-center truncate max-w-20">
-          {asset.preview}
-        </span>
-      </div>
+          {/* Hover overlay */}
+          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+            <span className="text-white text-sm font-medium text-center px-2 py-1 bg-black bg-opacity-30 rounded">
+              {asset.preview}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function AssetsPanel() {
-  const [activeTab, setActiveTab] = useState<"images" | "upload" | "shapes">(
-    "images"
+  const [activeTab, setActiveTab] = useState<"images" | "upload" | "steps">(
+    "steps"
   );
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<AssetItem[]>([]);
@@ -146,9 +149,9 @@ export default function AssetsPanel() {
   };
 
   const tabs = [
-    { id: "images", label: "Hình ảnh", icon: Image },
-    { id: "upload", label: "Tải lên", icon: Upload },
-    // { id: 'shapes', label: 'Shapes', icon: Square },
+    // { id: "images", label: "Hình ảnh", icon: Image },
+    { id: "steps", label: "Các bước", icon: Route },
+    { id: "upload", label: "Tải lên", icon: CloudUpload },
   ] as const;
 
   const { data: materials } = useMaterialSearchService("1");
@@ -167,20 +170,24 @@ export default function AssetsPanel() {
       {/* Header */}
       <div className="p-4 border-gray-200 flex items-center justify-between ">
         {!isCollapsed && (
-          <h2 className="text-lg font-calsans text-gray-800">Học liệu</h2>
+          <h2 className="text-lg font-calsans text-gray-800">Công cụ</h2>
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="cursor-pointer hover:bg-gray-100 rounded-lg transition-colors"
           title={isCollapsed ? "Mở rộng" : "Thu gọn"}
         >
-          {isCollapsed ? <PanelRightClose /> : <PanelRightOpen />}
+          {isCollapsed ? (
+            <CircleArrowOutUpRight className="-translate-x-[2px] w-5 h-5" />
+          ) : (
+            <CircleArrowOutDownLeft />
+          )}
         </button>
       </div>
 
       {/* Tabs */}
       {!isCollapsed && (
-        <div className="flex border-b border-gray-200">
+        <div className="flex border border-gray-200 mx-4 p-1 rounded-full">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -188,11 +195,11 @@ export default function AssetsPanel() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                 cursor-pointer flex-1 flex items-center justify-center space-x-2 py-3 px-2 text-sm font-medium
-                  transition-colors duration-200
+                 cursor-pointer flex-1 flex items-center justify-center space-x-2 py-2 px-2 text-sm font-medium
+                  transition-colors duration-200 rounded-full
                   ${
                     activeTab === tab.id
-                      ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+                      ? "border"
                       : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                   }
                 `}
@@ -208,11 +215,19 @@ export default function AssetsPanel() {
       {/* Assets Grid */}
       {!isCollapsed && (
         <div className="flex-1 p-2 sm:p-4 overflow-y-auto w-full">
-          {activeTab === "upload" ? (
+          {activeTab === "steps" ? (
+            <div className="space-y-4">
+              <StepNavigation
+                layout="vertical"
+                showDescription={true}
+                className="w-full"
+              />
+            </div>
+          ) : activeTab === "upload" ? (
             <div className="space-y-4">
               {/* Upload Area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                className={`border-[1.5px] border-dashed rounded-lg p-4 text-center transition-colors ${
                   isUploading
                     ? "border-blue-300 bg-blue-50"
                     : "border-gray-300 hover:border-gray-400"
@@ -236,7 +251,8 @@ export default function AssetsPanel() {
                   {isUploading ? (
                     <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <Upload className="w-8 h-8 text-gray-400" />
+                    <div className="w-12 h-12">{UploadCloudIcon}</div>
+                    // <Upload className="w-8 h-8 text-gray-400" />
                   )}
                   <span className="text-sm text-gray-600">
                     {isUploading
@@ -249,9 +265,9 @@ export default function AssetsPanel() {
                 </label>
               </div>
 
-              {/* Uploaded Images Grid */}
+              {/* Uploaded Images Gallery */}
               {materialInternal?.data?.content?.length > 0 ? (
-                <div className="  grid grid-cols-2 lg:grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3">
+                <div className="columns-2 gap-3 space-y-3">
                   {materialInternal?.data?.content?.map(
                     (asset: any, idx: number) => {
                       const assetItem: AssetItem = {
@@ -261,7 +277,12 @@ export default function AssetsPanel() {
                         preview: asset?.name,
                       };
                       return (
-                        <DraggableAsset key={asset?.id} asset={assetItem} />
+                        <div
+                          key={asset?.id}
+                          className="break-inside-avoid mb-3"
+                        >
+                          <DraggableAsset asset={assetItem} />
+                        </div>
                       );
                     }
                   )}
@@ -275,10 +296,7 @@ export default function AssetsPanel() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3">
-              {/* {sampleAssets[activeTab]?.map((asset) => (
-                <DraggableAsset key={asset.id} asset={asset} />
-              ))} */}
+            <div className="columns-2 gap-3 space-y-3">
               {materials?.data?.content?.map((asset: any) => {
                 const assetItem: AssetItem = {
                   id: asset?.id,
@@ -286,7 +304,11 @@ export default function AssetsPanel() {
                   content: asset?.url,
                   preview: asset?.name,
                 };
-                return <DraggableAsset key={asset?.id} asset={assetItem} />;
+                return (
+                  <div key={asset?.id} className="break-inside-avoid mb-3">
+                    <DraggableAsset asset={assetItem} />
+                  </div>
+                );
               })}
             </div>
           )}

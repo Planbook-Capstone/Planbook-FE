@@ -1,146 +1,79 @@
 "use client";
 
-import React, { useState } from "react";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
-import ExamCreationTemplate from "@/components/templates/exam-creation";
-import ExamFileImport from "@/components/organisms/exam-file-import";
-import { CanvaLayoutContent } from "@/components/templates/canva-layout";
-import { useExamImportService } from "@/services/examImportServices";
-import { toast } from "sonner";
-import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
+import React, { useEffect } from "react";
+import { TemplateCanvaLayoutContent } from "@/components/templates/template-canva-layout";
+import { ExamProvider, useExamContext } from "@/contexts/ExamContext";
+import {
+  ExamTemplateProvider,
+  useExamTemplateContext,
+} from "@/contexts/ExamTemplateContext";
+import { defaultScoringConfig } from "@/components/organisms/scoring-config-panel";
 
 function ExamCreationPageContent() {
-  const [hasData, setHasData] = useState(false);
-
-  // Initialize the exam import service
-  const { mutate: importExam, isPending: isImporting } = useExamImportService();
-
   // Get exam context
-  const { setExamFromApiResponse } = useExamContext();
+  const {
+    basicExamInfo,
+    examQuestions,
+    examYesNoQuestions,
+    examShortQuestions,
+  } = useExamContext();
+  const { setTemplateMetadata, templateMetadata } = useExamTemplateContext();
 
-  const handleFileSubmit = (files: File[]) => {
-    console.log("=== FILE SUBMIT HANDLER ===");
-    console.log("Number of files:", files.length);
-    console.log("File details:", files.map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified: new Date(file.lastModified)
-    })));
+  // Set metadata from imported data or default
+  useEffect(() => {
+    if (!templateMetadata) {
+      // Check if we have imported data (any questions exist)
+      const hasImportedData =
+        examQuestions.length > 0 ||
+        examYesNoQuestions.length > 0 ||
+        examShortQuestions.length > 0;
 
-    // Create FormData for file upload
-    const formData = new FormData();
+      if (hasImportedData && basicExamInfo) {
+        // Use data from imported exam
+        console.log("=== SETTING METADATA FROM IMPORTED DATA ===");
+        console.log("Basic Info:", basicExamInfo);
 
-    // Add each file to FormData
-    files.forEach((file) => {
-      formData.append(`file`, file);
-    });
-
-    // Log FormData contents
-    console.log("FormData contents:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
-    // Call the exam import service
-    importExam(formData, {
-      onSuccess: (response) => {
-        console.log("✅ Exam import successful:", response);
-        toast.success("Import đề thi thành công!");
-
-        // Set exam data in context and show canvas
-        setExamFromApiResponse(response);
-        setHasData(true);
-      },
-      onError: (error) => {
-        console.error("❌ Exam import failed:", error);
-        toast.error("Import đề thi thất bại. Vui lòng thử lại!");
-      }
-    });
-  };
-
-  const handleCreateManually = () => {
-    console.log("Creating exam manually");
-    setHasData(true);
-  };
-
-  const handleImageDrop = (questionId: string, imageSrc: string, questionType: string = "multiple") => {
-    console.log("🖼️ Image dropped on question:", questionId, imageSrc, "Type:", questionType);
-    // This will be handled by the ExamContext in CanvaLayout
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over) return;
-
-    // Check if dropping an image asset onto any type of question
-    if (
-      active.data.current?.type === "image" &&
-      over.id.toString().includes("question") &&
-      over.id.toString().includes("image-drop")
-    ) {
-      console.log("🖼️ Dropping image:", active.data.current.content);
-      console.log("📍 Drop target:", over.id);
-
-      let questionId = "";
-      let questionType = "";
-
-      // Extract question ID and type from drop zone ID
-      if (over.id.toString().includes("yes-no-question")) {
-        // Format: yes-no-question-{id}-image-drop
-        questionId = over.id
-          .toString()
-          .replace("yes-no-question-", "")
-          .replace("-image-drop", "");
-        questionType = "yes-no";
-      } else if (over.id.toString().includes("short-question")) {
-        // Format: short-question-{id}-image-drop
-        questionId = over.id
-          .toString()
-          .replace("short-question-", "")
-          .replace("-image-drop", "");
-        questionType = "short";
+        setTemplateMetadata({
+          name: `Template ${basicExamInfo.subject} - Lớp ${basicExamInfo.grade}`,
+          subject: basicExamInfo.subject || "Hóa học",
+          grade: basicExamInfo.grade || 10,
+          durationMinutes: basicExamInfo.duration_minutes || 90,
+          totalScore:
+            (examQuestions.length +
+              examYesNoQuestions.length +
+              examShortQuestions.length) *
+            0.25,
+          description: `Template được tạo từ đề thi ${basicExamInfo.subject}`,
+          scoringConfig: defaultScoringConfig,
+        });
       } else {
-        // Format: question-{id}-image-drop (multiple choice)
-        questionId = over.id
-          .toString()
-          .replace("question-", "")
-          .replace("-image-drop", "");
-        questionType = "multiple";
+        // Use default metadata for manual creation
+        console.log("=== SETTING DEFAULT METADATA ===");
+
+        setTemplateMetadata({
+          name: "Template mới",
+          subject: "Chưa xác định",
+          grade: 10,
+          durationMinutes: 90,
+          totalScore: 10,
+          description: "",
+          scoringConfig: defaultScoringConfig,
+        });
       }
-
-      console.log("🎯 Question ID:", questionId, "Type:", questionType);
-
-      // Call the appropriate image drop handler
-      handleImageDrop(questionId, active.data.current.content, questionType);
     }
-  };
+  }, [
+    templateMetadata,
+    setTemplateMetadata,
+    basicExamInfo,
+    examQuestions,
+    examYesNoQuestions,
+    examShortQuestions,
+  ]);
 
-  const documentInfo = {
-    title: "Kiểm tra hoá cuối kì - THPT Trần Phú",
-    description:
-      "Nghiên cứu các yếu tố ảnh hưởng đến tốc độ phản ứng, cơ chế phản ứng và biểu diễn cân bằng động.",
-    creator: "Nguyễn Văn A",
-    createdAt: "15:23 14/5/2025",
-  };
-
-  // Show file import interface when there's no data
-  if (!hasData) {
-    return (
-      <div className="w-full">
-        <ExamFileImport
-          onSubmit={handleFileSubmit}
-          isLoading={isImporting}
-        />
-      </div>
-    );
-  }
-
-  // Show exam creation template when there's data
+  // Show canvas directly
   return (
     <div className="h-screen w-full">
-      <CanvaLayoutContent />
+      <TemplateCanvaLayoutContent />
     </div>
   );
 }
@@ -148,7 +81,9 @@ function ExamCreationPageContent() {
 export default function ExamCreationPage() {
   return (
     <ExamProvider>
-      <ExamCreationPageContent />
+      <ExamTemplateProvider>
+        <ExamCreationPageContent />
+      </ExamTemplateProvider>
     </ExamProvider>
   );
 }

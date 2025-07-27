@@ -92,13 +92,6 @@ export function DragDropProvider({
           index: 999999, // Force add to end - will be recalculated in addComponent
         };
 
-        console.log("🎯 Drag from palette:", {
-          componentType,
-          originalIndex: destination.index,
-          forcedIndex: position.index,
-          stepId: position.stepId,
-        });
-
         // Open config modal for the dropped item
         openConfigModal({ type: componentType }, position);
         return;
@@ -109,9 +102,6 @@ export function DragDropProvider({
         onMoveToTrash(draggableId);
         return;
       }
-
-      // Other drag operations (reordering, etc.)
-      console.log("Other drag operation:", result);
     },
     [openConfigModal, onMoveToTrash]
   );

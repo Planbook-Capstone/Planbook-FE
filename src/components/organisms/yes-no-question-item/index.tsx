@@ -19,6 +19,11 @@ export default function YesNoQuestionItem({
   // Drop zone for illustration image
   const { isOver, setNodeRef } = useDroppable({
     id: `yes-no-question-${question.id}-image-drop`,
+    data: {
+      type: "question",
+      id: question.id,
+      questionType: "yes-no",
+    },
   });
 
   // Normalize question data for both API and legacy formats
@@ -28,10 +33,26 @@ export default function YesNoQuestionItem({
   const getOptionsFromStatements = () => {
     if (question.statements) {
       return [
-        { id: "a", text: question.statements.a.text, isCorrect: question.statements.a.answer },
-        { id: "b", text: question.statements.b.text, isCorrect: question.statements.b.answer },
-        { id: "c", text: question.statements.c.text, isCorrect: question.statements.c.answer },
-        { id: "d", text: question.statements.d.text, isCorrect: question.statements.d.answer },
+        {
+          id: "a",
+          text: question.statements.a.text,
+          isCorrect: question.statements.a.answer,
+        },
+        {
+          id: "b",
+          text: question.statements.b.text,
+          isCorrect: question.statements.b.answer,
+        },
+        {
+          id: "c",
+          text: question.statements.c.text,
+          isCorrect: question.statements.c.answer,
+        },
+        {
+          id: "d",
+          text: question.statements.d.text,
+          isCorrect: question.statements.d.answer,
+        },
       ];
     }
     return question.options || [];
@@ -60,15 +81,16 @@ export default function YesNoQuestionItem({
       if (optionId in newStatements) {
         newStatements[optionId as keyof typeof newStatements] = {
           ...newStatements[optionId as keyof typeof newStatements],
-          text
+          text,
         };
       }
       onUpdate({ ...question, statements: newStatements });
     } else {
       // Update options format
-      const newOptions = question.options?.map((option) =>
-        option.id === optionId ? { ...option, text } : option
-      ) || [];
+      const newOptions =
+        question.options?.map((option) =>
+          option.id === optionId ? { ...option, text } : option
+        ) || [];
       onUpdate({ ...question, options: newOptions });
     }
   };
@@ -80,15 +102,16 @@ export default function YesNoQuestionItem({
       if (optionId in newStatements) {
         newStatements[optionId as keyof typeof newStatements] = {
           ...newStatements[optionId as keyof typeof newStatements],
-          answer: isCorrect
+          answer: isCorrect,
         };
       }
       onUpdate({ ...question, statements: newStatements });
     } else {
       // Update options format
-      const newOptions = question?.options?.map((option) =>
-        option.id === optionId ? { ...option, isCorrect } : option
-      ) || [];
+      const newOptions =
+        question?.options?.map((option) =>
+          option.id === optionId ? { ...option, isCorrect } : option
+        ) || [];
       onUpdate({ ...question, options: newOptions });
     }
   };
@@ -108,7 +131,11 @@ export default function YesNoQuestionItem({
 
   const removeOption = (optionId: string) => {
     // Only allow removing options for legacy format, not API statements format
-    if (!question.statements && question.options && question.options.length > 1) {
+    if (
+      !question.statements &&
+      question.options &&
+      question.options.length > 1
+    ) {
       const newOptions = question.options.filter(
         (option) => option.id !== optionId
       );
@@ -125,17 +152,22 @@ export default function YesNoQuestionItem({
   };
 
   const resizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
   };
 
-  const handleQuestionTextChangeWithResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleQuestionTextChangeWithResize = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     const textarea = e.target;
     resizeTextarea(textarea);
     handleQuestionTextChange(textarea.value);
   };
 
-  const handleOptionTextChangeWithResize = (optionId: string, e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleOptionTextChangeWithResize = (
+    optionId: string,
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     const textarea = e.target;
     resizeTextarea(textarea);
     handleOptionTextChange(optionId, textarea.value);
@@ -165,7 +197,7 @@ export default function YesNoQuestionItem({
               onChange={handleQuestionTextChangeWithResize}
               placeholder="Nhập câu hỏi đúng/sai..."
               rows={1}
-              style={{ minHeight: '40px' }}
+              style={{ minHeight: "40px" }}
             />
           </div>
         </div>
@@ -173,10 +205,7 @@ export default function YesNoQuestionItem({
         {/* Sub-questions with True/False options */}
         <div className="space-y-3 ml-16 font-questrial">
           {displayOptions?.map((option, optionIndex) => (
-            <div
-              key={option.id}
-              className="space-y-2 border p-1.5 rounded-md bg-neutral-50"
-            >
+            <div key={option.id} className="space-y-2 p-1.5 rounded-md">
               {/* Sub-question text */}
               <div className="flex items-start gap-3">
                 <div className="font-medium text-sm text-gray-700 mt-2">
@@ -192,7 +221,7 @@ export default function YesNoQuestionItem({
                     97 + optionIndex
                   )}`}
                   rows={1}
-                  style={{ minHeight: '32px' }}
+                  style={{ minHeight: "32px" }}
                 />
                 {displayOptions.length > 1 && !question.statements && (
                   <Button
@@ -251,28 +280,39 @@ export default function YesNoQuestionItem({
           </Button>
         </div>
 
-        {/* Illustration Image Section - Moved below answers */}
+        {/* Illustration Image Section */}
         <div className="py-2">
           {question.illustrationImage ? (
-            <div className="relative inline-block">
-              <img
-                src={question.illustrationImage}
-                alt="Hình minh họa"
-                className="max-w-xs max-h-48 rounded-lg border"
-              />
-              <button
-                onClick={handleRemoveImage}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ) : (
-            showImageDropZone && (
+            <div className="space-y-2">
+              <div className="mb-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Hình minh họa
+                </label>
+              </div>
+              <div className="relative inline-block">
+                <img
+                  src={question.illustrationImage}
+                  alt="Hình minh họa"
+                  className="max-w-xs max-h-48 rounded-lg border"
+                  onError={() => {
+                    console.error(
+                      "Failed to load image:",
+                      question.illustrationImage
+                    );
+                  }}
+                />
+                <button
+                  onClick={handleRemoveImage}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+              {/* Drop zone for replacing image */}
               <div
                 ref={setNodeRef}
                 className={`
-                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
+                  border-2 border-dashed rounded-lg p-2 text-center cursor-pointer transition-colors
                   ${
                     isOver
                       ? "border-blue-400 bg-blue-50"
@@ -280,10 +320,35 @@ export default function YesNoQuestionItem({
                   }
                 `}
               >
-                <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">
-                  Kéo hình ảnh vào đây để thêm hình minh họa
+                <p className="text-xs text-gray-500">
+                  Kéo hình ảnh khác để thay thế
                 </p>
+              </div>
+            </div>
+          ) : (
+            showImageDropZone && (
+              <div>
+                <div className="mb-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Hình minh họa
+                  </label>
+                </div>
+                <div
+                  ref={setNodeRef}
+                  className={`
+                    border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors
+                    ${
+                      isOver
+                        ? "border-blue-400 bg-blue-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }
+                  `}
+                >
+                  <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">
+                    Kéo hình ảnh vào đây để thêm hình minh họa
+                  </p>
+                </div>
               </div>
             )
           )}

@@ -113,7 +113,6 @@ export const useSimpleWebSocket = <T = any>({
   // Gửi message
   const sendMessage = useCallback((destination: string, message: any) => {
     if (!clientRef.current?.connected) {
-      console.warn("⚠️ WebSocket not connected. Cannot send message.");
       return;
     }
 
@@ -122,9 +121,7 @@ export const useSimpleWebSocket = <T = any>({
         destination,
         body: JSON.stringify(message),
       });
-      console.log("📤 Message sent to:", destination, message);
     } catch (err) {
-      console.error("❌ Failed to send message:", err);
       setError("Failed to send message");
     }
   }, []);
