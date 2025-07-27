@@ -24,6 +24,11 @@ import Image from "next/image";
 // Menu items.
 const items = [
   {
+    title: "Trang chủ",
+    url: "/home",
+    icon: Home,
+  },
+  {
     title: "Hồ sơ cá nhân",
     url: "/auth/profile",
     icon: User,
@@ -33,11 +38,7 @@ const items = [
     url: "/auth/order-history",
     icon: History,
   },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
+
   {
     title: "Settings",
     url: "#",

@@ -25,7 +25,7 @@ export const useOrderByUserIdService = (userId?: string) => {
 };
 
 export const useUpdateOrderService = updateMutationHook(
-  "order",
+  "orderByUserId",
   API_ENDPOINTS.ORDERS
 );
 

@@ -19,8 +19,6 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
   const colorClass =
     ORDER_STATUS_COLOR[order.status] || "bg-gray-100 text-gray-800";
 
-  console.log(order, "order");
-
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent
@@ -89,7 +87,7 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
                       <p className="text-sm font-medium mb-3 opacity-80">
                         Tính năng bao gồm:
                       </p>
-                      <ul>
+                      <ul className="text-sm">
                         <li className="flex items-center gap-x-2">
                           <span>•</span>
                           <span>
@@ -112,7 +110,7 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
                     <h1 className="font-calsans text-3xl lg:text-6xl">
                       {order.subscriptionPackage.price?.toLocaleString("vi-VN")}
                     </h1>
-                    <p>
+                    <p className="text-sm">
                       Bắt đầu số hóa công việc giảng dạy. Tiết kiệm thời gian và
                       nâng cao hiệu quả
                     </p>
