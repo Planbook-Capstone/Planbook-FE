@@ -208,7 +208,12 @@ export const patchMutationHook =
   (): UseMutationResult<
     any,
     AxiosError<{ message: string }>,
-    { id: string; field: string; queryParams: Record<string, string | number> }
+    {
+      id: string;
+      field: string;
+      queryParams: Record<string, string | number>;
+      body?: any;
+    }
   > => {
     const queryClient = useQueryClient();
 
@@ -217,14 +222,16 @@ export const patchMutationHook =
         id,
         field,
         queryParams,
+        body,
       }: {
         id: string;
         field: string;
         queryParams: Record<string, string | number>;
+        body?: any;
       }) => {
         const searchParams = new URLSearchParams(queryParams as any).toString();
         const fullUrl = `${baseUrl}/${id}/${field}?${searchParams}`; // ✅ chính xác theo yêu cầu
-        return await api.patch(fullUrl);
+        return await api.patch(fullUrl, body);
       },
       onSuccess: (_data, { id }) => {
         queryClient.invalidateQueries({ queryKey: [queryKey] });

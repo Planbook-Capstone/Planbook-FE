@@ -10,16 +10,18 @@ import { ORDER_STATUS_COLOR, ROLE_LABELS } from "@/constants";
 import { getOrderStatusLabel } from "@/constants/enum";
 import { Order } from "@/types";
 import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
 interface OrderDetailProps {
   order: Order;
   open: boolean;
   onClose: () => void;
+  onRetry: () => void;
 }
 
-function OrderDetail({ order, open, onClose }: OrderDetailProps) {
+function OrderDetail({ order, open, onClose, onRetry }: OrderDetailProps) {
   const colorClass =
     ORDER_STATUS_COLOR[order.status] || "bg-gray-100 text-gray-800";
-
+  console.log(order);
   return (
     <div className="space-y-3">
       <h1 className="font-calsans text-xl">Chi tiết đơn hàng</h1>
@@ -114,7 +116,7 @@ function OrderDetail({ order, open, onClose }: OrderDetailProps) {
 
           <div>
             <label className="text-lg font-calsans ">Lịch sử thanh toán</label>
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               {order.transactions.map((transaction, index: number) => {
                 const statusColor =
                   ORDER_STATUS_COLOR[transaction.status] ||
@@ -124,7 +126,7 @@ function OrderDetail({ order, open, onClose }: OrderDetailProps) {
                     key={transaction.id}
                     className="border rounded-lg p-3 shadow-sm"
                   >
-                    <p className="flex justify-between items-center gap-2">
+                    <div className="flex justify-between items-center gap-2">
                       <p>
                         {" "}
                         Mã giao dịch{" "}
@@ -135,7 +137,7 @@ function OrderDetail({ order, open, onClose }: OrderDetailProps) {
                       >
                         {" " + getOrderStatusLabel(transaction.status)}
                       </span>
-                    </p>
+                    </div>
 
                     <p>
                       Lí do{" "}
@@ -154,6 +156,17 @@ function OrderDetail({ order, open, onClose }: OrderDetailProps) {
                         )}
                       </span>
                     </p>
+
+                    {transaction?.status === "RETRY" && (
+                      <Link
+                        href={transaction?.checkoutUrl || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-red-600 mt-1 block"
+                      >
+                        Click vào đây để thanh toán lại
+                      </Link>
+                    )}
                   </div>
                 );
               })}
@@ -168,7 +181,7 @@ function OrderDetail({ order, open, onClose }: OrderDetailProps) {
         </Button>
         {order.status === "PENDING" && (
           <>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onRetry}>
               Thanh toán lại
             </Button>
             <Button variant="destructive" onClick={onClose}>

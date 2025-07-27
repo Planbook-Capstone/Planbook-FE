@@ -1,12 +1,16 @@
 "use client";
 
-import { useOrderByUserIdService } from "@/services/orderServices";
+import {
+  useOrderByUserIdService,
+  useUpdateOrderStatus,
+} from "@/services/orderServices";
 import { useAuth } from "@/hooks/useAuth";
 import OrderTable from "@/components/organisms/table-order-history";
 import { Order } from "@/types";
 import { useState } from "react";
 import OrderDetailModal from "@/components/molecules/order-detail-modal";
 import OrderDetail from "@/components/molecules/order-detail";
+import { toast } from "sonner";
 
 function OrderHistoryPage() {
   const { user } = useAuth();
@@ -19,6 +23,8 @@ function OrderHistoryPage() {
     error,
   } = useOrderByUserIdService(user?.id);
 
+  const { mutate: changeStatusMutation } = useUpdateOrderStatus();
+
   // Use API data if available
   const orders = ordersData?.data?.content || [];
 
@@ -28,12 +34,36 @@ function OrderHistoryPage() {
     setSelected(order);
   };
 
+  const handleRetry = () => {
+    changeStatusMutation(
+      {
+        id: String(selected?.id),
+        field: "status",
+        queryParams: { status: "RETRY" },
+        body: {
+          status: "RETRY",
+          note: "Thanh toán lại",
+        },
+      },
+      {
+        onSuccess: (res) => {
+          console.log(res, "tran");
+          setOpen(false);
+        },
+        onError: (error) => {
+          toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+        },
+      }
+    );
+  };
+
   if (selected && open) {
     return (
       <OrderDetail
         order={selected}
         open={open}
         onClose={() => setOpen(!open)}
+        onRetry={handleRetry}
       />
     );
   }
