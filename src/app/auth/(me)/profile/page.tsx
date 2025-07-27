@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Camera } from "lucide-react";
 
 function ProfilePage() {
-  const { user, updateUser, isAuthenticated, initials } = useAuth();
+  const { user, updateUser, isAuthenticated, initials, avatarUrl } = useAuth();
   const updateProfileMutation = useUpdateProfileService();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -25,6 +25,7 @@ function ProfilePage() {
     phone: user?.phone || "",
     gender: user?.gender || null,
     birthday: user?.birthday || "",
+    avatar: null as File | null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -38,6 +39,7 @@ function ProfilePage() {
         phone: user.phone || "",
         gender: user.gender || null,
         birthday: user.birthday || "",
+        avatar: null,
       });
     }
   }, [user]);
@@ -126,6 +128,12 @@ function ProfilePage() {
 
       setSelectedImage(file);
 
+      // Update formData with the selected file
+      setFormData((prev) => ({
+        ...prev,
+        avatar: file,
+      }));
+
       // Create preview URL
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -138,6 +146,13 @@ function ProfilePage() {
   const handleRemoveImage = () => {
     setSelectedImage(null);
     setPreviewUrl(null);
+
+    // Remove avatar from formData
+    setFormData((prev) => ({
+      ...prev,
+      avatar: null,
+    }));
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -150,6 +165,8 @@ function ProfilePage() {
   const handleSave = () => {
     if (!user?.id) return;
 
+    console.log(formData, "formData");
+
     // Validate form before saving
     if (!validateForm()) {
       toast.error("Vui lòng kiểm tra lại thông tin đã nhập");
@@ -158,17 +175,22 @@ function ProfilePage() {
 
     const loadingToast = toast.loading("Đang cập nhật thông tin...");
 
-    // Convert formData to ensure gender is MALE/FEMALE for API and format birthday
-    const apiData = {
-      ...formData,
-      gender: formData.gender && (formData.gender === "MALE" || formData.gender === "FEMALE")
-        ? formData.gender
-        : undefined, // Don't send gender if not selected or invalid
+    // Prepare data for API
+    const dataToSend = {
+      fullName: formData.fullName,
+      username: formData.username,
+      email: formData.email,
+      phone: formData.phone,
+      gender:
+        formData.gender &&
+        (formData.gender === "MALE" || formData.gender === "FEMALE")
+          ? formData.gender
+          : undefined,
       birthday: formData.birthday
         ? (() => {
             const date = new Date(formData.birthday);
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, "0");
+            const month = (date.getMonth() + 1).toString().padStart(2, "0");
             const year = date.getFullYear();
             return `${day}-${month}-${year}`;
           })()
@@ -176,21 +198,43 @@ function ProfilePage() {
     };
 
     // Remove undefined fields
-    Object.keys(apiData).forEach(key => {
-      if ((apiData as any)[key] === undefined) {
-        delete (apiData as any)[key];
+    Object.keys(dataToSend).forEach((key) => {
+      if ((dataToSend as any)[key] === undefined) {
+        delete (dataToSend as any)[key];
       }
     });
- 
+
+    // If there's an avatar file, create FormData
+    let finalData: FormData | typeof dataToSend;
+    if (formData.avatar) {
+      finalData = new FormData();
+      Object.keys(dataToSend).forEach((key) => {
+        const value = (dataToSend as any)[key];
+        if (value !== undefined && value !== null && value !== "") {
+          (finalData as FormData).append(key, value);
+        }
+      });
+      (finalData as FormData).append("avatar", formData.avatar);
+    } else {
+      finalData = dataToSend;
+    }
+
+    // Use appropriate mutation based on whether there's a file
+
+    console.log("Sending data:", finalData);
+    console.log("Has avatar:", !!formData.avatar);
+    console.log("Using file upload mutation:", !!formData.avatar);
+
     updateProfileMutation.mutate(
       {
         id: user.id,
-        data: apiData,
+        data: finalData,
       },
       {
         onSuccess: () => {
-          // Update user data in store
-          updateUser(formData);
+          // Update user data in store (exclude avatar file)
+          const { avatar, ...userDataToUpdate } = formData;
+          updateUser(userDataToUpdate);
           setIsEditing(false);
           setErrors({}); // Clear all errors
           toast.dismiss(loadingToast);
@@ -214,6 +258,7 @@ function ProfilePage() {
       phone: user?.phone || "",
       gender: user?.gender || null,
       birthday: user?.birthday || "",
+      avatar: null,
     });
     setErrors({}); // Clear all errors
     // Reset image selection
@@ -232,14 +277,14 @@ function ProfilePage() {
         <div className="flex gap-2">
           {!isEditing ? (
             <Button onClick={handleEdit} variant="outline">
-              Edit
+              Chỉnh sửa
             </Button>
           ) : (
             <>
               <Button onClick={handleCancel} variant="outline">
                 Hủy
               </Button>
-              <Button onClick={handleSave}>Save Changes</Button>
+              <Button onClick={handleSave}>Lưu thay đổi</Button>
             </>
           )}
         </div>
@@ -254,6 +299,8 @@ function ProfilePage() {
               <Avatar className="w-20 h-20 bg-teal-500 text-white text-2xl font-bold">
                 {previewUrl ? (
                   <AvatarImage src={previewUrl} alt="Preview" />
+                ) : avatarUrl ? (
+                  <AvatarImage src={avatarUrl} alt="Current avatar" />
                 ) : (
                   <AvatarFallback className="bg-teal-500 text-white text-2xl">
                     {initials}
@@ -457,8 +504,11 @@ function ProfilePage() {
                       ? isEditing
                         ? (() => {
                             // Convert DD-MM-YYYY to YYYY-MM-DD for date input
-                            if (formData.birthday.includes('-') && formData.birthday.split('-').length === 3) {
-                              const parts = formData.birthday.split('-');
+                            if (
+                              formData.birthday.includes("-") &&
+                              formData.birthday.split("-").length === 3
+                            ) {
+                              const parts = formData.birthday.split("-");
                               if (parts[0].length === 2) {
                                 // Format is DD-MM-YYYY, convert to YYYY-MM-DD
                                 return `${parts[2]}-${parts[1]}-${parts[0]}`;
@@ -469,8 +519,11 @@ function ProfilePage() {
                           })()
                         : (() => {
                             // For display mode, show in DD/MM/YYYY format
-                            if (formData.birthday.includes('-') && formData.birthday.split('-').length === 3) {
-                              const parts = formData.birthday.split('-');
+                            if (
+                              formData.birthday.includes("-") &&
+                              formData.birthday.split("-").length === 3
+                            ) {
+                              const parts = formData.birthday.split("-");
                               if (parts[0].length === 2) {
                                 // Already in DD-MM-YYYY format, convert to DD/MM/YYYY for display
                                 return `${parts[0]}/${parts[1]}/${parts[2]}`;
@@ -480,7 +533,9 @@ function ProfilePage() {
                               }
                             }
                             // Fallback to date parsing
-                            return new Date(formData.birthday).toLocaleDateString("vi-VN");
+                            return new Date(
+                              formData.birthday
+                            ).toLocaleDateString("vi-VN");
                           })()
                       : ""
                   }

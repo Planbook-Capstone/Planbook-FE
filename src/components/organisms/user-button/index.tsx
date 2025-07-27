@@ -15,16 +15,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 function UserButton() {
-  const {
-    user,
-    logout,
-    displayName,
-    avatarUrl,
-    initials,
-    isAuthenticated
-  } = useAuth();
+  const { user, logout, displayName, avatarUrl, initials, isAuthenticated } =
+    useAuth();
+  const router = useRouter();
 
   if (!isAuthenticated) {
     return null;
@@ -72,7 +68,10 @@ function UserButton() {
           className="w-52"
           sideOffset={5}
         >
-          <div className="flex items-center justify-start gap-2 px-2.5 py-4">
+          <div
+            onClick={() => router.push("/auth/profile")}
+            className="cursor-pointer flex items-center justify-start gap-2 px-2.5 py-4"
+          >
             <Avatar className="size-9 hover:opacity-75 transition border border-neutral-300">
               <AvatarImage
                 src={avatarUrl || "/images/avatarLogo.png"}
