@@ -6,6 +6,7 @@ import OrderTable from "@/components/organisms/table-order-history";
 import { Order } from "@/types";
 import { useState } from "react";
 import OrderDetailModal from "@/components/molecules/order-detail-modal";
+import OrderDetail from "@/components/molecules/order-detail";
 
 function OrderHistoryPage() {
   const { user } = useAuth();
@@ -26,6 +27,16 @@ function OrderHistoryPage() {
     setOpen(true);
     setSelected(order);
   };
+
+  if (selected && open) {
+    return (
+      <OrderDetail
+        order={selected}
+        open={open}
+        onClose={() => setOpen(!open)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -56,13 +67,13 @@ function OrderHistoryPage() {
         </div>
       )}
 
-      {open && selected && (
-        <OrderDetailModal
+      {/* {open && selected && (
+        <OrderDetail
           order={selected}
           open={open}
           onClose={() => setOpen(!open)}
         />
-      )}
+      )} */}
     </div>
   );
 }
