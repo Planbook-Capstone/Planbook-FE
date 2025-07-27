@@ -7,9 +7,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={true}>
       <AppSidebar />
-      <div className="bg-[#F5F0FE] min-h-screen w-full">
+      <div className=" min-h-screen w-full">
         {/* <SidebarTrigger /> */}
-        <div className="bg-white rounded-t-md mt-5 mx-3 p-6 shadow-lg min-h-screen">
+        <div className="border bg-white rounded-t-md mt-5 mx-3 p-6 shadow-lg min-h-screen">
           {children}
         </div>
       </div>
