@@ -1,4 +1,4 @@
-import { createMutationHook, createQueryHook, patchMutationHook } from "@/hooks/react-query";
+import { createMutationHook, createQueryHook, patchMutationHook, updateMutationHook } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 export const useUserServices = createMutationHook(
@@ -26,6 +26,11 @@ export const useCreateUserService = createMutationHook(
 
 export const useUpdateUserStatusService = patchMutationHook(
   "all-users",
+  API_ENDPOINTS.USERS_MANAGEMENT.BASE
+);
+
+export const useUpdateProfileService = updateMutationHook(
+  "user-profile",
   API_ENDPOINTS.USERS_MANAGEMENT.BASE
 );
 
