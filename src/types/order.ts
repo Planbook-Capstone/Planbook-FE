@@ -6,7 +6,8 @@ export type OrderStatus =
   | "PAID"
   | "COMPLETED"
   | "CANCELLED"
-  | "FAILED";
+  | "FAILED"
+  | "RETRY";
 export type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "PAYMENT" | "REFUND";
 export type TransactionStatus =
   | "PENDING"

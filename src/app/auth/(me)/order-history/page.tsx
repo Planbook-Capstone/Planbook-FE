@@ -11,12 +11,13 @@ import { useState } from "react";
 import OrderDetailModal from "@/components/molecules/order-detail-modal";
 import OrderDetail from "@/components/molecules/order-detail";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 function OrderHistoryPage() {
   const { user } = useAuth();
   const [selected, setSelected] = useState<Order>();
   const [open, setOpen] = useState(false);
-
+  const router = useRouter();
   const {
     data: ordersData,
     isLoading,
@@ -47,11 +48,40 @@ function OrderHistoryPage() {
       },
       {
         onSuccess: (res) => {
-          console.log(res, "tran");
+          router.push(`${res?.data?.data?.checkoutUrl}`);
+
+          setOpen(false);
+        },
+        onError: (error: any) => {
+          toast.error(error?.response?.data || "Có lỗi xảy ra");
+        },
+      }
+    );
+  };
+
+  const handleCancelOrder = (reason: string, customReason?: string) => {
+    const cancelNote = customReason ? `${reason}. ${customReason}` : reason;
+
+    changeStatusMutation(
+      {
+        id: String(selected?.id),
+        field: "status",
+        queryParams: { status: "CANCELLED" },
+        body: {
+          status: "CANCELLED",
+          note: cancelNote,
+        },
+      },
+      {
+        onSuccess: (res) => {
+          console.log(res, "cancel");
+          toast.success("Đã hủy đơn hàng thành công");
           setOpen(false);
         },
         onError: (error) => {
-          toast.error(error?.response?.data?.message || "Có lỗi xảy ra");
+          toast.error(
+            error?.response?.data?.message || "Có lỗi xảy ra khi hủy đơn hàng"
+          );
         },
       }
     );
@@ -64,6 +94,7 @@ function OrderHistoryPage() {
         open={open}
         onClose={() => setOpen(!open)}
         onRetry={handleRetry}
+        onCancel={handleCancelOrder}
       />
     );
   }

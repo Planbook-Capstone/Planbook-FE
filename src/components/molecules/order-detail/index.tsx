@@ -6,22 +6,172 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ORDER_STATUS_COLOR, ROLE_LABELS } from "@/constants";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ORDER_STATUS_COLOR } from "@/constants";
 import { getOrderStatusLabel } from "@/constants/enum";
 import { Order } from "@/types";
-import { ChevronLeft } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 interface OrderDetailProps {
   order: Order;
   open: boolean;
   onClose: () => void;
   onRetry: () => void;
+  onCancel?: (reason: string, customReason?: string) => void;
 }
 
-function OrderDetail({ order, open, onClose, onRetry }: OrderDetailProps) {
+interface CancelOrderModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (reason: string, customReason?: string) => void;
+  isLoading?: boolean;
+}
+
+const CANCEL_REASONS = [
+  "Không còn nhu cầu sử dụng",
+  "Tìm được gói khác phù hợp hơn",
+  "Giá cả không phù hợp",
+  "Gặp lỗi trong quá trình thanh toán",
+];
+
+export function CancelOrderModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  isLoading = false,
+}: CancelOrderModalProps) {
+  const [selectedReason, setSelectedReason] = useState<string>("");
+  const [customReason, setCustomReason] = useState<string>("");
+
+  const handleConfirm = () => {
+    if (!selectedReason) return;
+    onConfirm(selectedReason, customReason.trim() || undefined);
+  };
+
+  const handleClose = () => {
+    if (!isLoading) {
+      setSelectedReason("");
+      setCustomReason("");
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+            </div>
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              Hủy đơn hàng
+            </DialogTitle>
+          </div>
+          <DialogDescription className="text-sm text-gray-600 mt-2">
+            Vui lòng chọn lý do hủy đơn hàng. Hành động này không thể hoàn tác.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Danh sách lý do có sẵn */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Lý do hủy đơn hàng <span className="text-red-500">*</span>
+            </label>
+            <div className="space-y-2">
+              {CANCEL_REASONS.map((reason) => (
+                <label
+                  key={reason}
+                  className="flex items-center space-x-3 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="cancelReason"
+                    value={reason}
+                    checked={selectedReason === reason}
+                    onChange={(e) => setSelectedReason(e.target.value)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    disabled={isLoading}
+                  />
+                  <span className="text-sm text-gray-700">{reason}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Ô nhập lý do tùy chỉnh */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Lý do khác (tùy chọn)
+            </label>
+            <textarea
+              value={customReason}
+              onChange={(e) => setCustomReason(e.target.value)}
+              placeholder="Nhập lý do khác nếu có..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              rows={3}
+              maxLength={500}
+              disabled={isLoading}
+            />
+            <div className="text-xs text-gray-500 text-right">
+              {customReason.length}/500 ký tự
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="flex gap-2">
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+            Hủy bỏ
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleConfirm}
+            disabled={!selectedReason || isLoading}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            {isLoading ? "Đang xử lý..." : "Xác nhận hủy"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function OrderDetail({
+  order,
+  open,
+  onClose,
+  onRetry,
+  onCancel,
+}: OrderDetailProps) {
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
   const colorClass =
     ORDER_STATUS_COLOR[order.status] || "bg-gray-100 text-gray-800";
-  console.log(order);
+
+  const handleCancelOrder = async (reason: string, customReason?: string) => {
+    if (!onCancel) return;
+
+    setIsCancelling(true);
+    try {
+      await onCancel(reason, customReason);
+      setShowCancelModal(false);
+    } catch (error) {
+      // Error handling will be done in parent component
+    } finally {
+      setIsCancelling(false);
+    }
+  };
   return (
     <div className="space-y-3">
       <h1 className="font-calsans text-xl">Chi tiết đơn hàng</h1>
@@ -33,7 +183,7 @@ function OrderDetail({ order, open, onClose, onRetry }: OrderDetailProps) {
               <label className="text-sm font-medium text-gray-600">
                 Mã đơn hàng
               </label>
-              <p className="font-questrial font-bold text-gray-900 mt-1">
+              <p className="font-questrial font-bold text-gray-900 ">
                 {order.id}
               </p>
             </div>
@@ -157,16 +307,19 @@ function OrderDetail({ order, open, onClose, onRetry }: OrderDetailProps) {
                       </span>
                     </p>
 
-                    {transaction?.status === "RETRY" && (
-                      <Link
-                        href={transaction?.checkoutUrl || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-red-600 mt-1 block"
-                      >
-                        Click vào đây để thanh toán lại
-                      </Link>
-                    )}
+                    {(transaction?.status === "RETRY" &&
+                      order.status === "RETRY") ||
+                      (transaction?.status === "PENDING" &&
+                        order.status === "PENDING" && (
+                          <Link
+                            href={transaction?.checkoutUrl || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-red-600 mt-1 block"
+                          >
+                            Click vào đây để thanh toán
+                          </Link>
+                        ))}
                   </div>
                 );
               })}
@@ -184,12 +337,33 @@ function OrderDetail({ order, open, onClose, onRetry }: OrderDetailProps) {
             <Button variant="outline" onClick={onRetry}>
               Thanh toán lại
             </Button>
-            <Button variant="destructive" onClick={onClose}>
+            <Button
+              variant="destructive"
+              onClick={() => setShowCancelModal(true)}
+            >
+              Hủy đơn hàng
+            </Button>
+          </>
+        )}
+        {order.status === "RETRY" && (
+          <>
+            <Button
+              variant="destructive"
+              onClick={() => setShowCancelModal(true)}
+            >
               Hủy đơn hàng
             </Button>
           </>
         )}
       </div>
+
+      {/* Cancel Order Modal */}
+      <CancelOrderModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelOrder}
+        isLoading={isCancelling}
+      />
     </div>
   );
 }
