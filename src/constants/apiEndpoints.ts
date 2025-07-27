@@ -1,5 +1,5 @@
 const SERVICES = {
-  AUTH: "auth-service",
+  AUTH: "identity-service",
   MASTER_DATA: "master-data-service-local",
   LESSON_PLAN: "lesson-plan-service",
   ACADEMIC_RESOURCE: "academic-resource-service-local",
@@ -13,8 +13,8 @@ const buildEndpoint = (service: string, path: string) =>
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: "/auth-service/api/login",
-    LOGIN_GOOGLE: "/auth-service/api/login-google",
+    LOGIN: "/identity-service/api/login",
+    LOGIN_GOOGLE: "/identity-service/api/login-google",
   },
 
   // Academic Years

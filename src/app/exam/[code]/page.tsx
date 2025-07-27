@@ -15,7 +15,13 @@ import {
   StudentAnswer,
 } from "@/services/studentExamServices";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
 
 interface ExamPageProps {
   params: Promise<{
@@ -306,7 +312,7 @@ export default function ExamPage({ params }: ExamPageProps) {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl font-calsans text-gray-900 mb-4">
             Không tìm thấy bài thi
           </h1>
           <p className="text-gray-600 mb-6">
@@ -320,21 +326,108 @@ export default function ExamPage({ params }: ExamPageProps) {
 
   if (!hasStarted) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <StudentInfoForm
-          examInfo={{
-            examName: examData.examName,
-            subject: examData.subject,
-            grade: examData.grade,
-            durationMinutes: examData.durationMinutes,
-            code: examData.code,
-            school: examData.school,
-            examCode: examData.examCode,
-            atomicMasses: examData.atomicMasses,
-            totalScore: examData.totalScore,
-          }}
-          onSubmit={handleStartExam}
-        />
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
+        {/* Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          style={{ pointerEvents: "none" }}
+        >
+          <source
+            src="https://res.cloudinary.com/dpo0ad3aq/video/upload/Typography_02_zq3bam.mp4"
+            type="video/mp4"
+          />
+          <source
+            src="https://res.cloudinary.com/dpo0ad3aq/video/upload/f_webm,q_auto/Typography_02_zq3bam.webm"
+            type="video/webm"
+          />
+        </video>
+
+        {/* Overlay để làm mờ video */}
+        <div className="absolute inset-0 bg-black/20 z-10"></div>
+
+        {/* Content wrapper */}
+        <div className="relative z-20">
+          {/* Header */}
+          <TooltipProvider>
+            <header className="bg-white/10 backdrop-blur-md border-b border-white/20">
+              <div className="container mx-auto px-4 py-4">
+                <div className="flex items-center justify-between">
+                  {/* Logo */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                      <img
+                        src="/images/logo/logoLight.svg"
+                        alt="Planbook Logo"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div>
+                      <h1 className="text-xl font-calsans text-white">
+                        Planbook
+                      </h1>
+                    </div>
+                  </div>
+
+                  {/* Help Icon */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors duration-200">
+                        <HelpCircle className="w-5 h-5 text-white" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm bg-yellow-50 border border-yellow-200 p-4">
+                      <h3 className="font-medium text-yellow-800 mb-3">
+                        Lưu ý quan trọng:
+                      </h3>
+                      <ul className="text-sm text-yellow-700 space-y-2">
+                        <li>
+                          • Đảm bảo kết nối internet ổn định trong suốt quá
+                          trình làm bài
+                        </li>
+                        <li>
+                          • Không được thoát khỏi trang web khi đang làm bài
+                        </li>
+                        <li>
+                          • Thời gian làm bài sẽ được tính từ khi bạn nhấn "Bắt
+                          đầu làm bài"
+                        </li>
+                        <li>
+                          • Nhớ nhấn "Nộp bài" khi hoàn thành để lưu kết quả
+                        </li>
+                        <li>
+                          • Nếu gặp sự cố kỹ thuật, hãy liên hệ giám thị ngay
+                          lập tức
+                        </li>
+                      </ul>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </header>
+          </TooltipProvider>
+
+          <div className="container mx-auto px-4 py-8">
+            <StudentInfoForm
+              examInfo={{
+                examName: examData.examName,
+                subject: examData.subject,
+                grade: examData.grade,
+                durationMinutes: examData.durationMinutes,
+                code: examData.code,
+                school: examData.school,
+                examCode: examData.examCode,
+                atomicMasses: examData.atomicMasses,
+                totalScore: examData.totalScore,
+              }}
+              onSubmit={handleStartExam}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -343,20 +436,20 @@ export default function ExamPage({ params }: ExamPageProps) {
   const questionStatuses = getQuestionStatuses();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="border-b sticky top-0 z-10 bg-gradient-to-br from-cyan-400 via-sky-500 to-indigo-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-xl font-calsans text-white">
                 {examData.examName}
               </h1>
-              <p className="text-sm text-gray-600">Học sinh: {studentName}</p>
+              <p className="text-sm text-white">Học sinh: {studentName}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Mã đề: {examData.code}</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-white">Mã đề: {examData.code}</p>
+              <p className="text-sm text-white">
                 {examData.subject} - Lớp {examData.grade}
               </p>
             </div>
@@ -403,7 +496,7 @@ export default function ExamPage({ params }: ExamPageProps) {
           <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg">
             <AlertTriangle className="w-6 h-6 text-yellow-600" />
             <div>
-              <p className="font-medium text-yellow-800">
+              <p className="font-calsans text-yellow-800">
                 Bạn có chắc chắn muốn nộp bài?
               </p>
               <p className="text-sm text-yellow-700">

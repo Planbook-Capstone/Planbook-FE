@@ -49,7 +49,7 @@ export function QuestionNavigation({
   const getTimeColor = () => {
     if (timeRemaining <= 300) return "text-red-600"; // 5 minutes
     if (timeRemaining <= 600) return "text-yellow-600"; // 10 minutes
-    return "text-green-600";
+    return "text-emerald-600";
   };
 
   const groupedQuestions = questions.reduce((acc, question) => {
@@ -64,19 +64,16 @@ export function QuestionNavigation({
   const totalCount = questions.length;
 
   return (
-    <Card className={cn("sticky top-4", className)}>
+    <Card className={cn("sticky top-4 shadow-none border-none", className)}>
       <CardHeader className="pb-4">
         <CardTitle className="text-lg">Điều hướng câu hỏi</CardTitle>
 
         {/* Timer */}
-        <div
-          className={cn(
-            "flex items-center gap-2 text-lg font-mono",
-            getTimeColor()
-          )}
-        >
-          <Clock className="w-5 h-5" />
-          <span>{formatTime(timeRemaining)}</span>
+        <div className={cn("flex items-center gap-2 text-lg ", getTimeColor())}>
+          <Clock className="w-5 h-5 text-neutral-900" />
+          <span className="font-calsans text-neutral-900">
+            {formatTime(timeRemaining)}
+          </span>
         </div>
 
         {/* Progress */}
@@ -89,7 +86,7 @@ export function QuestionNavigation({
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(answeredCount / totalCount) * 100}%` }}
             />
           </div>
@@ -110,16 +107,16 @@ export function QuestionNavigation({
                   className={cn(
                     "aspect-square text-sm relative",
                     currentQuestionId === question.questionId
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                       : question.isAnswered
-                      ? "border-green-500 bg-green-50 text-green-700"
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
                       : "border-gray-300 text-gray-600 hover:border-gray-400"
                   )}
                   onClick={() => onQuestionSelect(question.questionId)}
                 >
                   {question.questionNumber}
                   {question.isAnswered && (
-                    <CheckCircle className="w-3 h-3 absolute -top-1 -right-1 text-green-600 bg-white rounded-full" />
+                    <CheckCircle className="w-3 h-3 absolute -top-1 -right-1 text-emerald-600 bg-white rounded-full" />
                   )}
                 </Button>
               ))}
@@ -132,12 +129,12 @@ export function QuestionNavigation({
           <h4 className="font-medium text-gray-700 text-sm">Chú thích</h4>
           <div className="space-y-2 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-blue-500 bg-blue-50 rounded"></div>
+              <div className="w-4 h-4 border-2 border-indigo-500 bg-indigo-50 rounded"></div>
               <span>Câu hiện tại</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-green-500 bg-green-50 rounded relative">
-                <CheckCircle className="w-2 h-2 absolute -top-0.5 -right-0.5 text-green-600 bg-white rounded-full" />
+              <div className="w-4 h-4 border-2 border-emerald-500 bg-emerald-50 rounded relative">
+                <CheckCircle className="w-2 h-2 absolute -top-0.5 -right-0.5 text-emerald-600 bg-white rounded-full" />
               </div>
               <span>Đã trả lời</span>
             </div>
