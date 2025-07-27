@@ -52,8 +52,8 @@ const tools: ToolItem[] = [
     status: "active",
   },
   {
-    title: "Quản lý Exam Instances",
-    description: "Tạo và quản lý các instance từ templates",
+    title: "Quản lý phiên kiểm tra",
+    description: "Tạo và quản lý các phiên kiểm tra (Được chọn từ kho đề)",
     href: "/exam-instances",
     icon: <Settings className="w-6 h-6" />,
     color: "bg-orange-500",
@@ -109,8 +109,8 @@ export default function ToolsPage() {
           Bộ công cụ PlanBook
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Khám phá các công cụ mạnh mẽ được hỗ trợ bởi AI để tạo giáo án, 
-          đề thi và quản lý giáo dục hiệu quả
+          Khám phá các công cụ mạnh mẽ được hỗ trợ bởi AI để tạo giáo án, đề thi
+          và quản lý giáo dục hiệu quả
         </p>
       </div>
 
@@ -119,7 +119,7 @@ export default function ToolsPage() {
         {tools.map((tool) => {
           const statusInfo = statusConfig[tool.status || "active"];
           const isDisabled = tool.status === "coming-soon";
-          
+
           return (
             <Card
               key={tool.href}
@@ -133,7 +133,9 @@ export default function ToolsPage() {
                     {tool.icon}
                   </div>
                   {tool.status && (
-                    <span className={`px-2 py-1 text-xs rounded-full ${statusInfo.color}`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${statusInfo.color}`}
+                    >
                       {statusInfo.label}
                     </span>
                   )}
@@ -146,7 +148,7 @@ export default function ToolsPage() {
                 <p className="text-gray-600 text-sm leading-relaxed">
                   {tool.description}
                 </p>
-                
+
                 {isDisabled ? (
                   <Button disabled className="w-full">
                     Sắp ra mắt
@@ -171,19 +173,28 @@ export default function ToolsPage() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link href="/exam-templates">
-            <Button variant="outline" className="w-full flex items-center gap-2 h-12">
+            <Button
+              variant="outline"
+              className="w-full flex items-center gap-2 h-12"
+            >
               <Plus className="w-4 h-4" />
               Tạo Template mới
             </Button>
           </Link>
           <Link href="/exam-instances">
-            <Button variant="outline" className="w-full flex items-center gap-2 h-12">
+            <Button
+              variant="outline"
+              className="w-full flex items-center gap-2 h-12"
+            >
               <Settings className="w-4 h-4" />
               Tạo Instance mới
             </Button>
           </Link>
           <Link href="/exam-creation">
-            <Button variant="outline" className="w-full flex items-center gap-2 h-12">
+            <Button
+              variant="outline"
+              className="w-full flex items-center gap-2 h-12"
+            >
               <FileText className="w-4 h-4" />
               Tạo đề thi mới
             </Button>
@@ -193,20 +204,14 @@ export default function ToolsPage() {
 
       {/* Help Section */}
       <div className="text-center space-y-4 pt-8 border-t">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Cần hỗ trợ?
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">Cần hỗ trợ?</h3>
         <p className="text-gray-600">
-          Liên hệ với chúng tôi qua chat box ở góc dưới bên trái hoặc 
-          xem hướng dẫn sử dụng chi tiết
+          Liên hệ với chúng tôi qua chat box ở góc dưới bên trái hoặc xem hướng
+          dẫn sử dụng chi tiết
         </p>
         <div className="flex justify-center gap-4">
-          <Button variant="outline">
-            Xem hướng dẫn
-          </Button>
-          <Button variant="outline">
-            Liên hệ hỗ trợ
-          </Button>
+          <Button variant="outline">Xem hướng dẫn</Button>
+          <Button variant="outline">Liên hệ hỗ trợ</Button>
         </div>
       </div>
     </div>

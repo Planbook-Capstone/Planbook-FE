@@ -18,7 +18,7 @@ export default function ExamInstanceDetailsPage({
 }: ExamInstanceDetailsPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
-  
+
   const {
     data: instanceResponse,
     isLoading,
@@ -46,7 +46,7 @@ export default function ExamInstanceDetailsPage({
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl font-calsans text-gray-900 mb-4">
             Không tìm thấy instance
           </h1>
           <p className="text-gray-600 mb-6">
@@ -63,29 +63,7 @@ export default function ExamInstanceDetailsPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Quay lại danh sách
-        </Button>
-      </div>
-      
-      <InstanceDetails
-        instance={instance}
-        onClose={handleBack}
-        onEdit={() => {
-          // TODO: Implement edit functionality
-          console.log("Edit instance:", instance.id);
-        }}
-        onDelete={() => {
-          // TODO: Implement delete functionality
-          console.log("Delete instance:", instance.id);
-        }}
-      />
+      <InstanceDetails instance={instance} onClose={handleBack} />
     </div>
   );
 }

@@ -30,11 +30,11 @@ export function StudentQuestion({
     const selectedOption = answer as string;
 
     return (
-      <Card className={cn("mb-6", className)}>
-        <CardContent className="pt-6">
+      <Card className={cn("mb-6 border-none shadow-none p-0", className)}>
+        <CardContent className="pt-6 px-0">
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">
-              <span className="text-blue-600 font-bold">
+              <span className="text-neutral-900 font-calsans">
                 Câu {question.questionNumber}:
               </span>{" "}
               {question.question}
@@ -103,7 +103,7 @@ export function StudentQuestion({
         <CardContent className="pt-6">
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">
-              <span className="text-blue-600 font-bold">
+              <span className="text-blue-600 font-calsans">
                 Câu {question.questionNumber}:
               </span>{" "}
               {question.question}
@@ -200,7 +200,7 @@ export function StudentQuestion({
         <CardContent className="pt-6">
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">
-              <span className="text-blue-600 font-bold">
+              <span className="text-blue-600 font-calsans">
                 Câu {question.questionNumber}:
               </span>{" "}
               {question.question}

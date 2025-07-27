@@ -5,6 +5,7 @@ import { Upload, X, FileText, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
 import DocumentItem from "@/components/molecules/document-item";
+import { UploadIcon } from "@/constants/icon";
 
 interface ExamFileUploadProps {
   onFilesChange: (files: File[]) => void;
@@ -126,12 +127,13 @@ export default function ExamFileUpload({
         onClick={() => fileInputRef.current?.click()}
       >
         <div className="flex flex-col justify-center items-center gap-2">
-          <Image
+          {/* <Image
             src="/images/illustration/packing.svg"
             width="100"
             height="100"
             alt="Upload"
-          />
+          /> */}
+          <div className="w-32 h-32">{UploadIcon}</div>
           <p className="text-base font-medium font-questrial text-gray-900 mb-2">
             Kéo thả file DOCX vào đây
           </p>

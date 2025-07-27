@@ -19,6 +19,11 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  BookMarkIcon,
+  BookMarkWhiteIcon,
+  NoneExamIcon,
+} from "@/constants/icon";
 
 interface TemplateInfo {
   id: string;
@@ -110,7 +115,7 @@ export default function ExamInstancesPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải danh sách instances...</p>
+          <p className="text-gray-600">Đang tải danh sách phiên kiểm tra...</p>
         </div>
       </div>
     );
@@ -121,16 +126,15 @@ export default function ExamInstancesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Quản lý Exam Instances
+          <h1 className="text-3xl font-calsans text-gray-900">
+            Lịch sử phiên kiểm tra
           </h1>
           <p className="text-gray-600 mt-1">
-            Tạo và quản lý các instance từ templates
+            Tạo và quản lý các phiên kiểm tra (Được chọn từ kho đề)
           </p>
         </div>
         <Button onClick={handleCreateNew} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Tạo Instance Mới
+          Tổ chức phiên kiểm tra mới
         </Button>
       </div>
 
@@ -141,44 +145,68 @@ export default function ExamInstancesPage() {
           return (
             <Card
               key={instance.id}
-              className="hover:shadow-md transition-shadow"
+              className="group relative hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+              onClick={() => handleViewDetails(instance)}
             >
-              <CardHeader className="pb-3">
+              {/* Hiệu ứng nền gradient lan toàn thẻ */}
+              <span
+                style={{
+                  background:
+                    "linear-gradient(to bottom, #28E1E4 0%, #30C7EF 65%, #3AA7FC 75%, #407BE9 90%, #3714A2 100%)",
+                }}
+                className="absolute inset-0 scale-0 origin-bottom-left transition-transform duration-500 ease-out group-hover:scale-[2] -translate-x-20 translate-y-20 z-0 rounded-full"
+              />
+              <CardHeader className="relative z-10 pb-3">
+                {/* Template Info */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <div className="flex gap-1">
+                      <div className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-300">
+                        <span className="w-6 h-6 group-hover:hidden">
+                          {BookMarkIcon}
+                        </span>
+                        <span className="w-6 h-6 hidden group-hover:block">
+                          {BookMarkWhiteIcon}
+                        </span>
+                      </div>
+                      <span className="text-base font-calsans text-gray-700 group-hover:text-white transition-colors duration-300">
+                        {instance.subject}
+                      </span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Badge
+                        variant="secondary"
+                        className="bg-black group-hover:bg-white text-white group-hover:text-black text-xs px-2 py-1 rounded-full transition-colors duration-300"
+                      >
+                        Lớp {instance.grade}
+                      </Badge>
+                      <Badge
+                        className={`${statusInfo.color} group-hover:bg-white group-hover:text-black transition-colors duration-300`}
+                      >
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">
+                  <div className="flex-1 pt-3">
+                    <CardTitle className="text-lg font-normal font-calsans line-clamp-2 text-black group-hover:text-white transition-colors duration-300">
                       {instance.templateName}
                     </CardTitle>
-                    <p className="text-sm text-gray-600 mt-1 font-mono">
+                    <p className="text-sm text-gray-600 group-hover:text-white mt-1 transition-colors duration-300">
                       Mã: {instance.code}
                     </p>
                   </div>
-                  <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="relative z-10 space-y-3">
                 {/* Description */}
-                <p className="text-sm text-gray-700 line-clamp-2">
+                <p className="text-sm text-gray-700 group-hover:text-white line-clamp-2 transition-colors duration-300">
                   {instance.description}
                 </p>
 
-                {/* Template Info */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <BookOpen className="w-4 h-4 text-blue-600" />
-                    <span>{instance.subject}</span>
-                    <span className="text-gray-400">•</span>
-                    <GraduationCap className="w-4 h-4 text-purple-600" />
-                    <span>Lớp {instance.grade}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-green-600" />
-                    <span>{instance.durationMinutes} phút</span>
-                  </div>
-                </div>
-
                 {/* Time Info */}
-                <div className="text-xs text-gray-500 space-y-1">
+                <div className="text-xs text-gray-500 group-hover:text-white space-y-1 transition-colors duration-300">
                   <p>
                     Bắt đầu:{" "}
                     {format(new Date(instance.startAt), "dd/MM/yyyy HH:mm", {
@@ -192,19 +220,6 @@ export default function ExamInstancesPage() {
                     })}
                   </p>
                 </div>
-
-                {/* Actions */}
-                <div className="pt-3 border-t">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleViewDetails(instance)}
-                    className="w-full flex items-center gap-2"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Xem chi tiết
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           );
@@ -213,16 +228,13 @@ export default function ExamInstancesPage() {
 
       {instances.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <Plus className="w-16 h-16 mx-auto" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Chưa có instance nào
+          <div className="w-56 h-56 mx-auto mb-4">{NoneExamIcon}</div>
+          <h3 className="text-2xl font-calsans text-gray-900 mb-2">
+            Chưa có phiên kiểm tra
           </h3>
-          <p className="text-gray-600 mb-4">
-            Tạo instance đầu tiên từ các template có sẵn
-          </p>
-          <Button onClick={handleCreateNew}>Tạo Instance Mới</Button>
+          <h3 className="text-lg text-gray-900 mb-2">
+            Hiện chưa có phiên kiểm tra được tổ chức
+          </h3>
         </div>
       )}
 
@@ -230,7 +242,7 @@ export default function ExamInstancesPage() {
       <Modal
         isOpen={showCreateModal}
         onClose={handleCloseCreateModal}
-        title={step === "select-template" ? "Chọn Template" : "Tạo Instance"}
+        title={step === "select-template" ? "Chọn đề thi" : "Tạo đề thi"}
         size="xl"
       >
         {step === "select-template" ? (
