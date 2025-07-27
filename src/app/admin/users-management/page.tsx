@@ -20,8 +20,11 @@ import UserTable from "@/components/organisms/user-table";
 import {
   useAllUsersService,
   useCreateUserService,
+  useUpdateUserStatusService,
 } from "@/services/userService";
 import { toast } from "sonner";
+import { UserWithWalletResponse } from "@/types";
+import UserDetailModal from "@/components/molecules/user-detail-modal";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -32,38 +35,19 @@ const filterOptions = [
 ];
 
 export default function StaffUsersManagementPage() {
-  // State management
-  const [users, setUsers] = useState<User[]>(mockUsers);
   const [searchValue, setSearchValue] = useState("");
   const [filterValue, setFilterValue] = useState("all");
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] =
+    useState<UserWithWalletResponse | null>(null);
   const { data: allUsers } = useAllUsersService();
-
-  console.log(allUsers?.data?.content, "all");
 
   // API hooks
   const createUserMutation = useCreateUserService();
-
-  // Filter and search logic
-  const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
-      // Search filter (email, username, or fullName)
-      const searchMatch =
-        user.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-        user.username.toLowerCase().includes(searchValue.toLowerCase()) ||
-        user.fullName.toLowerCase().includes(searchValue.toLowerCase());
-
-      // Role filter
-      const roleMatch =
-        filterValue === "all" || user.role === filterValue.toLowerCase();
-
-      return searchMatch && roleMatch;
-    });
-  }, [users, searchValue, filterValue]);
+  const updateUserStatusMutation = useUpdateUserStatusService();
 
   // Handlers
   const handleCreateUser = async (data: CreateUserFormData) => {
@@ -79,16 +63,39 @@ export default function StaffUsersManagementPage() {
     });
   };
 
-  const handleViewUser = (user: User) => {
+  const handleViewUser = (user: UserWithWalletResponse) => {
+    // You can implement modal/drawer logic here
     setSelectedUser(user);
     setIsViewModalOpen(true);
   };
 
-  const handleToggleUserStatus = (user: User) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id ? { ...u, isDisabled: !u.isDisabled } : u
-      )
+  const handleToggleUserStatus = (user: UserWithWalletResponse) => {
+    const newStatus = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+
+    // Show loading toast
+    const loadingToast = toast.loading(
+      `${newStatus === "ACTIVE" ? "Kích hoạt" : "Vô hiệu hóa"} người dùng...`
+    );
+    updateUserStatusMutation.mutate(
+      {
+        id: String(user.id),
+        field: "status",
+        queryParams: { status: newStatus }, // ✅ dùng biến động },
+      },
+      {
+        onSuccess: () => {
+          toast.dismiss(loadingToast);
+          toast.success(
+            `${
+              newStatus === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"
+            } người dùng thành công!`
+          );
+        },
+        onError: () => {
+          toast.dismiss(loadingToast);
+          toast.error("Cập nhật trạng thái thất bại");
+        },
+      }
     );
   };
 
@@ -143,13 +150,24 @@ export default function StaffUsersManagementPage() {
       {/* Main Content */}
       <div className="mx-auto px-0 py-2">
         {/* Users Table */}
-        <UserTable users={allUsers?.data?.content || []} />
+        <UserTable
+          users={allUsers?.data?.content || []}
+          onViewUser={handleViewUser}
+          onToggleUserStatus={handleToggleUserStatus}
+        />
       </div>
       <CreateUserModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateUser}
       />
+      {selectedUser && (
+        <UserDetailModal
+          open={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          user={selectedUser}
+        />
+      )}
     </div>
   );
 }

@@ -95,3 +95,13 @@ export const ROLE_COLORS = {
   TEACHER: "bg-yellow-100 text-yellow-800",
   "TOOL-MANAGER": "bg-purple-100 text-purple-800",
 } as const;
+
+export const ORDER_STATUS_COLOR = {
+  PENDING: "bg-orange-100 text-orange-800",
+  PAID: "bg-green-100 text-green-800",
+  COMPLETED: "bg-green-100 text-green-800",
+  CANCELLED: "bg-red-100 text-red-800",
+  FAILED: "bg-red-100 text-red-800",
+  EXPIRED: "bg-red-100 text-red-800",
+
+}

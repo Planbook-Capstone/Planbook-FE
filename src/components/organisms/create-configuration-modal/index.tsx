@@ -23,7 +23,6 @@ export default function CreateConfigurationModal({
   onSubmit,
 }: CreateConfigurationModalProps) {
   const handleSubmit = (data: ConfigurationFormData) => {
-    console.log("Modal received data:", data);
     onSubmit?.(data);
     onClose();
   };

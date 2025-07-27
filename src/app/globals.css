@@ -3,6 +3,8 @@
 
 @import "../styles/theme.css";
 
+@custom-variant dark (&:is(.dark *));
+
 /* Demo Layout Styles */
 .dotted-input {
   border: none;

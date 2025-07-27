@@ -76,7 +76,6 @@ const GridDistortion = ({
 
     // Load video or image
     if (videoSrc) {
-      console.log("🎬 Loading video:", videoSrc);
       const video = document.createElement("video");
       video.src = videoSrc;
       video.loop = true;
@@ -86,16 +85,6 @@ const GridDistortion = ({
       video.crossOrigin = "anonymous";
 
       video.addEventListener("loadedmetadata", () => {
-        console.log(
-          "✅ Video loaded:",
-          video.videoWidth,
-          "x",
-          video.videoHeight
-        );
-        console.log("📹 Video readyState:", video.readyState);
-        console.log("📹 Video currentTime:", video.currentTime);
-        console.log("📹 Video paused:", video.paused);
-
         imageAspectRef.current = video.videoWidth / video.videoHeight;
         const videoTexture = new THREE.VideoTexture(video);
         videoTexture.minFilter = THREE.LinearFilter;
@@ -104,7 +93,6 @@ const GridDistortion = ({
         videoTexture.needsUpdate = true;
         uniforms.uTexture.value = videoTexture;
 
-        console.log("🎨 VideoTexture created:", videoTexture);
         handleResize();
       });
 
@@ -188,16 +176,6 @@ const GridDistortion = ({
       mouseState.vX = x - mouseState.prevX;
       mouseState.vY = y - mouseState.prevY;
       Object.assign(mouseState, { x, y, prevX: x, prevY: y });
-
-      // Debug mouse movement
-      if (Math.abs(mouseState.vX) > 0.01 || Math.abs(mouseState.vY) > 0.01) {
-        console.log("🖱️ Mouse move:", {
-          x,
-          y,
-          vX: mouseState.vX,
-          vY: mouseState.vY,
-        });
-      }
     };
 
     const handleMouseLeave = () => {
@@ -249,14 +227,6 @@ const GridDistortion = ({
 
       // Debug animation every 60 frames
       frameCount++;
-      if (frameCount % 60 === 0) {
-        console.log("🎬 Animation frame:", {
-          time: uniforms.time.value,
-          mouseState,
-          effectApplied,
-          textureLoaded: !!uniforms.uTexture.value,
-        });
-      }
 
       dataTexture.needsUpdate = true;
       renderer.render(scene, camera);
