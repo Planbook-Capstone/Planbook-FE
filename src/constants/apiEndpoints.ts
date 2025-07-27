@@ -1,8 +1,9 @@
 const SERVICES = {
   AUTH: "identity-service",
+  AUTH: "identity-service",
   MASTER_DATA: "master-data-service-local",
   LESSON_PLAN: "lesson-plan-service",
-  ACADEMIC_RESOURCE: "academic-resource-service",
+  ACADEMIC_RESOURCE: "academic-resource-service-local",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
   SUBSCRIPTION: "purchase-service",
@@ -135,6 +136,13 @@ export const EXAM_ENDPOINTS = {
   GENERATE_EXAM: `/exam/generate-exam`,
   GENERATE_SMART_EXAM: `/exam/generate-smart-exam`,
   EXAM_IMPORT: `/exam/import-docx`,
+  // Exam Instances
+  EXAM_INSTANCES: `/exam-service/api/exam-instances`,
+  // Student Exam Taking
+  EXAM_BY_CODE: (code: string) =>
+    `/exam-service/api/exam-instances/code/${code}`,
+  SUBMIT_EXAM: (code: string) =>
+    `/exam-service/api/exam-instances/code/${code}/submit`,
 } as const;
 
 export const LESSON_FRAMEWORK_ENDPOINTS = {

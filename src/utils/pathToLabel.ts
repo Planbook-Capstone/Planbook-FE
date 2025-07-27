@@ -10,8 +10,11 @@ export const getPageLabel = (pathname: string): string => {
     // Tools pages
     "/lesson-plan": "Tạo giáo án",
     "/lesson-plan-demo": "Lesson plan-demo",
-    "/exam": "Tạo bài kiểm tra",
+    "/exam": "Thi trực tuyến",
+    "/exam-matrix": "Tạo bài kiểm tra",
     "/exam-creation": "Tạo bài kiểm",
+    "/exam-templates": "Quản lý Template",
+    "/exam-instances": "Quản lý phiên kiểm tra",
     "/grading-test": "Chấm điểm tự động",
     "/chats": "Tạo slide bài giảng",
     "/reports": "Báo cáo",
@@ -102,14 +105,14 @@ export const getPageActions = (pathname: string) => {
   };
 
   const actionsMap: Record<string, any[]> = {
-    "/exam-creation": [
-      {
-        label: isPreviewing ? "Ẩn xem trước" : "Xem trước",
-        icon: "FileText",
-        onClick: togglePreview,
-        variant: isPreviewing ? "default" : "outline",
-      },
-    ],
+    //  "/exam-creation": [
+    //     {
+    //       label: isPreviewing ? "Ẩn xem trước" : "Xem trước",
+    //       icon: "FileText",
+    //       onClick: togglePreview,
+    //       variant: isPreviewing ? "default" : "outline",
+    //     },
+    //   ],
     "/lesson-plan-demo": [
       {
         label: "Chỉnh sửa",

@@ -1,10 +1,19 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Question } from '@/components/organisms/exam-question-item/types';
-import { YesNoQuestion } from '@/components/organisms/yes-no-question-item/types';
-import { ShortQuestion } from '@/components/organisms/short-question-item/types';
-import { BasicExamInfo, defaultBasicExamInfo } from "@/components/organisms/basic-exam-info/types";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
+import { Question } from "@/components/organisms/exam-question-item/types";
+import { YesNoQuestion } from "@/components/organisms/yes-no-question-item/types";
+import { ShortQuestion } from "@/components/organisms/short-question-item/types";
+import {
+  BasicExamInfo,
+  defaultBasicExamInfo,
+} from "@/components/organisms/basic-exam-info/types";
 
 interface ExamContextType {
   basicExamInfo: BasicExamInfo;
@@ -25,14 +34,21 @@ interface ExamContextType {
   updateYesNoQuestionImage: (questionId: string, imagePath: string) => void;
   updateShortQuestionImage: (questionId: string, imagePath: string) => void;
   setExamFromApiResponse: (apiResponse: any) => void;
+  clearExamData: () => void;
+  hasUnsavedChanges: boolean;
+  markAsSaved: () => void;
 }
+
+// LocalStorage keys
+const EXAM_DATA_KEY = "exam_draft_data";
+const UNSAVED_CHANGES_KEY = "exam_unsaved_changes";
 
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
 
 export const useExamContext = () => {
   const context = useContext(ExamContext);
   if (!context) {
-    throw new Error('useExamContext must be used within an ExamProvider');
+    throw new Error("useExamContext must be used within an ExamProvider");
   }
   return context;
 };
@@ -42,137 +58,309 @@ interface ExamProviderProps {
 }
 
 export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
-  const [basicExamInfo, setBasicExamInfo] = useState<BasicExamInfo>(defaultBasicExamInfo);
-  const [examQuestions, setExamQuestions] = useState<Question[]>([
-    {
-      id: '1',
-      question: 'Câu hỏi mẫu?',
-      options: ['Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D'],
-      correctAnswer: 0,
-      type: 'single'
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Initialize state from localStorage or defaults
+  const [basicExamInfo, setBasicExamInfo] = useState<BasicExamInfo>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(EXAM_DATA_KEY);
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          return data.basicExamInfo || defaultBasicExamInfo;
+        } catch (e) {
+          console.error("Error parsing saved exam data:", e);
+        }
+      }
     }
-  ]);
-  
-  const [examYesNoQuestions, setExamYesNoQuestions] = useState<YesNoQuestion[]>([]);
-  const [examShortQuestions, setExamShortQuestions] = useState<ShortQuestion[]>([]);
+    return defaultBasicExamInfo;
+  });
+
+  const [examQuestions, setExamQuestions] = useState<Question[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(EXAM_DATA_KEY);
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          return data.examQuestions || [];
+        } catch (e) {
+          console.error("Error parsing saved exam data:", e);
+        }
+      }
+    }
+    return [
+      {
+        id: "1",
+        question: "Câu hỏi mẫu?",
+        options: ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"],
+        correctAnswer: 0,
+        type: "single",
+      },
+    ];
+  });
+
+  const [examYesNoQuestions, setExamYesNoQuestions] = useState<YesNoQuestion[]>(
+    () => {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem(EXAM_DATA_KEY);
+        if (saved) {
+          try {
+            const data = JSON.parse(saved);
+            return data.examYesNoQuestions || [];
+          } catch (e) {
+            console.error("Error parsing saved exam data:", e);
+          }
+        }
+      }
+      return [];
+    }
+  );
+
+  const [examShortQuestions, setExamShortQuestions] = useState<ShortQuestion[]>(
+    () => {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem(EXAM_DATA_KEY);
+        if (saved) {
+          try {
+            const data = JSON.parse(saved);
+            return data.examShortQuestions || [];
+          } catch (e) {
+            console.error("Error parsing saved exam data:", e);
+          }
+        }
+      }
+      return [];
+    }
+  );
+
+  // Save data to localStorage
+  const saveToLocalStorage = () => {
+    if (typeof window !== "undefined") {
+      const data = {
+        basicExamInfo,
+        examQuestions,
+        examYesNoQuestions,
+        examShortQuestions,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(EXAM_DATA_KEY, JSON.stringify(data));
+      localStorage.setItem(UNSAVED_CHANGES_KEY, "true");
+    }
+  };
+
+  // Clear exam data
+  const clearExamData = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(EXAM_DATA_KEY);
+      localStorage.removeItem(UNSAVED_CHANGES_KEY);
+    }
+    setBasicExamInfo(defaultBasicExamInfo);
+    setExamQuestions([
+      {
+        id: "1",
+        question: "Câu hỏi mẫu?",
+        options: ["Đáp án A", "Đáp án B", "Đáp án C", "Đáp án D"],
+        correctAnswer: 0,
+        type: "single",
+      },
+    ]);
+    setExamYesNoQuestions([]);
+    setExamShortQuestions([]);
+    setHasUnsavedChanges(false);
+  };
+
+  // Mark as saved (when user successfully saves)
+  const markAsSaved = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(UNSAVED_CHANGES_KEY);
+    }
+    setHasUnsavedChanges(false);
+  };
+
+  // Auto-save when data changes
+  useEffect(() => {
+    const hasData =
+      examQuestions.length > 0 ||
+      examYesNoQuestions.length > 0 ||
+      examShortQuestions.length > 0;
+    if (hasData) {
+      saveToLocalStorage();
+      setHasUnsavedChanges(true);
+    }
+  }, [basicExamInfo, examQuestions, examYesNoQuestions, examShortQuestions]);
+
+  // Handle beforeunload event
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue =
+          "Bạn có thay đổi chưa được lưu. Bạn có chắc chắn muốn thoát?";
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const updateQuestion = (question: Question) => {
-    setExamQuestions(prev => prev.map(q => q.id === question.id ? question : q));
+    console.log("🔄 ExamContext - updateQuestion called with:", question);
+    setExamQuestions((prev) => {
+      const updated = prev.map((q) => {
+        // Use string comparison to handle both string and number IDs
+        if (String(q.id) === String(question.id)) {
+          console.log(
+            "🔄 ExamContext - Updating question:",
+            q.id,
+            "from correctAnswer:",
+            q.correctAnswer,
+            "to:",
+            question.correctAnswer
+          );
+          return question;
+        }
+        return q;
+      });
+      console.log(
+        "🔄 ExamContext - New questions array:",
+        updated.map((q) => ({ id: q.id, correctAnswer: q.correctAnswer }))
+      );
+      return updated;
+    });
+    setHasUnsavedChanges(true);
   };
 
   const updateYesNoQuestion = (question: YesNoQuestion) => {
-    setExamYesNoQuestions(prev => prev.map(q => q.id === question.id ? question : q));
+    setExamYesNoQuestions((prev) =>
+      prev.map((q) => (q.id === question.id ? question : q))
+    );
+    setHasUnsavedChanges(true);
   };
 
   const updateShortQuestion = (question: ShortQuestion) => {
-    setExamShortQuestions(prev => prev.map(q => q.id === question.id ? question : q));
+    setExamShortQuestions((prev) =>
+      prev.map((q) => (q.id === question.id ? question : q))
+    );
+    setHasUnsavedChanges(true);
   };
 
   const deleteQuestion = (questionId: string) => {
-    setExamQuestions(prev => prev.filter(q => q.id !== questionId));
+    setExamQuestions((prev) => prev.filter((q) => q.id !== questionId));
+    setHasUnsavedChanges(true);
   };
 
   const deleteYesNoQuestion = (questionId: string) => {
-    setExamYesNoQuestions(prev => prev.filter(q => q.id !== questionId));
+    setExamYesNoQuestions((prev) => prev.filter((q) => q.id !== questionId));
+    setHasUnsavedChanges(true);
   };
 
   const deleteShortQuestion = (questionId: string) => {
-    setExamShortQuestions(prev => prev.filter(q => q.id !== questionId));
+    setExamShortQuestions((prev) => prev.filter((q) => q.id !== questionId));
+    setHasUnsavedChanges(true);
   };
 
   const addQuestion = () => {
     const newQuestion: Question = {
       id: Date.now().toString(),
-      question: '',
-      options: ['', '', '', ''],
+      question: "",
+      options: ["", "", "", ""],
       correctAnswer: 0,
-      type: 'single'
+      type: "single",
     };
-    setExamQuestions(prev => [...prev, newQuestion]);
+    setExamQuestions((prev) => [...prev, newQuestion]);
+    setHasUnsavedChanges(true);
   };
 
   const addYesNoQuestion = () => {
     const newQuestion: YesNoQuestion = {
       id: Date.now().toString(),
-      question: '',
+      question: "",
       statements: {
-        a: { text: '', answer: true },
-        b: { text: '', answer: false },
-        c: { text: '', answer: true },
-        d: { text: '', answer: false }
+        a: { text: "", answer: true },
+        b: { text: "", answer: false },
+        c: { text: "", answer: true },
+        d: { text: "", answer: false },
       },
-      type: 'yes-no'
+      type: "yes-no",
     };
-    setExamYesNoQuestions(prev => [...prev, newQuestion]);
+    setExamYesNoQuestions((prev) => [...prev, newQuestion]);
+    setHasUnsavedChanges(true);
   };
 
   const addShortQuestion = () => {
     const newQuestion: ShortQuestion = {
       id: Date.now().toString(),
-      question: '',
-      answer: '',
-      type: 'short'
+      question: "",
+      answer: "",
+      type: "short",
     };
-    setExamShortQuestions(prev => [...prev, newQuestion]);
+    setExamShortQuestions((prev) => [...prev, newQuestion]);
+    setHasUnsavedChanges(true);
   };
 
   const updateQuestionImage = (questionId: string, imagePath: string) => {
-    setExamQuestions(prev =>
-      prev.map(q =>
-        q.id === questionId
-          ? { ...q, illustrationImage: imagePath }
-          : q
+    setExamQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId ? { ...q, illustrationImage: imagePath } : q
       )
     );
+    setHasUnsavedChanges(true);
   };
 
   const updateYesNoQuestionImage = (questionId: string, imagePath: string) => {
-    setExamYesNoQuestions(prev =>
-      prev.map(q =>
-        q.id === questionId
-          ? { ...q, illustrationImage: imagePath }
-          : q
+    setExamYesNoQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId ? { ...q, illustrationImage: imagePath } : q
       )
     );
+    setHasUnsavedChanges(true);
   };
 
   const updateShortQuestionImage = (questionId: string, imagePath: string) => {
-    setExamShortQuestions(prev =>
-      prev.map(q =>
-        q.id === questionId
-          ? { ...q, illustrationImage: imagePath }
-          : q
+    setExamShortQuestions((prev) =>
+      prev.map((q) =>
+        q.id === questionId ? { ...q, illustrationImage: imagePath } : q
       )
     );
+    setHasUnsavedChanges(true);
   };
 
   const updateBasicExamInfo = (info: BasicExamInfo) => {
     setBasicExamInfo(info);
+    setHasUnsavedChanges(true);
   };
 
   const setExamFromApiResponse = (apiResponse: any) => {
     console.log("=== SETTING EXAM FROM API RESPONSE ===");
     console.log("API Response:", apiResponse);
 
-    const examData = apiResponse?.data?.data;
+    const examData = apiResponse?.data?.data || apiResponse?.data;
     if (!examData) {
       console.error("No exam data found in API response");
       return;
     }
 
     // Update basic exam info
+    console.log("🔄 Mapping API data to basicExamInfo:", examData);
+
     const newBasicInfo: BasicExamInfo = {
+      template_name:
+        examData.templateName || examData.template_name || examData.name || "",
       subject: examData.subject || "Hóa học",
       grade: examData.grade || 10,
-      duration_minutes: examData.duration_minutes || 45,
+      duration_minutes:
+        examData.durationMinutes || examData.duration_minutes || 45, // Map from API field name
       school: examData.school || "",
-      exam_code: examData.exam_code || "1234",
-      atomic_masses: examData.atomic_masses || null,
+      exam_code: examData.examCode || examData.exam_code || "1234", // Map from API field name
+      atomic_masses: examData.atomicMasses || examData.atomic_masses || null, // Map from API field name
     };
+
+    console.log("🔄 New basicExamInfo:", newBasicInfo);
     setBasicExamInfo(newBasicInfo);
 
     // Process parts and questions
-    const parts = examData.parts || [];
+    const parts = examData.parts || examData.contentJson?.parts || [];
     let allQuestions: Question[] = [];
     let allYesNoQuestions: YesNoQuestion[] = [];
     let allShortQuestions: ShortQuestion[] = [];
@@ -181,18 +369,36 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
       const questions = part.questions || [];
 
       questions.forEach((q: any, qIndex: number) => {
-        const questionId = `${partIndex}-${qIndex}`;
+        // Use original ID if available, otherwise create format-based ID
+        const questionId = q.id || `${partIndex}-${qIndex}`;
 
         // Determine question type based on part index
         if (partIndex === 0) {
           // PHẦN I - Multiple choice questions (parts[0])
+          // Handle both array and object format for options
+          let options: string[];
+          if (Array.isArray(q.options)) {
+            options = q.options;
+          } else if (q.options && typeof q.options === "object") {
+            // Convert object format {A: "...", B: "...", C: "...", D: "..."} to array
+            options = [
+              q.options.A || q.options.a || "",
+              q.options.B || q.options.b || "",
+              q.options.C || q.options.c || "",
+              q.options.D || q.options.d || "",
+            ];
+          } else {
+            options = ["", "", "", ""];
+          }
+
           const question: Question = {
             id: questionId,
             question: q.question || "",
-            options: q.options || ["", "", "", ""],
-            correctAnswer: q.answer ? (q.answer.charCodeAt(0) - 65) : 0, // Convert A,B,C,D to 0,1,2,3
+            options: options,
+            correctAnswer: q.answer ? q.answer.charCodeAt(0) - 65 : 0, // Convert A,B,C,D to 0,1,2,3
             answer: q.answer,
-            type: "single"
+            type: "single",
+            illustrationImage: q.illustrationImage || undefined,
           };
           allQuestions.push(question);
         } else if (partIndex === 1) {
@@ -204,9 +410,10 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
               a: { text: "", answer: true },
               b: { text: "", answer: false },
               c: { text: "", answer: true },
-              d: { text: "", answer: false }
+              d: { text: "", answer: false },
             },
-            type: "yes-no"
+            type: "yes-no",
+            illustrationImage: q.illustrationImage || undefined,
           };
           allYesNoQuestions.push(question);
         } else if (partIndex === 2) {
@@ -215,7 +422,8 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
             id: questionId,
             question: q.question || "",
             answer: q.answer || "",
-            type: "short"
+            type: "short",
+            illustrationImage: q.illustrationImage || undefined,
           };
           allShortQuestions.push(question);
         }
@@ -223,15 +431,21 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     });
 
     console.log("Processed questions:", {
-      multipleChoice: allQuestions.length,
-      yesNo: allYesNoQuestions.length,
-      short: allShortQuestions.length
+      multipleChoice: allQuestions,
+      yesNo: allYesNoQuestions,
+      short: allShortQuestions,
     });
 
     // Update state
     setExamQuestions(allQuestions);
     setExamYesNoQuestions(allYesNoQuestions);
     setExamShortQuestions(allShortQuestions);
+    setHasUnsavedChanges(true);
+
+    console.log("=== STATE UPDATED ===");
+    console.log("New examQuestions state:", allQuestions);
+    console.log("New examYesNoQuestions state:", allYesNoQuestions);
+    console.log("New examShortQuestions state:", allShortQuestions);
   };
 
   const value: ExamContextType = {
@@ -253,11 +467,10 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     updateYesNoQuestionImage,
     updateShortQuestionImage,
     setExamFromApiResponse,
+    clearExamData,
+    hasUnsavedChanges,
+    markAsSaved,
   };
 
-  return (
-    <ExamContext.Provider value={value}>
-      {children}
-    </ExamContext.Provider>
-  );
+  return <ExamContext.Provider value={value}>{children}</ExamContext.Provider>;
 };

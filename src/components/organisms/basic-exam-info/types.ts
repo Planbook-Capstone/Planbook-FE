@@ -1,4 +1,5 @@
 export interface BasicExamInfo {
+  template_name?: string;
   subject: string;
   grade: number;
   duration_minutes: number;
@@ -8,6 +9,7 @@ export interface BasicExamInfo {
 }
 
 export const defaultBasicExamInfo: BasicExamInfo = {
+  template_name: "",
   subject: "Hóa học",
   grade: 10,
   duration_minutes: 45,
