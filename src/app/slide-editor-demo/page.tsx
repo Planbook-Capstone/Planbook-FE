@@ -8,44 +8,122 @@ import { Upload, FileText, Loader2 } from "lucide-react";
 import {
   useSlideTemplateByIdService,
   useProcessJsonTemplateService,
+  useSlideTemplateDetailByIdService,
 } from "@/services/slideTemplateServices";
 import Loading from "@/components/ui/loading";
+import { useExecuteToolService } from "@/services/executeToolServices";
+import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
+import { WEBSOCKET_CONFIG } from "@/components/templates/lesson-plan/constants";
+import { useSearchParams } from "next/navigation";
+import { useBookTypeByIdService } from "@/services/bookTypeServices";
+import { toast } from "sonner";
 
 export default function SlideEditorDemo() {
   const [slides, setSlides] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoadedData, setHasLoadedData] = useState(false);
   const [isProcessingTemplate, setIsProcessingTemplate] = useState(false);
+  const [shouldAutoNavigate, setShouldAutoNavigate] = useState(false);
 
   // Get template
+  // const {
+  //   data: template,
+  //   isLoading: isLoadingTemplate,
+  //   error,
+  // } = useSlideTemplateByIdService("6");
+
   const {
-    data: template,
+    data: templateDetail,
     isLoading: isLoadingTemplate,
     error,
-  } = useSlideTemplateByIdService("20");
+  } = useSlideTemplateDetailByIdService("6");
 
   // Process JSON template service
   const processJsonMutation = useProcessJsonTemplateService();
+  const { mutate: executeTool } = useExecuteToolService();
+  const [wsUrl] = useState(WEBSOCKET_CONFIG.url);
+  const [topic] = useState(WEBSOCKET_CONFIG.topic);
+  const [enabled, setEnabled] = useState(true);
+  const {
+    data: websocketData,
+    isConnected,
+    error: socketError,
+    sendMessage,
+    reconnect,
+  } = useSimpleWebSocket({
+    url: wsUrl,
+    topic: topic,
+    enabled: enabled,
+  });
+  const [finalData, setFinalData] = useState<any>(null);
+
+  useEffect(() => {
+    setFinalData(websocketData);
+    console.log(
+      "🔍 websocketData received:",
+      websocketData?.partial_result?.processed_template?.slides
+    );
+
+    const newSlides = websocketData?.partial_result?.processed_template?.slides;
+    if (newSlides && newSlides.length > 0) {
+      setSlides(newSlides);
+      setHasLoadedData(true);
+      setShouldAutoNavigate(true); // Enable auto-navigation for WebSocket data
+
+      // Auto navigate to the last slide (newest)
+      console.log(`🎯 Auto navigating to slide ${newSlides.length} (latest)`);
+      // Note: SlideEditorLayout will handle the current slide index internally
+    }
+  }, [websocketData]);
+  const searchParams = useSearchParams();
+  const query = searchParams.get("bookTypeId");
+
+  const { data: bookType } = useBookTypeByIdService(query || "");
+
+  // Execute tool when data is ready
+  // useEffect(() => {
+  //   if (bookType?.data?.id && templateDetail?.data) {
+  //     const payload = {
+  //       toolId: bookType.data.id,
+  //       toolType: "INTERNAL",
+  //       book_id: 4,
+  //       lesson_id: "42",
+  //       input: templateDetail.data,
+  //     };
+
+  //     executeTool(payload, {
+  //       onSuccess: (e: any) => {
+  //         toast.success("Gửi dữ liệu thành công!");
+  //         console.log(e.data.task_id);
+  //         setEnabled(true);
+  //       },
+  //       onError: (error) => {
+  //         toast.error("Gửi dữ liệu thất bại!");
+  //         console.error(error);
+  //       },
+  //     });
+  //   }
+  // }, [bookType?.data?.id, templateDetail?.data, executeTool]);
 
   // Console.log template số 4
   useEffect(() => {
-    if (template) {
-      console.log("🎯 Template số 4:", template);
+    if (templateDetail) {
+      console.log("🎯 Template số 4:", templateDetail);
 
       // Test filter function
-      const filteredTemplate = filterTextElementsFromTemplate(template);
-      console.log(
-        "🎯 Filtered template (text elements only):",
-        filteredTemplate
-      );
+      // const filteredTemplate = filterTextElementsFromTemplate(templateDetail);
+      // console.log(
+      //   "🎯 Filtered template (text elements only):",
+      //   filteredTemplate
+      // );
 
       // Post data về BE khi có template
-      handleProcessTemplate(filteredTemplate);
+      handleProcessTemplate(templateDetail);
     }
     if (error) {
       console.error("❌ Error loading template 4:", error);
     }
-  }, [template, error]);
+  }, [templateDetail, error]);
 
   // Function để lọc ra chỉ giữ lại elements có type "text" từ template
   const filterTextElementsFromTemplate = (templateData: any) => {
@@ -95,62 +173,6 @@ export default function SlideEditorDemo() {
     return filteredTemplate;
   };
 
-  // Function để merge processed slides với template elements
-  const mergeProcessedSlidesWithTemplate = (
-    processedSlides: any[],
-    templateSlides: any[]
-  ) => {
-    console.log("🔄 Merging processed slides with template elements...");
-
-    // Tạo map từ title để dễ tìm kiếm template slides
-    const templateSlidesMap = new Map();
-    templateSlides.forEach((slide) => {
-      templateSlidesMap.set(slide.title, slide);
-    });
-
-    // Merge slides - dùng processed slides làm gốc
-    const mergedSlides = processedSlides.map((processedSlide) => {
-      const templateSlide = templateSlidesMap.get(processedSlide.title);
-
-      if (!templateSlide) {
-        // Nếu không có template slide tương ứng, giữ nguyên processed slide
-        console.log(`⚠️ No template slide found for: ${processedSlide.title}`);
-        return processedSlide;
-      }
-
-      // Lấy tất cả elements từ processed slide (giữ nguyên)
-      const processedElements = [...processedSlide.elements];
-
-      console.log(templateSlide);
-      // Lọc elements từ template: chỉ lấy những cái KHÔNG phải text
-      const templateNonTextElements = templateSlide.elements.filter(
-        (element: any) => element.type !== "text"
-      );
-
-      // Merge: giữ nguyên processed elements + thêm non-text elements từ template
-      const mergedElements = [
-        ...processedElements, // Giữ nguyên tất cả elements từ processed
-        ...templateNonTextElements, // Thêm images, shapes, etc từ template
-      ];
-
-      console.log(`✅ Merged slide: ${processedSlide.title}`, {
-        processedElements: processedElements.length,
-        templateNonText: templateNonTextElements.length,
-        total: mergedElements.length,
-      });
-
-      return {
-        ...processedSlide, // Giữ structure từ processed slide
-        elements: mergedElements, // Elements đã merge
-        // Có thể override background từ template nếu cần
-        background: templateSlide.background || processedSlide.background,
-      };
-    });
-
-    console.log("🎯 Merge completed:", mergedSlides);
-    return mergedSlides;
-  };
-
   // Function để post data về BE
   const handleProcessTemplate = async (templateData: any) => {
     try {
@@ -158,26 +180,25 @@ export default function SlideEditorDemo() {
       console.log("📤 Posting template data to BE...");
 
       const result = await processJsonMutation.mutateAsync({
-        lesson_id: "123", // Mặc định là 1
+        lesson_id: "2",
+        book_id: "1",
         template: templateData, // Template data từ API
         config_prompt: "", // Trống
       });
 
-      console.log("✅ Process result:", result);
+      // console.log("✅ Process result:", result);
 
-      // Merge processed slides với template elements
-      const processedSlides = result.data.processed_template.slides;
+      // // Merge processed slides với template elements
+      // const processedSlides = result.data.processed_template.slides;
 
-      const mergedSlides = mergeProcessedSlidesWithTemplate(
-        processedSlides,
-        template.data.textBlocks.slides
-      );
+      // const mergedSlides = mergeProcessedSlidesWithTemplate(
+      //   processedSlides,
+      //   template.data.textBlocks.slides
+      // );
 
       // Set merged slides vào editor
-      setSlides(mergedSlides);
-      setHasLoadedData(true);
-
-      console.log("🎉 Merged slides loaded into editor!");
+      // setSlides(mergedSlides);
+      // setHasLoadedData(true);
     } catch (error) {
       console.error("❌ Error processing template:", error);
     } finally {
@@ -185,8 +206,10 @@ export default function SlideEditorDemo() {
     }
   };
 
+  // Reset auto-navigate flag when manually loading data
   const handleLoadSampleData = async () => {
     setIsLoading(true);
+    setShouldAutoNavigate(false); // Don't auto-navigate for manual data load
     try {
       // Convert Google Slides JSON to editor format
       const convertedData = convertGoogleSlideJsonToEditor(sampleData);
@@ -248,6 +271,7 @@ export default function SlideEditorDemo() {
   const handleClearData = () => {
     setSlides([]);
     setHasLoadedData(false);
+    setShouldAutoNavigate(false); // Reset auto-navigate flag
   };
 
   return (
@@ -272,7 +296,49 @@ export default function SlideEditorDemo() {
         onClearData={handleClearData}
         isLoadingData={isLoading}
         hasLoadedData={hasLoadedData}
+        autoNavigateToLast={shouldAutoNavigate} // Auto navigate to newest slide from WebSocket
+        onAutoNavigated={() => setShouldAutoNavigate(false)} // Reset flag after navigation
       />
+
+      {/* Debug Button */}
+      <div className="absolute bottom-4 right-4 z-50">
+        <button
+          onClick={() => {
+            // Manually trigger executeTool
+            if (bookType?.data?.id && templateDetail?.data) {
+              const payload = {
+                toolId: bookType.data.id,
+                toolType: "INTERNAL",
+                book_id: 4,
+                lesson_id: "42",
+                input: templateDetail.data,
+              };
+
+              executeTool(payload, {
+                onSuccess: (e: any) => {
+                  toast.success("Gửi dữ liệu thành công!");
+
+                  setEnabled(true);
+                },
+                onError: (error) => {
+                  toast.error("Gửi dữ liệu thất bại!");
+                  console.error(error);
+                },
+              });
+            }
+
+            // Manually trigger template processing
+            if (templateDetail) {
+              console.log("🎯 Manual trigger - Template số 4:", templateDetail);
+              handleProcessTemplate(templateDetail);
+            }
+          }}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg"
+          disabled={!bookType?.data?.id || !templateDetail?.data}
+        >
+          🚀 Manual Trigger
+        </button>
+      </div>
     </div>
   );
 }

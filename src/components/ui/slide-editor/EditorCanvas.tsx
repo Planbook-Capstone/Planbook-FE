@@ -43,6 +43,9 @@ export default function EditorCanvas({
   background = "#ffffff",
   slideFormat = "16:9",
 }: EditorCanvasProps) {
+  // Debug logging
+  console.log("🎨 EditorCanvas received elements:", elements);
+  console.log("🎨 Elements count:", elements?.length || 0);
   // Calculate canvas dimensions based on slide format
   const getCanvasDimensions = () => {
     // Force standard dimensions regardless of props
@@ -316,6 +319,8 @@ export default function EditorCanvas({
 
   // Render elements based on type
   const renderElement = (element: SlideElement) => {
+    console.log("🎨 Rendering element:", element.type, element);
+
     switch (element.type) {
       case "text":
         return (
@@ -425,10 +430,18 @@ export default function EditorCanvas({
           />
 
           {/* Render all elements sorted by zIndex */}
-          {elements
-            .slice() // Create a copy to avoid mutating the original array
-            .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
-            .map(renderElement)}
+          {(() => {
+            const sortedElements = elements
+              .slice() // Create a copy to avoid mutating the original array
+              .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
+            console.log("🎨 Rendering sorted elements:", sortedElements);
+
+            return sortedElements.map((element, index) => {
+              console.log(`🎨 Rendering element ${index}:`, element);
+              return renderElement(element);
+            });
+          })()}
 
           {/* Alignment guides */}
           <AlignmentGuides

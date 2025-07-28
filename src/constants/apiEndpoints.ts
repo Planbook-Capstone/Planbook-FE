@@ -110,6 +110,7 @@ export const API_ENDPOINTS = {
 
   // Slide Templates
   SLIDE_TEMPLATES: "slide-template-service/api/slide-templates",
+  SLIDE_DETAILS: "slide-template-service/api/slide-details/template",
 
   SLIDE_PROCESS_JSON_TEMPLATE: "/slides/process-json-template",
 } as const;
