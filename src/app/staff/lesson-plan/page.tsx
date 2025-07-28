@@ -108,7 +108,7 @@ export default function LessonPlanPage() {
         const specialTypes = ["INPUT", "REFERENCES", "TABLE"];
 
         const keywordNodeData = {
-          lessonPlanId: lessonPlanId,
+          lessonPlanTemplateId: lessonPlanId,
           title: keyword.title,
           content: keyword.content || "",
           parentId: parentId,
@@ -140,7 +140,7 @@ export default function LessonPlanPage() {
 
         // Create step node (SECTION)
         const stepNodeData = {
-          lessonPlanId: lessonPlanId,
+          lessonPlanTemplateId: lessonPlanId,
           title: step.title,
           content: step.description || "",
           parentId: null,
@@ -335,7 +335,7 @@ export default function LessonPlanPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  if (showBuilder && allNode?.data) {
+  if (showBuilder || allNode?.data) {
     return (
       <LessonPlanTemplateBuilder
         initialTemplate={currentTemplate || undefined}

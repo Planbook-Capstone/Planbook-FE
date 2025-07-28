@@ -16,11 +16,16 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { useWalletService } from "@/services/walletServices";
 
 function UserButton() {
   const { user, logout, displayName, avatarUrl, initials, isAuthenticated } =
     useAuth();
   const router = useRouter();
+
+  const { data: wallet } = useWalletService("");
+
+  console.log(wallet?.data?.balance, "wallet");
 
   if (!isAuthenticated) {
     return null;
@@ -48,7 +53,7 @@ function UserButton() {
           height={20}
           className="object-contain"
         />
-        500
+        {wallet?.data?.balance}
       </div>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger className="outline-none relative">

@@ -115,7 +115,7 @@ export const WEBSOCKET_CONFIG = {
 };
 
 export const LESSON_PLAN_CONFIG = {
-  defaultLessonPlanId: "9",
+  defaultLessonPlanId: "8",
   toolId: "6ef43906-1899-4cec-b969-48957ba574ba",
   toolType: "INTERNAL",
 };

@@ -731,28 +731,32 @@ export default function MatrixTemplate2() {
         </tbody>
       </table>
 
-      <Button
-        variant="dash"
-        type="button"
-        className="mt-4 rounded-md w-full"
-        onClick={addMatrixRow}
-      >
-        Thêm dòng mới +
-      </Button>
+      {finalData ? null : (
+        <Button
+          variant="dash"
+          type="button"
+          className="mt-4 rounded-md w-full"
+          onClick={addMatrixRow}
+        >
+          Thêm dòng mới +
+        </Button>
+      )}
 
       {/* Create Exam Button */}
 
-      {taskStatus?.result ? (
+      {finalData ? (
         <div className="flex justify-between items-center mb-10 mt-5">
           <div className="space-y-3">
             <h1 className="font-calsans text-base">
               Đã tạo thành công đề theo ma trận trên
             </h1>
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-3" 
+          
+            >
               <DocumentItem
                 type="DOCX"
-                name={taskStatus?.result?.message || "Không xác định"}
-                description="taskStatus"
+                name={finalData?.message || "Không xác định"}
+                description="Đề thi thông minh"
                 onRemove={() => {
                   console.log("remove");
                 }}
