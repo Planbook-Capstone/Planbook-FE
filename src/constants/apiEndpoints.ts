@@ -22,6 +22,8 @@ export const API_ENDPOINTS = {
     BASE: buildEndpoint(SERVICES.AUTH, "/users"),
   },
 
+  WALLET: buildEndpoint(SERVICES.AUTH, "/wallets"),
+
   // Academic Years
   ACADEMIC_YEARS: "/academic-years",
 
@@ -64,7 +66,7 @@ export const API_ENDPOINTS = {
   // Lesson Plan
 
   LESSON_PLANS: {
-    BASE: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-plans"),
+    BASE: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-plan-templates"),
 
     NODES: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-nodes"),
     TREE: (id: string) => `/lesson-plan-service/api/lesson-nodes/${id}/tree`,
