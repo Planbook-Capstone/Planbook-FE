@@ -1,13 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   useExamTemplatesService,
   useDeleteExamTemplateService,
   useCloneExamTemplateService,
 } from "@/services/examTemplateServices";
 import { Button } from "@/components/ui/Button";
-import { Plus, SearchIcon, Edit, Copy, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ExamCreationModal from "@/components/organisms/exam-creation-modal";
@@ -23,14 +31,10 @@ function ExamTemplatesPageContent() {
   const router = useRouter();
   const { data: templates, isLoading, refetch } = useExamTemplatesService();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("all");
   const [showCreationModal, setShowCreationModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-    templateId: string;
-  } | null>(null);
 
   // Initialize the exam import service
   const { mutate: importExam, isPending: isImporting } = useExamImportService();
@@ -44,25 +48,27 @@ function ExamTemplatesPageContent() {
   const { mutate: deleteTemplate, isPending: isDeleting } =
     useDeleteExamTemplateService();
 
-  // Close context menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setContextMenu(null);
-    };
-
-    if (contextMenu) {
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
-    }
-  }, [contextMenu]);
-
-  // Filter templates based on search term
+  // Filter templates based on search term and subject
   const filteredTemplates =
-    templates?.data?.filter(
-      (template: ExamTemplate) =>
+    templates?.data?.filter((template: ExamTemplate) => {
+      const matchesSearch =
         template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.subject.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+        template.subject.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSubject =
+        selectedSubject === "all" || template.subject === selectedSubject;
+      return matchesSearch && matchesSubject;
+    }) || [];
+
+  // Get unique subjects for filter dropdown
+  const uniqueSubjects: string[] = templates?.data
+    ? Array.from(
+        new Set(
+          templates.data.map(
+            (template: ExamTemplate) => template.subject as string
+          )
+        )
+      ).sort()
+    : [];
 
   const handleCreateTemplate = () => {
     setShowCreationModal(true);
@@ -97,40 +103,6 @@ function ExamTemplatesPageContent() {
   const handleDeleteTemplate = (templateId: string) => {
     setTemplateToDelete(templateId);
     setShowDeleteDialog(true);
-    setContextMenu(null);
-  };
-
-  const handleContextMenu = (e: React.MouseEvent, templateId: string) => {
-    e.preventDefault();
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      templateId,
-    });
-  };
-
-  const handleCloseContextMenu = () => {
-    setContextMenu(null);
-  };
-
-  const handleContextMenuEdit = () => {
-    if (contextMenu) {
-      handleEditTemplate(contextMenu.templateId);
-      setContextMenu(null);
-    }
-  };
-
-  const handleContextMenuDuplicate = () => {
-    if (contextMenu) {
-      handleDuplicateTemplate(contextMenu.templateId);
-      setContextMenu(null);
-    }
-  };
-
-  const handleContextMenuDelete = () => {
-    if (contextMenu) {
-      handleDeleteTemplate(contextMenu.templateId);
-    }
   };
 
   const handleConfirmDelete = () => {
@@ -202,17 +174,35 @@ function ExamTemplatesPageContent() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         {/* Search and filter */}
-        <div className="relative w-[30%]">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-            <SearchIcon className="h-4 w-4" />
-          </span>
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo tên hoặc môn học..."
-            className="w-full pl-9 p-2 border border-gray-300 rounded-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex gap-4 w-[50%]">
+          <div className="relative flex-1">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+              <SearchIcon className="h-4 w-4" />
+            </span>
+            <Input
+              type="text"
+              placeholder="Tìm kiếm theo tên hoặc môn học..."
+              className="w-full pl-9 rounded-full"
+              value={searchTerm}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSearchTerm(e.target.value)
+              }
+            />
+          </div>
+
+          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+            <SelectTrigger className="w-[200px] rounded-full">
+              <SelectValue placeholder="Tất cả môn học" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả môn học</SelectItem>
+              {uniqueSubjects.map((subject) => (
+                <SelectItem key={subject} value={subject}>
+                  {subject}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Button onClick={handleCreateTemplate} className="bg-neutral-900">
           <Plus className="h-4 w-4 mr-2" />
@@ -244,57 +234,17 @@ function ExamTemplatesPageContent() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template: ExamTemplate) => (
-            <div
+            <ExamTemplateCard
               key={template.id}
-              onContextMenu={(e) => handleContextMenu(e, template.id)}
-            >
-              <ExamTemplateCard
-                template={template}
-                onView={handleViewTemplate}
-                // onEdit={handleEditTemplate}
-                // onDuplicate={handleDuplicateTemplate}
-                // onDelete={handleDeleteTemplate}
-                // isCloning={isCloning}
-                // isDeleting={isDeleting}
-              />
-            </div>
+              template={template}
+              onView={handleViewTemplate}
+              onEdit={handleEditTemplate}
+              onDuplicate={handleDuplicateTemplate}
+              onDelete={handleDeleteTemplate}
+              isCloning={isCloning}
+              isDeleting={isDeleting}
+            />
           ))}
-        </div>
-      )}
-
-      {/* Context Menu */}
-      {contextMenu && (
-        <div
-          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50"
-          style={{
-            left: contextMenu.x,
-            top: contextMenu.y,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
-            onClick={handleContextMenuEdit}
-          >
-            <Edit className="w-4 h-4" />
-            Chỉnh sửa
-          </button>
-          <button
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
-            onClick={handleContextMenuDuplicate}
-            disabled={isCloning}
-          >
-            <Copy className="w-4 h-4" />
-            {isCloning ? "Đang sao chép..." : "Sao chép"}
-          </button>
-          <button
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600 flex items-center gap-2"
-            onClick={handleContextMenuDelete}
-            disabled={isDeleting}
-          >
-            <Trash2 className="w-4 h-4" />
-            {isDeleting ? "Đang xóa..." : "Xóa"}
-          </button>
         </div>
       )}
 

@@ -94,11 +94,11 @@ export default function ExamSuccessPage({ params }: ExamSuccessPageProps) {
         style={{ pointerEvents: "none" }}
       >
         <source
-          src="https://res.cloudinary.com/dpo0ad3aq/video/upload/Typography_02_1_q3lngm.mp4"
+          src="https://res.cloudinary.com/dpo0ad3aq/video/upload/Comp_01_geb5y3.mp4"
           type="video/mp4"
         />
         <source
-          src="https://res.cloudinary.com/dpo0ad3aq/video/upload/f_webm,q_auto/Typography_02_1_q3lngm.webm"
+          src="https://res.cloudinary.com/dpo0ad3aq/video/upload/f_webm,q_auto/Comp_01_geb5y3.webm"
           type="video/webm"
         />
       </video>
