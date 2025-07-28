@@ -1,6 +1,5 @@
 const SERVICES = {
   AUTH: "identity-service",
-  AUTH: "identity-service",
   MASTER_DATA: "master-data-service-local",
   LESSON_PLAN: "lesson-plan-service",
   ACADEMIC_RESOURCE: "academic-resource-service-local",
