@@ -2,7 +2,8 @@ import {
   createMutationHook,
   createQueryHook,
   updateMutationHook,
-  patchMutationHook
+  patchMutationHook,
+  createQueryWithPathParamHook
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
@@ -19,3 +20,5 @@ export const useUpdateBookTypeService = updateMutationHook(
 );
 
 export const useUpdateBookTypeStatus = patchMutationHook("bookTypes", API_ENDPOINTS.BOOK_TYPES);
+
+export const useBookTypeByIdService = createQueryWithPathParamHook("bookTypeById", API_ENDPOINTS.BOOK_TYPES);

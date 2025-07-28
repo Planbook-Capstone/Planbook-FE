@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import React from "react";
 
@@ -8,17 +8,22 @@ interface CardFeatureProps {
   title?: string;
   description?: string;
   href?: string;
+  id?: string;
 }
 
 const CardFeature = ({
+  id,
   icon,
   title,
   description,
   href = "/",
 }: CardFeatureProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const handleClick = () => {
-    router.push(href);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("bookTypeId", id || "");
+    router.push(href + `?${params.toString()}`);
   };
 
   // Function to render icon based on type
