@@ -6,13 +6,15 @@ export type OrderStatus =
   | "PAID"
   | "COMPLETED"
   | "CANCELLED"
-  | "FAILED";
+  | "FAILED"
+  | "RETRY";
 export type TransactionType = "DEPOSIT" | "WITHDRAWAL" | "PAYMENT" | "REFUND";
 export type TransactionStatus =
   | "PENDING"
   | "COMPLETED"
   | "FAILED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "RETRY";
 export type PackageStatus = "ACTIVE" | "INACTIVE";
 export type SortDirection = "ASC" | "DESC";
 export type NullHandling = "NATIVE" | "NULLS_FIRST" | "NULLS_LAST";
@@ -26,6 +28,7 @@ export interface OrderTransaction {
   status: TransactionStatus;
   description?: string;
   failureReason?: string;
+  checkoutUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

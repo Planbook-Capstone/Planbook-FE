@@ -1,6 +1,5 @@
 const SERVICES = {
   AUTH: "identity-service",
-  AUTH: "identity-service",
   MASTER_DATA: "master-data-service-local",
   LESSON_PLAN: "lesson-plan-service",
   ACADEMIC_RESOURCE: "academic-resource-service-local",
@@ -22,6 +21,8 @@ export const API_ENDPOINTS = {
   USERS_MANAGEMENT: {
     BASE: buildEndpoint(SERVICES.AUTH, "/users"),
   },
+
+  WALLET: buildEndpoint(SERVICES.AUTH, "/wallets"),
 
   // Academic Years
   ACADEMIC_YEARS: "/academic-years",
@@ -65,7 +66,7 @@ export const API_ENDPOINTS = {
   // Lesson Plan
 
   LESSON_PLANS: {
-    BASE: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-plans"),
+    BASE: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-plan-templates"),
 
     NODES: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-nodes"),
     TREE: (id: string) => `/lesson-plan-service/api/lesson-nodes/${id}/tree`,

@@ -19,7 +19,6 @@ import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "sonner";
-import { useGenerateSmartExamService } from "@/services/examGenerateServices";
 import {
   validateMatrixForm,
   calculateRowTotal,
@@ -31,6 +30,10 @@ import {
 import LoadingAI from "@/components/molecules/loading";
 import { useTaskStatusService } from "@/services/progressTaskServices";
 import DocumentItem from "@/components/molecules/document-item";
+import { useExecuteToolService } from "@/services/executeToolServices";
+import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
+import { useSearchParams } from "next/navigation";
+import { useBookTypeByIdService } from "@/services/bookTypeServices";
 
 export default function MatrixTemplate2() {
   // State cho chọn trường, lớp, môn
@@ -41,7 +44,31 @@ export default function MatrixTemplate2() {
   const [examTitle, setExamTitle] = useState("");
   const [duration, setDuration] = useState(45);
   const [response, setResponse] = useState<any>(null);
+  const searchParams = useSearchParams();
 
+  const query = searchParams.get("bookTypeId");
+
+  const { data: bookType } = useBookTypeByIdService(query || "");
+
+  const { mutate: executeTool } = useExecuteToolService();
+  const [wsUrl, setWsUrl] = useState("http://localhost:8085/websocket");
+  const [topic, setTopic] = useState("/user/queue/notifications");
+  const [enabled, setEnabled] = useState(false);
+  const [finalData, setFinalData] = useState<any>(null);
+
+  const { data, isConnected, error, sendMessage, reconnect } =
+    useSimpleWebSocket({
+      url: wsUrl,
+      topic: topic,
+      enabled: enabled,
+    });
+
+  useEffect(() => {
+    setFinalData(data);
+    console.log("🔍 WebSocket data received:", data);
+  }, [data]);
+
+  console.log(finalData, "finalData");
   // State for validation errors
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -70,8 +97,6 @@ export default function MatrixTemplate2() {
     .filter((query) => query.data?.data?.content)
     .flatMap((query) => query.data.data.content)
     .filter((lesson: any) => lesson && lesson.id && lesson.name);
-
-  const { mutate, isPending } = useGenerateSmartExamService();
 
   // State cho bảng matrix
   const [matrix, setMatrix] = useState<MatrixRow[]>([
@@ -251,13 +276,22 @@ export default function MatrixTemplate2() {
     // If validation passes, proceed with exam creation
     const examData = mapToBackend();
 
-    mutate(examData, {
-      onSuccess: (res) => {
-        toast.success("Tạo đề thi thành công");
-        setResponse(res?.data?.task_id);
+    const payload = {
+      toolId: bookType?.data?.id,
+      toolType: "INTERNAL",
+      book_id: 1,
+      lesson_id: "4",
+      input: examData,
+    };
+    executeTool(payload, {
+      onSuccess: (e: any) => {
+        toast.success("Gửi dữ liệu thành công!");
+        console.log(e.data.task_id);
+
+        setEnabled(true);
       },
       onError: (error) => {
-        toast.error("Tạo đề thi thất bại");
+        toast.error("Gửi dữ liệu thất bại!");
         console.error(error);
       },
     });
@@ -288,12 +322,23 @@ export default function MatrixTemplate2() {
   }, [taskStatus]);
 
   // Hiển thị LoadingAI khi đang có task và chưa hoàn thành
-  if (response && !isTaskCompleted) {
+  // if (response && !isTaskCompleted) {
+  //   return (
+  //     <div className="px-10">
+  //       <LoadingAI
+  //         message={taskStatus?.current_message || "Đang tạo đề thi..."}
+  //         progress={taskStatus?.current_progress || 0}
+  //       />
+  //     </div>
+  //   );
+  // }
+
+  if (data?.status === "processing") {
     return (
-      <div className="px-10">
+      <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
         <LoadingAI
-          message={taskStatus?.current_message || "Đang tạo đề thi..."}
-          progress={taskStatus?.current_progress || 0}
+          message={data?.message || ""}
+          progress={data?.progress || 0}
         />
       </div>
     );
@@ -301,7 +346,7 @@ export default function MatrixTemplate2() {
 
   return (
     <div className="max-w-full mx-auto px-12">
-      {taskStatus?.result ? null: (
+      {finalData ? null : (
         <>
           <div className="mb-4">
             <BookSelector
@@ -685,28 +730,33 @@ export default function MatrixTemplate2() {
           </tr>
         </tbody>
       </table>
-      <Button
-        variant="dash"
-        type="button"
-        className="mt-4 rounded-md w-full"
-        onClick={addMatrixRow}
-      >
-        Thêm dòng mới +
-      </Button>
+
+      {finalData ? null : (
+        <Button
+          variant="dash"
+          type="button"
+          className="mt-4 rounded-md w-full"
+          onClick={addMatrixRow}
+        >
+          Thêm dòng mới +
+        </Button>
+      )}
 
       {/* Create Exam Button */}
 
-      {taskStatus?.result ? (
+      {finalData ? (
         <div className="flex justify-between items-center mb-10 mt-5">
           <div className="space-y-3">
             <h1 className="font-calsans text-base">
               Đã tạo thành công đề theo ma trận trên
             </h1>
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-3" 
+          
+            >
               <DocumentItem
                 type="DOCX"
-                name={taskStatus?.result?.message || "Không xác định"}
-                description="taskStatus"
+                name={finalData?.message || "Không xác định"}
+                description="Đề thi thông minh"
                 onRemove={() => {
                   console.log("remove");
                 }}
@@ -716,7 +766,7 @@ export default function MatrixTemplate2() {
           <Button
             type="button"
             className="px-8 py-3  text-white font-medium rounded-md"
-            disabled={isPending}
+            // disabled={isPending}
           >
             Tạo lại
           </Button>
@@ -727,7 +777,7 @@ export default function MatrixTemplate2() {
             type="button"
             className="px-8 py-3  text-white font-medium rounded-md"
             onClick={handleCreateExam}
-            disabled={isPending}
+            // disabled={isPending}
           >
             Tạo đề thi
           </Button>

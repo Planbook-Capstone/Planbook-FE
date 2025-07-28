@@ -1,5 +1,13 @@
 "use client";
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import {
+  Calendar,
+  History,
+  Home,
+  Inbox,
+  Search,
+  Settings,
+  User,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -16,25 +24,21 @@ import Image from "next/image";
 // Menu items.
 const items = [
   {
-    title: "Home",
-    url: "#",
+    title: "Trang chủ",
+    url: "/home",
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
+    title: "Hồ sơ cá nhân",
+    url: "/auth/profile",
+    icon: User,
   },
   {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
+    title: "Lịch sử đơn hàng",
+    url: "/auth/order-history",
+    icon: History,
   },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
+
   {
     title: "Settings",
     url: "#",
@@ -44,10 +48,10 @@ const items = [
 
 export function AppSidebar() {
   return (
-    <Sidebar className="border-none">
-      <SidebarContent className="bg-[#F5F0FE]">
+    <Sidebar className="border-none bg-white">
+      <SidebarContent className="bg-white">
         <SidebarGroup>
-          <SidebarGroupLabel className="p-3 mt-3">
+          <SidebarGroupLabel className="p-3 mt-5">
             <Image
               src="/images/planbook.svg"
               alt="planbook"

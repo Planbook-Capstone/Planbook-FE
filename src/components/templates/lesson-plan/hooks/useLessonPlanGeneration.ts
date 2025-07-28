@@ -5,6 +5,8 @@ import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { generateDocx } from "@/utils/docxGenerator";
 import { DemoNode, WebSocketData } from "../types";
 import { WEBSOCKET_CONFIG, LESSON_PLAN_CONFIG } from "../constants";
+import { useSearchParams } from "next/navigation";
+import { useBookTypeByIdService } from "@/services/bookTypeServices";
 
 interface UseLessonPlanGenerationProps {
   demoData: DemoNode[];
@@ -23,7 +25,6 @@ export const useLessonPlanGeneration = ({
   convertLessonPlanToDemoNode,
   mergeAIDataToFinalData,
 }: UseLessonPlanGenerationProps) => {
-
   const [wsUrl] = useState(WEBSOCKET_CONFIG.url);
   const [topic] = useState(WEBSOCKET_CONFIG.topic);
   const [enabled, setEnabled] = useState(false);
@@ -43,13 +44,18 @@ export const useLessonPlanGeneration = ({
   useEffect(() => {
     mergeAIDataToFinalDataRef.current = mergeAIDataToFinalData;
   }, [mergeAIDataToFinalData]);
+  const searchParams = useSearchParams();
 
+  const query = searchParams.get("bookTypeId");
+
+  const { data: bookType } = useBookTypeByIdService(query || "");
   const { mutate } = useExecuteToolService();
-  const { data, isConnected, error, sendMessage, reconnect } = useSimpleWebSocket({
-    url: wsUrl,
-    topic: topic,
-    enabled: enabled,
-  });
+  const { data, isConnected, error, sendMessage, reconnect } =
+    useSimpleWebSocket({
+      url: wsUrl,
+      topic: topic,
+      enabled: enabled,
+    });
 
   // Handle WebSocket data
   useEffect(() => {
@@ -66,7 +72,9 @@ export const useLessonPlanGeneration = ({
         console.log("✨ New data detected, processing...");
         processedDataRef.current = dataKey;
 
-        const convertedData = convertLessonPlanToDemoNodeRef.current(data.children);
+        const convertedData = convertLessonPlanToDemoNodeRef.current(
+          data.children
+        );
         console.log("🔄 Converted data:", convertedData);
 
         if (convertedData.length > 0) {
@@ -105,10 +113,11 @@ export const useLessonPlanGeneration = ({
     };
 
     const payload = {
-      toolId: LESSON_PLAN_CONFIG.toolId,
-      toolType: LESSON_PLAN_CONFIG.toolType,
+      toolId: bookType?.data?.id,
+      toolType: "INTERNAL",
       lesson_id: lessonId?.toString(),
-      lesson_plan_json: mergedNode,
+      book_id: "1",
+      input: mergedNode ,
     };
 
     mutate(payload, {
@@ -139,7 +148,7 @@ export const useLessonPlanGeneration = ({
         duration: "Thời gian thực hiện: (số tiết)",
         teacherName: "Họ và tên giáo viên:\n................................",
       };
-      
+
       // Use total data from all steps
       const allData = getAllFinalData();
       await generateDocx(
@@ -160,7 +169,7 @@ export const useLessonPlanGeneration = ({
     error,
     enabled,
     setEnabled,
-    
+
     // Actions
     handleGenerationLessonPlan,
     handleDownloadDocx,
