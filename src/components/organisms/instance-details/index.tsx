@@ -26,6 +26,7 @@ import {
 } from "@/services/examInstanceServices";
 import { SubmissionDetails } from "@/components/organisms/submission-details";
 import { cn } from "@/lib/utils";
+import SubmissionTable from "../table-submission";
 
 interface InstanceDetailsProps {
   instance: ExamInstanceData;
@@ -218,7 +219,7 @@ export function InstanceDetails({
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-calsans text-gray-900">
-              {instance.templateName}
+             Bài thi: {instance.templateName}
             </h1>
             <Badge className={cn("text-sm px-3 py-1", statusInfo.color)}>
               {statusInfo.label}
@@ -241,6 +242,11 @@ export function InstanceDetails({
           Đóng
         </Button>
       </div>
+
+      <h4 className="font-calsans text-lg text-gray-900 mb-6">
+        Danh sách kết quả chi tiết
+      </h4>
+      <SubmissionTable submitions={submissions} onViewDetail={() => {}} />
 
       {/* Mã bài thi và Link chia sẻ */}
       <div className="bg-neutral-50 rounded-lg p-4">
@@ -458,6 +464,7 @@ export function InstanceDetails({
                     <h4 className="font-calsans text-lg text-gray-900 mb-6">
                       Danh sách kết quả chi tiết
                     </h4>
+
                     <div className="max-h-[600px] overflow-y-auto space-y-4">
                       {submissions.map(
                         (submission: SubmissionData, index: number) => (

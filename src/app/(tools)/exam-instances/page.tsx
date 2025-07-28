@@ -24,6 +24,7 @@ import {
   BookMarkWhiteIcon,
   NoneExamIcon,
 } from "@/constants/icon";
+import ExamInstanceTable from "@/components/organisms/table-exam-instance";
 
 interface TemplateInfo {
   id: string;
@@ -34,7 +35,7 @@ interface TemplateInfo {
   totalScore: number;
 }
 
-const statusConfig = {
+ export const statusConfig = {
   DRAFT: { label: "Nháp", color: "bg-gray-100 text-gray-800" },
   SCHEDULED: { label: "Đã lên lịch", color: "bg-yellow-100 text-yellow-800" },
   ACTIVE: { label: "Đang hoạt động", color: "bg-green-100 text-green-800" },
@@ -137,6 +138,11 @@ export default function ExamInstancesPage() {
           Tổ chức phiên kiểm tra mới
         </Button>
       </div>
+
+      <ExamInstanceTable
+        examInstances={instances}
+        onViewDetail={handleViewDetails}
+      />
 
       {/* Instances List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
