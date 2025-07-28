@@ -120,6 +120,7 @@ export default function Home() {
           ?.sort((a: any, b: any) => a.priority - b.priority)
           ?.map((feature: any) => (
             <CardFeature
+            id={feature.id}
               key={feature.id}
               icon={feature.icon}
               title={feature.name}
