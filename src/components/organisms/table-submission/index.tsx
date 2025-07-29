@@ -6,7 +6,7 @@ import { SubmissionData } from "@/services/examInstanceServices";
 interface SubmissionTableProps {
   submitions: SubmissionData[];
   onSelectionChange?: (selectedRows: Row<SubmissionData>[]) => void;
-  onViewDetail: (order: SubmissionData) => void;
+  onViewDetail?: (order: SubmissionData) => void; // Made optional for backward compatibility
   // onToggleUserStatus?: (order: Order) => void;
 }
 

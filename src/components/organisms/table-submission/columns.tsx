@@ -3,15 +3,16 @@ import { Button } from "@/components/ui/Button";
 
 import { SubmissionData } from "@/services/examInstanceServices";
 import { Badge } from "@/components/ui/badge";
+import { SubmissionDetailsSheet } from "@/components/organisms/submission-details-sheet";
 
-// Handler function types
+// Handler function types (keeping for backward compatibility)
 interface OrderColumnHandlers {
-  onViewDetail: (examInstance: SubmissionData) => void;
+  onViewDetail?: (examInstance: SubmissionData) => void;
   // onToggleUserStatus: (order: Order) => void;
 }
 
 export const ordersColumns = (
-  handlers: OrderColumnHandlers
+  handlers?: OrderColumnHandlers
 ): ColumnDef<SubmissionData>[] => [
   {
     id: "index",
@@ -75,18 +76,22 @@ export const ordersColumns = (
     id: "actions",
     header: "Hành động",
     cell: ({ row }) => {
-      const order = row.original;
+      const submission = row.original;
       return (
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handlers.onViewDetail(order)}
-            className="p-2 hover:bg-blue-50 hover:text-blue-600"
-            title="Xem chi tiết"
-          >
-            Chi tiết
-          </Button>
+          <SubmissionDetailsSheet
+            submission={submission}
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 hover:bg-blue-50 hover:text-blue-600"
+                title="Xem chi tiết"
+              >
+                Chi tiết
+              </Button>
+            }
+          />
         </div>
       );
     },

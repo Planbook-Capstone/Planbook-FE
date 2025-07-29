@@ -7,18 +7,27 @@ interface ExamInstanceTableProps {
   examInstances: ExamInstanceData[];
   onSelectionChange?: (selectedRows: Row<ExamInstanceData>[]) => void;
   onViewDetail: (order: ExamInstanceData) => void;
-  // onToggleUserStatus?: (order: Order) => void;
+  onPause?: (examInstance: ExamInstanceData) => void;
+  onResume?: (examInstance: ExamInstanceData) => void;
+  onStop?: (examInstance: ExamInstanceData) => void;
+  onCancel?: (examInstance: ExamInstanceData) => void;
 }
 
 export default function ExamInstanceTable({
   examInstances,
   onSelectionChange,
   onViewDetail,
-}: // onToggleUserStatus,
-ExamInstanceTableProps) {
+  onPause,
+  onResume,
+  onStop,
+  onCancel,
+}: ExamInstanceTableProps) {
   const columns = ordersColumns({
     onViewDetail,
-    // onToggleUserStatus,
+    onPause,
+    onResume,
+    onStop,
+    onCancel,
   });
 
   return (

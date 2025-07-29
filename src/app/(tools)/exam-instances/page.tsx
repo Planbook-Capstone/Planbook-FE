@@ -11,8 +11,10 @@ import { CreateInstanceForm } from "@/components/organisms/create-instance-form"
 import {
   useExamInstancesService,
   useCreateExamInstanceService,
+  useChangeExamInstanceStatusService,
   CreateExamInstanceData,
   ExamInstanceData,
+  ChangeStatusData,
 } from "@/services/examInstanceServices";
 import { Plus, Eye, Clock, BookOpen, GraduationCap } from "lucide-react";
 import { format } from "date-fns";
@@ -63,6 +65,9 @@ export default function ExamInstancesPage() {
   const { mutate: createInstance, isPending: isCreating } =
     useCreateExamInstanceService();
 
+  // Status change mutations - we'll create them dynamically
+  const [changingStatus, setChangingStatus] = useState<string | null>(null);
+
   const instances = instancesResponse?.data || [];
 
   const handleCreateNew = () => {
@@ -98,6 +103,36 @@ export default function ExamInstancesPage() {
 
   const handleViewDetails = (instance: ExamInstanceData) => {
     router.push(`/exam-instances/${instance.id}`);
+  };
+
+  const handlePause = (instance: ExamInstanceData) => {
+    // We'll implement this with a simple alert for now
+    // In a real app, you'd want to create a proper status change service
+    if (confirm(`Bạn có chắc muốn tạm dừng bài thi "${instance.templateName}"?`)) {
+      toast.success("Tính năng tạm dừng sẽ được triển khai sau");
+      // TODO: Implement actual status change
+    }
+  };
+
+  const handleResume = (instance: ExamInstanceData) => {
+    if (confirm(`Bạn có chắc muốn tiếp tục bài thi "${instance.templateName}"?`)) {
+      toast.success("Tính năng tiếp tục sẽ được triển khai sau");
+      // TODO: Implement actual status change
+    }
+  };
+
+  const handleStop = (instance: ExamInstanceData) => {
+    if (confirm(`Bạn có chắc muốn kết thúc bài thi "${instance.templateName}"?`)) {
+      toast.success("Tính năng kết thúc sẽ được triển khai sau");
+      // TODO: Implement actual status change
+    }
+  };
+
+  const handleCancel = (instance: ExamInstanceData) => {
+    if (confirm(`Bạn có chắc muốn hủy bài thi "${instance.templateName}"?`)) {
+      toast.success("Tính năng hủy sẽ được triển khai sau");
+      // TODO: Implement actual status change
+    }
   };
 
   const handleCloseCreateModal = () => {
@@ -142,6 +177,10 @@ export default function ExamInstancesPage() {
       <ExamInstanceTable
         examInstances={instances}
         onViewDetail={handleViewDetails}
+        onPause={handlePause}
+        onResume={handleResume}
+        onStop={handleStop}
+        onCancel={handleCancel}
       />
 
       {/* Instances List */}
