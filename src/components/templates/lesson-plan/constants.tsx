@@ -110,7 +110,7 @@ export const DEFAULT_TABLE_DATA = {
 };
 
 export const WEBSOCKET_CONFIG = {
-  url: "http://192.168.0.59:8085/websocket",
+  url: "http://localhost:8085/websocket",
   topic: "/user/queue/notifications",
 };
 
