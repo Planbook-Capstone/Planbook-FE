@@ -39,6 +39,11 @@ export const useDeleteSlideTemplateService = deleteMutationHook(
   API_ENDPOINTS.SLIDE_TEMPLATES
 );
 
+export const useSlideTemplateDetailByIdService = createQueryWithPathParamHook(
+  "template-details",
+  API_ENDPOINTS.SLIDE_DETAILS
+);
+
 export const useUpdateSlideTemplateStatusService = () => {
   const queryClient = useQueryClient();
 

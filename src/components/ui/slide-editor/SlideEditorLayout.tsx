@@ -35,6 +35,8 @@ interface SlideEditorLayoutProps {
   onSave?: (slides: Slide[], textBlocks: string) => void;
   onCancel?: () => void;
   templateData?: SlideTemplateTempData;
+  autoNavigateToLast?: boolean; // New prop to control auto-navigation
+  onAutoNavigated?: () => void; // Callback when auto-navigation happens
 }
 
 export default function SlideEditorLayout({
@@ -46,17 +48,35 @@ export default function SlideEditorLayout({
   hasLoadedData = false,
   onSave,
   onCancel,
+  autoNavigateToLast = false,
+  onAutoNavigated,
 }: SlideEditorLayoutProps) {
   // Convert initialSlides to proper format if provided
   const getInitialSlides = (): Slide[] => {
     if (initialSlides && initialSlides.length > 0) {
-      return initialSlides.map((slide, index) => ({
-        id: slide.id || `slide-${index + 1}`,
-        title: `Slide ${index + 1}`,
-        elements: slide.elements || [],
-        isVisible: true,
-        background: (slide as any).background || "#ffffff",
-      }));
+      console.log("🎯 Processing initialSlides:", initialSlides);
+      const processedSlides = initialSlides?.map((slide, index) => {
+        // Check if data is in slideData property or directly in slide
+        const slideData = (slide as any).slideData || slide;
+
+        console.log(`🔍 Slide ${index + 1} structure:`, {
+          hasSlideData: !!(slide as any).slideData,
+          slideDataElements: (slide as any).slideData?.elements?.length || 0,
+          directElements: slide.elements?.length || 0,
+          slideData: slideData,
+        });
+
+        return {
+          id: slide.id || `slide-${index + 1}`,
+          title: slide.title || `Slide ${index + 1}`,
+          elements: slideData.elements || slide.elements || [],
+          isVisible: slide.isVisible !== undefined ? slide.isVisible : true,
+          background:
+            slideData.background || (slide as any).background || "#ffffff",
+        };
+      });
+      console.log("✅ Processed slides:", processedSlides);
+      return processedSlides;
     }
 
     return [
@@ -83,13 +103,19 @@ export default function SlideEditorLayout({
   // Update slides when initialSlides prop changes
   useEffect(() => {
     if (initialSlides && initialSlides.length > 0) {
-      const newSlides = initialSlides.map((slide, index) => ({
-        id: slide.id || `slide-${index + 1}`,
-        title: `Slide ${index + 1}`,
-        elements: slide.elements || [],
-        isVisible: true,
-        background: (slide as any).background || "#ffffff",
-      }));
+      const newSlides = initialSlides.map((slide, index) => {
+        // Check if data is in slideData property or directly in slide
+        const slideData = (slide as any).slideData || slide;
+
+        return {
+          id: slide.id || `slide-${index + 1}`,
+          title: slide.title || `Slide ${index + 1}`,
+          elements: slideData.elements || slide.elements || [],
+          isVisible: slide.isVisible !== undefined ? slide.isVisible : true,
+          background:
+            slideData.background || (slide as any).background || "#ffffff",
+        };
+      });
 
       // Use a ref to avoid infinite loops
       const slidesRef = { current: newSlides };
@@ -98,7 +124,26 @@ export default function SlideEditorLayout({
       if (JSON.stringify(slides) !== JSON.stringify(newSlides)) {
         console.log("🔄 Loading new slides");
         setSlides(newSlides);
-        setCurrentSlideId(newSlides[0]?.id || "slide-1");
+
+        // Auto navigate to the last slide (newest) when slides are updated
+        if (autoNavigateToLast) {
+          const lastSlideId = newSlides[newSlides.length - 1]?.id || "slide-1";
+          setCurrentSlideId(lastSlideId);
+          console.log("🎯 Auto navigated to last slide:", lastSlideId);
+
+          // Notify parent that auto-navigation happened
+          if (onAutoNavigated) {
+            onAutoNavigated();
+          }
+        } else {
+          // Keep current slide if it exists, otherwise go to first slide
+          const currentExists = newSlides.find(
+            (slide) => slide.id === currentSlideId
+          );
+          if (!currentExists) {
+            setCurrentSlideId(newSlides[0]?.id || "slide-1");
+          }
+        }
         setSelectedElementId(null);
 
         console.log("🔄 Updated slides in editor:", newSlides.length);
