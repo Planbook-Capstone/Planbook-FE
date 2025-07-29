@@ -169,7 +169,7 @@ export default function ExamInstancesPage() {
             Tạo và quản lý các phiên kiểm tra (Được chọn từ kho đề)
           </p>
         </div>
-        <Button onClick={handleCreateNew} className="flex items-center gap-2">
+        <Button onClick={() => router.push("/exam-templates")} className="flex items-center gap-2">
           Tổ chức phiên kiểm tra mới
         </Button>
       </div>

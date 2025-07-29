@@ -60,7 +60,7 @@ export const ordersColumns = (
   },
   {
     accessorKey: "startAt_endAt",
-    header: "Thời gian",
+    header: "Thời gian bắt đầu - Thời gian kết thúc",
     cell: ({ row }) => {
       const formatDate = (dateString: string) => {
         const date = new Date(dateString);

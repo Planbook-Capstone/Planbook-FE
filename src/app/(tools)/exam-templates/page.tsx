@@ -26,6 +26,7 @@ import { ExamTemplateProvider } from "@/contexts/ExamTemplateContext";
 import ExamTemplateCard, {
   ExamTemplate,
 } from "@/components/molecules/exam-template-card";
+import ExamTemplateTable from "@/components/organisms/table-exam-template";
 
 function ExamTemplatesPageContent() {
   const router = useRouter();
@@ -209,43 +210,19 @@ function ExamTemplatesPageContent() {
           Tạo Template Mới
         </Button>
       </div>
-
-      {/* Templates list */}
       {isLoading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>Đang tải dữ liệu...</p>
         </div>
-      ) : isCloning || isDeleting ? (
-        <div className="text-center py-10">
-          <div className="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>
-            {isCloning ? "Đang nhân bản template..." : "Đang xóa template..."}
-          </p>
-        </div>
-      ) : filteredTemplates.length === 0 ? (
-        <div className="text-center py-10 border border-dashed rounded-lg">
-          <p className="text-gray-500 mb-4">Chưa có template nào</p>
-          <Button onClick={handleCreateTemplate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Tạo Template Đầu Tiên
-          </Button>
-        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTemplates.map((template: ExamTemplate) => (
-            <ExamTemplateCard
-              key={template.id}
-              template={template}
-              onView={handleViewTemplate}
-              onEdit={handleEditTemplate}
-              onDuplicate={handleDuplicateTemplate}
-              onDelete={handleDeleteTemplate}
-              isCloning={isCloning}
-              isDeleting={isDeleting}
-            />
-          ))}
-        </div>
+        <ExamTemplateTable
+          examTemplates={filteredTemplates}
+          onViewDetail={(template) => handleViewTemplate(template.id)}
+          onEdit={(template) => handleEditTemplate(template.id)}
+          onDelete={(template) => handleDeleteTemplate(template.id)}
+          onDuplicate={(template) => handleDuplicateTemplate(template.id)}
+        />
       )}
 
       {/* Creation Modal */}
