@@ -42,6 +42,17 @@ export default function TextElement({
   const textRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
 
+  // Debug logging
+  console.log("📝 TextElement rendering:", {
+    id: element.id,
+    text: element.text,
+    position: { x: element.x, y: element.y },
+    size: { width: element.width, height: element.height },
+    style: element.style,
+    isSelected,
+    isEditing,
+  });
+
   // Snap alignment hook
   const { handleDragWithSnap, clearGuides } = useSnapAlignment({
     threshold: 6,
@@ -238,12 +249,12 @@ export default function TextElement({
 
   // Generate text styles
   const textStyles: React.CSSProperties = {
-    fontSize: `${element.style.fontSize}px`,
-    fontFamily: element.style.fontFamily,
-    fontWeight: element.style.bold ? "bold" : "normal",
-    fontStyle: element.style.italic ? "italic" : "normal",
-    textDecoration: element.style.underline ? "underline" : "none",
-    color: element.style.color || "#000000",
+    fontSize: `${element.style?.fontSize || 14}px`,
+    fontFamily: element.style?.fontFamily || "Arial",
+    fontWeight: element.style?.bold ? "bold" : "normal",
+    fontStyle: element.style?.italic ? "italic" : "normal",
+    textDecoration: element.style?.underline ? "underline" : "none",
+    color: element.style?.color || "#000000",
     background: "transparent",
     outline: "none",
     border: "none",
@@ -256,8 +267,12 @@ export default function TextElement({
     width: "100%",
     boxSizing: "border-box",
     cursor: isEditing ? "text" : "pointer",
-    textAlign: element.style.textAlign || "left",
+    textAlign: element.style?.textAlign || "left",
   };
+
+  // Debug text styles
+  console.log("📝 Text styles for", element.id, ":", textStyles);
+  console.log("📝 Element text content:", element.text);
 
   const minSize = calculateMinSize();
 
@@ -267,6 +282,10 @@ export default function TextElement({
       position={{ x: element.x, y: element.y }}
       minWidth={minSize.width}
       minHeight={minSize.height}
+      style={{
+        border: "1px dashed rgba(255, 0, 0, 0.3)", // Debug border
+        backgroundColor: "rgba(255, 255, 0, 0.1)", // Debug background
+      }}
       onDrag={(e, d) => {
         // Handle snap during drag
         const snapResult = handleDragWithSnap(
@@ -389,6 +408,12 @@ export default function TextElement({
           }}
         >
           {element.text || "Double-click to edit"}
+          {/* Debug fallback */}
+          {!element.text && (
+            <div style={{ color: "red", fontSize: "12px" }}>
+              [No text content]
+            </div>
+          )}
         </div>
       )}
     </Rnd>
