@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUpdateProfileService } from "@/services/userService";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
+import { useCreateMaterialInternalService } from "@/services/materialServices";
 
 function ProfilePage() {
   const { user, updateUser, isAuthenticated, initials, avatarUrl } = useAuth();
@@ -27,6 +28,7 @@ function ProfilePage() {
     birthday: user?.birthday || "",
     avatar: null as File | null,
   });
+  const { mutate: uploadAvatar } = useCreateMaterialInternalService();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Update form data when user data changes
@@ -162,7 +164,7 @@ function ProfilePage() {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user?.id) return;
 
     console.log(formData, "formData");
@@ -175,78 +177,119 @@ function ProfilePage() {
 
     const loadingToast = toast.loading("Đang cập nhật thông tin...");
 
-    // Prepare data for API
-    const dataToSend = {
-      fullName: formData.fullName,
-      username: formData.username,
-      email: formData.email,
-      phone: formData.phone,
-      gender:
-        formData.gender &&
-        (formData.gender === "MALE" || formData.gender === "FEMALE")
-          ? formData.gender
-          : undefined,
-      birthday: formData.birthday
-        ? (() => {
-            const date = new Date(formData.birthday);
-            const day = date.getDate().toString().padStart(2, "0");
-            const month = (date.getMonth() + 1).toString().padStart(2, "0");
-            const year = date.getFullYear();
-            return `${day}-${month}-${year}`;
-          })()
-        : "",
-    };
+    try {
+      // Prepare base data for API
+      const dataToSend: any = {
+        fullName: formData.fullName,
+        username: formData.username,
+        email: formData.email,
+        phone: formData.phone,
+        gender:
+          formData.gender &&
+          (formData.gender === "MALE" || formData.gender === "FEMALE")
+            ? formData.gender
+            : undefined,
+        birthday: formData.birthday
+          ? (() => {
+              const date = new Date(formData.birthday);
+              const day = date.getDate().toString().padStart(2, "0");
+              const month = (date.getMonth() + 1).toString().padStart(2, "0");
+              const year = date.getFullYear();
+              return `${day}-${month}-${year}`;
+            })()
+          : "",
+      };
 
-    // Remove undefined fields
-    Object.keys(dataToSend).forEach((key) => {
-      if ((dataToSend as any)[key] === undefined) {
-        delete (dataToSend as any)[key];
+      // If there's an avatar file, upload it first
+      if (formData.avatar) {
+        toast.loading("Đang tải ảnh lên...", { id: loadingToast });
+
+        const avatarFormData = new FormData();
+        avatarFormData.append("file", formData.avatar);
+        avatarFormData.append(
+          "metadataJson",
+          JSON.stringify({
+            type: "avatar",
+            name: `avatar-${user.id}-${Date.now()}`,
+            description: "User avatar",
+            url: "null", // Will be set by backend after file upload
+            tagIds: [], // Empty array for avatar
+          })
+        );
+
+        // Upload avatar and wait for response
+        await new Promise((resolve, reject) => {
+          uploadAvatar(avatarFormData, {
+            onSuccess: (response: any) => {
+              // The response should contain the uploaded file URL
+              // Based on the material service, it might be in response.data.url or response.url
+              const avatarUrl = response?.data?.data?.url;
+
+              if (avatarUrl) {
+                dataToSend.avatar = avatarUrl;
+                console.log("Avatar URL set:", avatarUrl);
+              } else {
+                console.warn("No avatar URL found in response:", response);
+              }
+              resolve(response);
+            },
+            onError: (error: any) => {
+              console.error("Avatar upload error:", error);
+              reject(error);
+            },
+          });
+        });
       }
-    });
 
-    // If there's an avatar file, create FormData
-    let finalData: FormData | typeof dataToSend;
-    if (formData.avatar) {
-      finalData = new FormData();
+      // Remove undefined fields after avatar processing
       Object.keys(dataToSend).forEach((key) => {
-        const value = (dataToSend as any)[key];
-        if (value !== undefined && value !== null && value !== "") {
-          (finalData as FormData).append(key, value);
+        if (dataToSend[key] === undefined) {
+          delete dataToSend[key];
         }
       });
-      (finalData as FormData).append("avatar", formData.avatar);
-    } else {
-      finalData = dataToSend;
+
+      console.log("Final data to send:", dataToSend);
+
+      // Update profile with the data (including avatar URL if uploaded)
+      toast.loading("Đang cập nhật thông tin...", { id: loadingToast });
+
+      updateProfileMutation.mutate(
+        {
+          id: user.id,
+          data: dataToSend,
+        },
+        {
+          onSuccess: () => {
+            // Update user data in store (exclude avatar file, include avatar URL)
+            const { avatar: avatarFile, ...userDataToUpdate } = formData;
+            const updatedUserData = {
+              ...userDataToUpdate,
+              ...(dataToSend.avatar && { avatar: dataToSend.avatar }),
+            };
+            updateUser(updatedUserData);
+            setIsEditing(false);
+            setErrors({}); // Clear all errors
+            // Reset image selection
+            setSelectedImage(null);
+            setPreviewUrl(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = "";
+            }
+            toast.dismiss(loadingToast);
+            toast.success("Cập nhật thông tin thành công");
+          },
+          onError: (error) => {
+            console.error("Error updating profile:", error);
+            toast.dismiss(loadingToast);
+            toast.error("Có lỗi xảy ra khi cập nhật thông tin");
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error in handleSave:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Có lỗi xảy ra khi tải ảnh lên");
     }
-
-    // Use appropriate mutation based on whether there's a file
-
-    console.log("Sending data:", finalData);
-    console.log("Has avatar:", !!formData.avatar);
-    console.log("Using file upload mutation:", !!formData.avatar);
-
-    updateProfileMutation.mutate(
-      {
-        id: user.id,
-        data: finalData,
-      },
-      {
-        onSuccess: () => {
-          // Update user data in store (exclude avatar file)
-          const { avatar, ...userDataToUpdate } = formData;
-          updateUser(userDataToUpdate);
-          setIsEditing(false);
-          setErrors({}); // Clear all errors
-          toast.dismiss(loadingToast);
-          toast.success("Cập nhật thông tin thành công");
-        },
-        onError: (error) => {
-          console.error("Error updating profile:", error);
-          toast.dismiss(loadingToast);
-          toast.error("Có lỗi xảy ra khi cập nhật thông tin");
-        },
-      }
-    );
   };
 
   const handleCancel = () => {
