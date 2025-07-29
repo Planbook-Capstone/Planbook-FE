@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/Button";
-import { Edit, Trash2, Copy, Eye } from "lucide-react";
+import { Edit, Trash2, Copy, Eye, Plus } from "lucide-react";
 import { ExamTemplate } from "@/components/molecules/exam-template-card";
 
 // Handler function types
@@ -9,6 +9,7 @@ interface ExamTemplateColumnHandlers {
   onEdit?: (examTemplate: ExamTemplate) => void;
   onDelete?: (examTemplate: ExamTemplate) => void;
   onDuplicate?: (examTemplate: ExamTemplate) => void;
+  onCreateInstance?: (examTemplate: ExamTemplate) => void;
 }
 
 export const examTemplateColumns = (
@@ -100,6 +101,19 @@ export const examTemplateColumns = (
               title="Chỉnh sửa"
             >
               <Edit className="w-4 h-4" />
+            </Button>
+          )}
+
+          {/* Create Instance Button */}
+          {handlers.onCreateInstance && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlers.onCreateInstance!(examTemplate)}
+              className="p-2 hover:bg-purple-50 hover:text-purple-600 border-purple-300"
+              title="Tạo phiếm kiểm tra"
+            >
+              <Plus className="w-4 h-4" />
             </Button>
           )}
 

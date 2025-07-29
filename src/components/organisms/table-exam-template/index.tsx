@@ -10,6 +10,7 @@ interface ExamTemplateTableProps {
   onEdit?: (examTemplate: ExamTemplate) => void;
   onDelete?: (examTemplate: ExamTemplate) => void;
   onDuplicate?: (examTemplate: ExamTemplate) => void;
+  onCreateInstance?: (examTemplate: ExamTemplate) => void;
 }
 
 export default function ExamTemplateTable({
@@ -19,12 +20,14 @@ export default function ExamTemplateTable({
   onEdit,
   onDelete,
   onDuplicate,
+  onCreateInstance,
 }: ExamTemplateTableProps) {
   const columns = examTemplateColumns({
     onViewDetail,
     onEdit,
     onDelete,
     onDuplicate,
+    onCreateInstance,
   });
 
   return (

@@ -21,6 +21,13 @@ import { toast } from "sonner";
 import ExamCreationModal from "@/components/organisms/exam-creation-modal";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import { useExamImportService } from "@/services/examImportServices";
+import { Modal } from "@/components/ui/modal";
+import { CreateInstanceForm } from "@/components/organisms/create-instance-form";
+import TemplatePreviewModal from "@/components/organisms/template-preview-modal";
+import {
+  useCreateExamInstanceService,
+  CreateExamInstanceData
+} from "@/services/examInstanceServices";
 import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
 import { ExamTemplateProvider } from "@/contexts/ExamTemplateContext";
 import ExamTemplateCard, {
@@ -37,6 +44,14 @@ function ExamTemplatesPageContent() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
 
+  // States for create instance modal
+  const [showCreateInstanceModal, setShowCreateInstanceModal] = useState(false);
+  const [selectedTemplateForInstance, setSelectedTemplateForInstance] = useState<ExamTemplate | null>(null);
+
+  // States for preview modal
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedTemplateForPreview, setSelectedTemplateForPreview] = useState<string | null>(null);
+
   // Initialize the exam import service
   const { mutate: importExam, isPending: isImporting } = useExamImportService();
 
@@ -48,6 +63,10 @@ function ExamTemplatesPageContent() {
     useCloneExamTemplateService();
   const { mutate: deleteTemplate, isPending: isDeleting } =
     useDeleteExamTemplateService();
+
+  // Initialize create instance service
+  const { mutate: createInstance, isPending: isCreatingInstance } =
+    useCreateExamInstanceService();
 
   // Filter templates based on search term and subject
   const filteredTemplates =
@@ -80,7 +99,8 @@ function ExamTemplatesPageContent() {
   };
 
   const handleViewTemplate = (templateId: string) => {
-    router.push(`/exam-templates/${templateId}`);
+    setSelectedTemplateForPreview(templateId);
+    setShowPreviewModal(true);
   };
 
   const handleDuplicateTemplate = (templateId: string) => {
@@ -129,6 +149,44 @@ function ExamTemplatesPageContent() {
   const handleCancelDelete = () => {
     setShowDeleteDialog(false);
     setTemplateToDelete(null);
+  };
+
+  // Handler for creating instance from template
+  const handleCreateInstance = (template: ExamTemplate) => {
+    setSelectedTemplateForInstance(template);
+    setShowCreateInstanceModal(true);
+  };
+
+  // Handler for submitting create instance form
+  const handleCreateInstanceSubmit = (data: CreateExamInstanceData) => {
+    createInstance(data, {
+      onSuccess: () => {
+        toast.success("Tạo phiếm kiểm tra thành công!");
+        setShowCreateInstanceModal(false);
+        setSelectedTemplateForInstance(null);
+        // Navigate to exam instances page
+        router.push("/exam-instances");
+      },
+      onError: (error: any) => {
+        console.error("Create instance failed:", error);
+        toast.error(
+          error?.response?.data?.message ||
+            "Tạo phiếm kiểm tra thất bại. Vui lòng thử lại!"
+        );
+      },
+    });
+  };
+
+  // Handler for canceling create instance
+  const handleCancelCreateInstance = () => {
+    setShowCreateInstanceModal(false);
+    setSelectedTemplateForInstance(null);
+  };
+
+  // Handler for closing preview modal
+  const handleClosePreviewModal = () => {
+    setShowPreviewModal(false);
+    setSelectedTemplateForPreview(null);
   };
 
   const handleFileSubmit = (files: File[]) => {
@@ -222,6 +280,7 @@ function ExamTemplatesPageContent() {
           onEdit={(template) => handleEditTemplate(template.id)}
           onDelete={(template) => handleDeleteTemplate(template.id)}
           onDuplicate={(template) => handleDuplicateTemplate(template.id)}
+          onCreateInstance={handleCreateInstance}
         />
       )}
 
@@ -249,6 +308,39 @@ function ExamTemplatesPageContent() {
         }
         isLoading={isDeleting}
       />
+
+      {/* Create Instance Modal */}
+      <Modal
+        isOpen={showCreateInstanceModal}
+        onClose={handleCancelCreateInstance}
+        title="Tạo phiếm kiểm tra"
+        size="lg"
+      >
+        {selectedTemplateForInstance && (
+          <CreateInstanceForm
+            selectedTemplate={{
+              id: selectedTemplateForInstance.id,
+              name: selectedTemplateForInstance.name,
+              subject: selectedTemplateForInstance.subject,
+              grade: selectedTemplateForInstance.grade || 10,
+              durationMinutes: selectedTemplateForInstance.durationMinutes,
+              totalScore: selectedTemplateForInstance.totalScore || 10,
+            }}
+            onSubmit={handleCreateInstanceSubmit}
+            onCancel={handleCancelCreateInstance}
+            isLoading={isCreatingInstance}
+          />
+        )}
+      </Modal>
+
+      {/* Template Preview Modal */}
+      {selectedTemplateForPreview && (
+        <TemplatePreviewModal
+          isOpen={showPreviewModal}
+          onClose={handleClosePreviewModal}
+          templateId={selectedTemplateForPreview}
+        />
+      )}
     </div>
   );
 }

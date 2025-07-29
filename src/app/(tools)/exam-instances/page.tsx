@@ -11,7 +11,6 @@ import { CreateInstanceForm } from "@/components/organisms/create-instance-form"
 import {
   useExamInstancesService,
   useCreateExamInstanceService,
-  useChangeExamInstanceStatusService,
   CreateExamInstanceData,
   ExamInstanceData,
   ChangeStatusData,
@@ -20,6 +19,9 @@ import { Plus, Eye, Clock, BookOpen, GraduationCap } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/config/axios";
+import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
 import { cn } from "@/lib/utils";
 import {
   BookMarkIcon,
@@ -67,6 +69,20 @@ export default function ExamInstancesPage() {
 
   // Status change mutations - we'll create them dynamically
   const [changingStatus, setChangingStatus] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  // Create a mutation for changing status
+  const changeStatusMutation = useMutation({
+    mutationFn: ({ instanceId, data }: { instanceId: string; data: ChangeStatusData }) =>
+      api.put(`${EXAM_ENDPOINTS.EXAM_INSTANCES}/${instanceId}/status`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["examInstances"] });
+      setChangingStatus(null);
+    },
+    onError: () => {
+      setChangingStatus(null);
+    },
+  });
 
   const instances = instancesResponse?.data || [];
 
@@ -105,34 +121,70 @@ export default function ExamInstancesPage() {
     router.push(`/exam-instances/${instance.id}`);
   };
 
-  const handlePause = (instance: ExamInstanceData) => {
-    // We'll implement this with a simple alert for now
-    // In a real app, you'd want to create a proper status change service
-    if (confirm(`Bạn có chắc muốn tạm dừng bài thi "${instance.templateName}"?`)) {
-      toast.success("Tính năng tạm dừng sẽ được triển khai sau");
-      // TODO: Implement actual status change
+  // Helper function to handle status changes
+  const handleStatusChange = (
+    instance: ExamInstanceData,
+    newStatus: ExamInstanceData["status"],
+    confirmMessage: string,
+    successMessage: string,
+    reason?: string
+  ) => {
+    if (confirm(confirmMessage)) {
+      setChangingStatus(instance.id);
+
+      const data: ChangeStatusData = { status: newStatus };
+      if (reason) data.reason = reason;
+
+      changeStatusMutation.mutate(
+        { instanceId: instance.id, data },
+        {
+          onSuccess: () => {
+            toast.success(successMessage);
+          },
+          onError: (error: any) => {
+            toast.error(
+              error?.response?.data?.message || "Có lỗi xảy ra khi thay đổi trạng thái"
+            );
+          },
+        }
+      );
     }
+  };
+
+  const handlePause = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "PAUSED",
+      `Bạn có chắc muốn tạm dừng bài thi "${instance.templateName}"?`,
+      "Đã tạm dừng bài thi thành công"
+    );
   };
 
   const handleResume = (instance: ExamInstanceData) => {
-    if (confirm(`Bạn có chắc muốn tiếp tục bài thi "${instance.templateName}"?`)) {
-      toast.success("Tính năng tiếp tục sẽ được triển khai sau");
-      // TODO: Implement actual status change
-    }
+    handleStatusChange(
+      instance,
+      "ACTIVE",
+      `Bạn có chắc muốn tiếp tục bài thi "${instance.templateName}"?`,
+      "Đã tiếp tục bài thi thành công"
+    );
   };
 
   const handleStop = (instance: ExamInstanceData) => {
-    if (confirm(`Bạn có chắc muốn kết thúc bài thi "${instance.templateName}"?`)) {
-      toast.success("Tính năng kết thúc sẽ được triển khai sau");
-      // TODO: Implement actual status change
-    }
+    handleStatusChange(
+      instance,
+      "COMPLETED",
+      `Bạn có chắc muốn kết thúc bài thi "${instance.templateName}"?`,
+      "Đã kết thúc bài thi thành công"
+    );
   };
 
   const handleCancel = (instance: ExamInstanceData) => {
-    if (confirm(`Bạn có chắc muốn hủy bài thi "${instance.templateName}"?`)) {
-      toast.success("Tính năng hủy sẽ được triển khai sau");
-      // TODO: Implement actual status change
-    }
+    handleStatusChange(
+      instance,
+      "CANCELLED",
+      `Bạn có chắc muốn hủy bài thi "${instance.templateName}"?`,
+      "Đã hủy bài thi thành công"
+    );
   };
 
   const handleCloseCreateModal = () => {

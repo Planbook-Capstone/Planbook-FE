@@ -1,13 +1,10 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/Button";
-
-import { getOrderStatusLabel } from "@/constants/enum";
-
-import { ORDER_STATUS_COLOR } from "@/constants";
 import { ExamInstanceData } from "@/services/examInstanceServices";
 import { Badge } from "@/components/ui/badge";
 import { CoppyIcon } from "@/constants/icon";
-import { Copy, CopyPlus, Play, Pause, Square, XCircle } from "lucide-react";
+import { Play, Pause, Square, XCircle } from "lucide-react";
+import { statusConfig } from "@/constants/color";
 
 // Handler function types
 interface OrderColumnHandlers {
@@ -85,9 +82,15 @@ export const ordersColumns = (
     accessorKey: "status",
     header: "Trạng thái",
     cell: ({ row }) => {
-      // const statusInfo = statusConfig[instance.status];
+      const statusInfo = statusConfig[row.original.status];
 
-      return <Badge variant={"success"}>{row.original.status}</Badge>;
+      return (
+        <Badge
+          className={`${statusInfo.color} group-hover:bg-white group-hover:text-black transition-colors duration-300`}
+        >
+          {statusInfo.label}
+        </Badge>
+      );
     },
   },
 
@@ -194,9 +197,7 @@ export const ordersColumns = (
       };
 
       return (
-        <div className="flex items-center gap-2">
-          {renderActionButtons()}
-        </div>
+        <div className="flex items-center gap-2">{renderActionButtons()}</div>
       );
     },
   },

@@ -10,3 +10,12 @@ export const folderColors: Record<
   "6": { startColor: "#B1E4A8", endColor: "#58C168" },
   "7": { startColor: "#FFD8E8", endColor: "#DA7EA4" },
 };
+
+ export const statusConfig = {
+  DRAFT: { label: "Nháp", color: "bg-gray-100 text-gray-800" },
+  SCHEDULED: { label: "Đã lên lịch", color: "bg-yellow-100 text-yellow-800" },
+  ACTIVE: { label: "Đang hoạt động", color: "bg-green-100 text-green-800" },
+  PAUSED: { label: "Tạm dừng", color: "bg-orange-100 text-orange-800" },
+  COMPLETED: { label: "Đã hoàn thành", color: "bg-blue-100 text-blue-800" },
+  CANCELLED: { label: "Đã hủy", color: "bg-red-100 text-red-800" },
+};
