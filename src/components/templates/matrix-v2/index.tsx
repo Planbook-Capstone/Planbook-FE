@@ -58,7 +58,7 @@ export default function MatrixTemplate2() {
   const [enabled, setEnabled] = useState(false);
   const [finalData, setFinalData] = useState<any>(null);
 
-  console.log(wsUrl,"tran")
+  console.log(wsUrl, "tran");
 
   const { data, isConnected, error, sendMessage, reconnect } =
     useSimpleWebSocket({
@@ -285,6 +285,7 @@ export default function MatrixTemplate2() {
       book_id: 1,
       lesson_id: "4",
       input: examData,
+      workspaceId: 1,
     };
     executeTool(payload, {
       onSuccess: (e: any) => {
