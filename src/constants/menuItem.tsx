@@ -58,7 +58,7 @@ export const adminItems = [
   },
   {
     label: "Giáo án",
-    key: "lesson-plan",
+    key: "lesson-plan-template",
     icon: <HomeOutlined />,
     image: "/icons/book.svg",
     active: "/icons/book-active.svg",

@@ -13,7 +13,7 @@ export const getPageLabel = (pathname: string): string => {
     "/exam": "Thi trực tuyến",
     "/exam-matrix": "Tạo bài kiểm tra",
     "/exam-creation": "Tạo bài kiểm",
-    "/exam-templates": "Quản lý Template",
+    "/exam-templates": "Quản lý đề",
     "/exam-instances": "Quản lý phiên kiểm tra",
     "/grading-test": "Chấm điểm tự động",
     "/chats": "Tạo slide bài giảng",

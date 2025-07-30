@@ -7,7 +7,7 @@ import {
   useQueryClient,
   UseQueryResult,
 } from "@tanstack/react-query";
-import api, { apiSecondary, apiThird } from "@/config/axios";
+import api, { apiSecondary } from "@/config/axios";
 
 // Generic factory để tạo React Query hooks cho bất kỳ axios instance nào
 export const createApiHooks = (
@@ -170,7 +170,7 @@ export const createApiHooks = (
 // Pre-configured factories cho từng API
 export const mainApiHooks = createApiHooks(api, "main");
 export const secondaryApiHooks = createApiHooks(apiSecondary, "secondary");
-export const thirdApiHooks = createApiHooks(apiThird, "third");
+
 
 // Export individual hook creators for convenience
 export const {
@@ -192,11 +192,4 @@ export const {
   createSearchQueryHook: createSecondarySearchQueryHook,
 } = secondaryApiHooks;
 
-export const {
-  createQueryHook: createThirdQueryHook,
-  createQueryWithPathParamHook: createThirdQueryWithPathParamHook,
-  createMutationHook: createThirdMutationHook,
-  createMutationUploadFilesHook: createThirdMutationUploadFilesHook,
-  updateMutationHook: updateThirdMutationHook,
-  deleteMutationHook: deleteThirdMutationHook,
-} = thirdApiHooks;
+

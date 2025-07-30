@@ -268,7 +268,7 @@ function ExamTemplatesPageContent() {
         </div>
         <Button onClick={handleCreateTemplate} className="bg-neutral-900">
           <Plus className="h-4 w-4 mr-2" />
-          Tạo Template Mới
+          Tạo đề thi Mới
         </Button>
       </div>
       {isLoading ? (
