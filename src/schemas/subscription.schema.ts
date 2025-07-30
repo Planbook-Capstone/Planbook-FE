@@ -46,14 +46,14 @@ export const subscriptionSchema = z.object({
       message: "Không được quá 10 tính năng"
     }),
 
-  // priority: z
-  //   .number({
-  //     required_error: "Thứ tự ưu tiên không được để trống",
-  //     invalid_type_error: "Thứ tự ưu tiên phải là số",
-  //   })
-  //   .int("Thứ tự ưu tiên phải là số nguyên")
-  //   .min(1, "Thứ tự ưu tiên phải lớn hơn 0")
-  //   .max(999, "Thứ tự ưu tiên không được quá 999"),
+  priority: z
+    .number({
+      required_error: "Thứ tự ưu tiên không được để trống",
+      invalid_type_error: "Thứ tự ưu tiên phải là số",
+    })
+    .int("Thứ tự ưu tiên phải là số nguyên")
+    .min(1, "Thứ tự ưu tiên phải lớn hơn 0")
+    .max(90, "Thứ tự ưu tiên không được quá 90"),
 });
 
 // Type inference
