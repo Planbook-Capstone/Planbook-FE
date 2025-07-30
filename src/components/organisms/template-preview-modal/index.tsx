@@ -83,7 +83,7 @@ export default function TemplatePreviewModal({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-xl font-calsans text-gray-800">
-            Xem trước template: {template.name}
+            Xem trước đề thi: {template.name}
           </h2>
           <div className="flex items-center gap-3">
             <Button onClick={handleDownload}>

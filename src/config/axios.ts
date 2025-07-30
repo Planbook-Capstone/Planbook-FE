@@ -11,11 +11,6 @@ const apiSecondary = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_SECONDARY_URL,
 });
 
-// Third API instance (another different port)
-const apiThird = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_THIRD_URL,
-});
-
 // Helper function to setup interceptors for both instances
 const setupInterceptors = (axiosInstance: AxiosInstance) => {
   // Request interceptor
@@ -67,8 +62,7 @@ const setupInterceptors = (axiosInstance: AxiosInstance) => {
 // Setup interceptors for all instances
 setupInterceptors(api);
 setupInterceptors(apiSecondary);
-setupInterceptors(apiThird);
 
 // Export all instances
 export default api;
-export { apiSecondary, apiThird };
+export { apiSecondary };
