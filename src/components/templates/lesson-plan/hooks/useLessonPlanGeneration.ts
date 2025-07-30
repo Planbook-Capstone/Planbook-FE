@@ -118,6 +118,7 @@ export const useLessonPlanGeneration = ({
       lesson_id: lessonId?.toString(),
       book_id: "1",
       input: mergedNode,
+      workspaceId: 1,
     };
 
     mutate(payload, {

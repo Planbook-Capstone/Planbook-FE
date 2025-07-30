@@ -321,6 +321,7 @@ export default function SlideEditorDemo() {
         book_id: parseInt(selectedBookId),
         lesson_id: selectedLessonId,
         input: templateDetail.data,
+        workspaceId: 1,
       };
 
       executeTool(payload, {
