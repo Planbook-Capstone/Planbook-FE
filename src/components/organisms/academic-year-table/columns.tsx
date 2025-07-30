@@ -1,10 +1,13 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MoreVertical } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import { AcademicYearResponse } from "@/types";
 import { format } from "date-fns";
 import { translateAcademicYearStatus } from "@/utils/translateEnum";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/Button";
+import { toast } from "sonner";
+import { useUpdateAcademicYearStatus } from "@/services/academicYearServices";
 
 export const yearColumns: ColumnDef<AcademicYearResponse>[] = [
   {
@@ -92,6 +95,67 @@ export const yearColumns: ColumnDef<AcademicYearResponse>[] = [
       };
 
       return <Badge variant={getStatusVariant(status)}>{statusText}</Badge>;
+    },
+  },
+  {
+    id: "actions",
+    header: "Hành động",
+    cell: ({ row }) => {
+      const academicYear = row.original;
+      const updateStatusMutation = useUpdateAcademicYearStatus();
+
+      const handleChangeStatus = (newStatus: "ACTIVE" | "INACTIVE") => {
+        updateStatusMutation.mutate(
+          {
+            id: String(academicYear.id),
+            field: "status",
+            queryParams: { newStatus },
+          },
+          {
+            onSuccess: () => {
+              toast.success(
+                newStatus === "ACTIVE"
+                  ? "Kích hoạt thành công"
+                  : "Vô hiệu hóa thành công"
+              );
+            },
+            onError: () => {
+              toast.error("Cập nhật thất bại");
+            },
+          }
+        );
+      };
+
+      // Chỉ hiển thị nút action cho UPCOMING và ACTIVE
+      if (academicYear.status === "INACTIVE") {
+        return <div className="w-8"></div>; // Placeholder để giữ alignment
+      }
+
+      return (
+        <div className="flex items-center gap-2">
+          {academicYear.status === "UPCOMING" ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleChangeStatus("ACTIVE")}
+              className="p-2 hover:bg-green-50 hover:text-green-600"
+              title="Kích hoạt năm học"
+            >
+              <Play size={16} />
+            </Button>
+          ) : academicYear.status === "ACTIVE" ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleChangeStatus("INACTIVE")}
+              className="p-2 hover:bg-red-50 hover:text-red-600"
+              title="Vô hiệu hóa năm học"
+            >
+              <Square size={16} />
+            </Button>
+          ) : null}
+        </div>
+      );
     },
   },
 ];

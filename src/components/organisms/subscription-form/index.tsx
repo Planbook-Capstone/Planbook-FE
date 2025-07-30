@@ -18,8 +18,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useEffect } from "react";
-import { subscriptionSchema, SubscriptionFormData } from "@/schemas/subscription.schema";
-import { useCreateSubscriptionService, useUpdateSubscriptionService } from "@/services/subscriptionServices";
+import {
+  subscriptionSchema,
+  SubscriptionFormData,
+} from "@/schemas/subscription.schema";
+import {
+  useCreateSubscriptionService,
+  useUpdateSubscriptionService,
+} from "@/services/subscriptionServices";
 import { SubscriptionResponse } from "@/types";
 
 interface SubscriptionFormProps {
@@ -28,10 +34,10 @@ interface SubscriptionFormProps {
   mode?: "create" | "edit";
 }
 
-function SubscriptionForm({ 
-  onClose, 
-  subscription, 
-  mode = "create" 
+function SubscriptionForm({
+  onClose,
+  subscription,
+  mode = "create",
 }: SubscriptionFormProps) {
   const createMutation = useCreateSubscriptionService();
   const updateMutation = useUpdateSubscriptionService();
@@ -45,13 +51,15 @@ function SubscriptionForm({
       description: "",
       highlight: false,
       features: { "1": "Tính năng mới" },
-      // priority: 1,
+      priority: 1,
     },
     mode: "onSubmit", // Changed from onChange to onSubmit to avoid immediate validation
   });
 
   // Convert features object to array for form handling
-  const featuresArray = Object.entries(form.watch("features") || {}).map(([key, value]) => ({ key, value }));
+  const featuresArray = Object.entries(form.watch("features") || {}).map(
+    ([key, value]) => ({ key, value })
+  );
 
   // Reset form when subscription data changes (for edit mode)
   useEffect(() => {
@@ -73,7 +81,10 @@ function SubscriptionForm({
         price: subscription.price || 0,
         description: subscription.description || "Basic access",
         highlight: subscription.highlight || false,
-        features: Object.keys(featuresObj).length > 0 ? featuresObj : { "1": "Tính năng mới" },
+        features:
+          Object.keys(featuresObj).length > 0
+            ? featuresObj
+            : { "1": "Tính năng mới" },
         priority: subscription.priority || 1,
       });
     } else if (mode === "create") {
@@ -111,7 +122,7 @@ function SubscriptionForm({
             description: data.description,
             highlight: data.highlight,
             features: filteredFeatures,
-            // priority: data.priority,
+            priority: data.priority,
           },
         },
         {
@@ -120,7 +131,9 @@ function SubscriptionForm({
             onClose();
           },
           onError: (error: any) => {
-            toast.error(error?.response?.data?.message || "Có lỗi xảy ra khi cập nhật");
+            toast.error(
+              error?.response?.data?.message || "Có lỗi xảy ra khi cập nhật"
+            );
           },
         }
       );
@@ -134,7 +147,7 @@ function SubscriptionForm({
           description: data.description,
           highlight: data.highlight,
           features: filteredFeatures,
-          // priority: data.priority,
+          priority: data.priority,
         },
         {
           onSuccess: () => {
@@ -142,7 +155,9 @@ function SubscriptionForm({
             onClose();
           },
           onError: (error: any) => {
-            toast.error(error?.response?.data?.message || "Có lỗi xảy ra khi tạo gói");
+            toast.error(
+              error?.response?.data?.message || "Có lỗi xảy ra khi tạo gói"
+            );
           },
         }
       );
@@ -183,7 +198,7 @@ function SubscriptionForm({
                   type="number"
                   placeholder="Nhập số lượng token (VD: 100)"
                   {...field}
-                  onChange={(e:any) => field.onChange(Number(e.target.value))}
+                  onChange={(e: any) => field.onChange(Number(e.target.value))}
                   disabled={isLoading}
                 />
               </FormControl>
@@ -203,7 +218,7 @@ function SubscriptionForm({
                   type="number"
                   placeholder="Nhập giá (VD: 99000)"
                   {...field}
-                  onChange={(e:any) => field.onChange(Number(e.target.value))}
+                  onChange={(e: any) => field.onChange(Number(e.target.value))}
                   disabled={isLoading}
                 />
               </FormControl>
@@ -232,7 +247,7 @@ function SubscriptionForm({
           )}
         />
 
-        {/* <FormField
+        <FormField
           control={form.control}
           name="priority"
           render={({ field }) => (
@@ -243,14 +258,14 @@ function SubscriptionForm({
                   type="number"
                   placeholder="Nhập thứ tự ưu tiên (VD: 1)"
                   {...field}
-                  onChange={(e:any) => field.onChange(Number(e.target.value))}
+                  onChange={(e: any) => field.onChange(Number(e.target.value))}
                   disabled={isLoading}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        /> */}
+        />
 
         <FormField
           control={form.control}
@@ -329,7 +344,7 @@ function SubscriptionForm({
               const nextKey = String(Object.keys(currentFeatures).length + 1);
               form.setValue("features", {
                 ...currentFeatures,
-                [nextKey]: "Tính năng mới"
+                [nextKey]: "Tính năng mới",
               });
             }}
             disabled={isLoading || featuresArray.length >= 10}
@@ -350,10 +365,13 @@ function SubscriptionForm({
             Hủy
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading 
-              ? (mode === "edit" ? "Đang cập nhật..." : "Đang tạo...") 
-              : (mode === "edit" ? "Cập nhật" : "Tạo gói")
-            }
+            {isLoading
+              ? mode === "edit"
+                ? "Đang cập nhật..."
+                : "Đang tạo..."
+              : mode === "edit"
+              ? "Cập nhật"
+              : "Tạo gói"}
           </Button>
         </div>
       </form>
