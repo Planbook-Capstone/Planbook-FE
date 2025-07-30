@@ -4,9 +4,9 @@ import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { generateDocx } from "@/utils/docxGenerator";
 import { DemoNode, WebSocketData } from "../types";
-import { WEBSOCKET_CONFIG, LESSON_PLAN_CONFIG } from "../constants";
 import { useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
+import { WEBSOCKET_CONFIG } from "@/config/websocket";
 
 interface UseLessonPlanGenerationProps {
   demoData: DemoNode[];
@@ -117,7 +117,7 @@ export const useLessonPlanGeneration = ({
       toolType: "INTERNAL",
       lesson_id: lessonId?.toString(),
       book_id: "1",
-      input: mergedNode ,
+      input: mergedNode,
     };
 
     mutate(payload, {
@@ -127,7 +127,9 @@ export const useLessonPlanGeneration = ({
         setEnabled(true);
       },
       onError: (error) => {
-        toast.error("Tạo giáo án thất bại");
+        toast.error(
+          `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
+        );
         console.error(error);
       },
     });
