@@ -4,9 +4,9 @@ import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { generateDocx } from "@/utils/docxGenerator";
 import { DemoNode, WebSocketData } from "../types";
-import { WEBSOCKET_CONFIG, LESSON_PLAN_CONFIG } from "../constants";
 import { useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
+import { WEBSOCKET_CONFIG } from "@/config/websocket";
 
 interface UseLessonPlanGenerationProps {
   demoData: DemoNode[];
