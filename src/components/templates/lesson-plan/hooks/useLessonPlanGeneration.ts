@@ -117,7 +117,7 @@ export const useLessonPlanGeneration = ({
       toolType: "INTERNAL",
       lesson_id: lessonId?.toString(),
       book_id: "1",
-      input: mergedNode ,
+      input: mergedNode,
     };
 
     mutate(payload, {
@@ -127,7 +127,9 @@ export const useLessonPlanGeneration = ({
         setEnabled(true);
       },
       onError: (error) => {
-        toast.error("Tạo giáo án thất bại");
+        toast.error(
+          `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
+        );
         console.error(error);
       },
     });

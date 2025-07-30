@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
     LOGIN: buildEndpoint(SERVICES.AUTH, "/login"),
     REGISTER: buildEndpoint(SERVICES.AUTH, "/register"),
     LOGIN_GOOGLE: "/identity-service/api/login-google",
+    REFRESH_TOKEN: buildEndpoint(SERVICES.AUTH, "/refresh"),
   },
   USERS_MANAGEMENT: {
     BASE: buildEndpoint(SERVICES.AUTH, "/users"),
