@@ -1,11 +1,12 @@
 const SERVICES = {
   AUTH: "identity-service",
   MASTER_DATA: "master-data-service",
-  LESSON_PLAN: "lesson-plan-service",
-  ACADEMIC_RESOURCE: "academic-resource-service-local",
+  LESSON_PLAN: "lesson-plan-template-service",
+  ACADEMIC_RESOURCE: "academic-resource-service",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
   SUBSCRIPTION: "purchase-service",
+  WORKSPACE: "workspace-service",
 } as const;
 
 const buildEndpoint = (service: string, path: string) =>
@@ -22,36 +23,39 @@ export const API_ENDPOINTS = {
   USERS_MANAGEMENT: {
     BASE: buildEndpoint(SERVICES.AUTH, "/users"),
   },
+  // Book Types
+  BOOK_TYPES: buildEndpoint(SERVICES.AUTH, "/book-types"),
 
   WALLET: buildEndpoint(SERVICES.AUTH, "/wallets"),
 
   // Academic Years
-  ACADEMIC_YEARS: "/academic-years",
+  ACADEMIC_YEARS: buildEndpoint(SERVICES.WORKSPACE, "/academic-years"),
 
-  // Books
-  BOOKS: buildEndpoint(SERVICES.MASTER_DATA, "/books"),
-  BOOKS_BY_SUBJECT: buildEndpoint(SERVICES.MASTER_DATA, "/books/by-subject"),
+  MASTER_DATA: {
+    BOOKS: buildEndpoint(SERVICES.MASTER_DATA, "/books"),
+    BOOKS_BY_SUBJECT: buildEndpoint(SERVICES.MASTER_DATA, "/books/by-subject"),
 
-  // Book Types
-  BOOK_TYPES: buildEndpoint(SERVICES.AUTH, "/book-types"),
+    // Chapters
+    CHAPTERS: buildEndpoint(SERVICES.MASTER_DATA, "/chapters"),
+    CHAPTERS_BY_BOOK: buildEndpoint(SERVICES.MASTER_DATA, "/chapters/by-book"),
 
-  // Chapters
-  CHAPTERS: buildEndpoint(SERVICES.MASTER_DATA, "/chapters"),
-  CHAPTERS_BY_BOOK: buildEndpoint(SERVICES.MASTER_DATA, "/chapters/by-book"),
+    // Grades
+    GRADES: buildEndpoint(SERVICES.MASTER_DATA, "/grades"),
 
-  // Grades
-  GRADES: buildEndpoint(SERVICES.MASTER_DATA, "/grades"),
+    // Lessons
+    LESSONS: buildEndpoint(SERVICES.MASTER_DATA, "/lessons"),
+    LESSONS_BY_CHAPTER: buildEndpoint(
+      SERVICES.MASTER_DATA,
+      "/lessons/by-chapter"
+    ),
 
-  // Lessons
-  LESSONS: buildEndpoint(SERVICES.MASTER_DATA, "/lessons"),
-  LESSONS_BY_CHAPTER: buildEndpoint(
-    SERVICES.MASTER_DATA,
-    "/lessons/by-chapter"
-  ),
-
-  // Subjects
-  SUBJECTS: buildEndpoint(SERVICES.MASTER_DATA, "/subjects"),
-  SUBJECTS_BY_GRADE: buildEndpoint(SERVICES.MASTER_DATA, "/subjects/by-grade"),
+    // Subjects
+    SUBJECTS: buildEndpoint(SERVICES.MASTER_DATA, "/subjects"),
+    SUBJECTS_BY_GRADE: buildEndpoint(
+      SERVICES.MASTER_DATA,
+      "/subjects/by-grade"
+    ),
+  },
 
   // Subscriptions
   SUBSCRIPTIONS: buildEndpoint(SERVICES.SUBSCRIPTION, "/subscription-packages"),
@@ -73,7 +77,7 @@ export const API_ENDPOINTS = {
     TREE: (id: string) => `/lesson-plan-service/api/lesson-nodes/${id}/tree`,
 
     CHIDREN: (nodeId: string) =>
-      `/lesson-plan-service/api/lesson-nodes/${nodeId}/children`,
+      buildEndpoint(SERVICES.LESSON_PLAN, `/lesson-nodes/${nodeId}/children`),
 
     ALL_NODES: (lessonPlanId: string) =>
       buildEndpoint(
@@ -81,7 +85,7 @@ export const API_ENDPOINTS = {
         `/admin/lesson-nodes/${lessonPlanId}/all-nodes`
       ),
   },
-  
+
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
   UPLOAD_DOCX_TO_ONLINE: "/lesson/upload-docx-to-online",
 
@@ -107,6 +111,7 @@ export const API_ENDPOINTS = {
     SERVICES.ACADEMIC_RESOURCE,
     "/academic-resources/internal"
   ),
+
   // External Tools
   EXTERNAL_TOOLS: "external-tool-config-service/api/external-tools",
 
