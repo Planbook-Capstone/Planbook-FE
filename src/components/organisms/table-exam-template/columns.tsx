@@ -51,7 +51,7 @@ export const examTemplateColumns = (
   },
   {
     accessorKey: "createdAt",
-    header: "Ngày tạo",
+    header: "Chỉnh sửa lần cuối",
     cell: ({ row }) => {
       const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -66,7 +66,7 @@ export const examTemplateColumns = (
 
       return (
         <div className="font-medium text-gray-900 font-questrial">
-          {formatDate(row.original.createdAt)}
+          {formatDate(row.original.updatedAt)}
         </div>
       );
     },
