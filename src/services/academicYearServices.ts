@@ -15,9 +15,5 @@ export const useCreateAcademicYearService = createMutationHook(
   "academicYears",
   API_ENDPOINTS.ACADEMIC_YEARS
 );
-// export const useUpdateBookStatus = patchMutationHook("books", "/book");
-// export const useBookTypesService = createQueryHook("bookTypes", "/book");
-// export const useBookByIdService = createQueryWithPathParamHook(
-//   "bookById",
-//   "/book"
-// );
+
+export const useUpdateAcademicYearStatus = patchMutationHook("academicYears", API_ENDPOINTS.ACADEMIC_YEARS);
