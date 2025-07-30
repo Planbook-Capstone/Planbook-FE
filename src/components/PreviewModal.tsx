@@ -423,13 +423,13 @@ export default function PreviewModal({
           <div
             key={node.id}
             style={{ marginLeft: `${marginLeft}px` }}
-            className="mb-2"
+            className="mb-2 flex flex-col h-full  "
           >
-            <div className="flex items-start gap-2">
-              <span className="text-black font-medium flex-shrink-0">
+            <div className="flex flex-col items-start gap-2 w-full">
+              <span className="text-black font-bold flex-shrink-0">
                 {node.title || "Item"}:
               </span>
-              <div className="text-gray-700 leading-relaxed flex-1">
+              <div className="text-gray-700 leading-relaxed flex-1 pl-6">
                 {node.content &&
                 node.content.includes("<") &&
                 node.content.includes(">") ? (
