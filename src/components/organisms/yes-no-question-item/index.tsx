@@ -6,6 +6,10 @@ import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
 import { YesNoQuestion, YesNoQuestionItemProps, YesNoOption } from "./types";
 import { useDroppable } from "@dnd-kit/core";
+import {
+  convertBrTagsToLineBreaks,
+  convertLineBreaksToBrTags,
+} from "@/utils/textUtils";
 
 export default function YesNoQuestionItem({
   question,
@@ -27,7 +31,11 @@ export default function YesNoQuestionItem({
   });
 
   // Normalize question data for both API and legacy formats
-  const getQuestionText = () => question.question || question.text || "";
+  const getQuestionText = () => {
+    const text = question.question || question.text || "";
+    // Convert <br/> tags to line breaks for display
+    return convertBrTagsToLineBreaks(text);
+  };
 
   // Convert API statements to options format for display
   const getOptionsFromStatements = () => {
@@ -35,27 +43,32 @@ export default function YesNoQuestionItem({
       return [
         {
           id: "a",
-          text: question.statements.a.text,
+          text: convertBrTagsToLineBreaks(question.statements.a.text),
           isCorrect: question.statements.a.answer,
         },
         {
           id: "b",
-          text: question.statements.b.text,
+          text: convertBrTagsToLineBreaks(question.statements.b.text),
           isCorrect: question.statements.b.answer,
         },
         {
           id: "c",
-          text: question.statements.c.text,
+          text: convertBrTagsToLineBreaks(question.statements.c.text),
           isCorrect: question.statements.c.answer,
         },
         {
           id: "d",
-          text: question.statements.d.text,
+          text: convertBrTagsToLineBreaks(question.statements.d.text),
           isCorrect: question.statements.d.answer,
         },
       ];
     }
-    return question.options || [];
+    return (
+      question.options?.map((option) => ({
+        ...option,
+        text: convertBrTagsToLineBreaks(option.text),
+      })) || []
+    );
   };
 
   const displayOptions = getOptionsFromStatements();
@@ -67,21 +80,25 @@ export default function YesNoQuestionItem({
   };
 
   const handleQuestionTextChange = (text: string) => {
+    // Convert line breaks back to <br/> tags when saving
+    const textWithBrTags = convertLineBreaksToBrTags(text);
     if (question.question !== undefined) {
-      onUpdate({ ...question, question: text });
+      onUpdate({ ...question, question: textWithBrTags });
     } else {
-      onUpdate({ ...question, text });
+      onUpdate({ ...question, text: textWithBrTags });
     }
   };
 
   const handleOptionTextChange = (optionId: string, text: string) => {
+    // Convert line breaks back to <br/> tags when saving
+    const textWithBrTags = convertLineBreaksToBrTags(text);
     if (question.statements) {
       // Update statements format
       const newStatements = { ...question.statements };
       if (optionId in newStatements) {
         newStatements[optionId as keyof typeof newStatements] = {
           ...newStatements[optionId as keyof typeof newStatements],
-          text,
+          text: textWithBrTags,
         };
       }
       onUpdate({ ...question, statements: newStatements });
@@ -89,7 +106,7 @@ export default function YesNoQuestionItem({
       // Update options format
       const newOptions =
         question.options?.map((option) =>
-          option.id === optionId ? { ...option, text } : option
+          option.id === optionId ? { ...option, text: textWithBrTags } : option
         ) || [];
       onUpdate({ ...question, options: newOptions });
     }

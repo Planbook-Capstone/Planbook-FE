@@ -1,17 +1,31 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType, Footer, PageNumber, ImageRun } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  AlignmentType,
+  Footer,
+  PageNumber,
+  ImageRun,
+} from "docx";
 import { saveAs } from "file-saver";
 
 // Helper function to load image via Image element and convert to canvas
 const loadImageViaCanvas = (imageUrl: string): Promise<ArrayBuffer | null> => {
   return new Promise((resolve) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous'; // Try to enable CORS
+    img.crossOrigin = "anonymous"; // Try to enable CORS
 
     img.onload = () => {
       try {
         // Create canvas and draw image
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
 
         if (!ctx) {
           console.error("❌ Could not get canvas context");
@@ -26,11 +40,14 @@ const loadImageViaCanvas = (imageUrl: string): Promise<ArrayBuffer | null> => {
         // Convert canvas to blob
         canvas.toBlob((blob) => {
           if (blob) {
-            blob.arrayBuffer().then(resolve).catch(() => resolve(null));
+            blob
+              .arrayBuffer()
+              .then(resolve)
+              .catch(() => resolve(null));
           } else {
             resolve(null);
           }
-        }, 'image/png');
+        }, "image/png");
       } catch (error) {
         console.error("❌ Canvas conversion error:", error);
         resolve(null);
@@ -53,24 +70,26 @@ const loadImageViaCanvas = (imageUrl: string): Promise<ArrayBuffer | null> => {
 };
 
 // Utility function to convert image URL to buffer
-const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | null> => {
+const convertImageToBuffer = async (
+  imageUrl: string
+): Promise<ArrayBuffer | null> => {
   try {
     console.log("🔄 Converting image to buffer:", {
-      isDataUrl: imageUrl.startsWith('data:'),
+      isDataUrl: imageUrl.startsWith("data:"),
       urlLength: imageUrl.length,
-      urlStart: imageUrl.substring(0, 50)
+      urlStart: imageUrl.substring(0, 50),
     });
 
     // Handle data URLs (base64 images)
-    if (imageUrl.startsWith('data:')) {
+    if (imageUrl.startsWith("data:")) {
       console.log("🔍 Processing data URL:", {
         fullUrl: imageUrl.substring(0, 100) + "...",
-        hasComma: imageUrl.includes(','),
-        mimeType: imageUrl.split(',')[0]
+        hasComma: imageUrl.includes(","),
+        mimeType: imageUrl.split(",")[0],
       });
 
       // Extract base64 data from data URL
-      const parts = imageUrl.split(',');
+      const parts = imageUrl.split(",");
       if (parts.length !== 2) {
         console.error("❌ Invalid data URL format - no comma separator");
         return null;
@@ -84,7 +103,7 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
 
       console.log("🔍 Base64 data:", {
         length: base64Data.length,
-        start: base64Data.substring(0, 50)
+        start: base64Data.substring(0, 50),
       });
 
       try {
@@ -95,13 +114,17 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
           bytes[i] = binaryString.charCodeAt(i);
         }
 
-        console.log("✅ Converted data URL to buffer:", bytes.buffer.byteLength, "bytes");
+        console.log(
+          "✅ Converted data URL to buffer:",
+          bytes.buffer.byteLength,
+          "bytes"
+        );
         return bytes.buffer;
       } catch (decodeError) {
         console.error("❌ Error decoding base64:", decodeError);
         return null;
       }
-    } else if (imageUrl.startsWith('http')) {
+    } else if (imageUrl.startsWith("http")) {
       // Handle HTTP URLs with multiple fallback strategies
       console.log("🌐 Fetching HTTP URL:", imageUrl);
 
@@ -109,10 +132,11 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
       try {
         console.log("🔄 Trying CORS fetch...");
         const response = await fetch(imageUrl, {
-          mode: 'cors',
+          mode: "cors",
           headers: {
-            'Accept': 'image/*',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            Accept: "image/*",
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
           },
         });
 
@@ -121,7 +145,11 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
           console.log("✅ CORS fetch successful, size:", buffer.byteLength);
           return buffer;
         }
-        console.log("⚠️ CORS fetch failed:", response.status, "trying proxy...");
+        console.log(
+          "⚠️ CORS fetch failed:",
+          response.status,
+          "trying proxy..."
+        );
       } catch (corsError) {
         console.log("⚠️ CORS error:", corsError, "trying proxy...");
       }
@@ -133,8 +161,8 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
 
         const response = await fetch(proxyUrl, {
           headers: {
-            'Accept': 'image/*',
-            'X-Requested-With': 'XMLHttpRequest',
+            Accept: "image/*",
+            "X-Requested-With": "XMLHttpRequest",
           },
         });
 
@@ -150,13 +178,18 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
 
       // Strategy 3: Try alternative proxy
       try {
-        const altProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`;
+        const altProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(
+          imageUrl
+        )}`;
         console.log("🔄 Trying alternative proxy:", altProxyUrl);
 
         const response = await fetch(altProxyUrl);
         if (response.ok) {
           const buffer = await response.arrayBuffer();
-          console.log("✅ Alternative proxy successful, size:", buffer.byteLength);
+          console.log(
+            "✅ Alternative proxy successful, size:",
+            buffer.byteLength
+          );
           return buffer;
         }
         console.log("⚠️ Alternative proxy failed:", response.status);
@@ -183,7 +216,10 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
         console.log("🔄 Trying Image element + canvas conversion...");
         const buffer = await loadImageViaCanvas(imageUrl);
         if (buffer) {
-          console.log("✅ Canvas conversion successful, size:", buffer.byteLength);
+          console.log(
+            "✅ Canvas conversion successful, size:",
+            buffer.byteLength
+          );
           return buffer;
         }
         console.log("⚠️ Canvas conversion failed");
@@ -205,52 +241,79 @@ const convertImageToBuffer = async (imageUrl: string): Promise<ArrayBuffer | nul
 
 // Helper function to parse HTML and create TextRun array with formatting
 const parseHtmlToTextRuns = (html: string): any[] => {
-  if (!html || typeof html !== 'string') {
-    return [new TextRun({ text: '', size: 24 })];
+  if (!html || typeof html !== "string") {
+    return [new TextRun({ text: "", size: 24 })];
   }
 
   const textRuns: any[] = [];
   let currentText = html;
 
   // Handle <p> tags - convert to line breaks
-  currentText = currentText.replace(/<p[^>]*>/gi, '').replace(/<\/p>/gi, '\n');
+  currentText = currentText.replace(/<p[^>]*>/gi, "").replace(/<\/p>/gi, "\n");
 
-  // Split by bold tags and process each part
-  const parts = currentText.split(/(<\/?(?:strong|b)[^>]*>)/gi);
-  let isBold = false;
+  // Handle <br/> tags - convert to line breaks
+  currentText = currentText.replace(/<br\s*\/?>/gi, "\n");
 
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
+  // Split by line breaks first to handle them properly
+  const lines = currentText.split("\n");
 
-    if (part.match(/<(strong|b)[^>]*>/i)) {
-      isBold = true;
-    } else if (part.match(/<\/(strong|b)>/i)) {
-      isBold = false;
-    } else if (part.trim()) {
-      // Clean up remaining HTML tags
-      const cleanText = part.replace(/<[^>]*>/g, '').trim();
-      if (cleanText) {
-        textRuns.push(new TextRun({
-          text: cleanText,
-          bold: isBold,
-          size: 24,
-        }));
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex];
+
+    if (line.trim()) {
+      // Split by bold tags and process each part
+      const parts = line.split(/(<\/?(?:strong|b)[^>]*>)/gi);
+      let isBold = false;
+
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+
+        if (part.match(/<(strong|b)[^>]*>/i)) {
+          isBold = true;
+        } else if (part.match(/<\/(strong|b)>/i)) {
+          isBold = false;
+        } else if (part.trim()) {
+          // Clean up remaining HTML tags
+          const cleanText = part.replace(/<[^>]*>/g, "");
+          if (cleanText) {
+            textRuns.push(
+              new TextRun({
+                text: cleanText,
+                bold: isBold,
+                size: 24,
+              })
+            );
+          }
+        }
       }
     }
-  }
 
-  // If no formatting was found, just return the plain text
-  if (textRuns.length === 0) {
-    const plainText = currentText.replace(/<[^>]*>/g, '').trim();
-    if (plainText) {
-      textRuns.push(new TextRun({
-        text: plainText,
-        size: 24,
-      }));
+    // Add line break if not the last line
+    if (lineIndex < lines.length - 1) {
+      textRuns.push(
+        new TextRun({
+          text: "",
+          break: 1,
+          size: 24,
+        })
+      );
     }
   }
 
-  return textRuns.length > 0 ? textRuns : [new TextRun({ text: '', size: 24 })];
+  // If no content was processed, return the plain text
+  if (textRuns.length === 0) {
+    const plainText = currentText.replace(/<[^>]*>/g, "").trim();
+    if (plainText) {
+      textRuns.push(
+        new TextRun({
+          text: plainText,
+          size: 24,
+        })
+      );
+    }
+  }
+
+  return textRuns.length > 0 ? textRuns : [new TextRun({ text: "", size: 24 })];
 };
 
 interface CellContent {
@@ -273,7 +336,13 @@ interface DemoNode {
   title: string;
   content: string;
   fieldType: "INPUT" | "TABLE" | "IMAGE";
-  type: "PARAGRAPH" | "LIST_ITEM" | "TABLE" | "IMAGE" | "SECTION" | "SUBSECTION";
+  type:
+    | "PARAGRAPH"
+    | "LIST_ITEM"
+    | "TABLE"
+    | "IMAGE"
+    | "SECTION"
+    | "SUBSECTION";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -298,7 +367,7 @@ const createLessonPlanHeader = (headerInfo: LessonPlanHeader = {}) => {
     grade = "lớp:........",
     lessonTitle = "TÊN BÀI DẠY: ................................................",
     duration = "Thời gian thực hiện: (số tiết)",
-    teacherName = "Họ và tên giáo viên:\n................................"
+    teacherName = "Họ và tên giáo viên:\n................................",
   } = headerInfo;
 
   return [
@@ -399,7 +468,12 @@ const createLessonPlanHeader = (headerInfo: LessonPlanHeader = {}) => {
             new TableCell({
               children: [
                 new Paragraph({
-                  children: [new TextRun({ text: "................................", size: 24 })],
+                  children: [
+                    new TextRun({
+                      text: "................................",
+                      size: 24,
+                    }),
+                  ],
                 }),
               ],
               borders: {
@@ -452,13 +526,20 @@ const createLessonPlanHeader = (headerInfo: LessonPlanHeader = {}) => {
   ];
 };
 
-export const generateDocx = async (data: DemoNode[], filename: string = "document.docx", headerInfo?: LessonPlanHeader) => {
+export const generateDocx = async (
+  data: DemoNode[],
+  filename: string = "document.docx",
+  headerInfo?: LessonPlanHeader
+) => {
   const children: any[] = [];
 
   // Add lesson plan header
   children.push(...createLessonPlanHeader(headerInfo));
 
-  const processNode = async (node: DemoNode, depth: number = 0): Promise<any[]> => {
+  const processNode = async (
+    node: DemoNode,
+    depth: number = 0
+  ): Promise<any[]> => {
     const elements: any[] = [];
 
     // Store original type for title styling
@@ -466,7 +547,12 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
     // Check fieldType first for special cases like TABLE
     if (node.fieldType === "TABLE") {
-      console.log("🎯 Processing TABLE fieldType node:", node.id, "originalType:", originalType);
+      console.log(
+        "🎯 Processing TABLE fieldType node:",
+        node.id,
+        "originalType:",
+        originalType
+      );
       // Handle TABLE fieldType regardless of node.type - jump to TABLE case
       node = { ...node, type: "TABLE" as any };
     }
@@ -495,14 +581,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Add section content
         if (node.content) {
+          const contentRuns = parseHtmlToTextRuns(node.content);
           elements.push(
             new Paragraph({
-              children: [
-                new TextRun({
-                  text: node.content,
-                  size: 24, // 12pt
-                }),
-              ],
+              children: contentRuns,
               spacing: {
                 after: 120, // 6pt
               },
@@ -512,7 +594,9 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+          for (const child of node.children.sort(
+            (a, b) => a.orderIndex - b.orderIndex
+          )) {
             const childElements = await processNode(child, depth);
             elements.push(...childElements);
           }
@@ -542,14 +626,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Add subsection content
         if (node.content) {
+          const contentRuns = parseHtmlToTextRuns(node.content);
           elements.push(
             new Paragraph({
-              children: [
-                new TextRun({
-                  text: node.content,
-                  size: 24, // 12pt
-                }),
-              ],
+              children: contentRuns,
               spacing: {
                 after: 120, // 6pt
               },
@@ -559,7 +639,9 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children with indentation
         if (node.children && node.children.length > 0) {
-          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+          for (const child of node.children.sort(
+            (a, b) => a.orderIndex - b.orderIndex
+          )) {
             const childElements = await processNode(child, depth + 1);
             elements.push(...childElements);
           }
@@ -588,14 +670,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Add paragraph content
         if (node.content) {
+          const contentRuns = parseHtmlToTextRuns(node.content);
           elements.push(
             new Paragraph({
-              children: [
-                new TextRun({
-                  text: node.content,
-                  size: 24, // 12pt
-                }),
-              ],
+              children: contentRuns,
               spacing: {
                 after: 120, // 6pt
               },
@@ -608,7 +686,9 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+          for (const child of node.children.sort(
+            (a, b) => a.orderIndex - b.orderIndex
+          )) {
             const childElements = await processNode(child, depth + 1);
             elements.push(...childElements);
           }
@@ -616,16 +696,19 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
         break;
 
       case "LIST_ITEM":
-        // Create list item
-        const listText = `${node.title || "Item"}: ${node.content || ""}`;
+        // Create list item with HTML content support
+        const titleText = node.title || "Item";
+        const contentText = node.content || "";
+
+        // Process title and content separately
+        const titleRuns = [
+          new TextRun({ text: `${titleText}: `, bold: true, size: 24 }),
+        ];
+        const contentRuns = parseHtmlToTextRuns(contentText);
+
         elements.push(
           new Paragraph({
-            children: [
-              new TextRun({
-                text: listText,
-                size: 24, // 12pt
-              }),
-            ],
+            children: [...titleRuns, ...contentRuns],
             bullet: {
               level: depth,
             },
@@ -640,7 +723,9 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+          for (const child of node.children.sort(
+            (a, b) => a.orderIndex - b.orderIndex
+          )) {
             const childElements = await processNode(child, depth + 1);
             elements.push(...childElements);
           }
@@ -694,34 +779,36 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
           nodeId: node.id,
           hasTableData: !!(node as any).tableData,
           hasContent: !!node.content,
-          contentType: typeof node.content
+          contentType: typeof node.content,
         });
 
         // First try to parse from content field (new rich table format)
-        if (node.content && typeof node.content === 'string') {
+        if (node.content && typeof node.content === "string") {
           try {
             const parsedContent = JSON.parse(node.content);
             console.log("📋 Parsing rich table data for DOCX:", parsedContent);
 
             if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
               // Extract headers from cells with isHeader: true
-              const headerRow = parsedContent.rows.find((row: any) =>
-                row.cells && row.cells.some((cell: any) => cell.isHeader)
+              const headerRow = parsedContent.rows.find(
+                (row: any) =>
+                  row.cells && row.cells.some((cell: any) => cell.isHeader)
               );
 
-              const headers = headerRow ?
-                headerRow.cells
-                  .filter((cell: any) => cell.isHeader)
-                  .map((cell: any) => {
-                    const title = cell.title || cell.content || "";
-                    return title.replace(/<[^>]*>/g, "").trim();
-                  })
+              const headers = headerRow
+                ? headerRow.cells
+                    .filter((cell: any) => cell.isHeader)
+                    .map((cell: any) => {
+                      const title = cell.title || cell.content || "";
+                      return title.replace(/<[^>]*>/g, "").trim();
+                    })
                 : ["Cột 1", "Cột 2"];
 
               // Extract data rows (cells without isHeader or isHeader: false)
               const dataRows = parsedContent.rows
-                .filter((row: any) =>
-                  row.cells && !row.cells.some((cell: any) => cell.isHeader)
+                .filter(
+                  (row: any) =>
+                    row.cells && !row.cells.some((cell: any) => cell.isHeader)
                 )
                 .map((row: any) =>
                   row.cells.map((cell: any) => {
@@ -747,13 +834,15 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
                     if ((imageMatch = imgRegex.exec(textContent)) !== null) {
                       extractedImageUrl = imageMatch[1];
                       // Remove the img tag from text content
-                      cleanTextContent = textContent.replace(/<img[^>]*>/gi, '').trim();
+                      cleanTextContent = textContent
+                        .replace(/<img[^>]*>/gi, "")
+                        .trim();
                       // Clean up HTML tags and decode entities
                       cleanTextContent = cleanTextContent
-                        .replace(/<[^>]*>/g, '') // Remove HTML tags
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&amp;/g, '&')
+                        .replace(/<[^>]*>/g, "") // Remove HTML tags
+                        .replace(/&lt;/g, "<")
+                        .replace(/&gt;/g, ">")
+                        .replace(/&amp;/g, "&")
                         .replace(/&quot;/g, '"')
                         .trim();
                     }
@@ -761,24 +850,25 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
                     if (extractedImageUrl) {
                       console.log("🖼️ Found image in HTML content:", {
                         originalContent: textContent.substring(0, 100),
-                        extractedUrl: extractedImageUrl.substring(0, 50) + "...",
-                        cleanText: cleanTextContent
+                        extractedUrl:
+                          extractedImageUrl.substring(0, 50) + "...",
+                        cleanText: cleanTextContent,
                       });
 
                       return {
                         text: cleanTextContent || "",
                         image: {
                           url: extractedImageUrl,
-                          name: "table-image"
-                        }
+                          name: "table-image",
+                        },
                       } as CellContent;
                     } else {
                       // Regular text cell - clean HTML and return
                       const cleanText = textContent
-                        .replace(/<[^>]*>/g, '') // Remove HTML tags
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&amp;/g, '&')
+                        .replace(/<[^>]*>/g, "") // Remove HTML tags
+                        .replace(/&lt;/g, "<")
+                        .replace(/&gt;/g, ">")
+                        .replace(/&amp;/g, "&")
                         .replace(/&quot;/g, '"')
                         .trim();
                       return cleanText;
@@ -794,7 +884,7 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
               console.log("✅ Converted rich table to DOCX format:", {
                 headers,
                 dataRowsCount: dataRows.length,
-                firstRow: dataRows[0]
+                firstRow: dataRows[0],
               });
             } else {
               throw new Error("Invalid rich table format");
@@ -805,13 +895,23 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
             const nodeAny = node as any;
             tableData = nodeAny.tableData || {
               headers: ["Cột 1", "Cột 2"],
-              rows: [["", ""], ["", ""]],
+              rows: [
+                ["", ""],
+                ["", ""],
+              ],
             };
           }
         }
         // Fallback to tableData field (old format) if content parsing failed
-        else if ((node as any).tableData && (node as any).tableData.headers && (node as any).tableData.rows) {
-          console.log("📋 Using tableData field as fallback:", (node as any).tableData);
+        else if (
+          (node as any).tableData &&
+          (node as any).tableData.headers &&
+          (node as any).tableData.rows
+        ) {
+          console.log(
+            "📋 Using tableData field as fallback:",
+            (node as any).tableData
+          );
           tableData = (node as any).tableData;
         }
         // Use default if no data available
@@ -819,7 +919,10 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
           console.log("📋 Using default table data");
           tableData = {
             headers: ["Cột 1", "Cột 2"],
-            rows: [["", ""], ["", ""]],
+            rows: [
+              ["", ""],
+              ["", ""],
+            ],
           };
         }
 
@@ -827,156 +930,220 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
         const totalWidth = 9000; // Total table width in DXA units (about 5 inches)
         const columnWidth = Math.floor(totalWidth / tableData.headers.length);
 
-        console.log(`📏 Setting equal column widths: ${tableData.headers.length} columns, ${columnWidth} DXA each`);
+        console.log(
+          `📏 Setting equal column widths: ${tableData.headers.length} columns, ${columnWidth} DXA each`
+        );
 
         // Create table rows
         const tableRows = [
           // Header row
           new TableRow({
-            children: tableData.headers.map(header =>
-              new TableCell({
-                children: [
-                  new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: header,
-                        bold: true,
-                        size: 24,
-                      }),
-                    ],
-                  }),
-                ],
-                width: {
-                  size: columnWidth,
-                  type: WidthType.DXA,
-                },
-              })
-            ),
-          }),
-          // Data rows
-          ...await Promise.all(tableData.rows.map(async (row) =>
-            new TableRow({
-              children: await Promise.all(row.map(async (cell) => {
-                const cellParagraphs: any[] = [];
-
-                if (typeof cell === 'string') {
-                  // Parse HTML string to TextRuns with formatting
-                  const cellTextRuns = parseHtmlToTextRuns(cell);
-                  cellParagraphs.push(new Paragraph({
-                    children: cellTextRuns,
-                  }));
-                } else if (Array.isArray(cell)) {
-                  // Already parsed TextRuns array (legacy)
-                  cellParagraphs.push(new Paragraph({
-                    children: cell,
-                  }));
-                } else if (cell && typeof cell === 'object') {
-                  if ('text' in cell && 'image' in cell) {
-                    // New CellContent format - handle mixed content
-                    const cellContent = cell as CellContent;
-
-                    // Add text content if exists
-                    if (cellContent.text) {
-                      const textRuns = parseHtmlToTextRuns(cellContent.text);
-                      cellParagraphs.push(new Paragraph({
-                        children: textRuns,
-                      }));
-                    }
-
-                    // Add image directly in cell if exists
-                    if (cellContent.image) {
-                      console.log("🖼️ Adding image directly to table cell:", {
-                        url: cellContent.image.url.substring(0, 50) + "...",
-                        isDataUrl: cellContent.image.url.startsWith('data:'),
-                        isHttpUrl: cellContent.image.url.startsWith('http')
-                      });
-
-                      try {
-                        const imageBuffer = await convertImageToBuffer(cellContent.image.url);
-                        if (imageBuffer) {
-                          // Detect image type
-                          let imageType = "png";
-                          if (cellContent.image.url.startsWith('data:image/')) {
-                            const mimeType = cellContent.image.url.split(',')[0].split(':')[1].split(';')[0];
-                            if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
-                              imageType = "jpg";
-                            } else if (mimeType.includes('png')) {
-                              imageType = "png";
-                            }
-                          } else if (cellContent.image.url.includes('.jpg') || cellContent.image.url.includes('.jpeg')) {
-                            imageType = "jpg";
-                          } else if (cellContent.image.url.includes('.png')) {
-                            imageType = "png";
-                          }
-
-                          cellParagraphs.push(new Paragraph({
-                            children: [
-                              new ImageRun({
-                                data: new Uint8Array(imageBuffer),
-                                transformation: {
-                                  width: 200, // Smaller for table cells
-                                  height: 150,
-                                },
-                                type: imageType as any,
-                              }),
-                            ],
-                          }));
-                          console.log("✅ Successfully added image to table cell");
-                        } else {
-                          console.error("❌ Failed to convert image to buffer");
-                          cellParagraphs.push(new Paragraph({
-                            children: [
-                              new TextRun({
-                                text: `[Không thể tải ảnh: ${cellContent.image.name || 'image'}]`,
-                                italics: true,
-                                size: 20,
-                                color: "FF0000",
-                              }),
-                            ],
-                          }));
-                        }
-                      } catch (error) {
-                        console.error("❌ Error adding image to table cell:", error);
-                        cellParagraphs.push(new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: `[Lỗi tải ảnh: ${cellContent.image.name || 'image'}]`,
-                              italics: true,
-                              size: 20,
-                              color: "FF0000",
-                            }),
-                          ],
-                        }));
-                      }
-                    }
-                  } else if ('type' in cell && 'content' in cell) {
-                    // Old format compatibility
-                    const cellData = cell as any;
-                    const text = cellData.type === 'image' ? `[📷 ${cellData.content}]` : String(cellData.content || '');
-                    const textRuns = parseHtmlToTextRuns(text);
-                    cellParagraphs.push(new Paragraph({
-                      children: textRuns,
-                    }));
-                  }
-                }
-
-                // Ensure at least one paragraph
-                if (cellParagraphs.length === 0) {
-                  cellParagraphs.push(new Paragraph({
-                    children: [new TextRun({ text: '', size: 24 })],
-                  }));
-                }
-
-                return new TableCell({
-                  children: cellParagraphs,
+            children: tableData.headers.map(
+              (header) =>
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: header,
+                          bold: true,
+                          size: 24,
+                        }),
+                      ],
+                    }),
+                  ],
                   width: {
                     size: columnWidth,
                     type: WidthType.DXA,
                   },
-                });
-              })),
-            })
-          ))
+                })
+            ),
+          }),
+          // Data rows
+          ...(await Promise.all(
+            tableData.rows.map(
+              async (row) =>
+                new TableRow({
+                  children: await Promise.all(
+                    row.map(async (cell) => {
+                      const cellParagraphs: any[] = [];
+
+                      if (typeof cell === "string") {
+                        // Parse HTML string to TextRuns with formatting
+                        const cellTextRuns = parseHtmlToTextRuns(cell);
+                        cellParagraphs.push(
+                          new Paragraph({
+                            children: cellTextRuns,
+                          })
+                        );
+                      } else if (Array.isArray(cell)) {
+                        // Already parsed TextRuns array (legacy)
+                        cellParagraphs.push(
+                          new Paragraph({
+                            children: cell,
+                          })
+                        );
+                      } else if (cell && typeof cell === "object") {
+                        if ("text" in cell && "image" in cell) {
+                          // New CellContent format - handle mixed content
+                          const cellContent = cell as CellContent;
+
+                          // Add text content if exists
+                          if (cellContent.text) {
+                            const textRuns = parseHtmlToTextRuns(
+                              cellContent.text
+                            );
+                            cellParagraphs.push(
+                              new Paragraph({
+                                children: textRuns,
+                              })
+                            );
+                          }
+
+                          // Add image directly in cell if exists
+                          if (cellContent.image) {
+                            console.log(
+                              "🖼️ Adding image directly to table cell:",
+                              {
+                                url:
+                                  cellContent.image.url.substring(0, 50) +
+                                  "...",
+                                isDataUrl:
+                                  cellContent.image.url.startsWith("data:"),
+                                isHttpUrl:
+                                  cellContent.image.url.startsWith("http"),
+                              }
+                            );
+
+                            try {
+                              const imageBuffer = await convertImageToBuffer(
+                                cellContent.image.url
+                              );
+                              if (imageBuffer) {
+                                // Detect image type
+                                let imageType = "png";
+                                if (
+                                  cellContent.image.url.startsWith(
+                                    "data:image/"
+                                  )
+                                ) {
+                                  const mimeType = cellContent.image.url
+                                    .split(",")[0]
+                                    .split(":")[1]
+                                    .split(";")[0];
+                                  if (
+                                    mimeType.includes("jpeg") ||
+                                    mimeType.includes("jpg")
+                                  ) {
+                                    imageType = "jpg";
+                                  } else if (mimeType.includes("png")) {
+                                    imageType = "png";
+                                  }
+                                } else if (
+                                  cellContent.image.url.includes(".jpg") ||
+                                  cellContent.image.url.includes(".jpeg")
+                                ) {
+                                  imageType = "jpg";
+                                } else if (
+                                  cellContent.image.url.includes(".png")
+                                ) {
+                                  imageType = "png";
+                                }
+
+                                cellParagraphs.push(
+                                  new Paragraph({
+                                    children: [
+                                      new ImageRun({
+                                        data: new Uint8Array(imageBuffer),
+                                        transformation: {
+                                          width: 200, // Smaller for table cells
+                                          height: 150,
+                                        },
+                                        type: imageType as any,
+                                      }),
+                                    ],
+                                  })
+                                );
+                                console.log(
+                                  "✅ Successfully added image to table cell"
+                                );
+                              } else {
+                                console.error(
+                                  "❌ Failed to convert image to buffer"
+                                );
+                                cellParagraphs.push(
+                                  new Paragraph({
+                                    children: [
+                                      new TextRun({
+                                        text: `[Không thể tải ảnh: ${
+                                          cellContent.image.name || "image"
+                                        }]`,
+                                        italics: true,
+                                        size: 20,
+                                        color: "FF0000",
+                                      }),
+                                    ],
+                                  })
+                                );
+                              }
+                            } catch (error) {
+                              console.error(
+                                "❌ Error adding image to table cell:",
+                                error
+                              );
+                              cellParagraphs.push(
+                                new Paragraph({
+                                  children: [
+                                    new TextRun({
+                                      text: `[Lỗi tải ảnh: ${
+                                        cellContent.image.name || "image"
+                                      }]`,
+                                      italics: true,
+                                      size: 20,
+                                      color: "FF0000",
+                                    }),
+                                  ],
+                                })
+                              );
+                            }
+                          }
+                        } else if ("type" in cell && "content" in cell) {
+                          // Old format compatibility
+                          const cellData = cell as any;
+                          const text =
+                            cellData.type === "image"
+                              ? `[📷 ${cellData.content}]`
+                              : String(cellData.content || "");
+                          const textRuns = parseHtmlToTextRuns(text);
+                          cellParagraphs.push(
+                            new Paragraph({
+                              children: textRuns,
+                            })
+                          );
+                        }
+                      }
+
+                      // Ensure at least one paragraph
+                      if (cellParagraphs.length === 0) {
+                        cellParagraphs.push(
+                          new Paragraph({
+                            children: [new TextRun({ text: "", size: 24 })],
+                          })
+                        );
+                      }
+
+                      return new TableCell({
+                        children: cellParagraphs,
+                        width: {
+                          size: columnWidth,
+                          type: WidthType.DXA,
+                        },
+                      });
+                    })
+                  ),
+                })
+            )
+          )),
         ];
 
         // Create table
@@ -990,8 +1157,6 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         elements.push(table);
 
-
-
         // Add spacing after table and images
         elements.push(
           new Paragraph({
@@ -1002,7 +1167,9 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+          for (const child of node.children.sort(
+            (a, b) => a.orderIndex - b.orderIndex
+          )) {
             const childElements = await processNode(child, depth + 1);
             elements.push(...childElements);
           }
@@ -1119,7 +1286,9 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
 
         // Process children
         if (node.children && node.children.length > 0) {
-          for (const child of node.children.sort((a, b) => a.orderIndex - b.orderIndex)) {
+          for (const child of node.children.sort(
+            (a, b) => a.orderIndex - b.orderIndex
+          )) {
             const childElements = await processNode(child, depth + 1);
             elements.push(...childElements);
           }
@@ -1159,16 +1328,19 @@ export const generateDocx = async (data: DemoNode[], filename: string = "documen
             ],
           }),
         },
-        children: children.length > 0 ? children : [
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "Không có nội dung để xuất",
-                size: 24,
-              }),
-            ],
-          }),
-        ],
+        children:
+          children.length > 0
+            ? children
+            : [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Không có nội dung để xuất",
+                      size: 24,
+                    }),
+                  ],
+                }),
+              ],
       },
     ],
   });
