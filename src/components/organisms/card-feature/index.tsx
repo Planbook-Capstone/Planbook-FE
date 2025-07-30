@@ -1,5 +1,8 @@
+import SpotlightCard from "@/components/ui/SpotlightCard";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getRandomSpotlightColor } from "@/constants/spotlightColors";
+import { useMemo } from "react";
 
 import React from "react";
 
@@ -20,6 +23,10 @@ const CardFeature = ({
 }: CardFeatureProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Generate random spotlight color once and memoize it
+  const spotlightColor = useMemo(() => getRandomSpotlightColor(), []);
+
   const handleClick = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("bookTypeId", id || "");
@@ -59,15 +66,20 @@ const CardFeature = ({
   return (
     <div
       onClick={handleClick}
-      className="w-full flex justify-between items-center gap-1 border border-[#DFDFDF] px-2.5 py-3.5 rounded-2xl cursor-pointer  hover:bg-[#FAFAFA]"
+      className="w-full flex justify-between items-center gap-1 border border-[#DFDFDF]  rounded-2xl cursor-pointer  hover:bg-[#FAFAFA] "
     >
-      <div className="w-full flex items-center justify-center">
-        {renderIcon()}
-      </div>
-      <div className="w-full flex flex-col gap-1">
-        <h1 className="font-calsans text-base">{title}</h1>
-        <p className="text-sm truncate w-4/5">{description}</p>
-      </div>
+      <SpotlightCard
+        className=" !bg-transparent !border-0 w-full flex justify-between items-center aspect-[4/3] rounded-lg overflow-hidden max-h-20 !px-2.5 !py-3.5"
+        spotlightColor={spotlightColor}
+      >
+        <div className="w-1/3 flex items-center justify-center">
+          {renderIcon()}
+        </div>
+        <div className="w-full flex flex-col gap-1">
+          <h1 className="font-calsans text-base">{title}</h1>
+          <p className="text-sm truncate w-4/5">{description}</p>
+        </div>
+      </SpotlightCard>
     </div>
   );
 };
