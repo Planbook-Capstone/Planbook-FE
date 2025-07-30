@@ -13,17 +13,22 @@ import {
   useCreateExamInstanceService,
   CreateExamInstanceData,
   ExamInstanceData,
+  ChangeStatusData,
 } from "@/services/examInstanceServices";
 import { Plus, Eye, Clock, BookOpen, GraduationCap } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/config/axios";
+import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
 import { cn } from "@/lib/utils";
 import {
   BookMarkIcon,
   BookMarkWhiteIcon,
   NoneExamIcon,
 } from "@/constants/icon";
+import ExamInstanceTable from "@/components/organisms/table-exam-instance";
 
 interface TemplateInfo {
   id: string;
@@ -34,7 +39,7 @@ interface TemplateInfo {
   totalScore: number;
 }
 
-const statusConfig = {
+ export const statusConfig = {
   DRAFT: { label: "Nháp", color: "bg-gray-100 text-gray-800" },
   SCHEDULED: { label: "Đã lên lịch", color: "bg-yellow-100 text-yellow-800" },
   ACTIVE: { label: "Đang hoạt động", color: "bg-green-100 text-green-800" },
@@ -61,6 +66,23 @@ export default function ExamInstancesPage() {
   } = useExamInstancesService();
   const { mutate: createInstance, isPending: isCreating } =
     useCreateExamInstanceService();
+
+  // Status change mutations - we'll create them dynamically
+  const [changingStatus, setChangingStatus] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  // Create a mutation for changing status
+  const changeStatusMutation = useMutation({
+    mutationFn: ({ instanceId, data }: { instanceId: string; data: ChangeStatusData }) =>
+      api.put(`${EXAM_ENDPOINTS.EXAM_INSTANCES}/${instanceId}/status`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["examInstances"] });
+      setChangingStatus(null);
+    },
+    onError: () => {
+      setChangingStatus(null);
+    },
+  });
 
   const instances = instancesResponse?.data || [];
 
@@ -99,6 +121,72 @@ export default function ExamInstancesPage() {
     router.push(`/exam-instances/${instance.id}`);
   };
 
+  // Helper function to handle status changes
+  const handleStatusChange = (
+    instance: ExamInstanceData,
+    newStatus: ExamInstanceData["status"],
+    confirmMessage: string,
+    successMessage: string,
+    reason?: string
+  ) => {
+    if (confirm(confirmMessage)) {
+      setChangingStatus(instance.id);
+
+      const data: ChangeStatusData = { status: newStatus };
+      if (reason) data.reason = reason;
+
+      changeStatusMutation.mutate(
+        { instanceId: instance.id, data },
+        {
+          onSuccess: () => {
+            toast.success(successMessage);
+          },
+          onError: (error: any) => {
+            toast.error(
+              error?.response?.data?.message || "Có lỗi xảy ra khi thay đổi trạng thái"
+            );
+          },
+        }
+      );
+    }
+  };
+
+  const handlePause = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "PAUSED",
+      `Bạn có chắc muốn tạm dừng bài thi "${instance.templateName}"?`,
+      "Đã tạm dừng bài thi thành công"
+    );
+  };
+
+  const handleResume = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "ACTIVE",
+      `Bạn có chắc muốn tiếp tục bài thi "${instance.templateName}"?`,
+      "Đã tiếp tục bài thi thành công"
+    );
+  };
+
+  const handleStop = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "COMPLETED",
+      `Bạn có chắc muốn kết thúc bài thi "${instance.templateName}"?`,
+      "Đã kết thúc bài thi thành công"
+    );
+  };
+
+  const handleCancel = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "CANCELLED",
+      `Bạn có chắc muốn hủy bài thi "${instance.templateName}"?`,
+      "Đã hủy bài thi thành công"
+    );
+  };
+
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
     setStep("select-template");
@@ -133,10 +221,19 @@ export default function ExamInstancesPage() {
             Tạo và quản lý các phiên kiểm tra (Được chọn từ kho đề)
           </p>
         </div>
-        <Button onClick={handleCreateNew} className="flex items-center gap-2">
+        <Button onClick={() => router.push("/exam-templates")} className="flex items-center gap-2">
           Tổ chức phiên kiểm tra mới
         </Button>
       </div>
+
+      <ExamInstanceTable
+        examInstances={instances}
+        onViewDetail={handleViewDetails}
+        onPause={handlePause}
+        onResume={handleResume}
+        onStop={handleStop}
+        onCancel={handleCancel}
+      />
 
       {/* Instances List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

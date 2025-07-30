@@ -140,10 +140,10 @@ export const validateMatrixForm = (formData: FormData): ValidationResult => {
     fieldErrors.part1Total = "Không được vượt quá 40 câu";
   }
 
-  // Phần 2: không được quá 64 câu
-  if (columnTotals.part2Total > 64) {
-    validationErrors.push("Tổng số câu phần 2 không được vượt quá 64 câu");
-    fieldErrors.part2Total = "Không được vượt quá 64 câu";
+  // Phần 2: không được quá 8 câu
+  if (columnTotals.part2Total > 8) {
+    validationErrors.push("Tổng số câu phần 2 không được vượt quá 8 câu");
+    fieldErrors.part2Total = "Không được vượt quá 8 câu";
   }
 
   // Phần 3: không được quá 6 câu
@@ -163,7 +163,7 @@ export const validateMatrixForm = (formData: FormData): ValidationResult => {
 export const VALIDATION_LIMITS = {
   MIN_DURATION: 15,
   MAX_PART1_QUESTIONS: 40,
-  MAX_PART2_QUESTIONS: 64,
+  MAX_PART2_QUESTIONS: 8,
   MAX_PART3_QUESTIONS: 6,
   MIN_ROW_TOTAL: 1,
 } as const;
