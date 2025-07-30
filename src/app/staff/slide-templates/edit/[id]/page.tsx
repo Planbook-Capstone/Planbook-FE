@@ -661,7 +661,7 @@ export default function EditSlideTemplatePage() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      {/* <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-calsans text-gray-900">
@@ -696,7 +696,7 @@ export default function EditSlideTemplatePage() {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Slide Editor */}
       <div

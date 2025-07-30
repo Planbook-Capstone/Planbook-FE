@@ -32,6 +32,8 @@ export default function SlideEditorDemo() {
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("6"); // Default to "6"
   const [isAutoProcessing, setIsAutoProcessing] = useState(false);
+  const [shouldTriggerAfterTemplateLoad, setShouldTriggerAfterTemplateLoad] =
+    useState(false);
 
   // Get template
   // const {
@@ -117,12 +119,30 @@ export default function SlideEditorDemo() {
   useEffect(() => {
     if (templateDetail) {
       console.log("🎯 Template loaded:", templateDetail);
-      // Don't auto-trigger here, wait for user to click "Chọn mẫu này"
+
+      // Auto-trigger if flag is set (after user selected template)
+      if (
+        shouldTriggerAfterTemplateLoad &&
+        selectedBookId &&
+        selectedLessonId
+      ) {
+        console.log("🚀 Auto-triggering after template load");
+        setShouldTriggerAfterTemplateLoad(false); // Reset flag
+        triggerManualFunctions();
+      }
     }
     if (error) {
-      console.error("❌ Error loading template:", error);
+      toast.error(
+        `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
+      );
     }
-  }, [templateDetail, error]);
+  }, [
+    templateDetail,
+    error,
+    shouldTriggerAfterTemplateLoad,
+    selectedBookId,
+    selectedLessonId,
+  ]);
 
   // Auto show book/lesson modal first on load (optional)
   useEffect(() => {
@@ -157,30 +177,12 @@ export default function SlideEditorDemo() {
           (element: any) => element.type === "text"
         );
 
-        console.log(`📄 Slide "${slide.title}":`, {
-          originalElements: slide.elements.length,
-          textElements: textElements.length,
-          filteredOut: slide.elements.length - textElements.length,
-        });
-
         return {
           ...slide,
           elements: textElements,
         };
       }),
     };
-
-    console.log("✅ Filtered template (text only):", {
-      totalSlides: filteredTemplate.slides.length,
-      originalElementsCount: originalSlides.reduce(
-        (sum: number, slide: any) => sum + slide.elements.length,
-        0
-      ),
-      filteredElementsCount: filteredTemplate.slides.reduce(
-        (sum: number, slide: any) => sum + slide.elements.length,
-        0
-      ),
-    });
 
     return filteredTemplate;
   };
@@ -195,9 +197,6 @@ export default function SlideEditorDemo() {
 
     try {
       setIsProcessingTemplate(true);
-      console.log("📤 Posting template data to BE...");
-      console.log("📚 Using Book ID:", selectedBookId);
-      console.log("📖 Using Lesson ID:", selectedLessonId);
 
       const result = await processJsonMutation.mutateAsync({
         lesson_id: selectedLessonId,
@@ -219,8 +218,10 @@ export default function SlideEditorDemo() {
       // Set merged slides vào editor
       // setSlides(mergedSlides);
       // setHasLoadedData(true);
-    } catch (error) {
-      console.error("❌ Error processing template:", error);
+    } catch (error: any) {
+      toast.error(
+        `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
+      );
     } finally {
       setIsProcessingTemplate(false);
     }
@@ -239,20 +240,6 @@ export default function SlideEditorDemo() {
         id: slide.id,
         elements: slide.elements.map((element: any) => {
           // Debug logging for problematic coordinates
-          if (
-            element.x < 0 ||
-            element.y < 0 ||
-            element.x > 960 ||
-            element.y > 540
-          ) {
-            console.warn(`🚨 Problematic element after conversion:`, {
-              id: element.id,
-              type: element.type,
-              coordinates: { x: element.x, y: element.y },
-              size: { width: element.width, height: element.height },
-              text: element.text?.slice(0, 50) + "...",
-            });
-          }
 
           return {
             id: element.id,
@@ -270,19 +257,10 @@ export default function SlideEditorDemo() {
 
       setSlides(editorSlides);
       setHasLoadedData(true);
-
-      console.log("✅ Loaded sample data:", convertedData);
-      console.log("📊 Slides:", editorSlides.length);
-      console.log(
-        "📄 Elements total:",
-        editorSlides.reduce(
-          (total: number, slide: any) => total + slide.elements.length,
-          0
-        )
+    } catch (error: any) {
+      toast.error(
+        `Lỗi khi tải dữ liệu mẫu: ${error?.message || "Có lỗi xảy ra"}`
       );
-    } catch (error) {
-      console.error("❌ Failed to load sample data:", error);
-      alert("Failed to load sample data. Check console for details.");
     } finally {
       setIsLoading(false);
     }
@@ -298,9 +276,6 @@ export default function SlideEditorDemo() {
   const handleBookLessonConfirm = (bookId: string, lessonId: string) => {
     setSelectedBookId(bookId);
     setSelectedLessonId(lessonId);
-    console.log("✅ Selected Book ID:", bookId);
-    console.log("✅ Selected Lesson ID:", lessonId);
-
     // Auto show template selector after book/lesson selection
     setTimeout(() => {
       setShowTemplateSelector(true);
@@ -310,36 +285,28 @@ export default function SlideEditorDemo() {
   // Handle template selection - Only trigger when user clicks "Chọn mẫu này"
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplateId(templateId);
-    console.log("✅ Selected Template ID:", templateId);
 
-    // Trigger manual functions when user selects template (clicks "Chọn mẫu này")
-    setTimeout(() => {
-      triggerManualFunctions();
-    }, 500); // Small delay to ensure template data is loaded
+    // Set flag to trigger after template loads
+    setShouldTriggerAfterTemplateLoad(true);
   };
 
   // Extract manual trigger functions
   const triggerManualFunctions = () => {
     // Check if we have all required information
     if (!selectedBookId || !selectedLessonId) {
-      toast.error("⚠️ Vui lòng chọn sách và bài học trước khi xử lý!");
+      toast.error("Vui lòng chọn sách và bài học trước khi xử lý!");
       setShowBookLessonModal(true);
       return;
     }
 
     if (!selectedTemplateId || !templateDetail?.data) {
-      toast.error("⚠️ Vui lòng chọn template trước khi xử lý!");
+      toast.error("Vui lòng chọn template trước khi xử lý!");
       setShowTemplateSelector(true);
       return;
     }
 
-    console.log("🚀 Triggering processing with:", {
-      bookId: selectedBookId,
-      lessonId: selectedLessonId,
-      templateId: selectedTemplateId,
-    });
     setIsAutoProcessing(true);
-    toast.success("🚀 Bắt đầu xử lý template...");
+    toast.success("Bắt đầu xử lý template...");
 
     // Manually trigger executeTool
     if (
@@ -359,13 +326,16 @@ export default function SlideEditorDemo() {
       executeTool(payload, {
         onSuccess: (e: any) => {
           toast.success("Gửi dữ liệu thành công!");
-          console.log("✅ Task ID:", e.data.task_id);
+
           setEnabled(true);
           setIsAutoProcessing(false);
         },
-        onError: (error) => {
-          toast.error("Gửi dữ liệu thất bại!");
-          console.error(error);
+        onError: (error: any) => {
+          toast.error(
+            `Gửi dữ liệu thất bại: ${
+              error?.message || "Có lỗi xảy ra khi xử lý"
+            }`
+          );
           setIsAutoProcessing(false);
         },
       });
@@ -373,7 +343,6 @@ export default function SlideEditorDemo() {
 
     // Manually trigger template processing
     if (templateDetail) {
-      console.log("🎯 Trigger - Template processing:", templateDetail);
       handleProcessTemplate(templateDetail);
     }
   };
@@ -494,13 +463,13 @@ export default function SlideEditorDemo() {
         {/* Current step info */}
         <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-600">
           {!selectedBookId || !selectedLessonId ? (
-            <p>👆 Bắt đầu bằng việc chọn sách và bài học</p>
+            <p>Bắt đầu bằng việc chọn sách và bài học</p>
           ) : selectedTemplateId === "6" ? (
-            <p>👆 Tiếp theo, chọn template slide</p>
+            <p>Tiếp theo, chọn template slide</p>
           ) : isAutoProcessing ? (
-            <p>⏳ Đang xử lý, vui lòng chờ...</p>
+            <p>Đang xử lý, vui lòng chờ...</p>
           ) : (
-            <p>✅ Sẵn sàng! Template sẽ được xử lý khi bạn chọn.</p>
+            <p>Sẵn sàng! Template sẽ được xử lý khi bạn chọn.</p>
           )}
         </div>
       </div>

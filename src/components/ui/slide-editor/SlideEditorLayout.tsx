@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { SlideElement, TextElement as TextElementType } from "@/types";
 import SlideEditorHeader from "./SlideEditorHeader";
 import SlideEditorSidebar from "./SlideEditorSidebar";
@@ -11,8 +11,10 @@ import { SlideEditorDirector } from "./SlideEditorDirector";
 import { useSlideExport } from "@/hooks/useSlideExport";
 import { SlideData } from "@/utils/pptxExporter";
 import { useElementPositioning } from "@/hooks/useElementPositioning";
+import { useUndoRedo } from "@/hooks/useUndoRedo";
 import BackgroundSidebar from "./BackgroundSidebar";
 import ImageLibrarySidebar from "./ImageLibrarySidebar";
+import SlidePresentation from "./SlidePresentation";
 
 import { ImageElement } from "@/types";
 import { TextColorProvider } from "./TextColorContext";
@@ -90,7 +92,17 @@ export default function SlideEditorLayout({
     ];
   };
 
-  const [slides, setSlides] = useState<Slide[]>(getInitialSlides());
+  // Undo/Redo system for slides
+  const {
+    state: slides,
+    canUndo,
+    canRedo,
+    pushState: pushSlidesState,
+    undo: undoSlides,
+    redo: redoSlides,
+    replaceState: replaceSlidesState,
+  } = useUndoRedo<Slide[]>(getInitialSlides(), 50);
+
   const [currentSlideId, setCurrentSlideId] = useState<string>(() => {
     const initialSlidesData = getInitialSlides();
     return initialSlidesData[0]?.id || "slide-1";
@@ -98,7 +110,9 @@ export default function SlideEditorLayout({
   const [selectedElementId, setSelectedElementId] = useState<string | null>(
     null
   );
-  const [activeTab, setActiveTab] = useState<string>("text"); // "text", "images", or "background"
+  const [activeTab, setActiveTab] = useState<string>("text"); // "text", "images", "background", or "effects"
+  const [selectedTransition, setSelectedTransition] = useState<string>("fade"); // Current selected transition
+  const [isPresentationMode, setIsPresentationMode] = useState(false);
 
   // Update slides when initialSlides prop changes
   useEffect(() => {
@@ -117,13 +131,10 @@ export default function SlideEditorLayout({
         };
       });
 
-      // Use a ref to avoid infinite loops
-      const slidesRef = { current: newSlides };
-
       // Only update if slides actually changed
       if (JSON.stringify(slides) !== JSON.stringify(newSlides)) {
         console.log("🔄 Loading new slides");
-        setSlides(newSlides);
+        replaceSlidesState(newSlides);
 
         // Auto navigate to the last slide (newest) when slides are updated
         if (autoNavigateToLast) {
@@ -171,6 +182,97 @@ export default function SlideEditorLayout({
     (el) => el.id === selectedElementId
   ) as TextElementType | null;
 
+  // Helper function to update slides and push to history
+  const updateSlides = useCallback(
+    (updater: (prev: Slide[]) => Slide[]) => {
+      const newSlides = updater(slides);
+      pushSlidesState(newSlides);
+    },
+    [slides, pushSlidesState]
+  );
+
+  // Undo/Redo handlers
+  const handleUndo = useCallback(() => {
+    const previousState = undoSlides();
+    if (previousState) {
+      // Check if current slide still exists, if not switch to first slide
+      const currentSlideExists = previousState.some(
+        (slide) => slide.id === currentSlideId
+      );
+      if (!currentSlideExists && previousState.length > 0) {
+        setCurrentSlideId(previousState[0].id);
+      }
+      setSelectedElementId(null); // Clear selection on undo
+    }
+  }, [undoSlides, currentSlideId]);
+
+  const handleRedo = useCallback(() => {
+    const nextState = redoSlides();
+    if (nextState) {
+      // Check if current slide still exists, if not switch to first slide
+      const currentSlideExists = nextState.some(
+        (slide) => slide.id === currentSlideId
+      );
+      if (!currentSlideExists && nextState.length > 0) {
+        setCurrentSlideId(nextState[0].id);
+      }
+      setSelectedElementId(null); // Clear selection on redo
+    }
+  }, [redoSlides, currentSlideId]);
+
+  // Presentation mode handlers
+  const handleStartPresentation = useCallback(() => {
+    setIsPresentationMode(true);
+  }, []);
+
+  const handleClosePresentation = useCallback(() => {
+    setIsPresentationMode(false);
+  }, []);
+
+  // Keyboard shortcuts for undo/redo and presentation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if we're in an input field
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.contentEditable === "true"
+      ) {
+        return;
+      }
+
+      // F5 for presentation mode
+      if (event.key === "F5") {
+        event.preventDefault();
+        handleStartPresentation();
+        return;
+      }
+
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.shiftKey &&
+        event.key === "z"
+      ) {
+        event.preventDefault();
+        handleUndo();
+      } else if (
+        ((event.ctrlKey || event.metaKey) &&
+          event.shiftKey &&
+          event.key === "Z") ||
+        ((event.ctrlKey || event.metaKey) && event.key === "y")
+      ) {
+        event.preventDefault();
+        handleRedo();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleUndo, handleRedo, handleStartPresentation]);
+
   // Utility function to normalize zIndex values
   const normalizeZIndex = useCallback(
     (elements: SlideElement[]): SlideElement[] => {
@@ -190,7 +292,7 @@ export default function SlideEditorLayout({
   // Handle adding new element
   const handleAddElement = useCallback(
     (element: SlideElement) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) => {
           if (slide.id !== currentSlideId) return slide;
 
@@ -211,13 +313,13 @@ export default function SlideEditorLayout({
       );
       setSelectedElementId(element.id);
     },
-    [currentSlideId, normalizeZIndex]
+    [currentSlideId, normalizeZIndex, updateSlides]
   );
 
   // Handle updating element
   const handleUpdateElement = useCallback(
     (id: string, updates: Partial<SlideElement>) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) =>
           slide.id === currentSlideId
             ? {
@@ -230,13 +332,13 @@ export default function SlideEditorLayout({
         )
       );
     },
-    [currentSlideId]
+    [currentSlideId, updateSlides]
   );
 
   // Handle deleting element
   const handleDeleteElement = useCallback(
     (id: string) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) =>
           slide.id === currentSlideId
             ? {
@@ -250,7 +352,7 @@ export default function SlideEditorLayout({
         setSelectedElementId(null);
       }
     },
-    [currentSlideId, selectedElementId]
+    [currentSlideId, selectedElementId, updateSlides]
   );
 
   // Handle adding text element
@@ -356,7 +458,7 @@ export default function SlideEditorLayout({
   // Handle updating text style
   const handleUpdateTextStyle = useCallback(
     (id: string, styleUpdates: any) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) =>
           slide.id === currentSlideId
             ? {
@@ -375,15 +477,7 @@ export default function SlideEditorLayout({
         )
       );
     },
-    [currentSlideId]
-  );
-
-  // Handle adding image element
-  const handleAddImage = useCallback(
-    (imageElement: ImageElement) => {
-      handleAddElement(imageElement);
-    },
-    [handleAddElement]
+    [currentSlideId, updateSlides]
   );
 
   // Handle adding image from URL (for ImageLibrarySidebar)
@@ -414,19 +508,19 @@ export default function SlideEditorLayout({
   // Handle background change
   const handleBackgroundChange = useCallback(
     (background: string) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) =>
           slide.id === currentSlideId ? { ...slide, background } : slide
         )
       );
     },
-    [currentSlideId]
+    [currentSlideId, updateSlides]
   );
 
   // Layer management functions
   const handleBringToFront = useCallback(
     (elementId: string) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) => {
           if (slide.id !== currentSlideId) return slide;
 
@@ -441,12 +535,12 @@ export default function SlideEditorLayout({
         })
       );
     },
-    [currentSlideId, normalizeZIndex]
+    [currentSlideId, normalizeZIndex, updateSlides]
   );
 
   const handleSendToBack = useCallback(
     (elementId: string) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) => {
           if (slide.id !== currentSlideId) return slide;
 
@@ -461,12 +555,12 @@ export default function SlideEditorLayout({
         })
       );
     },
-    [currentSlideId, normalizeZIndex]
+    [currentSlideId, normalizeZIndex, updateSlides]
   );
 
   const handleBringForward = useCallback(
     (elementId: string) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) => {
           if (slide.id !== currentSlideId) return slide;
 
@@ -498,12 +592,12 @@ export default function SlideEditorLayout({
         })
       );
     },
-    [currentSlideId, normalizeZIndex]
+    [currentSlideId, normalizeZIndex, updateSlides]
   );
 
   const handleSendBackward = useCallback(
     (elementId: string) => {
-      setSlides((prev) =>
+      updateSlides((prev) =>
         prev.map((slide) => {
           if (slide.id !== currentSlideId) return slide;
 
@@ -532,7 +626,7 @@ export default function SlideEditorLayout({
         })
       );
     },
-    [currentSlideId, normalizeZIndex]
+    [currentSlideId, normalizeZIndex, updateSlides]
   );
 
   // Handle adding new slide
@@ -544,9 +638,9 @@ export default function SlideEditorLayout({
       isVisible: true,
       background: "#ffffff", // Default white background
     };
-    setSlides((prev) => [...prev, newSlide]);
+    updateSlides((prev) => [...prev, newSlide]);
     setCurrentSlideId(newSlide.id);
-  }, [slides.length]);
+  }, [slides.length, updateSlides]);
 
   // Handle slide selection
   const handleSlideSelect = useCallback((slideId: string) => {
@@ -568,34 +662,39 @@ export default function SlideEditorLayout({
             id: `${el.id}-copy-${Date.now()}`,
           })),
         };
-        setSlides((prev) => [...prev, newSlide]);
+        updateSlides((prev) => [...prev, newSlide]);
       }
     },
-    [slides]
+    [slides, updateSlides]
   );
 
   // Handle slide deletion
   const handleSlideDelete = useCallback(
     (slideId: string) => {
       if (slides.length > 1) {
-        setSlides((prev) => prev.filter((s) => s.id !== slideId));
+        updateSlides((prev) => prev.filter((s) => s.id !== slideId));
         if (currentSlideId === slideId) {
           const remainingSlides = slides.filter((s) => s.id !== slideId);
           setCurrentSlideId(remainingSlides[0]?.id || "");
         }
       }
     },
-    [slides, currentSlideId]
+    [slides, currentSlideId, updateSlides]
   );
 
   // Handle slide visibility toggle
-  const handleSlideToggleVisibility = useCallback((slideId: string) => {
-    setSlides((prev) =>
-      prev.map((slide) =>
-        slide.id === slideId ? { ...slide, isVisible: !slide.isVisible } : slide
-      )
-    );
-  }, []);
+  const handleSlideToggleVisibility = useCallback(
+    (slideId: string) => {
+      updateSlides((prev) =>
+        prev.map((slide) =>
+          slide.id === slideId
+            ? { ...slide, isVisible: !slide.isVisible }
+            : slide
+        )
+      );
+    },
+    [updateSlides]
+  );
 
   // Handle save
   const handleSave = useCallback(() => {
@@ -913,7 +1012,7 @@ export default function SlideEditorLayout({
         );
 
         // Set imported slides
-        setSlides(importedSlides);
+        replaceSlidesState(importedSlides);
 
         // Set first slide as current
         if (importedSlides.length > 0) {
@@ -956,6 +1055,12 @@ export default function SlideEditorLayout({
       image: "/icons/diamond.svg",
       active: "/icons/diamond-active.svg",
     },
+    {
+      label: "Hiệu ứng",
+      key: "effects",
+      image: "/icons/sparkles.svg",
+      active: "/icons/sparkles-active.svg",
+    },
   ];
 
   return (
@@ -978,9 +1083,14 @@ export default function SlideEditorLayout({
           onExportPPTX={handleExportPPTX}
           onExportJSON={handleExportJSON}
           onImport={handleImport}
+          onPreview={handleStartPresentation}
           onLoadSampleData={onLoadSampleData}
           onClearData={onClearData}
           onCancel={onCancel}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
           slideCount={slides.length}
           currentSlide={slides.findIndex((s) => s.id === currentSlideId) + 1}
           isExporting={isExporting}
@@ -1020,6 +1130,218 @@ export default function SlideEditorLayout({
               currentBackground={currentSlide?.background || "#ffffff"}
               onBackgroundChange={handleBackgroundChange}
             />
+          )}
+
+          {activeTab === "effects" && (
+            <div className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-purple-500">✨</span>
+                  Hiệu ứng Slide
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Chọn hiệu ứng chuyển đổi giữa các slide
+                </p>
+              </div>
+
+              {/* Slide Transitions */}
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">
+                  Chuyển đổi Slide
+                </h3>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    onClick={() => setSelectedTransition("fade")}
+                    className={`p-3 border rounded-lg transition-all duration-200 text-center group cursor-pointer ${
+                      selectedTransition === "fade"
+                        ? "border-purple-500 bg-purple-100 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-purple-300 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">🌅</div>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedTransition === "fade"
+                          ? "text-purple-700"
+                          : "text-gray-700 group-hover:text-purple-700"
+                      }`}
+                    >
+                      Fade
+                    </div>
+                    <p
+                      className={`text-xs ${
+                        selectedTransition === "fade"
+                          ? "text-purple-600"
+                          : "text-gray-500 group-hover:text-purple-600"
+                      }`}
+                    >
+                      Mờ dần
+                    </p>
+                    {selectedTransition === "fade" && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-500 text-white">
+                          ✓ Đã chọn
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedTransition("slide")}
+                    className={`p-3 border rounded-lg transition-all duration-200 text-center group cursor-pointer ${
+                      selectedTransition === "slide"
+                        ? "border-purple-500 bg-purple-100 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-purple-300 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">➡️</div>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedTransition === "slide"
+                          ? "text-purple-700"
+                          : "text-gray-700 group-hover:text-purple-700"
+                      }`}
+                    >
+                      Slide
+                    </div>
+                    <p
+                      className={`text-xs ${
+                        selectedTransition === "slide"
+                          ? "text-purple-600"
+                          : "text-gray-500 group-hover:text-purple-600"
+                      }`}
+                    >
+                      Trượt ngang
+                    </p>
+                    {selectedTransition === "slide" && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-500 text-white">
+                          ✓ Đã chọn
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedTransition("zoom")}
+                    className={`p-3 border rounded-lg transition-all duration-200 text-center group cursor-pointer ${
+                      selectedTransition === "zoom"
+                        ? "border-purple-500 bg-purple-100 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-purple-300 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">🔍</div>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedTransition === "zoom"
+                          ? "text-purple-700"
+                          : "text-gray-700 group-hover:text-purple-700"
+                      }`}
+                    >
+                      Zoom
+                    </div>
+                    <p
+                      className={`text-xs ${
+                        selectedTransition === "zoom"
+                          ? "text-purple-600"
+                          : "text-gray-500 group-hover:text-purple-600"
+                      }`}
+                    >
+                      Phóng to/nhỏ
+                    </p>
+                    {selectedTransition === "zoom" && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-500 text-white">
+                          ✓ Đã chọn
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedTransition("flip")}
+                    className={`p-3 border rounded-lg transition-all duration-200 text-center group cursor-pointer opacity-60 ${
+                      selectedTransition === "flip"
+                        ? "border-purple-500 bg-purple-100 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-purple-300 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">🔄</div>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedTransition === "flip"
+                          ? "text-purple-700"
+                          : "text-gray-700 group-hover:text-purple-700"
+                      }`}
+                    >
+                      Flip
+                    </div>
+                    <p
+                      className={`text-xs ${
+                        selectedTransition === "flip"
+                          ? "text-purple-600"
+                          : "text-gray-500 group-hover:text-purple-600"
+                      }`}
+                    >
+                      Lật 3D (sắp có)
+                    </p>
+                    {selectedTransition === "flip" && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-400 text-white">
+                          🚧 Sắp có
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Selection */}
+              <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                <h4 className="text-sm font-medium text-purple-700 mb-2 flex items-center gap-2">
+                  🎯 Hiệu ứng hiện tại
+                </h4>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">
+                    {selectedTransition === "fade" && "🌅"}
+                    {selectedTransition === "slide" && "➡️"}
+                    {selectedTransition === "zoom" && "🔍"}
+                    {selectedTransition === "flip" && "🔄"}
+                  </span>
+                  <span className="text-sm font-medium text-purple-700 capitalize">
+                    {selectedTransition === "fade" && "Fade - Mờ dần"}
+                    {selectedTransition === "slide" && "Slide - Trượt ngang"}
+                    {selectedTransition === "zoom" && "Zoom - Phóng to/nhỏ"}
+                    {selectedTransition === "flip" && "Flip - Lật 3D (sắp có)"}
+                  </span>
+                </div>
+                <p className="text-xs text-purple-600 mt-1">
+                  Hiệu ứng này sẽ áp dụng khi chuyển slide trong presentation
+                </p>
+              </div>
+
+              {/* Tips Section */}
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-700 mb-2">
+                  💡 Cách sử dụng
+                </h4>
+                <ul className="text-xs text-blue-600 space-y-1">
+                  <li>
+                    • <strong>Chọn hiệu ứng</strong> bằng cách click vào card
+                  </li>
+                  <li>
+                    • <strong>Mở presentation mode</strong> (F5)
+                  </li>
+                  <li>
+                    • <strong>Chuyển slide</strong> bằng arrow keys hoặc click
+                  </li>
+                  <li>
+                    • <strong>Enjoy</strong> smooth transitions! ✨
+                  </li>
+                </ul>
+              </div>
+            </div>
           )}
 
           {/* Main Editor Area */}
@@ -1070,6 +1392,15 @@ export default function SlideEditorLayout({
           </div>
         </div>
       </div>
+
+      {/* Slide Presentation Modal */}
+      <SlidePresentation
+        slides={slides}
+        isOpen={isPresentationMode}
+        onClose={handleClosePresentation}
+        initialSlideIndex={slides.findIndex((s) => s.id === currentSlideId)}
+        transitionType={selectedTransition}
+      />
     </TextColorProvider>
   );
 }

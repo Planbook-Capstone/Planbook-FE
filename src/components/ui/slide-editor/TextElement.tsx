@@ -42,10 +42,36 @@ export default function TextElement({
   const textRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
 
+  // Sync localText with element.text when element changes
+  useEffect(() => {
+    setLocalText(element.text);
+  }, [element.text]);
+
+  // Focus text element when editing starts
+  useEffect(() => {
+    if (isEditing && textRef.current) {
+      // Don't set innerText here, let the initial render handle it
+      textRef.current.focus();
+
+      // Set cursor to end of text
+      setTimeout(() => {
+        if (textRef.current) {
+          const range = document.createRange();
+          const selection = window.getSelection();
+          range.selectNodeContents(textRef.current);
+          range.collapse(false);
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
+      }, 0);
+    }
+  }, [isEditing]);
+
   // Debug logging
   console.log("📝 TextElement rendering:", {
     id: element.id,
     text: element.text,
+    localText: localText,
     position: { x: element.x, y: element.y },
     size: { width: element.width, height: element.height },
     style: element.style,
@@ -165,16 +191,33 @@ export default function TextElement({
   ]);
 
   // Handle text editing
-  const handleTextChange = useCallback((e: React.FormEvent<HTMLDivElement>) => {
-    const newText = e.currentTarget.innerText; // 👈 dùng innerText thay vì textContent
-    setLocalText(newText);
-  }, []);
+  const handleTextChange = useCallback(
+    (e: React.FormEvent<HTMLDivElement>) => {
+      const newText = e.currentTarget.innerText; // 👈 dùng innerText thay vì textContent
+      console.log("📝 TextChange - newText:", newText, "localText:", localText);
+      setLocalText(newText);
+    },
+    [localText]
+  );
 
   const handleTextBlur = useCallback(() => {
     const currentText = textRef.current?.innerText || "";
-    onUpdate(element.id, { text: currentText });
+    console.log(
+      "📝 TextBlur - currentText:",
+      currentText,
+      "element.text:",
+      element.text
+    );
+
+    // Only update if text actually changed
+    if (currentText !== element.text) {
+      onUpdate(element.id, { text: currentText });
+    }
+
+    // Update local state to match
+    setLocalText(currentText);
     onStopEdit();
-  }, [element.id, onUpdate, onStopEdit]);
+  }, [element.id, element.text, onUpdate, onStopEdit]);
 
   const handleTextKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -332,7 +375,7 @@ export default function TextElement({
         ${isEditing ? "ring-2 ring-green-500" : ""}
       `}
       style={{
-        zIndex: isEditing ? 10000 : isSelected ? 9999 : element.zIndex ?? 0,
+        zIndex: isEditing ? 1000 : isSelected ? 999 : element.zIndex ?? 0,
       }}
       resizeHandleStyles={{
         bottomRight: {
@@ -375,6 +418,7 @@ export default function TextElement({
     >
       {isEditing ? (
         <div
+          key={`editing-${element.id}-${isEditing}`}
           ref={textRef}
           contentEditable
           suppressContentEditableWarning
@@ -387,7 +431,9 @@ export default function TextElement({
             display: "block",
             userSelect: "text",
           }}
-        />
+        >
+          {element.text || ""}
+        </div>
       ) : (
         <div
           onClick={handleClick}
