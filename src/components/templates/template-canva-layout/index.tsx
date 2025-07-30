@@ -62,8 +62,8 @@ export function TemplateCanvaLayoutContent() {
   } = useExamContext();
   const { templateMetadata, setTemplateMetadata } = useExamTemplateContext();
 
-  const isEditMode = pathname.includes("/exam-templates/");
-  const templateId = isEditMode ? pathname.split("/").pop() : null;
+  const isCreateMode = pathname === "/exam-templates/create";
+  const templateId = isCreateMode ? null : pathname.split("/").pop();
   const router = useRouter();
   // Sync templateMetadata with basicExamInfo changes
   useEffect(() => {
@@ -315,14 +315,14 @@ export function TemplateCanvaLayoutContent() {
     console.log("💾 Final templateData being sent to API:", templateData);
 
     // Call appropriate API based on mode
-    if (isEditMode && templateId) {
+    if (!isCreateMode && templateId) {
       // Update existing template
 
       updateTemplate(
         { id: templateId, data: templateData },
         {
           onSuccess: () => {
-            toast.success("Template đã được cập nhật thành công!");
+            toast.success("Đề thi đã được cập nhật thành công!");
             markAsSaved();
           },
           onError: (error) => {
@@ -338,11 +338,12 @@ export function TemplateCanvaLayoutContent() {
       // Create new template
       createTemplate(templateData, {
         onSuccess: () => {
-          toast.success("Template đã được tạo thành công!");
+          toast.success("Đề thi đã được tạo thành công!");
           markAsSaved();
+          router.push("/exam-templates");
         },
         onError: () => {
-          toast.error("Tạo template thất bại. Vui lòng thử lại!");
+          toast.error("Tạo đề thilate thất bại. Vui lòng thử lại!");
         },
       });
     }
@@ -401,10 +402,10 @@ export function TemplateCanvaLayoutContent() {
               >
                 <CloudUpload className="h-4 w-4 mr-1" />
                 {isSaving
-                  ? isEditMode
+                  ? !isCreateMode
                     ? "Đang cập nhật..."
                     : "Đang tạo..."
-                  : isEditMode
+                  : !isCreateMode
                   ? "Cập nhật template"
                   : "Tạo template"}
               </Button>
