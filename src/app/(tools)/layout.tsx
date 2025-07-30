@@ -18,6 +18,7 @@ import { getPageLabel, getPageActions } from "@/utils/pathToLabel";
 import { HeaderProvider, useHeader } from "@/contexts/HeaderContext";
 import { ChatButton } from "@/components/ui/chat-button";
 import ChatBox from "@/components/organisms/chat-box";
+import type { BreadcrumbItem } from "@/components/ui/BreadcrumbTrail";
 
 interface ToolLayoutProps {
   children: React.ReactNode;
@@ -55,18 +56,32 @@ function ToolLayoutContent({ children }: ToolLayoutProps) {
   const finalBreadcrumbs =
     breadcrumbs.length > 0
       ? breadcrumbs
-      : [
-          {
-            label: "Quay lại",
-            href: "/home",
-            onClick: () => console.log("Back"),
-            beforeIcon: <ChevronLeft className="w-4 h-4" />,
-          },
-          {
+      : (() => {
+          const defaultBreadcrumbs: BreadcrumbItem[] = [
+            {
+              label: "Quay lại",
+              href: "/home",
+              onClick: () => console.log("Back"),
+              beforeIcon: <ChevronLeft className="w-4 h-4" />,
+            },
+          ];
+
+          // Add exam-instances breadcrumb if current path is exam-templates
+          if (pathname === "/exam-templates") {
+            defaultBreadcrumbs.push({
+              label: "Quản lý phiên kiểm tra",
+              href: "/exam-instances",
+            });
+          }
+
+          // Add current page breadcrumb
+          defaultBreadcrumbs.push({
             label: pageLabel,
             active: true,
-          },
-        ];
+          });
+
+          return defaultBreadcrumbs;
+        })();
 
   const finalActions = actions.length > 0 ? actions : pageActions;
 

@@ -26,6 +26,12 @@ import {
 } from "@/services/examInstanceServices";
 import { SubmissionDetails } from "@/components/organisms/submission-details";
 import { cn } from "@/lib/utils";
+import SubmissionTable from "../table-submission";
+import {
+  ScoreDistributionChart,
+  ScoreStatistics,
+} from "@/components/charts/ScoreDistributionChart";
+import { DowloadIcon } from "@/constants/icon";
 
 interface InstanceDetailsProps {
   instance: ExamInstanceData;
@@ -218,7 +224,7 @@ export function InstanceDetails({
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-calsans text-gray-900">
-              {instance.templateName}
+              Bài thi: {instance.templateName}
             </h1>
             <Badge className={cn("text-sm px-3 py-1", statusInfo.color)}>
               {statusInfo.label}
@@ -236,48 +242,75 @@ export function InstanceDetails({
               <span>{instance.durationMinutes} phút</span>
             </div>
           </div>
-        </div>
-        <Button variant="outline" onClick={onClose} className="ml-4">
-          Đóng
-        </Button>
-      </div>
-
-      {/* Mã bài thi và Link chia sẻ */}
-      <div className="bg-neutral-50 rounded-lg p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-4 mb-2">
-              <div>
-                <p className="text-sm font-medium text-neutral-700">
-                  Mã bài thi
-                </p>
-                <p className="text-2xl font-calsans text-neutral-900">
-                  {instance.code}
-                </p>
-              </div>
+          <div className="bg-neutral-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-sm font-medium text-neutral-700 mb-1">
-                  Link bài thi
-                </p>
-                <p className="font-mono text-sm text-neutral-600 break-all">
-                  {examUrl}
-                </p>
+                <div className="flex items-center gap-4 mb-2">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-700">
+                      Mã bài thi
+                    </p>
+                    <p className="text-2xl font-calsans text-neutral-900">
+                      {instance.code}
+                    </p>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-neutral-700 mb-1">
+                      Link bài thi
+                    </p>
+                    <p
+                      onClick={handleCopyLink}
+                      className="font-questrial text-sm text-red-600 break-all cursor-pointer"
+                    >
+                      Click vào đây để copy link bài thi
+                    </p>
+                  </div>
+                </div>
+                {instance.status !== "ACTIVE" && (
+                  <p className="text-sm text-orange-600 font-medium">
+                    Học sinh chỉ có thể làm bài khi trạng thái là "Đang hoạt
+                    động"
+                  </p>
+                )}
               </div>
             </div>
-            {instance.status !== "ACTIVE" && (
-              <p className="text-sm text-orange-600 font-medium">
-                Học sinh chỉ có thể làm bài khi trạng thái là "Đang hoạt động"
-              </p>
-            )}
           </div>
-          <Button
-            onClick={handleCopyLink}
-            className="bg-neutral-600 hover:bg-neutral-700"
-          >
-            Sao chép link
+        </div>
+        <div className="flex-1">
+          <Button variant="outline" onClick={onClose} className="float-end">
+            Đóng
           </Button>
+          <div className="bg-white p-5 ">
+            <h5 className="text-lg font-semibold text-gray-900 mb-4">
+              Phân phối điểm số
+            </h5>
+            <ScoreDistributionChart
+              submissions={submissions}
+              maxScore={submissions.length > 0 ? submissions[0].maxScore : 10}
+            />
+          </div>
         </div>
       </div>
+
+      <div className="flex justify-between items-center">
+        <h4 className="font-calsans text-lg text-gray-900 mb-6">
+          Danh sách kết quả chi tiết
+        </h4>
+        <Button
+          // variant="outline"
+          onClick={handleDownloadExcel}
+          disabled={downloadExcelMutation.isPending}
+          size="sm"
+          className="py-5"
+        >
+          {downloadExcelMutation.isPending ? (
+            "Đang tải..."
+          ) : (
+            <>{DowloadIcon} Xuất báo cáo</>
+          )}
+        </Button>
+      </div>
+      <SubmissionTable submitions={submissions} />
 
       {/* Layout 2 cột */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -311,169 +344,6 @@ export function InstanceDetails({
               </CardContent>
             </Card>
           )}
-
-          {/* Thông tin thời gian */}
-          <Card>
-            <CardHeader className="text-lg font-calsans font-normal flex items-center gap-2">
-              Thời gian
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Bắt đầu</p>
-                <p className="text-sm text-gray-600">
-                  {format(new Date(instance.startAt), "dd/MM/yyyy HH:mm", {
-                    locale: vi,
-                  })}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Kết thúc</p>
-                <p className="text-sm text-gray-600">
-                  {format(new Date(instance.endAt), "dd/MM/yyyy HH:mm", {
-                    locale: vi,
-                  })}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Ngày tạo</p>
-                <p className="text-sm text-gray-600">
-                  {format(new Date(instance.createdAt), "dd/MM/yyyy HH:mm", {
-                    locale: vi,
-                  })}
-                </p>
-              </div>
-              {instance.statusChangedAt && (
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Thay đổi trạng thái
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {format(
-                      new Date(instance.statusChangedAt),
-                      "dd/MM/yyyy HH:mm",
-                      { locale: vi }
-                    )}
-                  </p>
-                  {instance.statusChangeReason && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Lý do: {instance.statusChangeReason}
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Cột phải - Kết quả bài thi */}
-        <div className="lg:col-span-2">
-          <Card className="h-fit shadow-none border-none p-0">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2 font-calsans font-normal">
-                  Kết quả bài thi
-                </CardTitle>
-                <Button
-                  variant="outline"
-                  onClick={handleDownloadExcel}
-                  disabled={downloadExcelMutation.isPending}
-                  size="sm"
-                  className="py-5"
-                >
-                  {downloadExcelMutation.isPending
-                    ? "Đang tải..."
-                    : "Xuất báo cáo"}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {submissionsLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  <p className="text-gray-600">Đang tải kết quả...</p>
-                </div>
-              ) : submissions.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p className="text-lg font-medium mb-2">
-                    Chưa có học sinh nào nộp bài
-                  </p>
-                  <p className="text-sm">
-                    Kết quả sẽ hiển thị khi có học sinh hoàn thành bài thi
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Thống kê tổng quan */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="border-neutral-200">
-                      <div>
-                        <p className="text-sm font-medium text-neutral-700">
-                          Tổng số bài nộp
-                        </p>
-                        <p className="text-4xl font-calsans text-neutral-900">
-                          {submissions.length}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className=" border-neutral-200">
-                      <div>
-                        <p className="text-sm font-medium text-neutral-700">
-                          Điểm trung bình
-                        </p>
-                        <p className="text-4xl font-calsans text-neutral-900">
-                          {submissions.length > 0
-                            ? (
-                                submissions.reduce(
-                                  (sum: number, sub: SubmissionData) =>
-                                    sum + sub.score,
-                                  0
-                                ) / submissions.length
-                              ).toFixed(1)
-                            : "0"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className=" border-neutral-200">
-                      <div>
-                        <p className="text-sm font-medium text-neutral-700">
-                          Điểm cao nhất
-                        </p>
-                        <p className="text-4xl font-calsans text-neutral-900">
-                          {submissions.length > 0
-                            ? Math.max(
-                                ...submissions.map(
-                                  (sub: SubmissionData) => sub.score
-                                )
-                              )
-                            : "0"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Danh sách kết quả */}
-                  <div>
-                    <h4 className="font-calsans text-lg text-gray-900 mb-6">
-                      Danh sách kết quả chi tiết
-                    </h4>
-                    <div className="max-h-[600px] overflow-y-auto space-y-4">
-                      {submissions.map(
-                        (submission: SubmissionData, index: number) => (
-                          <SubmissionDetails
-                            key={submission.id}
-                            submission={submission}
-                            index={index}
-                          />
-                        )
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ import {
   useUpdateExamTemplateService,
 } from "@/services/examTemplateServices";
 import { toast } from "sonner";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
 export interface CanvasElement {
@@ -64,7 +64,7 @@ export function TemplateCanvaLayoutContent() {
 
   const isEditMode = pathname.includes("/exam-templates/");
   const templateId = isEditMode ? pathname.split("/").pop() : null;
-
+  const router = useRouter();
   // Sync templateMetadata with basicExamInfo changes
   useEffect(() => {
     if (templateMetadata && basicExamInfo.template_name) {
@@ -356,6 +356,9 @@ export function TemplateCanvaLayoutContent() {
           <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
             <div>
               <div className="flex items-center gap-2">
+                <div onClick={() => router.back()} className="cursor-pointer">
+                  Quay lại |
+                </div>
                 <h2 className="font-calsans text-base">
                   {templateMetadata?.name || "Template mới"}
                 </h2>

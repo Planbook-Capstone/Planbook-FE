@@ -16,7 +16,8 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: buildEndpoint(SERVICES.AUTH, "/login"),
     REGISTER: buildEndpoint(SERVICES.AUTH, "/register"),
-    LOGIN_GOOGLE: "/identity-service/api/login-google",
+    LOGIN_GOOGLE: buildEndpoint(SERVICES.AUTH, "/login-google"),
+    REFRESH_TOKEN: buildEndpoint(SERVICES.AUTH, "/refresh"),
   },
   USERS_MANAGEMENT: {
     BASE: buildEndpoint(SERVICES.AUTH, "/users"),
@@ -80,6 +81,7 @@ export const API_ENDPOINTS = {
         `/admin/lesson-nodes/${lessonPlanId}/all-nodes`
       ),
   },
+  
   LESSON_PLAN_GENERATION: "/lesson/generate-lesson-plan-content",
   UPLOAD_DOCX_TO_ONLINE: "/lesson/upload-docx-to-online",
 

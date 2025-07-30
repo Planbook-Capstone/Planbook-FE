@@ -8,6 +8,10 @@ import { ShortQuestion, ShortQuestionItemProps } from "./types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useDroppable } from "@dnd-kit/core";
+import {
+  convertBrTagsToLineBreaks,
+  convertLineBreaksToBrTags,
+} from "@/utils/textUtils";
 
 export default function ShortQuestionItem({
   question,
@@ -29,13 +33,19 @@ export default function ShortQuestionItem({
   });
 
   // Normalize question text for both API and legacy formats
-  const getQuestionText = () => question.question || question.text || "";
+  const getQuestionText = () => {
+    const text = question.question || question.text || "";
+    // Convert <br/> tags to line breaks for display
+    return convertBrTagsToLineBreaks(text);
+  };
 
   const handleQuestionTextChange = (text: string) => {
+    // Convert line breaks back to <br/> tags when saving
+    const textWithBrTags = convertLineBreaksToBrTags(text);
     if (question.question !== undefined) {
-      onUpdate({ ...question, question: text });
+      onUpdate({ ...question, question: textWithBrTags });
     } else {
-      onUpdate({ ...question, text });
+      onUpdate({ ...question, text: textWithBrTags });
     }
   };
 

@@ -109,13 +109,10 @@ export const DEFAULT_TABLE_DATA = {
   columns: 2,
 };
 
-export const WEBSOCKET_CONFIG = {
-  url: "http://localhost:8085/websocket",
-  topic: "/user/queue/notifications",
-};
+
 
 export const LESSON_PLAN_CONFIG = {
-  defaultLessonPlanId: "8",
+  defaultLessonPlanId: "1",
   toolId: "6ef43906-1899-4cec-b969-48957ba574ba",
   toolType: "INTERNAL",
 };

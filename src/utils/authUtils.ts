@@ -1,10 +1,10 @@
 import api from "@/config/axios";
-
+import { API_ENDPOINTS } from "@/constants";
 
 export const refreshAuthToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
   if (refreshToken) {
-    const response = await api.post("/identity-service/api/refresh", {
+    const response = await api.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN, {
       refreshToken: refreshToken,
     });
 

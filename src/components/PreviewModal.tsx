@@ -304,14 +304,15 @@ export default function PreviewModal({
     const marginLeft = depth * 20;
 
     // Debug: Log all nodes to see their properties
-    // console.log("🔍 PreviewModal node:", {
-    //   id: node.id,
-    //   type: node.type,
-    //   fieldType: node.fieldType,
-    //   title: node.title,
-    //   hasContent: !!node.content,
-    //   contentPreview: node.content?.substring(0, 50) + "..."
-    // });
+    console.log("🔍 PreviewModal node:", {
+      id: node.id,
+      type: node.type,
+      fieldType: node.fieldType,
+      title: node.title,
+      hasContent: !!node.content,
+      contentPreview: node.content?.substring(0, 100) + "...",
+      childrenCount: node.children?.length || 0,
+    });
 
     // Check fieldType first for TABLE (regardless of node.type)
     if (node.fieldType === "TABLE") {
@@ -329,10 +330,17 @@ export default function PreviewModal({
             <h1 className="text-2xl font-bold text-black mb-4 border-b-2 border-gray-300 pb-2">
               {node.title || "Untitled Section"}
             </h1>
-            {node.content && (
-              <p className="text-base text-gray-700 mb-4 leading-relaxed">
-                {node.content}
-              </p>
+            {node.content && node.content.trim() !== "" && (
+              <div className="text-base text-gray-700 mb-4 leading-relaxed">
+                {node.content.includes("<") && node.content.includes(">") ? (
+                  <div
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: node.content }}
+                  />
+                ) : (
+                  <p className="whitespace-pre-wrap">{node.content}</p>
+                )}
+              </div>
             )}
             {node.children && node.children.length > 0 && (
               <div className="ml-0">
@@ -354,10 +362,17 @@ export default function PreviewModal({
             <h2 className="text-xl font-semibold text-black mb-3">
               {node.title || "Untitled Subsection"}
             </h2>
-            {node.content && (
-              <p className="text-base text-gray-700 mb-3 leading-relaxed">
-                {node.content}
-              </p>
+            {node.content && node.content.trim() !== "" && (
+              <div className="text-base text-gray-700 mb-3 leading-relaxed">
+                {node.content.includes("<") && node.content.includes(">") ? (
+                  <div
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: node.content }}
+                  />
+                ) : (
+                  <p className="whitespace-pre-wrap">{node.content}</p>
+                )}
+              </div>
             )}
             {node.children && node.children.length > 0 && (
               <div className="ml-4">
@@ -381,9 +396,18 @@ export default function PreviewModal({
                 {node.title}
               </h3>
             )}
-            <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {node.content || ""}
-            </p>
+            <div className="text-base text-gray-700 leading-relaxed">
+              {node.content &&
+              node.content.includes("<") &&
+              node.content.includes(">") ? (
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: node.content }}
+                />
+              ) : (
+                <p className="whitespace-pre-wrap">{node.content || ""}</p>
+              )}
+            </div>
             {node.children && node.children.length > 0 && (
               <div className="ml-4 mt-3">
                 {node.children
@@ -399,15 +423,26 @@ export default function PreviewModal({
           <div
             key={node.id}
             style={{ marginLeft: `${marginLeft}px` }}
-            className="mb-2"
+            className="mb-2 flex flex-col h-full  "
           >
-            <div className="flex items-start gap-2">
-              <span className="text-black font-medium flex-shrink-0">
+            <div className="flex flex-col items-start gap-2 w-full">
+              <span className="text-black font-bold flex-shrink-0">
                 {node.title || "Item"}:
               </span>
-              <span className="text-gray-700 leading-relaxed">
-                {node.content || ""}
-              </span>
+              <div className="text-gray-700 leading-relaxed flex-1 pl-6">
+                {node.content &&
+                node.content.includes("<") &&
+                node.content.includes(">") ? (
+                  <div
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: node.content }}
+                  />
+                ) : (
+                  <span className="whitespace-pre-wrap">
+                    {node.content || ""}
+                  </span>
+                )}
+              </div>
             </div>
             {node.children && node.children.length > 0 && (
               <div className="ml-6 mt-2">

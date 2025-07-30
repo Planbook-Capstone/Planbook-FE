@@ -13,17 +13,22 @@ import {
   useCreateExamInstanceService,
   CreateExamInstanceData,
   ExamInstanceData,
+  ChangeStatusData,
 } from "@/services/examInstanceServices";
 import { Plus, Eye, Clock, BookOpen, GraduationCap } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/config/axios";
+import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
 import { cn } from "@/lib/utils";
 import {
   BookMarkIcon,
   BookMarkWhiteIcon,
   NoneExamIcon,
 } from "@/constants/icon";
+import ExamInstanceTable from "@/components/organisms/table-exam-instance";
 
 interface TemplateInfo {
   id: string;
@@ -34,7 +39,7 @@ interface TemplateInfo {
   totalScore: number;
 }
 
-const statusConfig = {
+export const statusConfig = {
   DRAFT: { label: "Nháp", color: "bg-gray-100 text-gray-800" },
   SCHEDULED: { label: "Đã lên lịch", color: "bg-yellow-100 text-yellow-800" },
   ACTIVE: { label: "Đang hoạt động", color: "bg-green-100 text-green-800" },
@@ -61,6 +66,29 @@ export default function ExamInstancesPage() {
   } = useExamInstancesService();
   const { mutate: createInstance, isPending: isCreating } =
     useCreateExamInstanceService();
+
+  // Status change mutations - we'll create them dynamically
+  const [changingStatus, setChangingStatus] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  // Create a mutation for changing status
+  const changeStatusMutation = useMutation({
+    mutationFn: ({
+      instanceId,
+      data,
+    }: {
+      instanceId: string;
+      data: ChangeStatusData;
+    }) =>
+      api.put(`${EXAM_ENDPOINTS.EXAM_INSTANCES}/${instanceId}/status`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["examInstances"] });
+      setChangingStatus(null);
+    },
+    onError: () => {
+      setChangingStatus(null);
+    },
+  });
 
   const instances = instancesResponse?.data || [];
 
@@ -99,6 +127,73 @@ export default function ExamInstancesPage() {
     router.push(`/exam-instances/${instance.id}`);
   };
 
+  // Helper function to handle status changes
+  const handleStatusChange = (
+    instance: ExamInstanceData,
+    newStatus: ExamInstanceData["status"],
+    confirmMessage: string,
+    successMessage: string,
+    reason?: string
+  ) => {
+    if (confirm(confirmMessage)) {
+      setChangingStatus(instance.id);
+
+      const data: ChangeStatusData = { status: newStatus };
+      if (reason) data.reason = reason;
+
+      changeStatusMutation.mutate(
+        { instanceId: instance.id, data },
+        {
+          onSuccess: () => {
+            toast.success(successMessage);
+          },
+          onError: (error: any) => {
+            toast.error(
+              error?.response?.data?.message ||
+                "Có lỗi xảy ra khi thay đổi trạng thái"
+            );
+          },
+        }
+      );
+    }
+  };
+
+  const handlePause = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "PAUSED",
+      `Bạn có chắc muốn tạm dừng bài thi "${instance.templateName}"?`,
+      "Đã tạm dừng bài thi thành công"
+    );
+  };
+
+  const handleResume = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "ACTIVE",
+      `Bạn có chắc muốn tiếp tục bài thi "${instance.templateName}"?`,
+      "Đã tiếp tục bài thi thành công"
+    );
+  };
+
+  const handleStop = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "COMPLETED",
+      `Bạn có chắc muốn kết thúc bài thi "${instance.templateName}"?`,
+      "Đã kết thúc bài thi thành công"
+    );
+  };
+
+  const handleCancel = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "CANCELLED",
+      `Bạn có chắc muốn hủy bài thi "${instance.templateName}"?`,
+      "Đã hủy bài thi thành công"
+    );
+  };
+
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
     setStep("select-template");
@@ -133,98 +228,22 @@ export default function ExamInstancesPage() {
             Tạo và quản lý các phiên kiểm tra (Được chọn từ kho đề)
           </p>
         </div>
-        <Button onClick={handleCreateNew} className="flex items-center gap-2">
+        <Button
+          onClick={() => router.push("/exam-templates")}
+          className="flex items-center gap-2"
+        >
           Tổ chức phiên kiểm tra mới
         </Button>
       </div>
 
-      {/* Instances List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {instances.map((instance: ExamInstanceData) => {
-          const statusInfo = statusConfig[instance.status];
-          return (
-            <Card
-              key={instance.id}
-              className="group relative hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
-              onClick={() => handleViewDetails(instance)}
-            >
-              {/* Hiệu ứng nền gradient lan toàn thẻ */}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(to bottom, #28E1E4 0%, #30C7EF 65%, #3AA7FC 75%, #407BE9 90%, #3714A2 100%)",
-                }}
-                className="absolute inset-0 scale-0 origin-bottom-left transition-transform duration-500 ease-out group-hover:scale-[2] -translate-x-20 translate-y-20 z-0 rounded-full"
-              />
-              <CardHeader className="relative z-10 pb-3">
-                {/* Template Info */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <div className="flex gap-1">
-                      <div className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-300">
-                        <span className="w-6 h-6 group-hover:hidden">
-                          {BookMarkIcon}
-                        </span>
-                        <span className="w-6 h-6 hidden group-hover:block">
-                          {BookMarkWhiteIcon}
-                        </span>
-                      </div>
-                      <span className="text-base font-calsans text-gray-700 group-hover:text-white transition-colors duration-300">
-                        {instance.subject}
-                      </span>
-                    </div>
-                    <div className="flex gap-1">
-                      <Badge
-                        variant="secondary"
-                        className="bg-black group-hover:bg-white text-white group-hover:text-black text-xs px-2 py-1 rounded-full transition-colors duration-300"
-                      >
-                        Lớp {instance.grade}
-                      </Badge>
-                      <Badge
-                        className={`${statusInfo.color} group-hover:bg-white group-hover:text-black transition-colors duration-300`}
-                      >
-                        {statusInfo.label}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 pt-3">
-                    <CardTitle className="text-lg font-normal font-calsans line-clamp-2 text-black group-hover:text-white transition-colors duration-300">
-                      {instance.templateName}
-                    </CardTitle>
-                    <p className="text-sm text-gray-600 group-hover:text-white mt-1 transition-colors duration-300">
-                      Mã: {instance.code}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10 space-y-3">
-                {/* Description */}
-                <p className="text-sm text-gray-700 group-hover:text-white line-clamp-2 transition-colors duration-300">
-                  {instance.description}
-                </p>
-
-                {/* Time Info */}
-                <div className="text-xs text-gray-500 group-hover:text-white space-y-1 transition-colors duration-300">
-                  <p>
-                    Bắt đầu:{" "}
-                    {format(new Date(instance.startAt), "dd/MM/yyyy HH:mm", {
-                      locale: vi,
-                    })}
-                  </p>
-                  <p>
-                    Kết thúc:{" "}
-                    {format(new Date(instance.endAt), "dd/MM/yyyy HH:mm", {
-                      locale: vi,
-                    })}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <ExamInstanceTable
+        examInstances={instances}
+        onViewDetail={handleViewDetails}
+        onPause={handlePause}
+        onResume={handleResume}
+        onStop={handleStop}
+        onCancel={handleCancel}
+      />
 
       {instances.length === 0 && (
         <div className="text-center py-12">

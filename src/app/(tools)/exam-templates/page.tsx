@@ -21,11 +21,19 @@ import { toast } from "sonner";
 import ExamCreationModal from "@/components/organisms/exam-creation-modal";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import { useExamImportService } from "@/services/examImportServices";
+import { Modal } from "@/components/ui/modal";
+import { CreateInstanceForm } from "@/components/organisms/create-instance-form";
+import TemplatePreviewModal from "@/components/organisms/template-preview-modal";
+import {
+  useCreateExamInstanceService,
+  CreateExamInstanceData,
+} from "@/services/examInstanceServices";
 import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
 import { ExamTemplateProvider } from "@/contexts/ExamTemplateContext";
 import ExamTemplateCard, {
   ExamTemplate,
 } from "@/components/molecules/exam-template-card";
+import ExamTemplateTable from "@/components/organisms/table-exam-template";
 
 function ExamTemplatesPageContent() {
   const router = useRouter();
@@ -35,6 +43,17 @@ function ExamTemplatesPageContent() {
   const [showCreationModal, setShowCreationModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+
+  // States for create instance modal
+  const [showCreateInstanceModal, setShowCreateInstanceModal] = useState(false);
+  const [selectedTemplateForInstance, setSelectedTemplateForInstance] =
+    useState<ExamTemplate | null>(null);
+
+  // States for preview modal
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedTemplateForPreview, setSelectedTemplateForPreview] = useState<
+    string | null
+  >(null);
 
   // Initialize the exam import service
   const { mutate: importExam, isPending: isImporting } = useExamImportService();
@@ -47,6 +66,10 @@ function ExamTemplatesPageContent() {
     useCloneExamTemplateService();
   const { mutate: deleteTemplate, isPending: isDeleting } =
     useDeleteExamTemplateService();
+
+  // Initialize create instance service
+  const { mutate: createInstance, isPending: isCreatingInstance } =
+    useCreateExamInstanceService();
 
   // Filter templates based on search term and subject
   const filteredTemplates =
@@ -79,7 +102,8 @@ function ExamTemplatesPageContent() {
   };
 
   const handleViewTemplate = (templateId: string) => {
-    router.push(`/exam-templates/${templateId}`);
+    setSelectedTemplateForPreview(templateId);
+    setShowPreviewModal(true);
   };
 
   const handleDuplicateTemplate = (templateId: string) => {
@@ -130,6 +154,44 @@ function ExamTemplatesPageContent() {
     setTemplateToDelete(null);
   };
 
+  // Handler for creating instance from template
+  const handleCreateInstance = (template: ExamTemplate) => {
+    setSelectedTemplateForInstance(template);
+    setShowCreateInstanceModal(true);
+  };
+
+  // Handler for submitting create instance form
+  const handleCreateInstanceSubmit = (data: CreateExamInstanceData) => {
+    createInstance(data, {
+      onSuccess: () => {
+        toast.success("Tạo phiếm kiểm tra thành công!");
+        setShowCreateInstanceModal(false);
+        setSelectedTemplateForInstance(null);
+        // Navigate to exam instances page
+        router.push("/exam-instances");
+      },
+      onError: (error: any) => {
+        console.error("Create instance failed:", error);
+        toast.error(
+          error?.response?.data?.message ||
+            "Tạo phiếm kiểm tra thất bại. Vui lòng thử lại!"
+        );
+      },
+    });
+  };
+
+  // Handler for canceling create instance
+  const handleCancelCreateInstance = () => {
+    setShowCreateInstanceModal(false);
+    setSelectedTemplateForInstance(null);
+  };
+
+  // Handler for closing preview modal
+  const handleClosePreviewModal = () => {
+    setShowPreviewModal(false);
+    setSelectedTemplateForPreview(null);
+  };
+
   const handleFileSubmit = (files: File[]) => {
     console.log("=== FILE SUBMIT HANDLER ===");
     console.log("Number of files:", files.length);
@@ -151,7 +213,7 @@ function ExamTemplatesPageContent() {
 
         // Close modal and navigate to exam-creation
         setShowCreationModal(false);
-        router.push("/exam-creation");
+        router.push("/exam-templates/create");
       },
       onError: (error) => {
         console.error("Exam import failed:", error);
@@ -163,7 +225,7 @@ function ExamTemplatesPageContent() {
   const handleCreateManually = () => {
     setShowCreationModal(false);
     // Navigate to exam-creation for manual creation
-    router.push("/exam-creation");
+    router.push("/exam-templates/create");
   };
 
   const handleModalClose = () => {
@@ -206,46 +268,23 @@ function ExamTemplatesPageContent() {
         </div>
         <Button onClick={handleCreateTemplate} className="bg-neutral-900">
           <Plus className="h-4 w-4 mr-2" />
-          Tạo Template Mới
+          Tạo đề thi Mới
         </Button>
       </div>
-
-      {/* Templates list */}
       {isLoading ? (
         <div className="text-center py-10">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>Đang tải dữ liệu...</p>
         </div>
-      ) : isCloning || isDeleting ? (
-        <div className="text-center py-10">
-          <div className="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>
-            {isCloning ? "Đang nhân bản template..." : "Đang xóa template..."}
-          </p>
-        </div>
-      ) : filteredTemplates.length === 0 ? (
-        <div className="text-center py-10 border border-dashed rounded-lg">
-          <p className="text-gray-500 mb-4">Chưa có template nào</p>
-          <Button onClick={handleCreateTemplate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Tạo Template Đầu Tiên
-          </Button>
-        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTemplates.map((template: ExamTemplate) => (
-            <ExamTemplateCard
-              key={template.id}
-              template={template}
-              onView={handleViewTemplate}
-              onEdit={handleEditTemplate}
-              onDuplicate={handleDuplicateTemplate}
-              onDelete={handleDeleteTemplate}
-              isCloning={isCloning}
-              isDeleting={isDeleting}
-            />
-          ))}
-        </div>
+        <ExamTemplateTable
+          examTemplates={filteredTemplates}
+          onViewDetail={(template) => handleViewTemplate(template.id)}
+          onEdit={(template) => handleEditTemplate(template.id)}
+          onDelete={(template) => handleDeleteTemplate(template.id)}
+          onDuplicate={(template) => handleDuplicateTemplate(template.id)}
+          onCreateInstance={handleCreateInstance}
+        />
       )}
 
       {/* Creation Modal */}
@@ -272,6 +311,39 @@ function ExamTemplatesPageContent() {
         }
         isLoading={isDeleting}
       />
+
+      {/* Create Instance Modal */}
+      <Modal
+        isOpen={showCreateInstanceModal}
+        onClose={handleCancelCreateInstance}
+        title="Tạo phiếm kiểm tra"
+        size="lg"
+      >
+        {selectedTemplateForInstance && (
+          <CreateInstanceForm
+            selectedTemplate={{
+              id: selectedTemplateForInstance.id,
+              name: selectedTemplateForInstance.name,
+              subject: selectedTemplateForInstance.subject,
+              grade: selectedTemplateForInstance.grade || 10,
+              durationMinutes: selectedTemplateForInstance.durationMinutes,
+              totalScore: selectedTemplateForInstance.totalScore || 10,
+            }}
+            onSubmit={handleCreateInstanceSubmit}
+            onCancel={handleCancelCreateInstance}
+            isLoading={isCreatingInstance}
+          />
+        )}
+      </Modal>
+
+      {/* Template Preview Modal */}
+      {selectedTemplateForPreview && (
+        <TemplatePreviewModal
+          isOpen={showPreviewModal}
+          onClose={handleClosePreviewModal}
+          templateId={selectedTemplateForPreview}
+        />
+      )}
     </div>
   );
 }

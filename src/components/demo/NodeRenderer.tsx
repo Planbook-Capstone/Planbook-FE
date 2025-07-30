@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useRef, useMemo } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Table as CustomTable } from "@/components/organisms/table";
+import {
+  convertBrTagsToLineBreaks,
+  convertLineBreaksToBrTags,
+} from "@/utils/textUtils";
+import { RichTextarea } from "@/components/ui/rich-textarea";
 
 interface CellContent {
   text?: string;
@@ -62,6 +67,20 @@ function AutoResizeTextarea({
 }: AutoResizeTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Convert <br/> tags to line breaks for display
+  const displayValue = useMemo(() => {
+    return convertBrTagsToLineBreaks(value);
+  }, [value]);
+
+  // Convert line breaks back to <br/> tags when saving
+  const handleValueChange = useCallback(
+    (newValue: string) => {
+      const valueWithBrTags = convertLineBreaksToBrTags(newValue);
+      onChange(valueWithBrTags);
+    },
+    [onChange]
+  );
+
   const adjustHeight = useCallback(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -72,10 +91,10 @@ function AutoResizeTextarea({
 
   useEffect(() => {
     adjustHeight();
-  }, [value, adjustHeight]);
+  }, [displayValue, adjustHeight]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value);
+    handleValueChange(e.target.value);
     adjustHeight();
   };
 
@@ -84,7 +103,7 @@ function AutoResizeTextarea({
       ref={textareaRef}
       className={className}
       placeholder={placeholder}
-      value={value}
+      value={displayValue}
       rows={1}
       onChange={handleChange}
     />
@@ -114,115 +133,102 @@ export default function NodeRenderer({
     // Parse table data from content field (prioritize content field over tableData)
     let tableData: TableData;
 
-      // First try to parse from content field (new format)
-      if (node.content && typeof node.content === "string") {
-        try {
-          if (node.content && typeof node.content === "string") {
-            const parsedContent = JSON.parse(node.content);
+    // First try to parse from content field (new format)
+    if (node.content && typeof node.content === "string") {
+      try {
+        if (node.content && typeof node.content === "string") {
+          const parsedContent = JSON.parse(node.content);
 
-            // Convert API format to our TableData format
-            if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
-              const headers: string[] = [];
-              const rows: string[][] = [];
+          // Convert API format to our TableData format
+          if (parsedContent.rows && Array.isArray(parsedContent.rows)) {
+            const headers: string[] = [];
+            const rows: string[][] = [];
 
-              // First pass: extract headers from header row
-              const headerRow = parsedContent.rows.find(
-                (row: any) =>
-                  row.cells && row.cells.some((cell: any) => cell.isHeader)
-              );
+            // First pass: extract headers from header row
+            const headerRow = parsedContent.rows.find(
+              (row: any) =>
+                row.cells && row.cells.some((cell: any) => cell.isHeader)
+            );
 
-              if (headerRow && headerRow.cells) {
-                headerRow.cells.forEach((cell: any) => {
-                  if (cell.isHeader) {
-                    // Decode HTML entities and extract text content
-                    let headerText = cell.title || cell.content || "";
-                    headerText = headerText
-                      .replace(/&lt;/g, "<")
-                      .replace(/&gt;/g, ">");
-                    headerText = headerText.replace(/<[^>]*>/g, ""); // Remove HTML tags
-                    headerText = headerText.replace(/\n/g, " ").trim();
-                    headers.push(headerText || `Cột ${headers.length + 1}`);
-                  }
-                });
-              }
-
-              // Second pass: extract data rows (non-header rows)
-              parsedContent.rows.forEach((row: any) => {
-                if (
-                  row.cells &&
-                  !row.cells.some((cell: any) => cell.isHeader)
-                ) {
-                  const rowData: string[] = [];
-
-                  row.cells.forEach((cell: any) => {
-                    // Handle regular cells - create HTML content for Tiptap editor
-                    let titleText = cell.title || "";
-                    let contentText = cell.content || "";
-
-                    // Decode HTML entities for both title and content
-                    titleText = titleText
-                      .replace(/&lt;/g, "<")
-                      .replace(/&gt;/g, ">");
-                    contentText = contentText
-                      .replace(/&lt;/g, "<")
-                      .replace(/&gt;/g, ">");
-
-                    // Clean up title by removing HTML tags and whitespace
-                    const cleanTitleText = titleText
-                      .replace(/<[^>]*>/g, "")
-                      .replace(/\n/g, " ")
-                      .trim();
-
-                    // Keep content as-is but trim whitespace
-                    const cleanContentText = contentText.trim();
-
-                    // Create HTML content for Tiptap editor
-                    let cellHtml = "";
-                    if (cleanTitleText && cleanContentText) {
-                      // Title as bold paragraph + content as separate paragraph
-                      cellHtml = `<p><strong>${cleanTitleText}</strong></p><p>${cleanContentText}</p>`;
-                    } else if (cleanTitleText) {
-                      // Title only as bold paragraph
-                      cellHtml = `<p><strong>${cleanTitleText}</strong></p>`;
-                    } else if (cleanContentText) {
-                      // Content only as paragraph
-                      cellHtml = `<p>${cleanContentText}</p>`;
-                    } else {
-                      // Empty cell
-                      cellHtml = "";
-                    }
-
-                    rowData.push(cellHtml);
-                  });
-
-                  // Ensure row has same number of cells as headers
-                  while (rowData.length < headers.length) {
-                    rowData.push("");
-                  }
-                  rows.push(rowData);
+            if (headerRow && headerRow.cells) {
+              headerRow.cells.forEach((cell: any) => {
+                if (cell.isHeader) {
+                  // Decode HTML entities and extract text content
+                  let headerText = cell.title || cell.content || "";
+                  headerText = headerText
+                    .replace(/&lt;/g, "<")
+                    .replace(/&gt;/g, ">");
+                  headerText = headerText.replace(/<[^>]*>/g, ""); // Remove HTML tags
+                  headerText = headerText.replace(/\n/g, " ").trim();
+                  headers.push(headerText || `Cột ${headers.length + 1}`);
                 }
               });
-
-              tableData = {
-                headers: headers.length > 0 ? headers : ["Cột 1", "Cột 2"],
-                rows:
-                  rows.length > 0
-                    ? rows
-                    : [
-                        ["", ""],
-                        ["", ""],
-                      ],
-              };
-            } else {
-              // Fallback to default
-              tableData = {
-                headers: ["Cột 1", "Cột 2"],
-                rows: [
-                  ["", ""],
-                  ["", ""],
-                ],
-              };
             }
+
+            // Second pass: extract data rows (non-header rows)
+            parsedContent.rows.forEach((row: any) => {
+              if (row.cells && !row.cells.some((cell: any) => cell.isHeader)) {
+                const rowData: string[] = [];
+
+                row.cells.forEach((cell: any) => {
+                  // Handle regular cells - create HTML content for Tiptap editor
+                  let titleText = cell.title || "";
+                  let contentText = cell.content || "";
+
+                  // Decode HTML entities for both title and content
+                  titleText = titleText
+                    .replace(/&lt;/g, "<")
+                    .replace(/&gt;/g, ">");
+                  contentText = contentText
+                    .replace(/&lt;/g, "<")
+                    .replace(/&gt;/g, ">");
+
+                  // Clean up title by removing HTML tags and whitespace
+                  const cleanTitleText = titleText
+                    .replace(/<[^>]*>/g, "")
+                    .replace(/\n/g, " ")
+                    .trim();
+
+                  // Keep content as-is but trim whitespace
+                  const cleanContentText = contentText.trim();
+
+                  // Create HTML content for Tiptap editor
+                  let cellHtml = "";
+                  if (cleanTitleText && cleanContentText) {
+                    // Title as bold paragraph + content as separate paragraph
+                    cellHtml = `<p><strong>${cleanTitleText}</strong></p><p>${cleanContentText}</p>`;
+                  } else if (cleanTitleText) {
+                    // Title only as bold paragraph
+                    cellHtml = `<p><strong>${cleanTitleText}</strong></p>`;
+                  } else if (cleanContentText) {
+                    // Content only as paragraph
+                    cellHtml = `<p>${cleanContentText}</p>`;
+                  } else {
+                    // Empty cell
+                    cellHtml = "";
+                  }
+
+                  rowData.push(cellHtml);
+                });
+
+                // Ensure row has same number of cells as headers
+                while (rowData.length < headers.length) {
+                  rowData.push("");
+                }
+                rows.push(rowData);
+              }
+            });
+
+            tableData = {
+              headers: headers.length > 0 ? headers : ["Cột 1", "Cột 2"],
+              rows:
+                rows.length > 0
+                  ? rows
+                  : [
+                      ["", ""],
+                      ["", ""],
+                    ],
+            };
           } else {
             // Fallback to default
             tableData = {
@@ -233,45 +239,61 @@ export default function NodeRenderer({
               ],
             };
           }
-        } catch (error) {
-          console.error("Error parsing table content:", error);
-          // Fallback to tableData field if available, otherwise use default
-          if ((node as any).tableData) {
-            console.log("📋 Fallback to tableData field:", (node as any).tableData);
-            tableData = (node as any).tableData;
-          } else {
-            tableData = {
-              headers: ["Cột 1", "Cột 2"],
-              rows: [
-                ["", ""],
-                ["", ""],
-              ],
-            };
-          }
+        } else {
+          // Fallback to default
+          tableData = {
+            headers: ["Cột 1", "Cột 2"],
+            rows: [
+              ["", ""],
+              ["", ""],
+            ],
+          };
+        }
+      } catch (error) {
+        console.error("Error parsing table content:", error);
+        // Fallback to tableData field if available, otherwise use default
+        if ((node as any).tableData) {
+          console.log(
+            "📋 Fallback to tableData field:",
+            (node as any).tableData
+          );
+          tableData = (node as any).tableData;
+        } else {
+          tableData = {
+            headers: ["Cột 1", "Cột 2"],
+            rows: [
+              ["", ""],
+              ["", ""],
+            ],
+          };
         }
       }
-      // Fallback to tableData field if no content available
-      else if ((node as any).tableData) {
-        console.log("📋 Using tableData field as fallback:", (node as any).tableData);
-        tableData = (node as any).tableData;
-      }
-      // Use default if no data available
-      else {
-        tableData = {
-          headers: ["Cột 1", "Cột 2"],
-          rows: [
-            ["", ""],
-            ["", ""],
-          ],
-        };
-      }
-
-      // Return data preserving CellContent format for DOCX export
-      return {
-        headers: tableData.headers,
-        rows: tableData.rows, // Keep original format with CellContent objects
+    }
+    // Fallback to tableData field if no content available
+    else if ((node as any).tableData) {
+      console.log(
+        "📋 Using tableData field as fallback:",
+        (node as any).tableData
+      );
+      tableData = (node as any).tableData;
+    }
+    // Use default if no data available
+    else {
+      tableData = {
+        headers: ["Cột 1", "Cột 2"],
+        rows: [
+          ["", ""],
+          ["", ""],
+        ],
       };
-    }, []);
+    }
+
+    // Return data preserving CellContent format for DOCX export
+    return {
+      headers: tableData.headers,
+      rows: tableData.rows, // Keep original format with CellContent objects
+    };
+  }, []);
 
   // Render table field - extracted from switch case
   const renderTableField = useCallback(
@@ -280,104 +302,104 @@ export default function NodeRenderer({
 
       const handleTableDataChange = (newTableData: TableData) => {
         // Convert TableData back to API format and save to content
-          const apiFormat = {
-            rows: [
-              // Header row
-              {
-                id: "header-row",
-                cells: newTableData.headers.map((header, index) => ({
-                  id: `h${index + 1}`,
-                  title: header,
-                  content: "",
-                  isHeader: true,
-                })),
-              },
-              // Data rows
-              ...newTableData.rows.map((row, rowIndex) => ({
-                id: `row-${rowIndex + 1}`,
-                cells: row.map((cell, cellIndex) => {
-                  let title = "";
-                  let content = "";
+        const apiFormat = {
+          rows: [
+            // Header row
+            {
+              id: "header-row",
+              cells: newTableData.headers.map((header, index) => ({
+                id: `h${index + 1}`,
+                title: header,
+                content: "",
+                isHeader: true,
+              })),
+            },
+            // Data rows
+            ...newTableData.rows.map((row, rowIndex) => ({
+              id: `row-${rowIndex + 1}`,
+              cells: row.map((cell, cellIndex) => {
+                let title = "";
+                let content = "";
 
-                  // Handle different cell formats
-                  if (typeof cell === "string") {
-                    // String cell - parse markdown format
-                    const cellText = cell;
+                // Handle different cell formats
+                if (typeof cell === "string") {
+                  // String cell - parse markdown format
+                  const cellText = cell;
 
-                    if (cellText.includes("**") && cellText.includes("\n")) {
-                      const lines = cellText.split("\n");
-                      const titleLine = lines.find(
-                        (line) => line.startsWith("**") && line.endsWith("**")
-                      );
-                      const contentLine = lines.find((line) =>
-                        line.startsWith("  ")
-                      );
+                  if (cellText.includes("**") && cellText.includes("\n")) {
+                    const lines = cellText.split("\n");
+                    const titleLine = lines.find(
+                      (line) => line.startsWith("**") && line.endsWith("**")
+                    );
+                    const contentLine = lines.find((line) =>
+                      line.startsWith("  ")
+                    );
 
-                      if (titleLine) {
-                        title = titleLine.replace(/\*\*/g, "");
-                      }
-                      if (contentLine) {
-                        content = contentLine.trim();
-                      }
-                    } else if (
-                      cellText.startsWith("**") &&
-                      cellText.endsWith("**")
-                    ) {
-                      // Only title format: **title**
-                      title = cellText.replace(/\*\*/g, "");
-                    } else {
-                      // Regular content
-                      content = cellText;
+                    if (titleLine) {
+                      title = titleLine.replace(/\*\*/g, "");
                     }
-                  } else if (cell && typeof cell === "object" && "text" in cell) {
-                    // CellContent object with text and possibly image
-                    const cellContent = cell as CellContent;
-
-                    // Use text content for title/content parsing
-                    const cellText = cellContent.text || "";
-
-                    if (cellText.includes("**") && cellText.includes("\n")) {
-                      const lines = cellText.split("\n");
-                      const titleLine = lines.find(
-                        (line) => line.startsWith("**") && line.endsWith("**")
-                      );
-                      const contentLine = lines.find((line) =>
-                        line.startsWith("  ")
-                      );
-
-                      if (titleLine) {
-                        title = titleLine.replace(/\*\*/g, "");
-                      }
-                      if (contentLine) {
-                        content = contentLine.trim();
-                      }
-                    } else if (
-                      cellText.startsWith("**") &&
-                      cellText.endsWith("**")
-                    ) {
-                      title = cellText.replace(/\*\*/g, "");
-                    } else {
-                      content = cellText;
+                    if (contentLine) {
+                      content = contentLine.trim();
                     }
+                  } else if (
+                    cellText.startsWith("**") &&
+                    cellText.endsWith("**")
+                  ) {
+                    // Only title format: **title**
+                    title = cellText.replace(/\*\*/g, "");
+                  } else {
+                    // Regular content
+                    content = cellText;
+                  }
+                } else if (cell && typeof cell === "object" && "text" in cell) {
+                  // CellContent object with text and possibly image
+                  const cellContent = cell as CellContent;
 
-                    // If cell has image, store image URL in title field
-                    if (cellContent.image) {
-                      // Put image URL in title, text content in content
-                      title = cellContent.image.url;
-                      content = cellText;
+                  // Use text content for title/content parsing
+                  const cellText = cellContent.text || "";
+
+                  if (cellText.includes("**") && cellText.includes("\n")) {
+                    const lines = cellText.split("\n");
+                    const titleLine = lines.find(
+                      (line) => line.startsWith("**") && line.endsWith("**")
+                    );
+                    const contentLine = lines.find((line) =>
+                      line.startsWith("  ")
+                    );
+
+                    if (titleLine) {
+                      title = titleLine.replace(/\*\*/g, "");
                     }
+                    if (contentLine) {
+                      content = contentLine.trim();
+                    }
+                  } else if (
+                    cellText.startsWith("**") &&
+                    cellText.endsWith("**")
+                  ) {
+                    title = cellText.replace(/\*\*/g, "");
+                  } else {
+                    content = cellText;
                   }
 
-                  return {
-                    id: `r${rowIndex + 1}c${cellIndex + 1}`,
-                    title: title,
-                    content: content,
-                  };
-                }),
-              })),
-            ],
-            columns: newTableData.headers.length,
-          };
+                  // If cell has image, store image URL in title field
+                  if (cellContent.image) {
+                    // Put image URL in title, text content in content
+                    title = cellContent.image.url;
+                    content = cellText;
+                  }
+                }
+
+                return {
+                  id: `r${rowIndex + 1}c${cellIndex + 1}`,
+                  title: title,
+                  content: content,
+                };
+              }),
+            })),
+          ],
+          columns: newTableData.headers.length,
+        };
 
         // Only update content field with JSON string
         if (onUpdateNodeContent) {
@@ -457,7 +479,14 @@ export default function NodeRenderer({
               placeholder="Nhập tiêu đề subsection..."
             />
             {node.content && (
-              <div className=" text-gray-600 text-sm">{node.content}</div>
+              <div className="pl-6">
+                <RichTextarea
+                  className="w-full dotted-input text-zinc-700   resize-none overflow-hidden min-h-[24px] border-none outline-none bg-transparent leading-tight"
+                  placeholder="............................................"
+                  value={node.content || ""}
+                  onChange={(value) => onUpdateNodeContent(node.id, value)}
+                />
+              </div>
             )}
           </div>
         );
@@ -467,8 +496,8 @@ export default function NodeRenderer({
       switch (node.fieldType) {
         case "INPUT":
           return (
-            <AutoResizeTextarea
-              className="w-full dotted-input text-blue-600 resize-none overflow-hidden min-h-[24px] border-none outline-none bg-transparent leading-tight"
+            <RichTextarea
+              className="w-full dotted-input text-zinc-700   resize-none overflow-hidden min-h-[24px] border-none outline-none bg-transparent leading-tight"
               placeholder="............................................"
               value={node.content || ""}
               onChange={(value) => onUpdateNodeContent(node.id, value)}
@@ -544,7 +573,12 @@ export default function NodeRenderer({
           );
       }
     },
-    [onUpdateNodeContent, onUpdateNodeTitle, renderTableField, getConvertedTableData]
+    [
+      onUpdateNodeContent,
+      onUpdateNodeTitle,
+      renderTableField,
+      getConvertedTableData,
+    ]
   );
 
   const isNewComponent = node.metadata?.isNew === true;
@@ -595,24 +629,25 @@ export default function NodeRenderer({
 
       {/* Special rendering for LIST_ITEM with flex layout */}
       {node.type === "LIST_ITEM" && (
-        <div className="flex items-start gap-3 flex-wrap">
-          <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex flex-col items-start gap-0 flex-wrap w-full">
+          <div className="flex items-center gap-1 w-full">
             <input
               type="text"
-              className="font-medium border-none outline-none bg-transparent w-auto min-w-[80px]"
+              className="font-bold border-none outline-none bg-transparent w-auto "
               value={node.title}
               onChange={(e) => onUpdateNodeTitle(node.id, e.target.value)}
               placeholder="Tiêu đề..."
               size={Math.max(node.title?.length || 8, 8)}
             />
-            <span className="text-gray-600">:</span>
           </div>
-          <div className="flex-1 min-w-0">{renderField(node)}</div>
+          <div className="flex-1 min-w-0 pl-6">{renderField(node)}</div>
         </div>
       )}
 
       {/* Regular field rendering for non-LIST_ITEM types */}
-      {node.type !== "LIST_ITEM" && renderField(node)}
+      {node.type !== "LIST_ITEM" && (
+        <div className="pl-6">{renderField(node)}</div>
+      )}
 
       {/* Drop zone for this node */}
       <Droppable droppableId={`node-${node.id}`}>

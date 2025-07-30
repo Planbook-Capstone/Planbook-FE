@@ -49,22 +49,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }}
       >
         <div className="flex py-5 flex-col items-center justify-between h-full border-r-[0.5px] border-r-[#DFDFDF]">
-          {/* <div className="h-13 w-full flex items-center justify-center">
-            <div className="relative h-full w-full">
-              <Image
-                src="/images/logoPlanbook.png"
-                alt="PlanBook Logo"
-                fill
-                className="object-contain"
-              />
-            </div>
-          </div> */}
-
-          {/* <Menu
-            defaultSelectedKeys={["1"]}
-            items={adminMenuItems}
-            onClick={(e) => setCurrentItem(e)}
-          /> */}
           <SidebarMenu menuItems={adminItems} defaultActiveKey="/" />
 
           <div className="flex flex-col justify-center items-center w-full gap-3">

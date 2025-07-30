@@ -32,10 +32,12 @@ import { useTaskStatusService } from "@/services/progressTaskServices";
 import DocumentItem from "@/components/molecules/document-item";
 import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
+import { WEBSOCKET_CONFIG } from "@/config/websocket";
 
 export default function MatrixTemplate2() {
+  const router = useRouter();
   // State cho chọn trường, lớp, môn
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -51,10 +53,12 @@ export default function MatrixTemplate2() {
   const { data: bookType } = useBookTypeByIdService(query || "");
 
   const { mutate: executeTool } = useExecuteToolService();
-  const [wsUrl, setWsUrl] = useState("http://localhost:8085/websocket");
-  const [topic, setTopic] = useState("/user/queue/notifications");
+  const [wsUrl] = useState(WEBSOCKET_CONFIG.url);
+  const [topic] = useState(WEBSOCKET_CONFIG.topic);
   const [enabled, setEnabled] = useState(false);
   const [finalData, setFinalData] = useState<any>(null);
+
+  console.log(wsUrl,"tran")
 
   const { data, isConnected, error, sendMessage, reconnect } =
     useSimpleWebSocket({
@@ -66,9 +70,8 @@ export default function MatrixTemplate2() {
   useEffect(() => {
     setFinalData(data);
     console.log("🔍 WebSocket data received:", data);
-  }, [data]);
+  }, [data, enabled]);
 
-  console.log(finalData, "finalData");
   // State for validation errors
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -291,8 +294,9 @@ export default function MatrixTemplate2() {
         setEnabled(true);
       },
       onError: (error) => {
-        toast.error("Gửi dữ liệu thất bại!");
-        console.error(error);
+        toast.error(
+          `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
+        );
       },
     });
   };
@@ -688,7 +692,7 @@ export default function MatrixTemplate2() {
                     errors.part2Total ? "text-red-700" : ""
                   }`}
                 >
-                  {calculateColumnTotals(matrix).part2Total}/64
+                  {calculateColumnTotals(matrix).part2Total}/8
                 </span>
                 {errors.part2Total && (
                   <span className="text-red-500 font-questrial text-xs mt-1">
@@ -750,8 +754,9 @@ export default function MatrixTemplate2() {
             <h1 className="font-calsans text-base">
               Đã tạo thành công đề theo ma trận trên
             </h1>
-            <div className="grid grid-cols-3" 
-          
+            <div
+              onClick={() => router.push(`${finalData?.online_links?.edit}`)}
+              className="grid grid-cols-3 cursor-pointer"
             >
               <DocumentItem
                 type="DOCX"
