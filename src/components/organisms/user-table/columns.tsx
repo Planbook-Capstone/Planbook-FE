@@ -11,7 +11,9 @@ interface UserColumnHandlers {
   onToggleUserStatus: (user: UserWithWalletResponse) => void;
 }
 
-export const createUserColumns = (handlers: UserColumnHandlers): ColumnDef<UserWithWalletResponse>[] => [
+export const createUserColumns = (
+  handlers: UserColumnHandlers
+): ColumnDef<UserWithWalletResponse>[] => [
   {
     id: "index",
     header: "STT",
@@ -73,11 +75,11 @@ export const createUserColumns = (handlers: UserColumnHandlers): ColumnDef<UserW
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
             isDisabled
-              ? "bg-red-100 text-red-800"
-              : "bg-green-100 text-green-800"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
           }`}
         >
-          {isDisabled ? "Đã vô hiệu hóa" : "Hoạt động"}
+          {isDisabled ? "Hoạt động" : "Đã vô hiệu hóa"}
         </span>
       );
     },
@@ -110,7 +112,11 @@ export const createUserColumns = (handlers: UserColumnHandlers): ColumnDef<UserW
             }`}
             title={user.status === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"}
           >
-            {user.status === "ACTIVE" ? <UserX size={16} /> : <UserCheck size={16} />}
+            {user.status === "ACTIVE" ? (
+              <UserX size={16} />
+            ) : (
+              <UserCheck size={16} />
+            )}
           </Button>
         </div>
       );
