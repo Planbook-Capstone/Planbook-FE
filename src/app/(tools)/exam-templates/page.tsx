@@ -26,7 +26,7 @@ import { CreateInstanceForm } from "@/components/organisms/create-instance-form"
 import TemplatePreviewModal from "@/components/organisms/template-preview-modal";
 import {
   useCreateExamInstanceService,
-  CreateExamInstanceData
+  CreateExamInstanceData,
 } from "@/services/examInstanceServices";
 import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
 import { ExamTemplateProvider } from "@/contexts/ExamTemplateContext";
@@ -46,11 +46,14 @@ function ExamTemplatesPageContent() {
 
   // States for create instance modal
   const [showCreateInstanceModal, setShowCreateInstanceModal] = useState(false);
-  const [selectedTemplateForInstance, setSelectedTemplateForInstance] = useState<ExamTemplate | null>(null);
+  const [selectedTemplateForInstance, setSelectedTemplateForInstance] =
+    useState<ExamTemplate | null>(null);
 
   // States for preview modal
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [selectedTemplateForPreview, setSelectedTemplateForPreview] = useState<string | null>(null);
+  const [selectedTemplateForPreview, setSelectedTemplateForPreview] = useState<
+    string | null
+  >(null);
 
   // Initialize the exam import service
   const { mutate: importExam, isPending: isImporting } = useExamImportService();
@@ -210,7 +213,7 @@ function ExamTemplatesPageContent() {
 
         // Close modal and navigate to exam-creation
         setShowCreationModal(false);
-        router.push("/exam-creation");
+        router.push("/exam-templates/create");
       },
       onError: (error) => {
         console.error("Exam import failed:", error);
@@ -222,7 +225,7 @@ function ExamTemplatesPageContent() {
   const handleCreateManually = () => {
     setShowCreationModal(false);
     // Navigate to exam-creation for manual creation
-    router.push("/exam-creation");
+    router.push("/exam-templates/create");
   };
 
   const handleModalClose = () => {
