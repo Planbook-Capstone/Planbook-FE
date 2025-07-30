@@ -32,6 +32,8 @@ export default function SlideEditorDemo() {
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("6"); // Default to "6"
   const [isAutoProcessing, setIsAutoProcessing] = useState(false);
+  const [shouldTriggerAfterTemplateLoad, setShouldTriggerAfterTemplateLoad] =
+    useState(false);
 
   // Get template
   // const {
@@ -71,6 +73,8 @@ export default function SlideEditorDemo() {
       "🔍 websocketData received:",
       websocketData?.partial_result?.processed_template?.slides
     );
+
+    console.log(templateDetail, "detail nè");
 
     const newSlides = websocketData?.partial_result?.processed_template?.slides;
     if (newSlides && newSlides.length > 0) {
@@ -117,12 +121,29 @@ export default function SlideEditorDemo() {
   useEffect(() => {
     if (templateDetail) {
       console.log("🎯 Template loaded:", templateDetail);
-      // Don't auto-trigger here, wait for user to click "Chọn mẫu này"
+      console.log(templateDetail, "detail nè");
+
+      // Auto-trigger if flag is set (after user selected template)
+      if (
+        shouldTriggerAfterTemplateLoad &&
+        selectedBookId &&
+        selectedLessonId
+      ) {
+        console.log("🚀 Auto-triggering after template load");
+        setShouldTriggerAfterTemplateLoad(false); // Reset flag
+        triggerManualFunctions();
+      }
     }
     if (error) {
       console.error("❌ Error loading template:", error);
     }
-  }, [templateDetail, error]);
+  }, [
+    templateDetail,
+    error,
+    shouldTriggerAfterTemplateLoad,
+    selectedBookId,
+    selectedLessonId,
+  ]);
 
   // Auto show book/lesson modal first on load (optional)
   useEffect(() => {
@@ -312,10 +333,8 @@ export default function SlideEditorDemo() {
     setSelectedTemplateId(templateId);
     console.log("✅ Selected Template ID:", templateId);
 
-    // Trigger manual functions when user selects template (clicks "Chọn mẫu này")
-    setTimeout(() => {
-      triggerManualFunctions();
-    }, 500); // Small delay to ensure template data is loaded
+    // Set flag to trigger after template loads
+    setShouldTriggerAfterTemplateLoad(true);
   };
 
   // Extract manual trigger functions
@@ -337,7 +356,10 @@ export default function SlideEditorDemo() {
       bookId: selectedBookId,
       lessonId: selectedLessonId,
       templateId: selectedTemplateId,
+      templateData: templateDetail.data, // Log template data
     });
+    console.log("Đây là template detail trong trigger: ", templateDetail.data);
+
     setIsAutoProcessing(true);
     toast.success("🚀 Bắt đầu xử lý template...");
 
@@ -348,6 +370,7 @@ export default function SlideEditorDemo() {
       selectedBookId &&
       selectedLessonId
     ) {
+      console.log("Đây là template detail: ", templateDetail.data);
       const payload = {
         toolId: bookType.data.id,
         toolType: "INTERNAL",

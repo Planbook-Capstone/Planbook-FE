@@ -134,7 +134,7 @@ export default function SlideEditorLayout({
       // Only update if slides actually changed
       if (JSON.stringify(slides) !== JSON.stringify(newSlides)) {
         console.log("🔄 Loading new slides");
-        setSlides(newSlides);
+        replaceSlidesState(newSlides);
 
         // Auto navigate to the last slide (newest) when slides are updated
         if (autoNavigateToLast) {
