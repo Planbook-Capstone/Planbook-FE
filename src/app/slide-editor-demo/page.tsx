@@ -13,12 +13,12 @@ import {
 import Loading from "@/components/ui/loading";
 import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
-import { WEBSOCKET_CONFIG } from "@/components/templates/lesson-plan/constants";
 import { useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
 import { toast } from "sonner";
 import { BookLessonSelectorModal } from "@/components/modals/BookLessonSelectorModal";
 import { TemplateSelector } from "@/components/modals/TemplateSelector";
+import { WEBSOCKET_CONFIG } from "@/config/websocket";
 
 export default function SlideEditorDemo() {
   const [slides, setSlides] = useState<any[]>([]);

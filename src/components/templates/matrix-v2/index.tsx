@@ -34,6 +34,7 @@ import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
+import { WEBSOCKET_CONFIG } from "@/config/websocket";
 
 export default function MatrixTemplate2() {
   const router = useRouter();
@@ -52,8 +53,8 @@ export default function MatrixTemplate2() {
   const { data: bookType } = useBookTypeByIdService(query || "");
 
   const { mutate: executeTool } = useExecuteToolService();
-  const [wsUrl, setWsUrl] = useState("http://localhost:8085/websocket");
-  const [topic, setTopic] = useState("/user/queue/notifications");
+  const [wsUrl] = useState(WEBSOCKET_CONFIG.url);
+  const [topic] = useState(WEBSOCKET_CONFIG.topic);
   const [enabled, setEnabled] = useState(false);
   const [finalData, setFinalData] = useState<any>(null);
 
@@ -67,8 +68,7 @@ export default function MatrixTemplate2() {
   useEffect(() => {
     setFinalData(data);
     console.log("🔍 WebSocket data received:", data);
-  }, [data,enabled]);
-  
+  }, [data, enabled]);
 
   // State for validation errors
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
