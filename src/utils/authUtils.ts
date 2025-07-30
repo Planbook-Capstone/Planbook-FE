@@ -1,5 +1,5 @@
 import api from "@/config/axios";
-import { API_ENDPOINTS } from "@/constants";
+import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 export const refreshAuthToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
