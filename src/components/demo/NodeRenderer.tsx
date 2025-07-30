@@ -479,7 +479,14 @@ export default function NodeRenderer({
               placeholder="Nhập tiêu đề subsection..."
             />
             {node.content && (
-              <div className=" text-gray-600 text-sm">{node.content}</div>
+              <div className="pl-6">
+                <RichTextarea
+                  className="w-full dotted-input text-zinc-700   resize-none overflow-hidden min-h-[24px] border-none outline-none bg-transparent leading-tight"
+                  placeholder="............................................"
+                  value={node.content || ""}
+                  onChange={(value) => onUpdateNodeContent(node.id, value)}
+                />
+              </div>
             )}
           </div>
         );
@@ -490,7 +497,7 @@ export default function NodeRenderer({
         case "INPUT":
           return (
             <RichTextarea
-              className="w-full dotted-input text-blue-600 resize-none overflow-hidden min-h-[24px] border-none outline-none bg-transparent leading-tight"
+              className="w-full dotted-input text-zinc-700   resize-none overflow-hidden min-h-[24px] border-none outline-none bg-transparent leading-tight"
               placeholder="............................................"
               value={node.content || ""}
               onChange={(value) => onUpdateNodeContent(node.id, value)}
@@ -622,24 +629,25 @@ export default function NodeRenderer({
 
       {/* Special rendering for LIST_ITEM with flex layout */}
       {node.type === "LIST_ITEM" && (
-        <div className="flex items-start gap-3 flex-wrap">
-          <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex flex-col items-start gap-0 flex-wrap w-full">
+          <div className="flex items-center gap-1 w-full">
             <input
               type="text"
-              className="font-medium border-none outline-none bg-transparent w-auto min-w-[80px]"
+              className="font-bold border-none outline-none bg-transparent w-auto "
               value={node.title}
               onChange={(e) => onUpdateNodeTitle(node.id, e.target.value)}
               placeholder="Tiêu đề..."
               size={Math.max(node.title?.length || 8, 8)}
             />
-            <span className="text-gray-600">:</span>
           </div>
-          <div className="flex-1 min-w-0">{renderField(node)}</div>
+          <div className="flex-1 min-w-0 pl-6">{renderField(node)}</div>
         </div>
       )}
 
       {/* Regular field rendering for non-LIST_ITEM types */}
-      {node.type !== "LIST_ITEM" && renderField(node)}
+      {node.type !== "LIST_ITEM" && (
+        <div className="pl-6">{renderField(node)}</div>
+      )}
 
       {/* Drop zone for this node */}
       <Droppable droppableId={`node-${node.id}`}>
