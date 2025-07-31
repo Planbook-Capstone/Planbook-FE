@@ -11,7 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, Search, Palette, X, MoreVertical } from "lucide-react";
+import {
+  Eye,
+  Search,
+  Palette,
+  X,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +28,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SlideTemplateResponse } from "@/types";
 import { useSlideTemplatesService } from "@/services/slideTemplateServices";
+import { TemplateCard } from "@/components/ui/TemplateCard";
+import Loading from "../ui/loading";
+import BannerWithOverlay from "../organisms/banner/BannerWithOverlay";
 
 interface TemplateSelectorProps {
   isOpen: boolean;
@@ -32,7 +43,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   isOpen,
   onClose,
   onSelectTemplate,
-  title = "Chọn mẫu slide",
+  title = "Chọn mẫu",
 }) => {
   // State management
   const [searchValue, setSearchValue] = useState("");
@@ -92,6 +103,23 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     onClose();
   };
 
+  // Navigation functions
+  const totalSlides = selectedTemplate
+    ? Object.keys(selectedTemplate.imageBlocks || {}).length || 1
+    : 1;
+
+  const handlePrevSlide = () => {
+    setSelectedThumbnailIndex((prev) =>
+      prev > 0 ? prev - 1 : totalSlides - 1
+    );
+  };
+
+  const handleNextSlide = () => {
+    setSelectedThumbnailIndex((prev) =>
+      prev < totalSlides - 1 ? prev + 1 : 0
+    );
+  };
+
   const handleClose = () => {
     setSearchValue("");
     setStatusFilter("all");
@@ -101,104 +129,13 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   };
 
   // Template card component
-  const TemplateCard = ({ template }: { template: SlideTemplateResponse }) => {
+  const TemplateItem = ({ template }: { template: SlideTemplateResponse }) => {
     return (
-      <div className="group relative bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200">
-        {/* Template Thumbnail */}
-        <div className="aspect-[16/9] bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
-          {Object.values(template.imageBlocks ?? {})[0] ? (
-            <img
-              src={Object.values(template.imageBlocks ?? {})[0]}
-              alt={template.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-center">
-                <Palette className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500 font-questrial">
-                  {template.name}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Hover overlay with actions */}
-          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleViewTemplate(template)}
-                className="bg-white text-gray-900 hover:bg-gray-100"
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                Xem
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleSelectTemplate(template)}
-                className="bg-green-500 text-white hover:bg-green-600"
-              >
-                <Palette className="w-4 h-4 mr-1" />
-                Chọn mẫu này
-              </Button>
-            </div>
-          </div>
-
-          {/* Actions dropdown */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-8 h-8 p-0 bg-white text-gray-900 hover:bg-gray-100"
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleViewTemplate(template)}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  Xem chi tiết
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleSelectTemplate(template)}
-                >
-                  <Palette className="w-4 h-4 mr-2" />
-                  Chọn mẫu này
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Template Info */}
-        <div className="p-4">
-          <h3 className="font-calsans text-lg text-gray-900 mb-2 line-clamp-1">
-            {template.name}
-          </h3>
-          <p className="text-sm text-gray-600 font-questrial mb-3 line-clamp-2">
-            {template.description || "Không có mô tả"}
-          </p>
-
-          {/* Template metadata */}
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>ID: {template.id}</span>
-            <span
-              className={`px-2 py-1 rounded-full ${
-                template.status === "ACTIVE"
-                  ? "bg-green-100 text-green-600"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              {template.status === "ACTIVE" ? "Hoạt động" : "Vô hiệu"}
-            </span>
-          </div>
-        </div>
-      </div>
+      <TemplateCard
+        template={template}
+        onView={handleViewTemplate}
+        onSelect={handleSelectTemplate}
+      />
     );
   };
 
@@ -207,53 +144,27 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   return (
     <>
       {/* Main Template Selector Modal */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
-          {/* Header */}
-          <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-xl font-bold">{title}</h2>
-            <button
-              onClick={handleClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          {/* Search and Filter */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center gap-4">
-              {/* Search Input */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Tìm kiếm theo tên, mô tả..."
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Status Filter */}
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Lọc theo trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  <SelectItem value="active">Hoạt động</SelectItem>
-                  <SelectItem value="inactive">Vô hiệu hoá</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto h-full bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg w-full p-6">
+          <BannerWithOverlay
+            videoSrc="https://res.cloudinary.com/dpo0ad3aq/video/upload/Scene_02_-_4K_3840x2160_gdzuhl.mp4"
+            onSearch={handleClose}
+            height="h-80"
+            title=""
+            grid={10}
+            mouse={0.1}
+            strength={0.15}
+            relaxation={0.9}
+            className="mb-8 object-center"
+            searchClassName="absolute bottom-10"
+            quickActions={[]}
+          />
 
           {/* Templates Grid */}
-          <div className="p-6 max-h-[60vh] overflow-y-auto">
+          <div className="mt-18">
             {isLoadingTemplates ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                <Loading />
                 <p className="mt-2 text-gray-500">Đang tải templates...</p>
               </div>
             ) : filteredTemplates.length === 0 ? (
@@ -267,9 +178,9 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredTemplates.map((template: SlideTemplateResponse) => (
-                  <TemplateCard key={template.id} template={template} />
+                  <TemplateItem key={template.id} template={template} />
                 ))}
               </div>
             )}
@@ -277,15 +188,14 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         </div>
       </div>
 
-      {/* View Template Modal - Beautiful Layout like original */}
       {isViewModalOpen && selectedTemplate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/30 bg-opacity-50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-7xl w-full max-h-[90vh] overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-3 h-full w-full">
               {/* Left side - Template Preview */}
-              <div className="lg:col-span-2 bg-gray-50 p-6 flex flex-col">
+              <div className="lg:col-span-2 bg-white p-6 flex flex-col">
                 {/* Template Main Preview */}
-                <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
+                <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4 relative group">
                   <div className="aspect-[16/9] bg-gradient-to-br from-blue-50 to-purple-50 relative">
                     {Object.values(selectedTemplate.imageBlocks ?? {})[
                       selectedThumbnailIndex
@@ -314,6 +224,32 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                           </p>
                         </div>
                       </div>
+                    )}
+
+                    {/* Navigation Arrows - Only show if more than 1 slide */}
+                    {totalSlides > 1 && (
+                      <>
+                        {/* Previous Arrow */}
+                        <button
+                          onClick={handlePrevSlide}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+
+                        {/* Next Arrow */}
+                        <button
+                          onClick={handleNextSlide}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+
+                        {/* Slide Counter */}
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          {selectedThumbnailIndex + 1} / {totalSlides}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -368,16 +304,6 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     <p className="text-sm text-gray-600 font-questrial mb-4">
                       {selectedTemplate.description || "Không có mô tả"}
                     </p>
-
-                    {/* Template ID info */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          Template #{selectedTemplate.id}
-                        </p>
-                        <p className="text-xs text-gray-500">ID Template</p>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Template Stats */}
@@ -387,20 +313,6 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                       <p className="text-lg font-semibold text-gray-900">
                         {Object.keys(selectedTemplate.imageBlocks || {})
                           .length || 1}
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500 mb-1">Trạng thái</p>
-                      <p
-                        className={`text-sm font-medium ${
-                          selectedTemplate.status === "ACTIVE"
-                            ? "text-green-600"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        {selectedTemplate.status === "ACTIVE"
-                          ? "Hoạt động"
-                          : "Vô hiệu"}
                       </p>
                     </div>
                   </div>
@@ -413,7 +325,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                       setIsViewModalOpen(false);
                       handleSelectTemplate(selectedTemplate);
                     }}
-                    className="w-full mb-3 bg-green-500 hover:bg-green-600"
+                    className="w-full mb-3 bg-[linear-gradient(227deg,_#20DCDF_40.38%,_#25BEE5_56.58%,_#2C99EE_66.8%,_#368BEB_79.32%,_#3860D2_90.53%)]"
                   >
                     <Palette className="w-4 h-4 mr-2" />
                     Chọn mẫu này

@@ -4,10 +4,16 @@ import React from "react";
 import GridDistortion from "./GridDistortion";
 import BannerOverlay from "./BannerOverlay";
 
+interface QuickAction {
+  title: string;
+  href: string;
+}
+
 interface BannerWithOverlayProps {
   imageSrc?: string;
   videoSrc?: string;
-  userName?: string;
+  title?: string;
+  subtitle?: string;
   onSearch?: (query: string) => void;
   className?: string;
   height?: string;
@@ -15,12 +21,15 @@ interface BannerWithOverlayProps {
   mouse?: number;
   strength?: number;
   relaxation?: number;
+  searchClassName?: string;
+  quickActions?: QuickAction[];
 }
 
 const BannerWithOverlay = ({
   imageSrc = "/images/background/abstract-bg.svg",
   videoSrc,
-  userName = "Nguyễn Văn A",
+  title,
+  subtitle,
   onSearch,
   className = "",
   height = "h-96",
@@ -28,12 +37,9 @@ const BannerWithOverlay = ({
   mouse = 0.1,
   strength = 0.15,
   relaxation = 0.9,
+  searchClassName = "",
+  quickActions,
 }: BannerWithOverlayProps) => {
-  const handleSearch = (query: string) => {
-    console.log("Search query:", query);
-    onSearch?.(query);
-  };
-
   return (
     <div
       className={`relative ${height} rounded-2xl overflow-hidden ${className}`}
@@ -50,7 +56,13 @@ const BannerWithOverlay = ({
       />
 
       {/* Overlay with greeting and search */}
-      <BannerOverlay userName={userName} onSearch={handleSearch} />
+      <BannerOverlay
+        searchClassName={searchClassName}
+        title={title}
+        subtitle={subtitle}
+        onSearch={onSearch}
+        quickActions={quickActions}
+      />
     </div>
   );
 };

@@ -24,12 +24,9 @@ interface BookLessonSelectorModalProps {
   title?: string;
 }
 
-export const BookLessonSelectorModal: React.FC<BookLessonSelectorModalProps> = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  title = "Chọn sách và bài học",
-}) => {
+export const BookLessonSelectorModal: React.FC<
+  BookLessonSelectorModalProps
+> = ({ isOpen, onClose, onConfirm, title = "Chọn sách và bài học" }) => {
   // State cho chọn sách
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string>("");
@@ -83,17 +80,11 @@ export const BookLessonSelectorModal: React.FC<BookLessonSelectorModalProps> = (
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-xl font-bold">{title}</h2>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
+        <div className="p-6 border-gray-200 flex justify-between items-center">
+          <h2 className="text-xl font-calsans">{title}</h2>
         </div>
 
         {/* Content */}
@@ -121,7 +112,7 @@ export const BookLessonSelectorModal: React.FC<BookLessonSelectorModalProps> = (
                   Chọn bài học cụ thể
                 </p>
               </div>
-              
+
               <div className="max-w-md">
                 <Select
                   value={selectedLesson}
@@ -147,26 +138,11 @@ export const BookLessonSelectorModal: React.FC<BookLessonSelectorModalProps> = (
               )}
             </div>
           )}
-
-          {/* Selected Info */}
-          {selectedBook && selectedLesson && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-semibold text-green-800 mb-2">Đã chọn:</h4>
-              <div className="space-y-1 text-sm">
-                <p><strong>Book ID:</strong> {selectedBook}</p>
-                <p><strong>Lesson ID:</strong> {selectedLesson}</p>
-                <p><strong>Lesson Name:</strong> {allLessons.find((l: any) => l.id === selectedLesson)?.name}</p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
-          <Button
-            variant="outline"
-            onClick={handleClose}
-          >
+        <div className="p-6  border-gray-200 flex justify-end gap-3">
+          <Button variant="outline" onClick={handleClose}>
             Hủy
           </Button>
           <Button
