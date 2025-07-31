@@ -194,6 +194,17 @@ function LessonPlanTemplate() {
       mergeAIDataToFinalData,
     });
 
+  if (data?.status === "processing") {
+    return (
+      <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
+        <LoadingAI
+          message={data?.message || ""}
+          progress={data?.progress || 0}
+        />
+      </div>
+    );
+  }
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-screen bg-gray-50">
@@ -227,37 +238,36 @@ function LessonPlanTemplate() {
               onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
             />
           </div>
-          {data?.status === "processing" ? (
+          {/* {data?.status === "processing" ? (
             <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
               <LoadingAI
                 message={data?.message || ""}
                 progress={data?.progress || 0}
               />
             </div>
-          ) : (
-            <>
-              <StepFloatingPanel
-                items={items}
-                current={currentStep}
-                layout="horizontal"
-                visible={true}
-                onStepChange={handleChangeStep}
-                style={{ width: 300 }}
-                initialPosition={{ x: 500, y: 100 }}
-              />
-              {/* Canvas */}
-              <h1 className="font-calsans my-1 px-5 text-xl">
-                {items?.length > 0 && items[currentStep]?.title}
-              </h1>
-              <Canvas
-                demoData={demoData}
-                showDeleteButtons={showDeleteButtons}
-                onDeleteNode={handleDeleteNode}
-                onUpdateNodeTitle={handleTitleChange}
-                onUpdateNodeContent={handleInputChange}
-              />
-            </>
-          )}
+          ) : ( */}
+          <>
+            <StepFloatingPanel
+              items={items}
+              current={currentStep}
+              layout="horizontal"
+              visible={true}
+              onStepChange={handleChangeStep}
+              style={{ width: 300 }}
+              initialPosition={{ x: 500, y: 100 }}
+            />
+            {/* Canvas */}
+            <h1 className="font-calsans my-1 px-5 text-xl">
+              {items?.length > 0 && items[currentStep]?.title}
+            </h1>
+            <Canvas
+              demoData={demoData}
+              showDeleteButtons={showDeleteButtons}
+              onDeleteNode={handleDeleteNode}
+              onUpdateNodeTitle={handleTitleChange}
+              onUpdateNodeContent={handleInputChange}
+            />
+          </>
         </div>
 
         {/* Preview Modal */}

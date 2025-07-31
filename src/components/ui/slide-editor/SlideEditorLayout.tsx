@@ -1057,6 +1057,12 @@ export default function SlideEditorLayout({
       image: "/icons/diamond.svg",
       active: "/icons/diamond-active.svg",
     },
+    {
+      label: "Hiệu ứng",
+      key: "effects",
+      image: "/icons/sparkles.svg",
+      active: "/icons/sparkles-active.svg",
+    },
   ];
 
   return (
@@ -1127,6 +1133,218 @@ export default function SlideEditorLayout({
               currentBackground={currentSlide?.background || "#ffffff"}
               onBackgroundChange={handleBackgroundChange}
             />
+          )}
+
+          {activeTab === "effects" && (
+            <div className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-purple-500">✨</span>
+                  Hiệu ứng Slide
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Chọn hiệu ứng chuyển đổi giữa các slide
+                </p>
+              </div>
+
+              {/* Slide Transitions */}
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wide">
+                  Chuyển đổi Slide
+                </h3>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    onClick={() => setSelectedTransition("fade")}
+                    className={`p-3 border rounded-lg transition-all duration-200 text-center group cursor-pointer ${
+                      selectedTransition === "fade"
+                        ? "border-purple-500 bg-purple-100 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-purple-300 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">🌅</div>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedTransition === "fade"
+                          ? "text-purple-700"
+                          : "text-gray-700 group-hover:text-purple-700"
+                      }`}
+                    >
+                      Fade
+                    </div>
+                    <p
+                      className={`text-xs ${
+                        selectedTransition === "fade"
+                          ? "text-purple-600"
+                          : "text-gray-500 group-hover:text-purple-600"
+                      }`}
+                    >
+                      Mờ dần
+                    </p>
+                    {selectedTransition === "fade" && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-500 text-white">
+                          ✓ Đã chọn
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedTransition("slide")}
+                    className={`p-3 border rounded-lg transition-all duration-200 text-center group cursor-pointer ${
+                      selectedTransition === "slide"
+                        ? "border-purple-500 bg-purple-100 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-purple-300 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">➡️</div>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedTransition === "slide"
+                          ? "text-purple-700"
+                          : "text-gray-700 group-hover:text-purple-700"
+                      }`}
+                    >
+                      Slide
+                    </div>
+                    <p
+                      className={`text-xs ${
+                        selectedTransition === "slide"
+                          ? "text-purple-600"
+                          : "text-gray-500 group-hover:text-purple-600"
+                      }`}
+                    >
+                      Trượt ngang
+                    </p>
+                    {selectedTransition === "slide" && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-500 text-white">
+                          ✓ Đã chọn
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedTransition("zoom")}
+                    className={`p-3 border rounded-lg transition-all duration-200 text-center group cursor-pointer ${
+                      selectedTransition === "zoom"
+                        ? "border-purple-500 bg-purple-100 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-purple-300 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">🔍</div>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedTransition === "zoom"
+                          ? "text-purple-700"
+                          : "text-gray-700 group-hover:text-purple-700"
+                      }`}
+                    >
+                      Zoom
+                    </div>
+                    <p
+                      className={`text-xs ${
+                        selectedTransition === "zoom"
+                          ? "text-purple-600"
+                          : "text-gray-500 group-hover:text-purple-600"
+                      }`}
+                    >
+                      Phóng to/nhỏ
+                    </p>
+                    {selectedTransition === "zoom" && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-500 text-white">
+                          ✓ Đã chọn
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => setSelectedTransition("flip")}
+                    className={`p-3 border rounded-lg transition-all duration-200 text-center group cursor-pointer opacity-60 ${
+                      selectedTransition === "flip"
+                        ? "border-purple-500 bg-purple-100 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-purple-300 hover:bg-purple-50"
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">🔄</div>
+                    <div
+                      className={`text-xs font-medium ${
+                        selectedTransition === "flip"
+                          ? "text-purple-700"
+                          : "text-gray-700 group-hover:text-purple-700"
+                      }`}
+                    >
+                      Flip
+                    </div>
+                    <p
+                      className={`text-xs ${
+                        selectedTransition === "flip"
+                          ? "text-purple-600"
+                          : "text-gray-500 group-hover:text-purple-600"
+                      }`}
+                    >
+                      Lật 3D (sắp có)
+                    </p>
+                    {selectedTransition === "flip" && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-400 text-white">
+                          🚧 Sắp có
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Selection */}
+              <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                <h4 className="text-sm font-medium text-purple-700 mb-2 flex items-center gap-2">
+                  🎯 Hiệu ứng hiện tại
+                </h4>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">
+                    {selectedTransition === "fade" && "🌅"}
+                    {selectedTransition === "slide" && "➡️"}
+                    {selectedTransition === "zoom" && "🔍"}
+                    {selectedTransition === "flip" && "🔄"}
+                  </span>
+                  <span className="text-sm font-medium text-purple-700 capitalize">
+                    {selectedTransition === "fade" && "Fade - Mờ dần"}
+                    {selectedTransition === "slide" && "Slide - Trượt ngang"}
+                    {selectedTransition === "zoom" && "Zoom - Phóng to/nhỏ"}
+                    {selectedTransition === "flip" && "Flip - Lật 3D (sắp có)"}
+                  </span>
+                </div>
+                <p className="text-xs text-purple-600 mt-1">
+                  Hiệu ứng này sẽ áp dụng khi chuyển slide trong presentation
+                </p>
+              </div>
+
+              {/* Tips Section */}
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-700 mb-2">
+                  💡 Cách sử dụng
+                </h4>
+                <ul className="text-xs text-blue-600 space-y-1">
+                  <li>
+                    • <strong>Chọn hiệu ứng</strong> bằng cách click vào card
+                  </li>
+                  <li>
+                    • <strong>Mở presentation mode</strong> (F5)
+                  </li>
+                  <li>
+                    • <strong>Chuyển slide</strong> bằng arrow keys hoặc click
+                  </li>
+                  <li>
+                    • <strong>Enjoy</strong> smooth transitions! ✨
+                  </li>
+                </ul>
+              </div>
+            </div>
           )}
 
           {/* Main Editor Area */}

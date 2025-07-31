@@ -76,7 +76,7 @@ export default function Sidebar({
       >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="components" className="text-xs">
-            Components
+            Thành phần
           </TabsTrigger>
           <TabsTrigger value="images" className="text-xs">
             <div className="flex items-center gap-1">
@@ -97,7 +97,7 @@ export default function Sidebar({
         >
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-3">
-              Kéo thả để thêm components
+              Kéo thả để thêm thành phần mới
             </h3>
             <Droppable droppableId="component-palette" isDropDisabled>
               {(provided) => (
