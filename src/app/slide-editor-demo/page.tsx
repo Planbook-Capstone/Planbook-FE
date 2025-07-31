@@ -62,8 +62,8 @@ export default function SlideEditorDemo() {
   const [finalData, setFinalData] = useState<any>(null);
 
   useEffect(() => {
+    console.log("🔍 WebSocket data received:", websocketData);
     setFinalData(websocketData);
-
     const newSlides = websocketData?.partial_result?.processed_template?.slides;
     if (newSlides && newSlides.length > 0) {
       setSlides(newSlides);
