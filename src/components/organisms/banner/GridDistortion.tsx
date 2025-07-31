@@ -75,6 +75,8 @@ const GridDistortion = ({
     };
 
     // Load video or image
+    console.log("GridDistortion - videoSrc:", videoSrc, "imageSrc:", imageSrc);
+
     if (videoSrc) {
       const video = document.createElement("video");
       video.src = videoSrc;
@@ -103,13 +105,24 @@ const GridDistortion = ({
           console.error("Video play failed:", error);
         });
     } else if (imageSrc) {
+      console.log("Loading image:", imageSrc);
       const textureLoader = new THREE.TextureLoader();
-      textureLoader.load(imageSrc, (texture) => {
-        texture.minFilter = THREE.LinearFilter;
-        imageAspectRef.current = texture.image.width / texture.image.height;
-        uniforms.uTexture.value = texture;
-        handleResize();
-      });
+      textureLoader.load(
+        imageSrc,
+        (texture) => {
+          console.log("Image loaded successfully:", imageSrc);
+          texture.minFilter = THREE.LinearFilter;
+          imageAspectRef.current = texture.image.width / texture.image.height;
+          uniforms.uTexture.value = texture;
+          handleResize();
+        },
+        undefined,
+        (error) => {
+          console.error("Failed to load image:", imageSrc, error);
+        }
+      );
+    } else {
+      console.log("No videoSrc or imageSrc provided");
     }
 
     const size = grid;
@@ -152,9 +165,8 @@ const GridDistortion = ({
       const scale = Math.max(containerAspect / imageAspect, 1);
       plane.scale.set(imageAspect * scale, scale, 1);
 
-      // Position plane to top instead of center
-      const planeHeight = scale;
-      plane.position.y = (1 - planeHeight) / 2;
+      // Center the plane vertically
+      plane.position.y = 0;
 
       const frustumHeight = 1;
       const frustumWidth = frustumHeight * containerAspect;

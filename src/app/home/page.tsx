@@ -54,7 +54,7 @@ export default function Home() {
       <BannerOverlay
         imageSrc="/images/background/abstract-bg.svg"
         videoSrc="https://res.cloudinary.com/dpo0ad3aq/video/upload/Scene_03_-_4K_3840x2160_h0awgk.mp4"
-        userName={displayName || "Người dùng ẩn danh"}
+        title={"Chào mừng " + displayName || "Chào mừng Người dùng ẩn danh"}
         onSearch={(query) => console.log("Searching for:", query)}
         height="h-80"
         grid={10}

@@ -34,6 +34,7 @@ interface SlideEditorHeaderProps {
   hasLoadedData?: boolean;
   showTemplateActions?: boolean;
   templateData?: SlideTemplateTempData;
+  userRole?: string;
 }
 
 export default function SlideEditorHeader({
@@ -56,6 +57,7 @@ export default function SlideEditorHeader({
   isLoadingData = false,
   hasLoadedData = false,
   showTemplateActions = false,
+  userRole = "admin",
 }: SlideEditorHeaderProps) {
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
@@ -70,55 +72,59 @@ export default function SlideEditorHeader({
 
       {/* Right Section - File Actions */}
       <div className="flex items-center gap-2">
-        {/* Undo/Redo Buttons */}
-        <div className="flex items-center gap-1 mr-2">
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
-              canUndo
-                ? "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                : "text-gray-300 cursor-not-allowed"
-            }`}
-            title="Undo (Ctrl+Z)"
-          >
-            <Undo className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onRedo}
-            disabled={!canRedo}
-            className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
-              canRedo
-                ? "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                : "text-gray-300 cursor-not-allowed"
-            }`}
-            title="Redo (Ctrl+Y)"
-          >
-            <Redo className="w-4 h-4" />
-          </button>
-        </div>
+        {/* Undo/Redo Buttons - Hidden for teachers */}
+        {userRole !== "TEACHER" && (
+          <div className="flex items-center gap-1 mr-2">
+            <button
+              onClick={onUndo}
+              disabled={!canUndo}
+              className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+                canUndo
+                  ? "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  : "text-gray-300 cursor-not-allowed"
+              }`}
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onRedo}
+              disabled={!canRedo}
+              className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+                canRedo
+                  ? "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  : "text-gray-300 cursor-not-allowed"
+              }`}
+              title="Redo (Ctrl+Y)"
+            >
+              <Redo className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
-        {/* Load Sample Data Button */}
-        <button
-          onClick={onLoadSampleData}
-          disabled={isLoadingData}
-          className={`px-4 py-2 bg-neutral-800 text-white text-sm rounded-full transition-colors flex items-center gap-2 ${
-            isLoadingData
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-neutral-700"
-          }`}
-          title="Load sample presentation data"
-        >
-          {isLoadingData ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Upload className="w-4 h-4" />
-          )}
-          {isLoadingData ? "Loading..." : "Load Data"}
-        </button>
+        {/* Load Sample Data Button - Hidden for teachers */}
+        {userRole !== "TEACHER" && (
+          <button
+            onClick={onLoadSampleData}
+            disabled={isLoadingData}
+            className={`px-4 py-2 bg-neutral-800 text-white text-sm rounded-full transition-colors flex items-center gap-2 ${
+              isLoadingData
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-neutral-700"
+            }`}
+            title="Load sample presentation data"
+          >
+            {isLoadingData ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Upload className="w-4 h-4" />
+            )}
+            {isLoadingData ? "Loading..." : "Load Data"}
+          </button>
+        )}
 
-        {/* Clear Data Button */}
-        {hasLoadedData && (
+        {/* Clear Data Button - Hidden for teachers */}
+        {userRole !== "TEACHER" && hasLoadedData && (
           <button
             onClick={onClearData}
             className="px-4 py-2 bg-gray-500 text-white text-sm rounded-full hover:bg-gray-600 transition-colors flex items-center gap-2"
@@ -129,15 +135,19 @@ export default function SlideEditorHeader({
           </button>
         )}
 
-        <button
-          onClick={onImport}
-          className="px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 hover:bg-neutral-100"
-          title="Import JSON file"
-        >
-          <Upload className="w-4 h-4" />
-          Import JSON
-        </button>
+        {/* Import JSON Button - Hidden for teachers */}
+        {userRole !== "TEACHER" && (
+          <button
+            onClick={onImport}
+            className="px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 hover:bg-neutral-100"
+            title="Import JSON file"
+          >
+            <Upload className="w-4 h-4" />
+            Import JSON
+          </button>
+        )}
 
+        {/* Export PPTX Button - Always visible */}
         <button
           onClick={onExportPPTX}
           disabled={isExporting}
@@ -154,14 +164,17 @@ export default function SlideEditorHeader({
           {isExporting ? "Đang xuất..." : "Tải PPTX"}
         </button>
 
-        <button
-          onClick={onExportJSON}
-          className="px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 hover:bg-neutral-100"
-          title="Export to JSON"
-        >
-          <FileText className="w-4 h-4" />
-          Tải JSON
-        </button>
+        {/* Export JSON Button - Hidden for teachers */}
+        {userRole !== "TEACHER" && (
+          <button
+            onClick={onExportJSON}
+            className="px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 hover:bg-neutral-100"
+            title="Export to JSON"
+          >
+            <FileText className="w-4 h-4" />
+            Tải JSON
+          </button>
+        )}
 
         {/* Presentation Button - Always visible */}
         <button
@@ -173,7 +186,8 @@ export default function SlideEditorHeader({
           Trình chiếu
         </button>
 
-        {showTemplateActions ? (
+        {/* Template Actions - Hidden for teachers */}
+        {showTemplateActions && userRole !== "TEACHER" ? (
           <>
             <button
               onClick={onCancel}
