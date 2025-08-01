@@ -25,7 +25,7 @@ function UserButton() {
 
   const { data: wallet } = useWalletService("");
 
-  console.log(wallet?.data?.balance, "wallet");
+ 
 
   if (!isAuthenticated) {
     return null;

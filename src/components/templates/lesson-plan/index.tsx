@@ -8,6 +8,8 @@ import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 import LoadingAI from "@/components/molecules/loading";
+import { toast } from "sonner";
+import { useUpdateToolResultService, useToolResultByIdService } from "@/services/toolResultService";
 
 // Custom hooks
 import { useLessonPlanData } from "./hooks/useLessonPlanData";
@@ -143,11 +145,9 @@ function LessonPlanTemplate() {
       }
 
       const currentStepId = items[currentStep].id.toString();
-      console.log("🎯 Current step ID:", currentStepId);
 
       // Get current step data from finalData or demoData
       const currentStepData = finalData[currentStepId] || demoData;
-      console.log("📊 Current step data:", currentStepData);
 
       // Merge logic: if same id then update, otherwise add new
       const mergedData = [...currentStepData];
@@ -184,17 +184,68 @@ function LessonPlanTemplate() {
   );
 
   // Use generation hook
-  const { data, handleGenerationLessonPlan, handleDownloadDocx } =
-    useLessonPlanGeneration({
-      demoData,
-      lessonId,
-      lessonById,
-      getAllFinalData,
-      convertLessonPlanToDemoNode,
-      mergeAIDataToFinalData,
-    });
+  const {
+    data,
+    bookType,
+    handleGenerationLessonPlan,
+    handleDownloadDocx,
+    resultId,
+  } = useLessonPlanGeneration({
+    demoData,
 
-  if (data?.status === "processing") {
+    lessonId,
+    lessonById,
+    getAllFinalData,
+    convertLessonPlanToDemoNode,
+    mergeAIDataToFinalData,
+  });
+
+  // Use tool result service for saving results
+  const { mutate: updateToolResult, isPending: isSavingResult } =
+    useUpdateToolResultService();
+
+  // Fetch current tool result data to get existing name and description
+  const { data: currentToolResult } = useToolResultByIdService(resultId || "", {
+    enabled: !!resultId, // Only fetch when resultId exists
+  });
+
+  // Handle save result function
+  const handleSaveResult = useCallback(
+    (formData: { name: string; description?: string }) => {
+      if (!resultId) {
+        toast.error("Không tìm thấy result ID để lưu kết quả");
+        return;
+      }
+
+      const saveData = {
+        name: formData.name,
+        description: formData.description || "",
+        data: getAllFinalData(),
+        status: "ARCHIVED",
+      };
+
+      updateToolResult(
+        {
+          id: resultId,
+          data: saveData,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Lưu kết quả thành công!");
+          },
+          onError: (error: any) => {
+            console.error("Error saving result:", error);
+            toast.error(
+              error?.response?.data?.message || "Có lỗi xảy ra khi lưu kết quả"
+            );
+          },
+        }
+      );
+    },
+    [resultId, getAllFinalData, lessonId, lessonById?.data, updateToolResult]
+  );
+
+  if (data?.status === "processing" && data?.tool_code === bookType?.code) {
     return (
       <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
         <LoadingAI
@@ -238,14 +289,7 @@ function LessonPlanTemplate() {
               onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
             />
           </div>
-          {/* {data?.status === "processing" ? (
-            <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
-              <LoadingAI
-                message={data?.message || ""}
-                progress={data?.progress || 0}
-              />
-            </div>
-          ) : ( */}
+
           <>
             <StepFloatingPanel
               items={items}
@@ -277,6 +321,8 @@ function LessonPlanTemplate() {
           data={getAllFinalData()}
           onDownload={handleDownloadDocx}
           lesson={lessonById?.data}
+          onSaveResult={handleSaveResult}
+          currentResultData={currentToolResult?.data}
         />
       </div>
     </DragDropContext>

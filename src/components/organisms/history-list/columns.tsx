@@ -4,10 +4,12 @@ import { MoreVertical } from "lucide-react";
 
 export type HistoryItem = {
   id: number;
-  title: string;
+  code: string;
   description: string;
   updatedAt: string;
   sources: string;
+  lessonIds: string;
+  tokenUsed: number;
 };
 
 export const historyColumns: ColumnDef<HistoryItem>[] = [
@@ -31,34 +33,45 @@ export const historyColumns: ColumnDef<HistoryItem>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "title",
-    header: "Tên",
+    accessorKey: "code",
+    header: "Chức năng sử dụng",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span className="font-medium truncate max-w-[150px]">
-          {row.original.title}
+          {row.original?.code}
         </span>
       </div>
     ),
   },
   {
-    accessorKey: "description",
-    header: "Mô tả",
+    accessorKey: "lessonIds",
+    header: "Bài học đã chọn",
     cell: ({ row }) => (
       <div className="text-muted-foreground truncate max-w-[240px]">
-        {row.original.description}
+        {row.original?.lessonIds}
       </div>
     ),
   },
   {
     accessorKey: "updatedAt",
-    header: "Ngày cập nhật",
-    cell: ({ row }) => <span>{row.original.updatedAt}</span>,
+    header: "Cập nhật lần cuối",
+    cell: ({ row }) => (
+      <span>
+        {new Date(row.original.updatedAt).toLocaleString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false, // để dùng định dạng 24h thay vì AM/PM
+        })}
+      </span> 
+    ),
   },
   {
-    accessorKey: "sources",
-    header: "Nguồn",
-    cell: ({ row }) => <span>{row.original.sources}</span>,
+    accessorKey: "tokenUsed",
+    header: "Token đã sử dụng",
+    cell: ({ row }) => <span>{row.original.tokenUsed}</span>,
   },
   {
     id: "actions",

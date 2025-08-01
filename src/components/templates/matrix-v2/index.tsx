@@ -11,7 +11,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { TrashIcon } from "lucide-react";
+import { Eye, Save, TrashIcon } from "lucide-react";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
@@ -35,6 +35,11 @@ import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
 import { WEBSOCKET_CONFIG } from "@/config/websocket";
+import { useUpdateToolResultService, useToolResultByIdService } from "@/services/toolResultService";
+import ConfirmSaveResult from "@/components/modals/ConfirmSaveResult";
+import { Modal } from "@/components/ui/modal";
+import FileIcon from "@/components/ui/FileIcon";
+import { DowloadIcon } from "@/constants/icon";
 
 export default function MatrixTemplate2() {
   const router = useRouter();
@@ -47,16 +52,27 @@ export default function MatrixTemplate2() {
   const [duration, setDuration] = useState(45);
   const [response, setResponse] = useState<any>(null);
   const searchParams = useSearchParams();
-
+  const [resultId, setResultId] = useState<string | null>(null);
   const query = searchParams.get("bookTypeId");
 
   const { data: bookType } = useBookTypeByIdService(query || "");
 
   const { mutate: executeTool } = useExecuteToolService();
+
+  // Tool result services for saving
+  const { mutate: updateToolResult, isPending: isSavingResult } = useUpdateToolResultService();
+  const { data: currentToolResult } = useToolResultByIdService(resultId || "", {
+    enabled: !!resultId,
+  });
   const [wsUrl] = useState(WEBSOCKET_CONFIG.url);
   const [topic] = useState(WEBSOCKET_CONFIG.topic);
   const [enabled, setEnabled] = useState(false);
   const [finalData, setFinalData] = useState<any>(null);
+
+  // States for modals
+  const [showIframe, setShowIframe] = useState(false);
+  const [iframeUrl, setIframeUrl] = useState("");
+  const [showConfirmSaveResult, setShowConfirmSaveResult] = useState(false);
 
   const { data, isConnected, error, sendMessage, reconnect } =
     useSimpleWebSocket({
@@ -66,10 +82,67 @@ export default function MatrixTemplate2() {
     });
 
   useEffect(() => {
-    setFinalData(data);
-    console.log("🔍 WebSocket data received:", data);
+    if (data?.tool_code === bookType?.data?.code) {
+      setFinalData(data);
+      console.log("🔍 WebSocket data received:", data);
+      setResultId(data?.result_id);
+    }
   }, [data, enabled]);
 
+  // Handler functions for document actions
+  const handleViewDocument = () => {
+    if (finalData?.online_links?.view) {
+      setIframeUrl(finalData.online_links.view);
+      setShowIframe(true);
+    }
+  };
+
+  const handleDownloadDocument = () => {
+    if (finalData?.online_links?.download) {
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = finalData.online_links.download;
+      link.download = finalData?.message || 'document.docx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleSaveResult = (formData: { name: string; description?: string }) => {
+    if (!resultId) {
+      toast.error("Không tìm thấy result ID để lưu kết quả");
+      return;
+    }
+
+    const saveData = {
+      name: formData.name,
+      description: formData.description || "",
+      data:finalData.online_links,
+      status: "ARCHIVED",
+    };
+
+    updateToolResult(
+      {
+        id: resultId,
+        data: saveData,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Lưu kết quả thành công!");
+          setShowConfirmSaveResult(false);
+        },
+        onError: (error: any) => {
+          console.error("Error saving result:", error);
+          toast.error(
+            error?.response?.data?.message || "Có lỗi xảy ra khi lưu kết quả"
+          );
+        },
+      }
+    );
+  };
+
+ 
   // State for validation errors
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -336,7 +409,10 @@ export default function MatrixTemplate2() {
   //   );
   // }
 
-  if (data?.status === "processing") {
+  if (
+    data?.status === "processing" &&
+    data?.tool_code === bookType?.data?.code
+  ) {
     return (
       <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
         <LoadingAI
@@ -507,55 +583,68 @@ export default function MatrixTemplate2() {
             <tr key={rowIdx} className="font-questrial">
               <td className="border px-2 py-1 min-w-[180px]">
                 <div className="flex flex-col">
-                  <Select
-                    key={`lesson-select-${rowIdx}`}
-                    value={row.lessonID || "CLEAR_SELECTION"}
-                    onValueChange={(val) => {
-                      console.log(`Changing lesson for row ${rowIdx} to:`, val);
-                      // Handle clear selection
-                      const actualValue = val === "CLEAR_SELECTION" ? "" : val;
-                      handleMatrixChange(rowIdx, "lessonID", actualValue);
-                      // Clear error when user selects a lesson
-                      if (errors[`matrix_${rowIdx}_lesson`]) {
-                        setErrors((prev) => ({
-                          ...prev,
-                          [`matrix_${rowIdx}_lesson`]: "",
-                        }));
+                  {resultId ? (
+                    <Input
+                      value={
+                        allLessons.find(
+                          (lesson: any) => lesson.id === row.lessonID
+                        )?.name || "Chọn bài học"
                       }
-                    }}
-                  >
-                    <SelectTrigger
-                      className={`w-full min-h-[40px] bg-transparent focus:ring-0 focus:outline-none ${
-                        errors[`matrix_${rowIdx}_lesson`]
-                          ? "border-red-500"
-                          : ""
-                      }`}
+                      readOnly
+                      className="w-full min-h-[40px] bg-gray-100 cursor-not-allowed"
+                    />
+                  ) : (
+                    <Select
+                      key={`lesson-select-${rowIdx}`}
+                      value={row.lessonID || "CLEAR_SELECTION"}
+                      onValueChange={(val) => {
+                    
+                        // Handle clear selection
+                        const actualValue =
+                          val === "CLEAR_SELECTION" ? "" : val;
+                        handleMatrixChange(rowIdx, "lessonID", actualValue);
+                        // Clear error when user selects a lesson
+                        if (errors[`matrix_${rowIdx}_lesson`]) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            [`matrix_${rowIdx}_lesson`]: "",
+                          }));
+                        }
+                      }}
                     >
-                      <SelectValue placeholder="Chọn bài học" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CLEAR_SELECTION">
-                        <span className="text-gray-500 italic">
-                          -- Chọn bài học --
-                        </span>
-                      </SelectItem>
-                      {allLessons
-                        .filter((item: any) => {
-                          // Lọc ra các bài học đã được chọn ở các hàng khác
-                          const selectedLessons = matrix
-                            .map((row, index) =>
-                              index !== rowIdx ? row.lessonID : null
-                            )
-                            .filter(Boolean);
-                          return !selectedLessons.includes(item.id);
-                        })
-                        .map((item: any) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                      <SelectTrigger
+                        className={`w-full min-h-[40px] bg-transparent focus:ring-0 focus:outline-none ${
+                          errors[`matrix_${rowIdx}_lesson`]
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      >
+                        <SelectValue placeholder="Chọn bài học" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CLEAR_SELECTION">
+                          <span className="text-gray-500 italic">
+                            -- Chọn bài học --
+                          </span>
+                        </SelectItem>
+                        {allLessons
+                          .filter((item: any) => {
+                            // Lọc ra các bài học đã được chọn ở các hàng khác
+                            const selectedLessons = matrix
+                              .map((row, index) =>
+                                index !== rowIdx ? row.lessonID : null
+                              )
+                              .filter(Boolean);
+                            return !selectedLessons.includes(item.id);
+                          })
+                          .map((item: any) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   {errors[`matrix_${rowIdx}_lesson`] && (
                     <p className="text-red-500 text-xs mt-1">
                       {errors[`matrix_${rowIdx}_lesson`]}
@@ -573,28 +662,35 @@ export default function MatrixTemplate2() {
                           type="number"
                           min={0}
                           value={row.distribution[part][level]}
-                          onChange={(e: any) => {
-                            const value = Number(e.target.value);
-                            handleDistributionChange(
-                              rowIdx,
-                              part,
-                              level,
-                              value
-                            );
-                            // Clear error when user enters a non-negative value
-                            if (errors[fieldKey] && value >= 0) {
-                              setErrors((prev) => ({
-                                ...prev,
-                                [fieldKey]: "",
-                              }));
-                            }
-                          }}
+                          onChange={
+                            resultId
+                              ? undefined
+                              : (e: any) => {
+                                  const value = Number(e.target.value);
+                                  handleDistributionChange(
+                                    rowIdx,
+                                    part,
+                                    level,
+                                    value
+                                  );
+                                  // Clear error when user enters a non-negative value
+                                  if (errors[fieldKey] && value >= 0) {
+                                    setErrors((prev) => ({
+                                      ...prev,
+                                      [fieldKey]: "",
+                                    }));
+                                  }
+                                }
+                          }
+                          readOnly={!!resultId}
                           placeholder={level.toUpperCase()}
-                          className={
+                          className={`${
+                            resultId ? "bg-gray-100 cursor-not-allowed" : ""
+                          } ${
                             errors[fieldKey]
                               ? "border-red-500 focus:border-red-500"
                               : ""
-                          }
+                          }`}
                         />
                         {errors[fieldKey] && (
                           <p className="text-red-500 text-xs mt-1">
@@ -630,18 +726,20 @@ export default function MatrixTemplate2() {
                   size="sm"
                   type="button"
                   className={`px-0 py-5 bg-transparent shadow-none hover:bg-transparent hover:shadow-none group transition-colors duration-200 ${
-                    matrix.length <= 1 ? "opacity-50 cursor-not-allowed" : ""
+                    matrix.length <= 1 || resultId
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
                   onClick={() => {
-                    if (matrix.length > 1) {
+                    if (matrix.length > 1 && !resultId) {
                       removeMatrixRow(rowIdx);
                     }
                   }}
-                  disabled={matrix.length <= 1}
+                  disabled={matrix.length <= 1 || !!resultId}
                 >
                   <TrashIcon
                     className={`${
-                      matrix.length <= 1
+                      matrix.length <= 1 || resultId
                         ? "text-neutral-400"
                         : "text-neutral-600 group-hover:text-red-500"
                     } transition-colors duration-200`}
@@ -738,8 +836,11 @@ export default function MatrixTemplate2() {
         <Button
           variant="dash"
           type="button"
-          className="mt-4 rounded-md w-full"
-          onClick={addMatrixRow}
+          className={`mt-4 rounded-md w-full ${
+            resultId ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          onClick={resultId ? undefined : addMatrixRow}
+          disabled={!!resultId}
         >
           Thêm dòng mới +
         </Button>
@@ -747,52 +848,90 @@ export default function MatrixTemplate2() {
 
       {/* Create Exam Button */}
 
-      {finalData ? (
+      {finalData && resultId ? (
         <div className="flex justify-between items-center mb-10 mt-5">
           <div className="space-y-3">
             <h1 className="font-calsans text-base">
               Đã tạo thành công đề theo ma trận trên
             </h1>
-            <div
-              onClick={() => router.push(`${finalData?.online_links?.edit}`)}
-              className="grid grid-cols-3 cursor-pointer"
-            >
-              <DocumentItem
-                type="DOCX"
-                name={finalData?.message || "Không xác định"}
-                description="Đề thi thông minh"
-                onRemove={() => {
-                  console.log("remove");
-                }}
-              />
+            <div className="grid grid-cols-3 cursor-pointer">
+              <div className="flex items-center justify-between border rounded-md px-4 py-4 bg-white relative">
+                <div className="flex gap-4">
+                  <FileIcon type={"DOCX"} size={"lg"} />
+                  <div className="text-sm flex flex-col gap-2">
+                    <p className="font-calsans text-base">
+                      {finalData?.message || "Không xác định"}
+                    </p>
+                    <p className=" line-clamp-2 text-sm font-questrial">
+                      Đề thi thông minh
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Button
+                    variant={"dash"}
+                    onClick={handleViewDocument}
+                  >
+                    <Eye />
+                  </Button>
+                  <Button
+                    onClick={handleDownloadDocument}
+                  >
+                    {DowloadIcon}
+                  </Button>
+                  <Button
+                    variant={"outline"}
+                    onClick={() => setShowConfirmSaveResult(true)}
+                  >
+                    <Save />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-          <Button
-            type="button"
-            className="px-8 py-3  text-white font-medium rounded-md"
-            // disabled={isPending}
-          >
-            Tạo lại
-          </Button>
         </div>
       ) : (
         <div className="mt-6 flex justify-end">
           <Button
             type="button"
-            className="px-8 py-3  text-white font-medium rounded-md"
-            onClick={handleCreateExam}
-            // disabled={isPending}
+            className={`px-8 py-3 text-white font-medium rounded-md ${
+              resultId ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={resultId ? undefined : handleCreateExam}
+            disabled={!!resultId}
           >
             Tạo đề thi
           </Button>
         </div>
       )}
 
-      {/* <hr className="my-6" />
-      <h3 className="font-bold mb-2">Matrix JSON</h3>
-      <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-        {JSON.stringify(mapToBackend(), null, 2)}
-      </pre> */}
+      {/* Iframe Modal for viewing document */}
+      <Modal
+        isOpen={showIframe}
+        onClose={() => setShowIframe(false)}
+        title="Xem trước tài liệu"
+        size="xl"
+      >
+        <div className="w-full h-[85vh]">
+          <iframe
+            src={iframeUrl}
+            className="w-full h-full border-0"
+            title="Document Preview"
+          />
+        </div>
+      </Modal>
+
+      {/* Confirm Save Result Modal */}
+      <ConfirmSaveResult
+        isOpen={showConfirmSaveResult}
+        onClose={() => setShowConfirmSaveResult(false)}
+        onConfirm={handleSaveResult}
+        resultId={resultId || ""}
+        data={mapToBackend()}
+        isLoading={isSavingResult}
+        initialName={currentToolResult?.data?.name || ""}
+        initialDescription={currentToolResult?.data?.description || ""}
+      />
     </div>
   );
 }
