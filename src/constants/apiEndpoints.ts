@@ -1,7 +1,7 @@
 const SERVICES = {
   AUTH: "identity-service",
-  MASTER_DATA: "master-data-service",
-  LESSON_PLAN: "lesson-plan-template-service",
+  MASTER_DATA: "master-data-service-local",
+  LESSON_PLAN: "lesson-plan-service",
   ACADEMIC_RESOURCE: "academic-resource-service",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
@@ -30,6 +30,9 @@ export const API_ENDPOINTS = {
 
   // Academic Years
   ACADEMIC_YEARS: buildEndpoint(SERVICES.WORKSPACE, "/academic-years"),
+
+  //TOOL RESULT IN WORKSPACE
+  TOOL_RESULTS: buildEndpoint(SERVICES.WORKSPACE, "/tool-results"),
 
   MASTER_DATA: {
     BOOKS: buildEndpoint(SERVICES.MASTER_DATA, "/books"),

@@ -66,8 +66,10 @@ export default function MatrixTemplate2() {
     });
 
   useEffect(() => {
-    setFinalData(data);
-    console.log("🔍 WebSocket data received:", data);
+    if (data?.tool_code === bookType?.data?.code) {
+      setFinalData(data);
+      console.log("🔍 WebSocket data received:", data);
+    }
   }, [data, enabled]);
 
   // State for validation errors
@@ -336,7 +338,10 @@ export default function MatrixTemplate2() {
   //   );
   // }
 
-  if (data?.status === "processing") {
+  if (
+    data?.status === "processing" &&
+    data?.tool_code === bookType?.data?.code
+  ) {
     return (
       <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
         <LoadingAI

@@ -4,6 +4,8 @@ import { Share2 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { DowloadIcon } from "@/constants/icon";
 import { useUploadDocxToOnlineService } from "@/services/lessonPlanGenerationServices";
+import { useState } from "react";
+import ConfirmSaveResult from "./modals/ConfirmSaveResult";
 
 interface CellContent {
   text?: string;
@@ -45,6 +47,7 @@ interface PreviewModalProps {
   onDownload: () => void;
   lesson: any;
   mode?: boolean;
+  onSaveResult?: (data: any) => void;
 }
 
 export default function PreviewModal({
@@ -54,9 +57,33 @@ export default function PreviewModal({
   onDownload,
   lesson,
   mode = true,
+  onSaveResult,
 }: PreviewModalProps) {
   if (!isOpen) return null;
   const { mutate } = useUploadDocxToOnlineService();
+
+  // State for confirm save result modal
+  const [showConfirmSaveResult, setShowConfirmSaveResult] = useState(false);
+
+  // Handler to open confirm save result modal
+  const handleConfirmSaveResult = () => {
+    setShowConfirmSaveResult(true);
+  };
+
+  // Handler to close confirm save result modal
+  const handleCloseConfirmSaveResult = () => {
+    setShowConfirmSaveResult(false);
+  };
+
+  // Handler for when user confirms save in the modal
+  const handleSaveConfirm = (formData: any) => {
+    if (onSaveResult) {
+      onSaveResult(formData);
+    } else {
+      console.log("Save confirmed with data:", formData);
+    }
+    setShowConfirmSaveResult(false);
+  };
   // Extract table rendering logic into separate function
   const renderTablePreview = (
     node: DemoNode,
@@ -304,15 +331,15 @@ export default function PreviewModal({
     const marginLeft = depth * 20;
 
     // Debug: Log all nodes to see their properties
-    console.log("🔍 PreviewModal node:", {
-      id: node.id,
-      type: node.type,
-      fieldType: node.fieldType,
-      title: node.title,
-      hasContent: !!node.content,
-      contentPreview: node.content?.substring(0, 100) + "...",
-      childrenCount: node.children?.length || 0,
-    });
+    // console.log("🔍 PreviewModal node:", {
+    //   id: node.id,
+    //   type: node.type,
+    //   fieldType: node.fieldType,
+    //   title: node.title,
+    //   hasContent: !!node.content,
+    //   contentPreview: node.content?.substring(0, 100) + "...",
+    //   childrenCount: node.children?.length || 0,
+    // });
 
     // Check fieldType first for TABLE (regardless of node.type)
     if (node.fieldType === "TABLE") {
@@ -523,6 +550,9 @@ export default function PreviewModal({
                   <Share2 />
                   <span>Export docx online</span>
                 </Button>
+                <Button onClick={handleConfirmSaveResult} variant={"default"}>
+                  <span>Lưu kết quả</span>
+                </Button>
               </>
             )}
             <Button onClick={onClose} variant={"outline"}>
@@ -617,6 +647,14 @@ export default function PreviewModal({
           </div>
         </div>
       </div>
+
+      {/* Confirm Save Result Modal */}
+      <ConfirmSaveResult
+        isOpen={showConfirmSaveResult}
+        onClose={handleCloseConfirmSaveResult}
+        onConfirm={handleSaveConfirm}
+        data={data}
+      />
     </div>
   );
 }

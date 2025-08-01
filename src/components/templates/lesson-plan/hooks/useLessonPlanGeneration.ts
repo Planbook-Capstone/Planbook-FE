@@ -29,6 +29,9 @@ export const useLessonPlanGeneration = ({
   const [topic] = useState(WEBSOCKET_CONFIG.topic);
   const [enabled, setEnabled] = useState(false);
 
+  // Store result_id from first WebSocket response
+  const [resultId, setResultId] = useState<string | null>(null);
+
   // Track processed data to prevent duplicate toasts
   const processedDataRef = useRef<string>("");
 
@@ -59,9 +62,19 @@ export const useLessonPlanGeneration = ({
 
   // Handle WebSocket data
   useEffect(() => {
-    console.log("🔍 WebSocket data received:", data);
+    console.log("🔍 WebSocket data received: TRAN", data);
 
-    if (data?.children && data.children.length > 0) {
+    // Save result_id if it exists and we haven't saved it yet
+    if (
+      data?.result_id &&
+      !resultId &&
+      data?.tool_code === bookType?.data?.code
+    ) {
+      console.log("💾 Saving result_id:", data.result_id);
+      setResultId(data.result_id);
+    }
+
+    if (data?.children && data.children.length > 0 &&  data?.tool_code === bookType?.data?.code) {
       console.log("📊 Processing children data:", data.children);
 
       // Create a unique key for this data to prevent duplicate processing
@@ -91,7 +104,7 @@ export const useLessonPlanGeneration = ({
     } else {
       console.log("❌ No children data found in WebSocket response");
     }
-  }, [data]); // Only depend on data, not the functions
+  }, [data, resultId]); // Add resultId to dependencies
 
   // Handle lesson plan generation
   const handleGenerationLessonPlan = useCallback(() => {
@@ -119,6 +132,7 @@ export const useLessonPlanGeneration = ({
       book_id: "1",
       input: mergedNode,
       workspaceId: 1,
+      ...(resultId && { result_id: resultId }), // Add result_id if available
     };
 
     mutate(payload, {
@@ -134,7 +148,14 @@ export const useLessonPlanGeneration = ({
         console.error(error);
       },
     });
-  }, [getAllFinalData, demoData, lessonId, mutate]);
+  }, [
+    getAllFinalData,
+    demoData,
+    lessonId,
+    mutate,
+    bookType?.data?.id,
+    resultId,
+  ]);
 
   // Handle download DOCX
   const handleDownloadDocx = useCallback(async () => {
@@ -172,6 +193,10 @@ export const useLessonPlanGeneration = ({
     error,
     enabled,
     setEnabled,
+
+    // Data
+    bookType: bookType?.data,
+    resultId,
 
     // Actions
     handleGenerationLessonPlan,
