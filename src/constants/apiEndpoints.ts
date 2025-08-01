@@ -7,6 +7,7 @@ const SERVICES = {
   AGGREGATOR: "aggregator",
   SUBSCRIPTION: "purchase-service",
   WORKSPACE: "workspace-service",
+  TOOL_LOG: "tool-log-service",
 } as const;
 
 const buildEndpoint = (service: string, path: string) =>
@@ -33,6 +34,9 @@ export const API_ENDPOINTS = {
 
   //TOOL RESULT IN WORKSPACE
   TOOL_RESULTS: buildEndpoint(SERVICES.WORKSPACE, "/tool-results"),
+
+  //TOOL LOG
+  TOOL_LOG: buildEndpoint(SERVICES.TOOL_LOG, "/tool-logs"),
 
   MASTER_DATA: {
     BOOKS: buildEndpoint(SERVICES.MASTER_DATA, "/books"),

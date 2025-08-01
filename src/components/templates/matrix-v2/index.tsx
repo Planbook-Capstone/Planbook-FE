@@ -47,7 +47,7 @@ export default function MatrixTemplate2() {
   const [duration, setDuration] = useState(45);
   const [response, setResponse] = useState<any>(null);
   const searchParams = useSearchParams();
-
+  const [resultId, setResultId] = useState<string | null>(null);
   const query = searchParams.get("bookTypeId");
 
   const { data: bookType } = useBookTypeByIdService(query || "");
@@ -69,9 +69,11 @@ export default function MatrixTemplate2() {
     if (data?.tool_code === bookType?.data?.code) {
       setFinalData(data);
       console.log("🔍 WebSocket data received:", data);
+      setResultId(data?.result_id);
     }
   }, [data, enabled]);
 
+  console.log(resultId, "ran");
   // State for validation errors
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -512,55 +514,66 @@ export default function MatrixTemplate2() {
             <tr key={rowIdx} className="font-questrial">
               <td className="border px-2 py-1 min-w-[180px]">
                 <div className="flex flex-col">
-                  <Select
-                    key={`lesson-select-${rowIdx}`}
-                    value={row.lessonID || "CLEAR_SELECTION"}
-                    onValueChange={(val) => {
-                      console.log(`Changing lesson for row ${rowIdx} to:`, val);
-                      // Handle clear selection
-                      const actualValue = val === "CLEAR_SELECTION" ? "" : val;
-                      handleMatrixChange(rowIdx, "lessonID", actualValue);
-                      // Clear error when user selects a lesson
-                      if (errors[`matrix_${rowIdx}_lesson`]) {
-                        setErrors((prev) => ({
-                          ...prev,
-                          [`matrix_${rowIdx}_lesson`]: "",
-                        }));
+                  {resultId ? (
+                    <Input
+                      value={
+                        allLessons.find((lesson: any) => lesson.id === row.lessonID)?.name ||
+                        "Chọn bài học"
                       }
-                    }}
-                  >
-                    <SelectTrigger
-                      className={`w-full min-h-[40px] bg-transparent focus:ring-0 focus:outline-none ${
-                        errors[`matrix_${rowIdx}_lesson`]
-                          ? "border-red-500"
-                          : ""
-                      }`}
+                      readOnly
+                      className="w-full min-h-[40px] bg-gray-100 cursor-not-allowed"
+                    />
+                  ) : (
+                    <Select
+                      key={`lesson-select-${rowIdx}`}
+                      value={row.lessonID || "CLEAR_SELECTION"}
+                      onValueChange={(val) => {
+                        console.log(`Changing lesson for row ${rowIdx} to:`, val);
+                        // Handle clear selection
+                        const actualValue = val === "CLEAR_SELECTION" ? "" : val;
+                        handleMatrixChange(rowIdx, "lessonID", actualValue);
+                        // Clear error when user selects a lesson
+                        if (errors[`matrix_${rowIdx}_lesson`]) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            [`matrix_${rowIdx}_lesson`]: "",
+                          }));
+                        }
+                      }}
                     >
-                      <SelectValue placeholder="Chọn bài học" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CLEAR_SELECTION">
-                        <span className="text-gray-500 italic">
-                          -- Chọn bài học --
-                        </span>
-                      </SelectItem>
-                      {allLessons
-                        .filter((item: any) => {
-                          // Lọc ra các bài học đã được chọn ở các hàng khác
-                          const selectedLessons = matrix
-                            .map((row, index) =>
-                              index !== rowIdx ? row.lessonID : null
-                            )
-                            .filter(Boolean);
-                          return !selectedLessons.includes(item.id);
-                        })
-                        .map((item: any) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                      <SelectTrigger
+                        className={`w-full min-h-[40px] bg-transparent focus:ring-0 focus:outline-none ${
+                          errors[`matrix_${rowIdx}_lesson`]
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      >
+                        <SelectValue placeholder="Chọn bài học" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CLEAR_SELECTION">
+                          <span className="text-gray-500 italic">
+                            -- Chọn bài học --
+                          </span>
+                        </SelectItem>
+                        {allLessons
+                          .filter((item: any) => {
+                            // Lọc ra các bài học đã được chọn ở các hàng khác
+                            const selectedLessons = matrix
+                              .map((row, index) =>
+                                index !== rowIdx ? row.lessonID : null
+                              )
+                              .filter(Boolean);
+                            return !selectedLessons.includes(item.id);
+                          })
+                          .map((item: any) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   {errors[`matrix_${rowIdx}_lesson`] && (
                     <p className="text-red-500 text-xs mt-1">
                       {errors[`matrix_${rowIdx}_lesson`]}
@@ -578,7 +591,7 @@ export default function MatrixTemplate2() {
                           type="number"
                           min={0}
                           value={row.distribution[part][level]}
-                          onChange={(e: any) => {
+                          onChange={resultId ? undefined : (e: any) => {
                             const value = Number(e.target.value);
                             handleDistributionChange(
                               rowIdx,
@@ -594,12 +607,15 @@ export default function MatrixTemplate2() {
                               }));
                             }
                           }}
+                          readOnly={!!resultId}
                           placeholder={level.toUpperCase()}
-                          className={
+                          className={`${
+                            resultId ? "bg-gray-100 cursor-not-allowed" : ""
+                          } ${
                             errors[fieldKey]
                               ? "border-red-500 focus:border-red-500"
                               : ""
-                          }
+                          }`}
                         />
                         {errors[fieldKey] && (
                           <p className="text-red-500 text-xs mt-1">
@@ -635,18 +651,18 @@ export default function MatrixTemplate2() {
                   size="sm"
                   type="button"
                   className={`px-0 py-5 bg-transparent shadow-none hover:bg-transparent hover:shadow-none group transition-colors duration-200 ${
-                    matrix.length <= 1 ? "opacity-50 cursor-not-allowed" : ""
+                    matrix.length <= 1 || resultId ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                   onClick={() => {
-                    if (matrix.length > 1) {
+                    if (matrix.length > 1 && !resultId) {
                       removeMatrixRow(rowIdx);
                     }
                   }}
-                  disabled={matrix.length <= 1}
+                  disabled={matrix.length <= 1 || !!resultId}
                 >
                   <TrashIcon
                     className={`${
-                      matrix.length <= 1
+                      matrix.length <= 1 || resultId
                         ? "text-neutral-400"
                         : "text-neutral-600 group-hover:text-red-500"
                     } transition-colors duration-200`}
@@ -743,8 +759,11 @@ export default function MatrixTemplate2() {
         <Button
           variant="dash"
           type="button"
-          className="mt-4 rounded-md w-full"
-          onClick={addMatrixRow}
+          className={`mt-4 rounded-md w-full ${
+            resultId ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          onClick={resultId ? undefined : addMatrixRow}
+          disabled={!!resultId}
         >
           Thêm dòng mới +
         </Button>
@@ -784,9 +803,11 @@ export default function MatrixTemplate2() {
         <div className="mt-6 flex justify-end">
           <Button
             type="button"
-            className="px-8 py-3  text-white font-medium rounded-md"
-            onClick={handleCreateExam}
-            // disabled={isPending}
+            className={`px-8 py-3 text-white font-medium rounded-md ${
+              resultId ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={resultId ? undefined : handleCreateExam}
+            disabled={!!resultId}
           >
             Tạo đề thi
           </Button>

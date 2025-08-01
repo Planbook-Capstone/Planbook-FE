@@ -21,11 +21,15 @@ import { useBookTypesService } from "@/services/bookTypeServices";
 import BannerOverlay from "@/components/organisms/banner/BannerWithOverlay";
 import SpotlightCard from "@/components/ui/SpotlightCard";
 import { useAuth } from "@/hooks/useAuth";
+import { useToolLogsService } from "@/services/toolLogServices";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
   const { data: bookTypes } = useBookTypesService();
+  const { data: toolLogs } = useToolLogsService();
+
+  console.log(toolLogs?.data?.content, "tran")
 
   const { displayName } = useAuth();
 
@@ -118,7 +122,7 @@ export default function Home() {
         }
       />
       {view === "list" ? (
-        <HistoryList />
+        <HistoryList data={toolLogs?.data?.content  || []} />
       ) : (
         <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {Array.from({ length: 7 }).map((_, index) => (
