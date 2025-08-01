@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -43,6 +43,8 @@ interface ConfirmSaveResultProps {
   resultId?: string;
   data?: any;
   isLoading?: boolean;
+  initialName?: string;
+  initialDescription?: string;
 }
 
 function ConfirmSaveResult({
@@ -52,16 +54,28 @@ function ConfirmSaveResult({
   resultId,
   data,
   isLoading = false,
+  initialName = "",
+  initialDescription = "",
 }: ConfirmSaveResultProps) {
   const form = useForm<SaveResultFormData>({
     resolver: zodResolver(saveResultSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      name: initialName,
+      description: initialDescription,
     },
     mode: "onSubmit",
     reValidateMode: "onChange",
   });
+
+  // Reset form with initial values when modal opens or initial values change
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: initialName,
+        description: initialDescription,
+      });
+    }
+  }, [isOpen, initialName, initialDescription, form]);
 
   const handleSubmit = (formData: SaveResultFormData) => {
     onConfirm(formData);

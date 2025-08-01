@@ -48,6 +48,7 @@ interface PreviewModalProps {
   lesson: any;
   mode?: boolean;
   onSaveResult?: (data: any) => void;
+  currentResultData?: any;
 }
 
 export default function PreviewModal({
@@ -58,6 +59,7 @@ export default function PreviewModal({
   lesson,
   mode = true,
   onSaveResult,
+  currentResultData,
 }: PreviewModalProps) {
   if (!isOpen) return null;
   const { mutate } = useUploadDocxToOnlineService();
@@ -654,6 +656,9 @@ export default function PreviewModal({
         onClose={handleCloseConfirmSaveResult}
         onConfirm={handleSaveConfirm}
         data={data}
+        resultId={currentResultData?.id}
+        initialName={currentResultData?.name || ""}
+        initialDescription={currentResultData?.description || ""}
       />
     </div>
   );

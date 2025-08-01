@@ -9,7 +9,7 @@ import Canvas from "@/components/demo/Canvas";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 import LoadingAI from "@/components/molecules/loading";
 import { toast } from "sonner";
-import { useUpdateToolResultService } from "@/services/toolResultService";
+import { useUpdateToolResultService, useToolResultByIdService } from "@/services/toolResultService";
 
 // Custom hooks
 import { useLessonPlanData } from "./hooks/useLessonPlanData";
@@ -204,6 +204,11 @@ function LessonPlanTemplate() {
   const { mutate: updateToolResult, isPending: isSavingResult } =
     useUpdateToolResultService();
 
+  // Fetch current tool result data to get existing name and description
+  const { data: currentToolResult } = useToolResultByIdService(resultId || "", {
+    enabled: !!resultId, // Only fetch when resultId exists
+  });
+
   // Handle save result function
   const handleSaveResult = useCallback(
     (formData: { name: string; description?: string }) => {
@@ -317,6 +322,7 @@ function LessonPlanTemplate() {
           onDownload={handleDownloadDocx}
           lesson={lessonById?.data}
           onSaveResult={handleSaveResult}
+          currentResultData={currentToolResult?.data}
         />
       </div>
     </DragDropContext>
