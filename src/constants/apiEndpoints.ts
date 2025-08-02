@@ -159,6 +159,8 @@ export const EXAM_ENDPOINTS = {
     `/exam-service/api/exam-instances/code/${code}`,
   SUBMIT_EXAM: (code: string) =>
     `/exam-service/api/exam-instances/code/${code}/submit`,
+  // Question Banks
+  QUESTION_BANKS: `/exam-service/api/v1/question-banks`,
 } as const;
 
 export const LESSON_FRAMEWORK_ENDPOINTS = {

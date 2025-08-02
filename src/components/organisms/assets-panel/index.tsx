@@ -14,6 +14,7 @@ import {
   List,
   CircleArrowOutDownLeft,
   CircleArrowOutUpRight,
+  Database,
 } from "lucide-react";
 import {
   useCreateMaterialInternalService,
@@ -22,6 +23,8 @@ import {
 } from "@/services/materialServices";
 import StepNavigation from "@/components/organisms/step-navigation";
 import { UploadCloudIcon } from "@/constants/icon";
+import { QuestionBankModal } from "@/components/modals/QuestionBankModal";
+import { QuestionBankItem } from "@/services/questionBankServices";
 
 interface AssetItem {
   id: string;
@@ -87,12 +90,13 @@ function DraggableAsset({ asset }: DraggableAssetProps) {
 }
 
 export default function AssetsPanel() {
-  const [activeTab, setActiveTab] = useState<"images" | "upload" | "steps">(
-    "steps"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "images" | "upload" | "steps" | "questionBank"
+  >("steps");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<AssetItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isQuestionBankModalOpen, setIsQuestionBankModalOpen] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -148,10 +152,26 @@ export default function AssetsPanel() {
     setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
   };
 
+  const handleQuestionBankClick = () => {
+    setIsQuestionBankModalOpen(true);
+  };
+
+  const handleQuestionSelect = (question: QuestionBankItem) => {
+    console.log("Selected question:", question);
+    toast.success(
+      `Đã thêm câu hỏi: ${question.questionContent.question.substring(
+        0,
+        50
+      )}...`
+    );
+    // Question is automatically added to exam context by the modal
+  };
+
   const tabs = [
     // { id: "images", label: "Hình ảnh", icon: Image },
     { id: "steps", label: "Các bước", icon: Route },
     { id: "upload", label: "Tải lên", icon: CloudUpload },
+    { id: "questionBank", label: "Ngân hàng đề", icon: Database },
   ] as const;
 
   const { data: materials } = useMaterialSearchService("1");
@@ -193,7 +213,13 @@ export default function AssetsPanel() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === "questionBank") {
+                    handleQuestionBankClick();
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={`
                  cursor-pointer flex-1 flex items-center justify-center space-x-2 py-2 px-2 text-sm font-medium
                   transition-colors duration-200 rounded-full
@@ -325,8 +351,12 @@ export default function AssetsPanel() {
                 <button
                   key={tab.id}
                   onClick={() => {
-                    setActiveTab(tab.id);
-                    setIsCollapsed(false); // Expand when clicking on icon
+                    if (tab.id === "questionBank") {
+                      handleQuestionBankClick();
+                    } else {
+                      setActiveTab(tab.id);
+                      setIsCollapsed(false); // Expand when clicking on icon
+                    }
                   }}
                   className={`
                    cursor-pointer p-2 rounded-full transition-colors duration-200
@@ -345,6 +375,15 @@ export default function AssetsPanel() {
           </div>
         </div>
       )}
+
+      {/* Question Bank Modal */}
+      <QuestionBankModal
+        isOpen={isQuestionBankModalOpen}
+        onClose={() => setIsQuestionBankModalOpen(false)}
+        onSelectQuestion={handleQuestionSelect}
+        lessonId={1} // You can make this dynamic based on current lesson
+        title="Ngân hàng đề"
+      />
     </div>
   );
 }
