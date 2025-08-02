@@ -39,7 +39,7 @@ export function Tabs({ tabs, defaultTab, className }: TabsProps) {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-hidden">{activeTabContent}</div>
+      <div className="flex-1 min-h-0">{activeTabContent}</div>
     </div>
   );
 }

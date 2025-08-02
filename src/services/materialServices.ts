@@ -51,10 +51,17 @@ export const useMaterialInternalInfiniteService = () => {
       return response.data;
     },
     getNextPageParam: (lastPage, allPages) => {
-      // Check if there are more pages
-      if (lastPage?.data?.length === 0) {
+      // Check if last page has content
+      const content = lastPage?.data?.content || lastPage?.data;
+      if (!content || content.length === 0) {
         return undefined; // No more pages
       }
+
+      // If we got less than page size, no more pages
+      if (content.length < 20) {
+        return undefined;
+      }
+
       return allPages.length; // Next page number
     },
     initialPageParam: 0,
