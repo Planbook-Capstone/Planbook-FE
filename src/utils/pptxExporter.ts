@@ -221,43 +221,7 @@ async function setSlideBackground(slide: any, background?: string) {
   }
 }
 
-/**
- * Get image dimensions from blob/data URL
- */
-async function getImageDimensions(
-  imageSrc: string
-): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    };
-    img.onerror = () => {
-      reject(new Error("Failed to load image"));
-    };
-    img.src = imageSrc;
-  });
-}
-
-/**
- * Calculate aspect ratio fit dimensions (like object-cover)
- */
-function calculateAspectRatioFit(
-  srcWidth: number,
-  srcHeight: number,
-  maxWidth: number,
-  maxHeight: number
-): { width: number; height: number; x: number; y: number } {
-  const ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
-  const width = srcWidth * ratio;
-  const height = srcHeight * ratio;
-
-  // Center the image within the container
-  const x = (maxWidth - width) / 2;
-  const y = (maxHeight - height) / 2;
-
-  return { width, height, x, y };
-}
+// Image utility functions removed - not currently used in export process
 
 /**
  * Convert GIF to static image (first frame) using Canvas
@@ -316,7 +280,7 @@ async function convertImageToBase64(imageUrl: string): Promise<string> {
       imageUrl.toLowerCase().includes(".gif") ||
       imageUrl.toLowerCase().includes("gif")
     ) {
-      console.log("Converting GIF to static image for PPTX compatibility...");
+      // Converting GIF to static image for PPTX compatibility
       return await convertGifToStaticImage(imageUrl);
     }
 
@@ -333,7 +297,7 @@ async function convertImageToBase64(imageUrl: string): Promise<string> {
 
     // Double-check if it's a GIF by MIME type
     if (blob.type === "image/gif") {
-      console.log("Detected GIF by MIME type, converting to static image...");
+      // Detected GIF by MIME type, converting to static image
       const blobUrl = URL.createObjectURL(blob);
       const staticImage = await convertGifToStaticImage(blobUrl);
       URL.revokeObjectURL(blobUrl); // Clean up
@@ -413,6 +377,61 @@ async function addImageElement(slide: any, element: ElementData) {
 }
 
 /**
+ * Add video element to PowerPoint slide
+ * Note: PowerPoint has limited video support, so we add a placeholder with video info
+ */
+async function addVideoElement(slide: any, element: ElementData) {
+  if (!element.src || element.type !== "video") return;
+
+  const coords = convertCoordinates(
+    element.x,
+    element.y,
+    element.width,
+    element.height
+  );
+
+  try {
+    // PowerPoint doesn't support embedded videos from URLs easily
+    // So we add a placeholder with video information
+    const videoName = element.src.split("/").pop() || "video";
+    const placeholderText = `🎬 Video: ${videoName}\n\nVideo URL: ${element.src}\n\n(Click to play in browser)`;
+
+    const textOptions = {
+      x: coords.x,
+      y: coords.y,
+      w: coords.w,
+      h: coords.h,
+      fontSize: 14,
+      fontFace: "Arial",
+      color: "333333",
+      align: "center",
+      valign: "middle",
+      fill: { color: "F0F0F0" }, // Light gray background
+      line: { color: "CCCCCC", width: 1 }, // Border
+    };
+
+    slide.addText(placeholderText, textOptions);
+
+    // Video placeholder added successfully
+  } catch (error) {
+    console.error("Error adding video placeholder to slide:", error);
+    // Add a simple placeholder if video processing fails
+    const textOptions = {
+      x: coords.x,
+      y: coords.y,
+      w: coords.w,
+      h: coords.h,
+      fontSize: 12,
+      fontFace: "Arial",
+      color: "666666",
+      align: "center",
+      valign: "middle",
+    };
+    slide.addText(`[Video: Failed to load]`, textOptions);
+  }
+}
+
+/**
  * Create PowerPoint presentation from slide data
  */
 export async function exportToPPTX(
@@ -453,6 +472,9 @@ export async function exportToPPTX(
             break;
           case "image":
             await addImageElement(slide, element);
+            break;
+          case "video":
+            await addVideoElement(slide, element);
             break;
           default:
             console.warn(`Unsupported element type: ${element.type}`);
@@ -549,6 +571,14 @@ export function validateSlideData(slides: SlideData[]): {
           `Slide ${index + 1}, Element ${
             elemIndex + 1
           }: Image element has no source`
+        );
+      }
+
+      if (element.type === "video" && !element.src) {
+        errors.push(
+          `Slide ${index + 1}, Element ${
+            elemIndex + 1
+          }: Video element has no source`
         );
       }
 

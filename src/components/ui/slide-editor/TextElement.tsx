@@ -5,6 +5,41 @@ import { Rnd } from "react-rnd";
 import { TextElement as TextElementType, TextStyle } from "@/types";
 import { useSnapAlignment } from "@/hooks/useSnapAlignment";
 
+// Helper function to convert vertical alignment to CSS justify-content
+const getVerticalAlignment = (
+  verticalAlign: "top" | "middle" | "bottom"
+): string => {
+  switch (verticalAlign) {
+    case "top":
+      return "flex-start";
+    case "middle":
+      return "center";
+    case "bottom":
+      return "flex-end";
+    default:
+      return "flex-start";
+  }
+};
+
+// Fallback helper to ensure text is always string (defensive programming)
+const ensureTextIsString = (text: any): string => {
+  if (typeof text === "string") {
+    return text;
+  }
+
+  if (typeof text === "object" && text !== null) {
+    console.warn(
+      "⚠️ Text object detected in component, should be normalized at API layer:",
+      text
+    );
+    // Convert object like {"0": "line1", "1": "line2"} to "line1\nline2"
+    const keys = Object.keys(text).sort((a, b) => parseInt(a) - parseInt(b));
+    return keys.map((key) => text[key]).join("\n");
+  }
+
+  return String(text || "");
+};
+
 interface TextElementProps {
   element: TextElementType;
   isSelected: boolean;
@@ -94,71 +129,41 @@ export default function TextElement({
     const tempDiv = document.createElement("div");
     tempDiv.style.position = "absolute";
     tempDiv.style.visibility = "hidden";
-    tempDiv.style.whiteSpace = "nowrap";
     tempDiv.style.fontSize = `${element.style.fontSize}px`;
     tempDiv.style.fontFamily = element.style.fontFamily;
     tempDiv.style.fontWeight = element.style.bold ? "bold" : "normal";
     tempDiv.style.fontStyle = element.style.italic ? "italic" : "normal";
+    tempDiv.style.lineHeight = "1.4"; // Match CSS lineHeight
     tempDiv.style.padding = "4px";
     tempDiv.style.boxSizing = "border-box";
+    tempDiv.style.whiteSpace = "pre-wrap"; // Match actual rendering
+    tempDiv.style.wordBreak = "break-word";
+    tempDiv.style.width = `${Math.max(element.width - 8, 80)}px`; // Account for padding
 
-    // Use current text content or fallback
-    const currentText = localText || element.text || "A";
+    const rawText = localText || element.text || "A";
+    const currentText = ensureTextIsString(rawText);
+
     tempDiv.textContent = currentText;
-
     document.body.appendChild(tempDiv);
-    const singleLineWidth = tempDiv.offsetWidth;
-    const lineHeight = tempDiv.offsetHeight;
+
+    const actualHeight = tempDiv.offsetHeight;
+    const actualWidth = tempDiv.offsetWidth;
+
     document.body.removeChild(tempDiv);
 
-    // Calculate minimum width based on content
-    // For multiline support, ensure minimum width for text wrapping
-    const minWidth = Math.max(80, element.style.fontSize * 4);
-
-    // Calculate minimum height based on actual line breaks and wrapping
-    const lines = currentText.split("\n");
-    let totalVisualLines = 0;
-
-    // Calculate how many visual lines each text line will take
-    lines.forEach((line) => {
-      if (line.trim() === "") {
-        totalVisualLines += 1; // Empty line still takes space
-      } else {
-        // Estimate character width and how many chars fit per line
-        const charWidth = element.style.fontSize * 0.6;
-        const availableWidth = Math.max(element.width - 16, 80); // Account for padding
-        const charsPerLine = Math.max(
-          Math.floor(availableWidth / charWidth),
-          10
-        );
-        const wrappedLines = Math.ceil(line.length / charsPerLine);
-        totalVisualLines += Math.max(wrappedLines, 1);
-      }
-    });
-
-    // Ensure at least 1 line
-    totalVisualLines = Math.max(totalVisualLines, 1);
-
+    // Simple minimum calculations
+    const minWidth = Math.max(80, element.style.fontSize * 3);
     const minHeight = Math.max(
-      lineHeight * totalVisualLines + 16, // 16px for padding
-      element.style.fontSize * 1.8 // Minimum based on font size
+      actualHeight, // Use actual measured height
+      element.style.fontSize * 1.2 + 8 // Minimal fallback: font size + small padding
     );
 
-    console.log(`📏 Text sizing for ${element.id}:`, {
-      text: currentText.substring(0, 30) + "...",
-      explicitLines: lines.length,
-      totalVisualLines,
-      lineHeight,
-      minHeight,
-      elementWidth: element.width,
-    });
-
     return { width: minWidth, height: minHeight };
-  }, [element.style, localText, element.text]);
+  }, [element.style, localText, element.text, element.width]);
 
   // Update local text when element text changes
   useEffect(() => {
-    setLocalText(element.text);
+    setLocalText(ensureTextIsString(element.text));
   }, [element.text]);
 
   // ✅ Smart auto-resize: only expand if text doesn't fit, allow manual shrinking
@@ -172,9 +177,6 @@ export default function TextElement({
       const newHeight = minSize.height;
 
       if (newHeight !== element.height) {
-        console.log(
-          `📏 Auto-expanding height from ${element.height} to ${newHeight} for element ${element.id}`
-        );
         onUpdate(element.id, {
           height: newHeight,
         });
@@ -239,33 +241,48 @@ export default function TextElement({
   // Handle double click to edit
   const handleDoubleClick = useCallback(
     (e: React.MouseEvent) => {
+      console.log("🔍 Double click detected:", {
+        elementId: element.id,
+        isEditing,
+        target: e.target,
+        currentTarget: e.currentTarget,
+      });
       e.stopPropagation();
-      onEdit(element.id);
-      setTimeout(() => {
-        if (textRef.current) {
-          // Set initial content for editing
-          textRef.current.innerText = element.text || "";
-          textRef.current.focus();
+      if (!isEditing) {
+        console.log("🎯 Starting edit mode for:", element.id);
+        onEdit(element.id);
+        setTimeout(() => {
+          if (textRef.current) {
+            // Set initial content for editing
+            textRef.current.innerText = ensureTextIsString(element.text) || "";
+            textRef.current.focus();
 
-          // Place cursor at end
-          const range = document.createRange();
-          const selection = window.getSelection();
-          range.selectNodeContents(textRef.current);
-          range.collapse(false);
-          selection?.removeAllRanges();
-          selection?.addRange(range);
-        }
-      }, 0);
+            // Place cursor at end
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(textRef.current);
+            range.collapse(false);
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+          }
+        }, 0);
+      }
     },
-    [element.id, onEdit, element.text]
+    [element.id, isEditing, onEdit, element.text]
   );
 
   // Handle single click to select
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
+      console.log("🔍 Single click detected:", {
+        elementId: element.id,
+        isEditing,
+        target: e.target,
+        currentTarget: e.currentTarget,
+      });
       e.stopPropagation();
       if (!isEditing) {
-        onSelect(element.id);
+        onSelect(element.id, e);
       }
     },
     [element.id, isEditing, onSelect]
@@ -316,6 +333,10 @@ export default function TextElement({
   // Debug text styles
   console.log("📝 Text styles for", element.id, ":", textStyles);
   console.log("📝 Element text content:", element.text);
+  console.log("📝 Vertical alignment:", {
+    verticalAlign: element.style?.verticalAlign,
+    justifyContent: getVerticalAlignment(element.style?.verticalAlign || "top"),
+  });
 
   const minSize = calculateMinSize();
 
@@ -413,52 +434,68 @@ export default function TextElement({
         },
       }}
     >
-      {isEditing ? (
-        <div
-          key={`editing-${element.id}-${isEditing}`}
-          ref={textRef}
-          contentEditable
-          suppressContentEditableWarning
-          onInput={handleTextChange}
-          onBlur={handleTextBlur}
-          onKeyDown={handleTextKeyDown}
-          className="w-full h-full"
-          style={{
-            ...textStyles,
-            display: "block",
-            userSelect: "text",
-          }}
-        >
-          {element.text || ""}
-        </div>
-      ) : (
-        <div
-          onClick={handleClick}
-          onDoubleClick={handleDoubleClick}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            if (onContextMenu) {
-              onContextMenu(element.id, e.clientX, e.clientY);
-            }
-          }}
-          className="w-full h-full"
-          style={{
-            ...textStyles,
-            display: "block",
-            userSelect: "text",
-            whiteSpace: "pre-wrap",
-            overflowWrap: "break-word",
-          }}
-        >
-          {element.text || "Double-click to edit"}
-          {/* Debug fallback */}
-          {!element.text && (
-            <div style={{ color: "red", fontSize: "12px" }}>
-              [No text content]
-            </div>
-          )}
-        </div>
-      )}
+      {/* Vertical alignment wrapper */}
+      <div
+        className="w-full h-full"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: getVerticalAlignment(
+            element.style?.verticalAlign || "top"
+          ),
+        }}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+      >
+        {isEditing ? (
+          <div
+            key={`editing-${element.id}-${isEditing}`}
+            ref={textRef}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={handleTextChange}
+            onBlur={handleTextBlur}
+            onKeyDown={handleTextKeyDown}
+            className="w-full"
+            style={{
+              ...textStyles,
+              display: "block",
+              userSelect: "text",
+              height: "auto",
+              minHeight: "1em",
+            }}
+          >
+            {ensureTextIsString(element.text) || ""}
+          </div>
+        ) : (
+          <div
+            onContextMenu={(e) => {
+              e.preventDefault();
+              if (onContextMenu) {
+                onContextMenu(element.id, e.clientX, e.clientY);
+              }
+            }}
+            className="w-full"
+            style={{
+              ...textStyles,
+              display: "block",
+              userSelect: "text",
+              whiteSpace: "pre-wrap",
+              overflowWrap: "break-word",
+              height: "auto",
+              minHeight: "1em",
+            }}
+          >
+            {ensureTextIsString(element.text) || "Double-click to edit"}
+            {/* Debug fallback */}
+            {!element.text && (
+              <div style={{ color: "red", fontSize: "12px" }}>
+                [No text content]
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </Rnd>
   );
 }

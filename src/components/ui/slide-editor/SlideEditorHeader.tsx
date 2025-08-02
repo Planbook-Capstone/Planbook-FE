@@ -60,7 +60,7 @@ export default function SlideEditorHeader({
   userRole = "admin",
 }: SlideEditorHeaderProps) {
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+    <header className="h-16 py-5 bg-white border-b border-gray-200 flex items-center justify-between px-6">
       {/* Left Section - Logo & Title */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">

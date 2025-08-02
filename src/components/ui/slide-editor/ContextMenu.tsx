@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Copy,
+  Clipboard,
   Trash2,
   MoveUp,
   MoveDown,
@@ -22,6 +23,7 @@ interface ContextMenuProps {
   elementId: string | null;
   onClose: () => void;
   onCopy?: (elementId: string) => void;
+  onPaste?: () => void;
   onDelete?: (elementId: string) => void;
   onBringToFront?: (elementId: string) => void;
   onSendToBack?: (elementId: string) => void;
@@ -31,6 +33,7 @@ interface ContextMenuProps {
   onFlipVertical?: (elementId: string) => void;
   onRotateLeft?: (elementId: string) => void;
   onRotateRight?: (elementId: string) => void;
+  hasCopiedElement?: boolean;
 }
 
 export default function ContextMenu({
@@ -39,6 +42,7 @@ export default function ContextMenu({
   elementId,
   onClose,
   onCopy,
+  onPaste,
   onDelete,
   onBringToFront,
   onSendToBack,
@@ -48,6 +52,7 @@ export default function ContextMenu({
   onFlipVertical,
   onRotateLeft,
   onRotateRight,
+  hasCopiedElement,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +87,13 @@ export default function ContextMenu({
       icon: Copy,
       action: () => onCopy?.(elementId),
       shortcut: "Ctrl+C",
+    },
+    {
+      label: "Paste",
+      icon: Clipboard,
+      action: () => onPaste?.(),
+      shortcut: "Ctrl+V",
+      disabled: !hasCopiedElement,
     },
     {
       label: "Delete",

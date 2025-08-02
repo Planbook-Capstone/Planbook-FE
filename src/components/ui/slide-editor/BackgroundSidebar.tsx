@@ -69,9 +69,7 @@ export default function BackgroundSidebar({
   onBackgroundChange,
 }: BackgroundSidebarProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [backgroundImages, setBackgroundImages] = useState<BackgroundImage[]>(
-    []
-  );
+  // Removed backgroundImages state - only use API images
   const [customColor, setCustomColor] = useState("#ffffff");
   const [colorHistory, setColorHistory] = useState<string[]>([]);
   const [activeTagId, setActiveTagId] = useState<string>("");
@@ -95,14 +93,18 @@ export default function BackgroundSidebar({
     }
   }, [tag?.data, activeTagId]);
 
-  // Merge server images with local images
+  // Background images only - no videos
   const allBackgroundImages = React.useMemo(() => {
     const serverImages: BackgroundImage[] = [];
 
-    // Add images from materials (external)
+    // Add images and videos from materials (external)
     materials?.data?.content?.forEach((item: any, idx: number) => {
       const ext = item?.url?.split(".").pop()?.toLowerCase();
-      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
+      const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
+        ext
+      );
+
+      if (isImage) {
         serverImages.push({
           id: `material-${idx}`,
           file: null as any, // Server images don't have file objects
@@ -112,10 +114,14 @@ export default function BackgroundSidebar({
       }
     });
 
-    // Add images from internal materials
+    // Add images and videos from internal materials
     materialInternal?.data?.content?.forEach((item: any, idx: number) => {
       const ext = item?.url?.split(".").pop()?.toLowerCase();
-      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
+      const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
+        ext
+      );
+
+      if (isImage) {
         serverImages.push({
           id: `internal-${idx}`,
           file: null as any, // Server images don't have file objects
@@ -125,9 +131,9 @@ export default function BackgroundSidebar({
       }
     });
 
-    // Combine server images with local uploaded images
-    return [...serverImages, ...backgroundImages];
-  }, [materials, materialInternal, backgroundImages]);
+    // Return only images for background - no videos
+    return serverImages;
+  }, [materials, materialInternal]);
 
   // Load color history from localStorage on mount
   useEffect(() => {
@@ -163,10 +169,11 @@ export default function BackgroundSidebar({
     );
   };
 
-  // Validate image file
+  // Validate image files only (no videos for background)
   const validateFile = (file: File) => {
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = [
+    const maxImageSize = 10 * 1024 * 1024; // 10MB for images
+
+    const allowedImageTypes = [
       "image/jpeg",
       "image/jpg",
       "image/png",
@@ -175,14 +182,16 @@ export default function BackgroundSidebar({
       "image/svg+xml",
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    const isImage = allowedImageTypes.includes(file.type);
+
+    if (!isImage) {
       return {
         isValid: false,
         error: "Chỉ hỗ trợ file ảnh: JPG, PNG, GIF, WebP, SVG",
       };
     }
 
-    if (file.size > maxSize) {
+    if (file.size > maxImageSize) {
       return {
         isValid: false,
         error: "File quá lớn. Tối đa 10MB",
@@ -203,7 +212,7 @@ export default function BackgroundSidebar({
         continue;
       }
 
-      // Upload to server using API
+      // Upload to server using API (images only for background)
       const formData = new FormData();
       formData.append("file", file);
       formData.append("name", file.name);
@@ -211,23 +220,16 @@ export default function BackgroundSidebar({
 
       createMaterialInternal(formData, {
         onSuccess: () => {
-          toast.success(`Tải lên thành công: ${file.name}`);
+          toast.success(`Tải lên ảnh thành công: ${file.name}`);
           refetchMaterialInternal();
         },
         onError: () => {
-          toast.error(`Tải lên thất bại: ${file.name}`);
+          toast.error(`Tải lên ảnh thất bại: ${file.name}`);
         },
       });
 
-      // Also add to local state for immediate preview
-      const imageUrl = URL.createObjectURL(file);
-      const backgroundImage: BackgroundImage = {
-        id: `bg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-        file,
-        url: imageUrl,
-        name: file.name,
-      };
-      setBackgroundImages((prev) => [...prev, backgroundImage]);
+      // No local state - only upload to API
+      // File will appear after API refresh
     }
   };
 
@@ -290,7 +292,7 @@ export default function BackgroundSidebar({
     onBackgroundChange(`url(${imageUrl})`);
   };
 
-  // Convert background images to gallery format
+  // Convert background images to gallery format (no videos)
   const galleryImages = allBackgroundImages.map((image) => ({
     src: image.url,
     thumbnail: image.url,
@@ -327,7 +329,7 @@ export default function BackgroundSidebar({
 
       {/* Tabs for Background */}
       {!isTextColorMode && (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-full">
           <Tabs
             tabs={[
               {
@@ -451,9 +453,9 @@ export default function BackgroundSidebar({
                 id: "images",
                 label: "Ảnh nền",
                 content: (
-                  <div className="flex-1 overflow-y-auto p-4 space-y-5">
+                  <div className="flex-1 p-4 space-y-5 h-full">
                     {/* Background Images Upload */}
-                    <div className="space-y-3">
+                    <div className="space-y-3 h-full">
                       {/* Upload Area */}
                       <div
                         className={`relative flex flex-col items-center border-[1px] border-dashed rounded-lg p-6 text-center transition-colors ${
@@ -479,20 +481,25 @@ export default function BackgroundSidebar({
                         <p className="text-sm text-gray-600 mb-2">
                           Kéo thả ảnh vào đây hoặc
                         </p>
-                        <button className="px-4 py-2 bg-neutral-700 rounded-full text-white text-sm cursor-pointer hover:bg-blue-600 transition-colors">
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-4 py-2 bg-neutral-700 rounded-full text-white text-sm cursor-pointer hover:bg-blue-600 transition-colors"
+                        >
                           Chọn ảnh
                         </button>
                       </div>
 
                       {/* Background Images Grid */}
                       {allBackgroundImages.length > 0 ? (
-                        <Gallery
-                          images={galleryImages}
-                          onSelect={handleGallerySelect}
-                          enableImageSelection={false}
-                          rowHeight={120}
-                          margin={8}
-                        />
+                        <div className="overflow-y-scroll h-full">
+                          <Gallery
+                            images={galleryImages}
+                            onSelect={handleGallerySelect}
+                            enableImageSelection={false}
+                            rowHeight={120}
+                            margin={8}
+                          />
+                        </div>
                       ) : (
                         <div className="text-center py-16 text-sm text-gray-500 font-questrial">
                           Chưa có ảnh nền, vui lòng tải lên

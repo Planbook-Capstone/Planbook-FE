@@ -14,10 +14,12 @@ import WebcamCapture from "../WebcamCapture";
 
 interface ImageLibrarySidebarProps {
   onAddImage: (imageUrl: string) => void;
+  onAddVideo?: (videoUrl: string) => void;
 }
 
 export default function ImageLibrarySidebar({
   onAddImage,
+  onAddVideo,
 }: ImageLibrarySidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,45 +38,65 @@ export default function ImageLibrarySidebar({
     }
   }, [tag?.data, activeTagId]);
 
-  const allImages = React.useMemo(() => {
-    const images: any[] = [];
+  const allMediaFiles = React.useMemo(() => {
+    const mediaFiles: any[] = [];
 
     materials?.data?.content?.forEach((item: any, idx: number) => {
       const ext = item?.url?.split(".").pop()?.toLowerCase();
-      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
-        images.push({
+      const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
+        ext
+      );
+      const isVideo = ["mp4", "webm", "ogg", "avi", "mov", "wmv"].includes(ext);
+
+      if (isImage || isVideo) {
+        mediaFiles.push({
           id: `material-${idx}`,
           url: item.url,
           name: item.name,
+          type: isVideo ? "video" : "image",
         });
       }
     });
 
     materialInternal?.data?.content?.forEach((item: any, idx: number) => {
       const ext = item?.url?.split(".").pop()?.toLowerCase();
-      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
-        images.push({
+      const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
+        ext
+      );
+      const isVideo = ["mp4", "webm", "ogg", "avi", "mov", "wmv"].includes(ext);
+
+      if (isImage || isVideo) {
+        mediaFiles.push({
           id: `internal-${idx}`,
           url: item.url,
           name: item.name,
+          type: isVideo ? "video" : "image",
         });
       }
     });
 
-    return images;
+    return mediaFiles;
   }, [materials, materialInternal]);
 
-  const galleryImages = allImages.map((image) => ({
-    src: image.url,
-    thumbnail: image.url,
+  const galleryImages = allMediaFiles.map((mediaFile) => ({
+    src: mediaFile.url,
+    thumbnail: mediaFile.url,
     width: 150,
     height: 120,
-    caption: image.name,
+    caption: `${mediaFile.type === "video" ? "🎬 " : ""}${mediaFile.name}`,
+    isSelected: false,
+    mediaType: mediaFile.type,
   }));
 
   const handleGallerySelect = (index: number) => {
-    const selected = allImages[index];
-    if (selected) onAddImage(selected.url);
+    const selected = allMediaFiles[index];
+    if (selected) {
+      if (selected.type === "video" && onAddVideo) {
+        onAddVideo(selected.url);
+      } else {
+        onAddImage(selected.url);
+      }
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,18 +104,26 @@ export default function ImageLibrarySidebar({
     if (!files?.length) return;
 
     Array.from(files).forEach((file) => {
+      // Detect file type
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      const isVideo = ["mp4", "webm", "ogg", "avi", "mov", "wmv"].includes(
+        ext || ""
+      );
+      const fileType = isVideo ? "video" : "image";
+      const fileTypeText = isVideo ? "video" : "ảnh";
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("name", file.name);
-      formData.append("type", "image");
+      formData.append("type", fileType);
 
       createMaterialInternal(formData, {
         onSuccess: () => {
-          toast.success(`Tải lên thành công: ${file.name}`);
+          toast.success(`Tải lên ${fileTypeText} thành công: ${file.name}`);
           refetchMaterialInternal();
         },
         onError: () => {
-          toast.error(`Tải lên thất bại: ${file.name}`);
+          toast.error(`Tải lên ${fileTypeText} thất bại: ${file.name}`);
         },
       });
     });
@@ -155,7 +185,7 @@ export default function ImageLibrarySidebar({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           multiple
           onChange={handleFileChange}
           className="hidden"
@@ -171,7 +201,7 @@ export default function ImageLibrarySidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {allImages.length > 0 ? (
+        {allMediaFiles.length > 0 ? (
           <Gallery
             images={galleryImages}
             onSelect={handleGallerySelect}

@@ -240,13 +240,7 @@ export default function SlidePresentation({
     if (element.type === "text") {
       const textElement = element as any;
 
-      // Debug: Log all style properties to identify the purple background
-      console.log("Text element styles:", {
-        id: textElement.id,
-        text: textElement.text,
-        backgroundColor: textElement.style?.backgroundColor,
-        allStyles: textElement.style,
-      });
+      // Text element styling
 
       return (
         <div
@@ -312,6 +306,25 @@ export default function SlidePresentation({
       );
     }
 
+    if (element.type === "video") {
+      const videoElement = element as any;
+      return (
+        <video
+          key={element.id}
+          src={videoElement.src}
+          style={{
+            ...style,
+            objectFit: "contain",
+          }}
+          controls={videoElement.controls !== false}
+          autoPlay={videoElement.autoplay}
+          loop={videoElement.loop}
+          muted={videoElement.muted !== false} // Default to muted for presentation
+          preload="metadata"
+        />
+      );
+    }
+
     return null;
   };
 
@@ -319,12 +332,10 @@ export default function SlidePresentation({
   const getBackgroundStyle = (slide?: any): React.CSSProperties => {
     const targetSlide = slide || currentSlide;
     if (!targetSlide?.background) {
-      console.log("No background found, using white");
       return { backgroundColor: "#ffffff" };
     }
 
     const bg = targetSlide.background;
-    console.log("Slide background:", bg);
 
     if (bg.startsWith("#")) {
       return { backgroundColor: bg };
