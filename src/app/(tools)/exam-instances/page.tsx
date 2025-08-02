@@ -15,17 +15,13 @@ import {
   ExamInstanceData,
   ChangeStatusData,
 } from "@/services/examInstanceServices";
-import { Plus, Eye, Clock, BookOpen, GraduationCap } from "lucide-react";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { AlertTriangle } from "lucide-react";
+
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/config/axios";
 import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
-import { cn } from "@/lib/utils";
 import {
-  BookMarkIcon,
-  BookMarkWhiteIcon,
   NoneExamIcon,
 } from "@/constants/icon";
 import ExamInstanceTable from "@/components/organisms/table-exam-instance";
@@ -37,6 +33,15 @@ interface TemplateInfo {
   grade: number;
   durationMinutes: number;
   totalScore: number;
+}
+
+interface StatusChangeConfirm {
+  instance: ExamInstanceData;
+  newStatus: ExamInstanceData["status"];
+  title: string;
+  message: string;
+  successMessage: string;
+  reason?: string;
 }
 
 export const statusConfig = {
@@ -57,6 +62,7 @@ export default function ExamInstancesPage() {
   const [step, setStep] = useState<"select-template" | "create-form">(
     "select-template"
   );
+  const [statusChangeConfirm, setStatusChangeConfirm] = useState<StatusChangeConfirm | null>(null);
 
   // API hooks
   const {
@@ -131,37 +137,53 @@ export default function ExamInstancesPage() {
   const handleStatusChange = (
     instance: ExamInstanceData,
     newStatus: ExamInstanceData["status"],
+    title: string,
     confirmMessage: string,
     successMessage: string,
     reason?: string
   ) => {
-    if (confirm(confirmMessage)) {
-      setChangingStatus(instance.id);
+    setStatusChangeConfirm({
+      instance,
+      newStatus,
+      title,
+      message: confirmMessage,
+      successMessage,
+      reason,
+    });
+  };
 
-      const data: ChangeStatusData = { status: newStatus };
-      if (reason) data.reason = reason;
+  // Function to confirm status change
+  const confirmStatusChange = () => {
+    if (!statusChangeConfirm) return;
 
-      changeStatusMutation.mutate(
-        { instanceId: instance.id, data },
-        {
-          onSuccess: () => {
-            toast.success(successMessage);
-          },
-          onError: (error: any) => {
-            toast.error(
-              error?.response?.data?.message ||
-                "Có lỗi xảy ra khi thay đổi trạng thái"
-            );
-          },
-        }
-      );
-    }
+    setChangingStatus(statusChangeConfirm.instance.id);
+
+    const data: ChangeStatusData = { status: statusChangeConfirm.newStatus };
+    if (statusChangeConfirm.reason) data.reason = statusChangeConfirm.reason;
+
+    changeStatusMutation.mutate(
+      { instanceId: statusChangeConfirm.instance.id, data },
+      {
+        onSuccess: () => {
+          toast.success(statusChangeConfirm.successMessage);
+          setStatusChangeConfirm(null);
+        },
+        onError: (error: any) => {
+          toast.error(
+            error?.response?.data?.message ||
+              "Có lỗi xảy ra khi thay đổi trạng thái"
+          );
+          setStatusChangeConfirm(null);
+        },
+      }
+    );
   };
 
   const handlePause = (instance: ExamInstanceData) => {
     handleStatusChange(
       instance,
       "PAUSED",
+      "Tạm dừng bài thi",
       `Bạn có chắc muốn tạm dừng bài thi "${instance.templateName}"?`,
       "Đã tạm dừng bài thi thành công"
     );
@@ -171,6 +193,7 @@ export default function ExamInstancesPage() {
     handleStatusChange(
       instance,
       "ACTIVE",
+      "Tiếp tục bài thi",
       `Bạn có chắc muốn tiếp tục bài thi "${instance.templateName}"?`,
       "Đã tiếp tục bài thi thành công"
     );
@@ -180,6 +203,7 @@ export default function ExamInstancesPage() {
     handleStatusChange(
       instance,
       "COMPLETED",
+      "Kết thúc bài thi",
       `Bạn có chắc muốn kết thúc bài thi "${instance.templateName}"?`,
       "Đã kết thúc bài thi thành công"
     );
@@ -189,8 +213,19 @@ export default function ExamInstancesPage() {
     handleStatusChange(
       instance,
       "CANCELLED",
+      "Hủy bài thi",
       `Bạn có chắc muốn hủy bài thi "${instance.templateName}"?`,
       "Đã hủy bài thi thành công"
+    );
+  };
+
+  const handleActivate = (instance: ExamInstanceData) => {
+    handleStatusChange(
+      instance,
+      "ACTIVE",
+      "Kích hoạt bài thi",
+      `Bạn có chắc muốn kích hoạt bài thi "${instance.templateName}"?`,
+      "Đã kích hoạt bài thi thành công"
     );
   };
 
@@ -243,6 +278,7 @@ export default function ExamInstancesPage() {
         onResume={handleResume}
         onStop={handleStop}
         onCancel={handleCancel}
+        onActivate={handleActivate}
       />
 
       {instances.length === 0 && (
@@ -277,6 +313,49 @@ export default function ExamInstancesPage() {
             isLoading={isCreating}
           />
         ) : null}
+      </Modal>
+
+      {/* Status Change Confirmation Modal */}
+      <Modal
+        isOpen={!!statusChangeConfirm}
+        onClose={() => setStatusChangeConfirm(null)}
+        title={statusChangeConfirm?.title || "Xác nhận"}
+        size="md"
+      >
+        {statusChangeConfirm && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-gray-900 font-medium">
+                  {statusChangeConfirm.message}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Hành động này sẽ thay đổi trạng thái của phiên kiểm tra.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setStatusChangeConfirm(null)}
+                disabled={changingStatus === statusChangeConfirm.instance.id}
+              >
+                Hủy
+              </Button>
+              <Button
+                onClick={confirmStatusChange}
+                disabled={changingStatus === statusChangeConfirm.instance.id}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                {changingStatus === statusChangeConfirm.instance.id ? "Đang xử lý..." : "Xác nhận"}
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

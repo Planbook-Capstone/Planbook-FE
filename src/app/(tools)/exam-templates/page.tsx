@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useExamTemplatesService,
   useDeleteExamTemplateService,
@@ -43,6 +43,19 @@ function ExamTemplatesPageContent() {
   const [showCreationModal, setShowCreationModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+
+  // Disable reload warning for this page
+  const { setDisableReloadWarning } = useExamContext();
+
+  // Disable reload warning when component mounts
+  useEffect(() => {
+    setDisableReloadWarning(true);
+
+    // Re-enable when component unmounts (user navigates away)
+    return () => {
+      setDisableReloadWarning(false);
+    };
+  }, [setDisableReloadWarning]);
 
   // States for create instance modal
   const [showCreateInstanceModal, setShowCreateInstanceModal] = useState(false);
