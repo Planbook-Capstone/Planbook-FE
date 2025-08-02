@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/Button";
 import { ExamInstanceData } from "@/services/examInstanceServices";
 import { Badge } from "@/components/ui/badge";
 import { CoppyIcon } from "@/constants/icon";
-import { Play, Pause, Square, XCircle } from "lucide-react";
+import { Play, Pause, Square, XCircle, Info, Power } from "lucide-react";
 import { statusConfig } from "@/constants/color";
+import { useState } from "react";
+import { Modal } from "@/components/ui/modal";
 
 // Handler function types
 interface OrderColumnHandlers {
@@ -13,11 +15,97 @@ interface OrderColumnHandlers {
   onResume?: (examInstance: ExamInstanceData) => void;
   onStop?: (examInstance: ExamInstanceData) => void;
   onCancel?: (examInstance: ExamInstanceData) => void;
+  onActivate?: (examInstance: ExamInstanceData) => void;
 }
+
+// Component for action guide modal
+const ActionGuideModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
+  <Modal isOpen={isOpen} onClose={onClose} title="Hướng dẫn các hành động" size="lg">
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <h4 className="font-medium text-gray-900">Các trạng thái và hành động:</h4>
+
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center gap-2">
+            <Badge className="bg-gray-100 text-gray-800">Nháp</Badge>
+            <span>→</span>
+            <div className="flex gap-1">
+              <Button size="sm" variant="outline" className="p-1 h-6">
+                <Power className="w-3 h-3" />
+              </Button>
+              <span className="text-xs">Kích hoạt</span>
+              <Button size="sm" variant="outline" className="p-1 h-6 ml-2">
+                <XCircle className="w-3 h-3" />
+              </Button>
+              <span className="text-xs">Hủy</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Badge className="bg-green-100 text-green-800">Đang hoạt động</Badge>
+            <span>→</span>
+            <div className="flex gap-1">
+              <Button size="sm" variant="outline" className="p-1 h-6">
+                <Pause className="w-3 h-3" />
+              </Button>
+              <span className="text-xs">Tạm dừng</span>
+              <Button size="sm" variant="outline" className="p-1 h-6 ml-2">
+                <Square className="w-3 h-3" />
+              </Button>
+              <span className="text-xs text-red-600 font-medium">Kết thúc (Không thể khôi phục)</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Badge className="bg-orange-100 text-orange-800">Tạm dừng</Badge>
+            <span>→</span>
+            <div className="flex gap-1">
+              <Button size="sm" variant="outline" className="p-1 h-6">
+                <Play className="w-3 h-3" />
+              </Button>
+              <span className="text-xs">Tiếp tục</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Badge className="bg-yellow-100 text-yellow-800">Đã lên lịch</Badge>
+            <span>→</span>
+            <div className="flex gap-1">
+              <Button size="sm" variant="outline" className="p-1 h-6">
+                <XCircle className="w-3 h-3" />
+              </Button>
+              <span className="text-xs">Hủy</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-4 border-t space-y-2">
+        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+          <p className="text-sm text-red-800 font-medium">
+            ⚠️ <strong>CHÚ Ý QUAN TRỌNG:</strong>
+          </p>
+          <p className="text-xs text-red-700 mt-1">
+            Khi <strong>KẾT THÚC</strong> bài kiểm tra, hành động này <strong>KHÔNG THỂ KHÔI PHỤC LẠI</strong>.
+            Bài kiểm tra sẽ chuyển sang trạng thái "Đã hoàn thành" và không thể tiếp tục được nữa.
+          </p>
+        </div>
+
+        <p className="text-xs text-gray-600">
+          <strong>Lưu ý:</strong> Tất cả các hành động đều yêu cầu xác nhận trước khi thực hiện.
+          Một số hành động không thể hoàn tác.
+        </p>
+      </div>
+    </div>
+  </Modal>
+);
 
 export const ordersColumns = (
   handlers: OrderColumnHandlers
-): ColumnDef<ExamInstanceData>[] => [
+): ColumnDef<ExamInstanceData>[] => {
+  const [showGuide, setShowGuide] = useState(false);
+
+  return [
   {
     id: "index",
     header: "STT",
@@ -96,7 +184,24 @@ export const ordersColumns = (
 
   {
     id: "actions",
-    header: "Hành động",
+    header: () => (
+      <div className="flex items-center gap-2">
+        <span>Hành động</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowGuide(true)}
+          className="p-1 h-6 w-6 hover:bg-blue-50"
+          title="Hướng dẫn các hành động"
+        >
+          <Info className="w-4 h-4 text-blue-600" />
+        </Button>
+        <ActionGuideModal
+          isOpen={showGuide}
+          onClose={() => setShowGuide(false)}
+        />
+      </div>
+    ),
     cell: ({ row }) => {
       const examInstance = row.original;
 
@@ -170,8 +275,39 @@ export const ordersColumns = (
             break;
 
           case "DRAFT":
+            // Draft: Show Activate and Cancel buttons
+            if (handlers.onActivate) {
+              buttons.push(
+                <Button
+                  key="activate"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlers.onActivate!(examInstance)}
+                  className="p-2 hover:bg-green-50 hover:text-green-600 border-green-300"
+                  title="Kích hoạt"
+                >
+                  <Power className="w-4 h-4" />
+                </Button>
+              );
+            }
+            if (handlers.onCancel) {
+              buttons.push(
+                <Button
+                  key="cancel"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlers.onCancel!(examInstance)}
+                  className="p-2 hover:bg-red-50 hover:text-red-600 border-red-300"
+                  title="Hủy"
+                >
+                  <XCircle className="w-4 h-4" />
+                </Button>
+              );
+            }
+            break;
+
           case "SCHEDULED":
-            // Draft/Scheduled: Show Cancel button
+            // Scheduled: Show Cancel button
             if (handlers.onCancel) {
               buttons.push(
                 <Button
@@ -202,3 +338,4 @@ export const ordersColumns = (
     },
   },
 ];
+};

@@ -11,6 +11,7 @@ interface ExamInstanceTableProps {
   onResume?: (examInstance: ExamInstanceData) => void;
   onStop?: (examInstance: ExamInstanceData) => void;
   onCancel?: (examInstance: ExamInstanceData) => void;
+  onActivate?: (examInstance: ExamInstanceData) => void;
 }
 
 export default function ExamInstanceTable({
@@ -21,6 +22,7 @@ export default function ExamInstanceTable({
   onResume,
   onStop,
   onCancel,
+  onActivate,
 }: ExamInstanceTableProps) {
   const columns = ordersColumns({
     onViewDetail,
@@ -28,6 +30,7 @@ export default function ExamInstanceTable({
     onResume,
     onStop,
     onCancel,
+    onActivate,
   });
 
   return (

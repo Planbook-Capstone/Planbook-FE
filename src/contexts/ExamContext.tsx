@@ -37,6 +37,8 @@ interface ExamContextType {
   clearExamData: () => void;
   hasUnsavedChanges: boolean;
   markAsSaved: () => void;
+  disableReloadWarning: boolean;
+  setDisableReloadWarning: (value: boolean) => void;
 }
 
 // LocalStorage keys
@@ -59,6 +61,7 @@ interface ExamProviderProps {
 
 export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [disableReloadWarning, setDisableReloadWarning] = useState(false);
 
   // Initialize state from localStorage or defaults
   const [basicExamInfo, setBasicExamInfo] = useState<BasicExamInfo>(() => {
@@ -192,7 +195,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
   // Handle beforeunload event
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
+      if (hasUnsavedChanges && !disableReloadWarning) {
         e.preventDefault();
         e.returnValue =
           "Bạn có thay đổi chưa được lưu. Bạn có chắc chắn muốn thoát?";
@@ -202,7 +205,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, disableReloadWarning]);
 
   const updateQuestion = (question: Question) => {
     console.log("🔄 ExamContext - updateQuestion called with:", question);
@@ -470,6 +473,8 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     clearExamData,
     hasUnsavedChanges,
     markAsSaved,
+    disableReloadWarning,
+    setDisableReloadWarning,
   };
 
   return <ExamContext.Provider value={value}>{children}</ExamContext.Provider>;
