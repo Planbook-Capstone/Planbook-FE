@@ -8,16 +8,19 @@ interface OrderTableProps {
   onSelectionChange?: (selectedRows: Row<Order>[]) => void;
   onViewDetail: (order: Order) => void;
   // onToggleUserStatus?: (order: Order) => void;
+  mode?: "admin" | "user";
 }
 
 export default function OrderTable({
   orders,
   onSelectionChange,
   onViewDetail,
-  // onToggleUserStatus,
-}: OrderTableProps) {
+  mode,
+}: // onToggleUserStatus,
+OrderTableProps) {
   const columns = ordersColumns({
     onViewDetail,
+    mode,
     // onToggleUserStatus,
   });
 

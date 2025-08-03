@@ -4,6 +4,7 @@ import {
   History,
   Home,
   Inbox,
+  LogOut,
   Search,
   Settings,
   Trash,
@@ -21,6 +22,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth";
 
 // Menu items.
 const items = [
@@ -50,9 +52,23 @@ const items = [
     url: "#",
     icon: Settings,
   },
+  {
+    title: "Đăng xuất",
+    url: "#",
+    icon: LogOut,
+    isLogout: true,
+  },
 ];
 
 export function AppSidebar() {
+  const { logout } = useAuth();
+
+  const handleItemClick = (item: any) => {
+    if (item.isLogout) {
+      logout();
+    }
+  };
+
   return (
     <Sidebar className="border-none bg-white">
       <SidebarContent className="bg-white">
@@ -69,11 +85,21 @@ export function AppSidebar() {
             <SidebarMenu className="p-3 flex items-start justify-start ">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span className="text-base">{item.title}</span>
-                    </a>
+                  <SidebarMenuButton asChild={!item.isLogout}>
+                    {item.isLogout ? (
+                      <button
+                        onClick={() => handleItemClick(item)}
+                        className="flex justify-center items-center gap-2 w-full text-left hover:bg-gray-100 rounded-md"
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span className="text-base">{item.title}</span>
+                      </button>
+                    ) : (
+                      <a href={item.url}>
+                        <item.icon className="w-4 h-4" />
+                        <span className="text-base">{item.title}</span>
+                      </a>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
