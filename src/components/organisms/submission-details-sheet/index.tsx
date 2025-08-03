@@ -90,7 +90,7 @@ const groupPart2ByQuestion = (results: ResultDetail[]) => {
 // Helper function to format question display
 const formatQuestionDisplay = (result: ResultDetail) => {
   if (result.question) {
-    // return `Câu ${result.questionNumber}: ${result.question}`;
+    return `Câu ${result.questionNumber}: ${result.question}`;
   }
   return `${result.question}`;
 };
