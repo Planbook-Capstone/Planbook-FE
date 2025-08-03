@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
 import MainLayout from "@/components/layout/MainLayout";
 import Banner from "@/components/organisms/banner";
@@ -21,16 +22,38 @@ import { useBookTypesService } from "@/services/bookTypeServices";
 import BannerOverlay from "@/components/organisms/banner/BannerWithOverlay";
 import SpotlightCard from "@/components/ui/SpotlightCard";
 import { useAuth } from "@/hooks/useAuth";
-import { useToolLogsService } from "@/services/toolLogServices";
+import { useToolLogsWithParamsService } from "@/services/toolLogServices";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
   const { data: bookTypes } = useBookTypesService();
-  const { data: toolLogs } = useToolLogsService();
 
-  console.log(toolLogs?.data?.content, "tran")
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(10);
 
+  // Use the paginated service
+  const { data: toolLogs, refetch } = useToolLogsWithParamsService(
+    [currentPage, pageSize], // dependencies for query key
+    { retry: 1, staleTime: 0 }, // options
+    {
+      offset: currentPage,
+      pageSize: pageSize,
+      sort: "createdAt,desc",
+    } // pagination params
+  );
+
+  console.log(toolLogs?.data, "toolLogs");
   const { displayName } = useAuth();
 
   const getRandomColorClass = () => {
@@ -50,6 +73,20 @@ export default function Home() {
     ];
     const randomIndex = Math.floor(Math.random() * colorClasses.length);
     return colorClasses[randomIndex];
+  };
+
+  // Handle pagination change
+  const handlePageChange = (page: number) => {
+    console.log("Pagination onChange - Page data:", {
+      currentPage: currentPage,
+      newPage: page,
+      totalPages: toolLogs?.data?.totalPages,
+      totalElements: toolLogs?.data?.totalElements,
+      pageSize: toolLogs?.data?.size,
+    });
+
+    // Update current page state - this will trigger refetch automatically
+    setCurrentPage(page);
   };
 
   return (
@@ -122,13 +159,174 @@ export default function Home() {
         }
       />
       {view === "list" ? (
-        <HistoryList data={toolLogs?.data?.content  || []} />
+        <HistoryList data={toolLogs?.data?.content || []} />
       ) : (
         <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {Array.from({ length: 7 }).map((_, index) => (
-            <HistoryCard key={index} className={getRandomColorClass()} />
+          {toolLogs?.data?.content?.map((data: any, index: number) => (
+            <HistoryCard
+              key={index}
+              data={data}
+              className={getRandomColorClass()}
+            />
           ))}
         </section>
+      )}
+
+      {/* Pagination using shadcn/ui */}
+      {toolLogs?.data && toolLogs.data.totalPages > 1 && (
+        <div className="float-end mt-5 space-y-4">
+          {/* Info text */}
+          {/* <div className="text-center">
+            <p className="text-sm text-gray-700">
+              Hiển thị{" "}
+              <span className="font-medium">
+                {toolLogs.data.numberOfElements > 0
+                  ? (toolLogs.data.number * toolLogs.data.size) + 1
+                  : 0}
+              </span>{" "}
+              đến{" "}
+              <span className="font-medium">
+                {Math.min(
+                  (toolLogs.data.number + 1) * toolLogs.data.size,
+                  toolLogs.data.totalElements
+                )}
+              </span>{" "}
+              trong tổng số{" "}
+              <span className="font-medium">{toolLogs.data.totalElements}</span>{" "}
+              kết quả
+            </p>
+          </div> */}
+
+          {/* Pagination */}
+          <Pagination>
+            <PaginationContent>
+              {/* Previous Button */}
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 0) {
+                      handlePageChange(currentPage - 1);
+                    }
+                  }}
+                  className={
+                    currentPage === 0 ? "pointer-events-none opacity-50" : ""
+                  }
+                />
+              </PaginationItem>
+
+              {/* Page Numbers */}
+              {(() => {
+                const totalPages = toolLogs.data.totalPages;
+                const pages = [];
+
+                // Show first page
+                if (totalPages > 0) {
+                  pages.push(
+                    <PaginationItem key={0}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === 0}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage !== 0) {
+                            handlePageChange(0);
+                          }
+                        }}
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                // Show ellipsis if needed
+                if (currentPage > 2) {
+                  pages.push(
+                    <PaginationItem key="ellipsis-start">
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                // Show pages around current page
+                const start = Math.max(1, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+
+                for (let i = start; i <= end; i++) {
+                  if (i !== 0 && i !== totalPages - 1) {
+                    pages.push(
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === i}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage !== i) {
+                              handlePageChange(i);
+                            }
+                          }}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+                }
+
+                // Show ellipsis if needed
+                if (currentPage < totalPages - 3) {
+                  pages.push(
+                    <PaginationItem key="ellipsis-end">
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                // Show last page (if different from first)
+                if (totalPages > 1) {
+                  pages.push(
+                    <PaginationItem key={totalPages - 1}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === totalPages - 1}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage !== totalPages - 1) {
+                            handlePageChange(totalPages - 1);
+                          }
+                        }}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                return pages;
+              })()}
+
+              {/* Next Button */}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < toolLogs.data.totalPages - 1) {
+                      handlePageChange(currentPage + 1);
+                    }
+                  }}
+                  className={
+                    currentPage >= toolLogs.data.totalPages - 1
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
     </MainLayout>
   );

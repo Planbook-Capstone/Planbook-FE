@@ -23,10 +23,11 @@ import { useState } from "react";
 import * as FaIcons from "react-icons/fa6";
 
 interface HistoryCardProps {
+  data?: any;
   className?: string;
 }
 
-export default function HistoryCard({ className }: HistoryCardProps) {
+export default function HistoryCard({ data, className }: HistoryCardProps) {
   const [dropdownIcon, setDropdownIcon] = useState<string>("FaBookBookmark");
   const [dropdownIconColor, setDropdownIconColor] = useState("");
 
@@ -47,7 +48,7 @@ export default function HistoryCard({ className }: HistoryCardProps) {
 
       <div className="flex items-center justify-between">
         <h3 className="mt-2 font-calsans text-sm text-black line-clamp-1">
-          Tạo giáo án chi tiết theo chủ đề
+          {data?.code}
         </h3>
         <DropdownMenu>
           <DropdownMenuTrigger className="rounded-full hover:bg-accent p-2 cursor-pointer">
