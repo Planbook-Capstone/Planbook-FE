@@ -30,6 +30,9 @@ interface ExamContextType {
   addQuestion: () => void;
   addYesNoQuestion: () => void;
   addShortQuestion: () => void;
+  addQuestionWithData: (question: Question) => void;
+  addYesNoQuestionWithData: (question: YesNoQuestion) => void;
+  addShortQuestionWithData: (question: ShortQuestion) => void;
   updateQuestionImage: (questionId: string, imagePath: string) => void;
   updateYesNoQuestionImage: (questionId: string, imagePath: string) => void;
   updateShortQuestionImage: (questionId: string, imagePath: string) => void;
@@ -302,6 +305,22 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     setHasUnsavedChanges(true);
   };
 
+  // New functions to add questions with data
+  const addQuestionWithData = (question: Question) => {
+    setExamQuestions((prev) => [...prev, question]);
+    setHasUnsavedChanges(true);
+  };
+
+  const addYesNoQuestionWithData = (question: YesNoQuestion) => {
+    setExamYesNoQuestions((prev) => [...prev, question]);
+    setHasUnsavedChanges(true);
+  };
+
+  const addShortQuestionWithData = (question: ShortQuestion) => {
+    setExamShortQuestions((prev) => [...prev, question]);
+    setHasUnsavedChanges(true);
+  };
+
   const updateQuestionImage = (questionId: string, imagePath: string) => {
     setExamQuestions((prev) =>
       prev.map((q) =>
@@ -466,6 +485,9 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     addQuestion,
     addYesNoQuestion,
     addShortQuestion,
+    addQuestionWithData,
+    addYesNoQuestionWithData,
+    addShortQuestionWithData,
     updateQuestionImage,
     updateYesNoQuestionImage,
     updateShortQuestionImage,

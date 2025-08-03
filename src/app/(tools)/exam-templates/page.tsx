@@ -177,7 +177,7 @@ function ExamTemplatesPageContent() {
   const handleCreateInstanceSubmit = (data: CreateExamInstanceData) => {
     createInstance(data, {
       onSuccess: () => {
-        toast.success("Tạo phiếm kiểm tra thành công!");
+        toast.success("Tạo phiên kiểm tra thành công!");
         setShowCreateInstanceModal(false);
         setSelectedTemplateForInstance(null);
         // Navigate to exam instances page
@@ -187,7 +187,7 @@ function ExamTemplatesPageContent() {
         console.error("Create instance failed:", error);
         toast.error(
           error?.response?.data?.message ||
-            "Tạo phiếm kiểm tra thất bại. Vui lòng thử lại!"
+            "Tạo phiên kiểm tra thất bại. Vui lòng thử lại!"
         );
       },
     });

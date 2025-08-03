@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -10,7 +10,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Eye } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { SubmissionData, ResultDetail } from "@/services/examInstanceServices";
 import { cn } from "@/lib/utils";
@@ -22,32 +28,171 @@ interface SubmissionDetailsSheetProps {
   trigger?: React.ReactNode;
 }
 
-// Helper function to group results by section
+// Helper function to sort sub-questions (a, b, c, d)
+const getSubQuestionOrder = (questionId: string): number => {
+  const subMatch = questionId.match(/_([abcd])$/);
+  return subMatch ? subMatch[1].charCodeAt(0) : 0;
+};
+
+// Helper function to group and sort results by section
 const groupResultsBySection = (results: ResultDetail[]) => {
-  return results.reduce((acc, result) => {
-    // Extract section from questionId (assuming format like "PHẦN I_1", "PHẦN II_1", etc.)
-    const section = result.questionId.split("_")[0] || "PHẦN KHÁC";
+  const grouped = results.reduce((acc, result) => {
+    const section =
+      result.partName || result.questionId.split("_")[0] || "PHẦN KHÁC";
     if (!acc[section]) {
       acc[section] = [];
     }
     acc[section].push(result);
     return acc;
   }, {} as Record<string, ResultDetail[]>);
+
+  const sortedGrouped: Record<string, ResultDetail[]> = {};
+  const sectionOrder = ["PHẦN I", "PHẦN II", "PHẦN III"];
+
+  sectionOrder.forEach((section) => {
+    if (!grouped[section]) return;
+
+    // Sort results within each section
+    grouped[section].sort((a, b) => {
+      if (a.questionNumber !== b.questionNumber) {
+        return a.questionNumber - b.questionNumber;
+      }
+      return (
+        getSubQuestionOrder(a.questionId) - getSubQuestionOrder(b.questionId)
+      );
+    });
+
+    sortedGrouped[section] = grouped[section];
+  });
+
+  // Add remaining sections
+  Object.keys(grouped).forEach((section) => {
+    if (!sectionOrder.includes(section)) {
+      sortedGrouped[section] = grouped[section];
+    }
+  });
+
+  return sortedGrouped;
 };
 
-// Helper function to format question ID
-const formatQuestionId = (questionId: string) => {
-  const parts = questionId.split("_");
-  if (parts.length >= 2) {
-    return `Câu ${parts[1]}`;
-  }
-  return questionId;
+// Helper function to group PHẦN II results by question number
+const groupPart2ByQuestion = (results: ResultDetail[]) => {
+  return results.reduce((acc, result) => {
+    const questionKey = `question_${result.questionNumber}`;
+    if (!acc[questionKey]) {
+      acc[questionKey] = [];
+    }
+    acc[questionKey].push(result);
+    return acc;
+  }, {} as Record<string, ResultDetail[]>);
 };
+
+// Helper function to format question display
+const formatQuestionDisplay = (result: ResultDetail) => {
+  if (result.question) {
+    // return `Câu ${result.questionNumber}: ${result.question}`;
+  }
+  return `${result.question}`;
+};
+
+// Helper function to render PHẦN II questions with grouping
+const renderPart2Questions = (results: ResultDetail[]) => {
+  const groupedQuestions = groupPart2ByQuestion(results);
+
+  return Object.entries(groupedQuestions).map(
+    ([questionKey, questionResults]) => (
+      <div key={questionKey} className="space-y-2">
+        <div className="text-lg font-bold text-gray-700 bg-gray-50 px-3 py-2 rounded-md">
+          Câu {questionResults[0].questionNumber}
+        </div>
+        <div className="ml-4 space-y-2">
+          {questionResults.map((result, idx) =>
+            renderQuestionCard(result, idx)
+          )}
+        </div>
+      </div>
+    )
+  );
+};
+
+// Helper function to render regular questions (PHẦN I, III)
+const renderRegularQuestions = (results: ResultDetail[]) => {
+  return results.map((result, idx) => renderQuestionCard(result, idx));
+};
+
+// Helper function to render individual question card
+const renderQuestionCard = (result: ResultDetail, idx: number) => (
+  <div
+    key={`${result.questionId}-${idx}`}
+    className={cn(
+      "p-4 rounded-lg border",
+      result.isCorrect
+        ? "bg-emerald-50 border-emerald-200"
+        : "bg-rose-50 border-rose-200"
+    )}
+  >
+    <div className="flex items-start justify-between mb-3">
+      <div className="flex items-center gap-3">
+        {result.isCorrect ? (
+          <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+        ) : (
+          <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+        )}
+        <span className="font-semibold text-gray-800">
+          {formatQuestionDisplay(result)}
+        </span>
+      </div>
+      <Badge
+        variant={result.isCorrect ? "default" : "destructive"}
+        className="text-xs"
+      >
+        {result.isCorrect ? "Đúng" : "Sai"}
+      </Badge>
+    </div>
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+      <div className="space-y-1">
+        <div className="text-gray-600 font-medium">
+          Câu trả lời của học sinh:
+        </div>
+        <div
+          className={cn(
+            "font-semibold p-2 rounded bg-white border",
+            result.isCorrect
+              ? "text-emerald-700 border-emerald-300"
+              : "text-rose-700 border-rose-300"
+          )}
+        >
+          {result.studentAnswer}
+        </div>
+      </div>
+      <div className="space-y-1">
+        <div className="text-gray-600 font-medium">Đáp án đúng:</div>
+        <div className="font-semibold text-emerald-700 p-2 rounded bg-white border border-emerald-300">
+          {result.correctAnswer}
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 export function SubmissionDetailsSheet({
   submission,
   trigger,
 }: SubmissionDetailsSheetProps) {
+  // State for collapsible panels
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Helper function to toggle section collapse
+  const toggleSection = (section: string) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   const defaultTrigger = (
     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
       <Eye className="h-4 w-4" />
@@ -129,73 +274,49 @@ export function SubmissionDetailsSheet({
 
               {Object.entries(
                 groupResultsBySection(submission.resultDetails)
-              ).map(([section, results]) => (
-                <div key={section} className="space-y-3">
-                  <h5 className="font-semibold text-gray-800 text-base border-b border-gray-200 pb-2">
-                    {section.replace("PHẦN", "Phần")}
-                  </h5>
-                  <div className="space-y-3">
-                    {results.map((result, idx) => (
-                      <div
-                        key={`${result.questionId}-${idx}`}
-                        className={cn(
-                          "p-4 rounded-lg border",
-                          result.isCorrect
-                            ? "bg-emerald-50 border-emerald-200"
-                            : "bg-rose-50 border-rose-200"
-                        )}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            {result.isCorrect ? (
-                              <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                            ) : (
-                              <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
-                            )}
-                            <span className="font-semibold text-gray-800">
-                              {formatQuestionId(result.questionId)}
-                            </span>
-                          </div>
-                          <Badge
-                            variant={
-                              result.isCorrect ? "default" : "destructive"
-                            }
-                            className="text-xs"
-                          >
-                            {result.isCorrect ? "Đúng" : "Sai"}
-                          </Badge>
-                        </div>
+              ).map(([section, results]) => {
+                const isCollapsed = collapsedSections[section];
+                const sectionName = section.replace("PHẦN", "Phần");
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                          <div className="space-y-1">
-                            <div className="text-gray-600 font-medium">
-                              Câu trả lời của học sinh:
-                            </div>
-                            <div
-                              className={cn(
-                                "font-semibold p-2 rounded bg-white border",
-                                result.isCorrect
-                                  ? "text-emerald-700 border-emerald-300"
-                                  : "text-rose-700 border-rose-300"
-                              )}
-                            >
-                              {result.studentAnswer}
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="text-gray-600 font-medium">
-                              Đáp án đúng:
-                            </div>
-                            <div className="font-semibold text-emerald-700 p-2 rounded bg-white border border-emerald-300">
-                              {result.correctAnswer}
-                            </div>
-                          </div>
-                        </div>
+                return (
+                  <div
+                    key={section}
+                    className="border rounded-lg overflow-hidden"
+                  >
+                    <button
+                      onClick={() => toggleSection(section)}
+                      className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
+                      <h5 className="font-semibold text-gray-800 text-base">
+                        {sectionName}
+                      </h5>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">
+                          {section === "PHẦN II"
+                            ? `${
+                                Object.keys(groupPart2ByQuestion(results))
+                                  .length
+                              } câu (${results.length} ý)`
+                            : `${results.length} câu`}
+                        </span>
+                        {isCollapsed ? (
+                          <ChevronDown className="h-4 w-4 text-gray-600" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4 text-gray-600" />
+                        )}
                       </div>
-                    ))}
+                    </button>
+
+                    {!isCollapsed && (
+                      <div className="p-4 space-y-3">
+                        {section === "PHẦN II"
+                          ? renderPart2Questions(results)
+                          : renderRegularQuestions(results)}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

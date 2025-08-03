@@ -150,7 +150,7 @@ export function CreateInstanceForm({
                   <FormLabel>Mô tả *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Nhập mô tả cho instance này..."
+                      placeholder="Nhập mô tả cho phiên kiểm tra này..."
                       className="min-h-[100px]"
                       {...field}
                     />

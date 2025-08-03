@@ -72,6 +72,9 @@ export interface UpdateInstanceData {
  */
 export interface ResultDetail {
   questionId: string;
+  questionNumber: number;
+  partName?: string;
+  question?: string;
   studentAnswer: string;
   correctAnswer: string;
   isCorrect: boolean;
