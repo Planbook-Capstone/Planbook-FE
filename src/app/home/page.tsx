@@ -1,19 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 import MainLayout from "@/components/layout/MainLayout";
-import Banner from "@/components/organisms/banner";
 import CardFeature from "@/components/organisms/card-feature";
-import {
-  ExamIcon,
-  FormIcon,
-  HistoryIcon,
-  LessonPlanIcon,
-  PenIcon,
-  SlideIcon,
-} from "@/constants/icon";
+import { HistoryIcon } from "@/constants/icon";
 import ItemSection from "@/components/organisms/item-section";
 import HistoryCard from "@/components/organisms/history-card";
 import HistoryList from "@/components/organisms/history-list";
@@ -53,7 +44,6 @@ export default function Home() {
     } // pagination params
   );
 
-  console.log(toolLogs?.data, "toolLogs");
   const { displayName } = useAuth();
 
   const getRandomColorClass = () => {
@@ -172,7 +162,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Pagination using shadcn/ui */}
       {toolLogs?.data && toolLogs.data.totalPages > 1 && (
         <div className="float-end mt-5 space-y-4">
           {/* Info text */}
