@@ -34,6 +34,17 @@ export function SubmissionDetails({
   className,
 }: SubmissionDetailsProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Helper function to toggle section collapse
+  const toggleSection = (section: string) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   const getScoreColor = (score: number, maxScore: number) => {
     const percentage = (score / maxScore) * 100;
@@ -49,25 +60,51 @@ export function SubmissionDetails({
     return "bg-rose-50 border-rose-200";
   };
 
-  const formatQuestionId = (questionId: string) => {
-    // Format questionId để hiển thị đẹp hơn
-    // Ví dụ: "PHẦN I_Q1753275580439" -> "Phần I - Câu 1753275580439"
-    const parts = questionId.split("_");
-    if (parts.length >= 2) {
-      const section = parts[0].replace("PHẦN", "Phần");
-      const questionPart = parts[1].replace("Q", "Câu ");
-      const subPart = parts[2] ? ` (${parts[2].toUpperCase()})` : "";
-      return `${section} - ${questionPart}${subPart}`;
+  const formatQuestionDisplay = (result: ResultDetail) => {
+    // Use the new question field if available, otherwise fallback to questionNumber
+    if (result.question) {
+      const section =
+        result.partName?.replace("PHẦN", "Phần") ||
+        result.questionId.split("_")[0]?.replace("PHẦN", "Phần") ||
+        "";
+      return `${section} - Câu ${result.question}`;
     }
-    return questionId;
+
+    // Fallback to old format
+    const parts = result.questionId.split("_");
+    if (parts.length >= 1) {
+      const section = parts[0].replace("PHẦN", "Phần");
+      return `${section} - Câu ${result.questionNumber}`;
+    }
+    return `Câu ${result.questionNumber}`;
+  };
+
+  // Helper function to sort sub-questions (a, b, c, d)
+  const getSubQuestionOrder = (questionId: string): number => {
+    const subMatch = questionId.match(/_([abcd])$/);
+    return subMatch ? subMatch[1].charCodeAt(0) : 0;
+  };
+
+  // Helper function to group PHẦN II results by question number
+  const groupPart2ByQuestion = (results: ResultDetail[]) => {
+    return results.reduce((acc, result) => {
+      const questionKey = `question_${result.questionNumber}`;
+      if (!acc[questionKey]) {
+        acc[questionKey] = [];
+      }
+      acc[questionKey].push(result);
+      return acc;
+    }, {} as Record<string, ResultDetail[]>);
   };
 
   const groupResultsBySection = (results: ResultDetail[]) => {
     const grouped: { [key: string]: ResultDetail[] } = {};
 
     results.forEach((result) => {
-      const sectionMatch = result.questionId.match(/^(PHẦN [IVX]+)/);
-      const section = sectionMatch ? sectionMatch[1] : "Khác";
+      const section =
+        result.partName ||
+        result.questionId.match(/^(PHẦN [IVX]+)/)?.[1] ||
+        "Khác";
 
       if (!grouped[section]) {
         grouped[section] = [];
@@ -75,7 +112,34 @@ export function SubmissionDetails({
       grouped[section].push(result);
     });
 
-    return grouped;
+    // Sort sections in order: PHẦN I, PHẦN II, PHẦN III
+    const sortedGrouped: { [key: string]: ResultDetail[] } = {};
+    const sectionOrder = ["PHẦN I", "PHẦN II", "PHẦN III"];
+
+    sectionOrder.forEach((section) => {
+      if (!grouped[section]) return;
+
+      // Sort results within each section
+      grouped[section].sort((a, b) => {
+        if (a.questionNumber !== b.questionNumber) {
+          return a.questionNumber - b.questionNumber;
+        }
+        return (
+          getSubQuestionOrder(a.questionId) - getSubQuestionOrder(b.questionId)
+        );
+      });
+
+      sortedGrouped[section] = grouped[section];
+    });
+
+    // Add remaining sections
+    Object.keys(grouped).forEach((section) => {
+      if (!sectionOrder.includes(section)) {
+        sortedGrouped[section] = grouped[section];
+      }
+    });
+
+    return sortedGrouped;
   };
 
   const percentage = ((submission.score / submission.maxScore) * 100).toFixed(
@@ -201,67 +265,170 @@ export function SubmissionDetails({
 
               {Object.entries(
                 groupResultsBySection(submission.resultDetails)
-              ).map(([section, results]) => (
-                <div key={section} className="mb-4">
-                  <h5 className="font-medium text-gray-800 mb-2 text-sm">
-                    {section.replace("PHẦN", "Phần")}
-                  </h5>
-                  <div className="space-y-2">
-                    {results.map((result, idx) => (
-                      <div
-                        key={`${result.questionId}-${idx}`}
-                        className={cn(
-                          "flex items-center justify-between p-3 rounded-lg border text-sm",
-                          result.isCorrect
-                            ? "bg-emerald-50 border-emerald-200"
-                            : "bg-rose-50 border-rose-200"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          {result.isCorrect ? (
-                            <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                          ) : (
-                            <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-                          )}
-                          <span className="font-medium text-gray-700">
-                            {formatQuestionId(result.questionId)}
-                          </span>
-                        </div>
+              ).map(([section, results]) => {
+                const isCollapsed = collapsedSections[section];
+                const sectionName = section.replace("PHẦN", "Phần");
 
-                        <div className="flex items-center gap-4 text-xs">
-                          <div className="text-right">
-                            <div className="text-gray-600">Trả lời:</div>
-                            <div
-                              className={cn(
-                                "font-medium",
-                                result.isCorrect
-                                  ? "text-emerald-700"
-                                  : "text-rose-700"
-                              )}
-                            >
-                              {result.studentAnswer}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-gray-600">Đáp án:</div>
-                            <div className="font-medium text-emerald-700">
-                              {result.correctAnswer}
-                            </div>
-                          </div>
-                          <Badge
-                            variant={
-                              result.isCorrect ? "default" : "destructive"
-                            }
-                            className="text-xs"
-                          >
-                            {result.isCorrect ? "Đúng" : "Sai"}
-                          </Badge>
-                        </div>
+                return (
+                  <div
+                    key={section}
+                    className="mb-4 border rounded-lg overflow-hidden"
+                  >
+                    <button
+                      onClick={() => toggleSection(section)}
+                      className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
+                      <h5 className="font-medium text-gray-800 text-sm">
+                        {sectionName}
+                      </h5>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-600">
+                          {results.length} câu
+                        </span>
+                        {isCollapsed ? (
+                          <ChevronDown className="h-3 w-3 text-gray-600" />
+                        ) : (
+                          <ChevronUp className="h-3 w-3 text-gray-600" />
+                        )}
                       </div>
-                    ))}
+                    </button>
+
+                    {!isCollapsed && (
+                      <div className="space-y-2">
+                        {section === "PHẦN II"
+                          ? // Group PHẦN II by question number
+                            Object.entries(groupPart2ByQuestion(results)).map(
+                              ([questionKey, questionResults]) => (
+                                <div key={questionKey} className="space-y-1">
+                                  <div className="text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                                    Câu {questionResults[0].questionNumber} -
+                                    Đúng/Sai
+                                  </div>
+                                  <div className="ml-3 space-y-1">
+                                    {questionResults.map((result, idx) => (
+                                      <div
+                                        key={`${result.questionId}-${idx}`}
+                                        className={cn(
+                                          "flex items-center justify-between p-2 rounded border text-sm",
+                                          result.isCorrect
+                                            ? "bg-emerald-50 border-emerald-200"
+                                            : "bg-rose-50 border-rose-200"
+                                        )}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          {result.isCorrect ? (
+                                            <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                                          ) : (
+                                            <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                                          )}
+                                          <span className="font-medium text-gray-700">
+                                            {formatQuestionDisplay(result)}
+                                          </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-4 text-xs">
+                                          <div className="text-right">
+                                            <div className="text-gray-600">
+                                              Trả lời:
+                                            </div>
+                                            <div
+                                              className={cn(
+                                                "font-medium",
+                                                result.isCorrect
+                                                  ? "text-emerald-700"
+                                                  : "text-rose-700"
+                                              )}
+                                            >
+                                              {result.studentAnswer}
+                                            </div>
+                                          </div>
+                                          <div className="text-right">
+                                            <div className="text-gray-600">
+                                              Đáp án:
+                                            </div>
+                                            <div className="font-medium text-emerald-700">
+                                              {result.correctAnswer}
+                                            </div>
+                                          </div>
+                                          <Badge
+                                            variant={
+                                              result.isCorrect
+                                                ? "default"
+                                                : "destructive"
+                                            }
+                                            className="text-xs"
+                                          >
+                                            {result.isCorrect ? "Đúng" : "Sai"}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            )
+                          : // Regular display for PHẦN I and PHẦN III
+                            results.map((result, idx) => (
+                              <div
+                                key={`${result.questionId}-${idx}`}
+                                className={cn(
+                                  "flex items-center justify-between p-3 rounded-lg border text-sm",
+                                  result.isCorrect
+                                    ? "bg-emerald-50 border-emerald-200"
+                                    : "bg-rose-50 border-rose-200"
+                                )}
+                              >
+                                <div className="flex items-center gap-3">
+                                  {result.isCorrect ? (
+                                    <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                                  )}
+                                  <span className="font-medium text-gray-700">
+                                    {formatQuestionDisplay(result)}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-4 text-xs">
+                                  <div className="text-right">
+                                    <div className="text-gray-600">
+                                      Trả lời:
+                                    </div>
+                                    <div
+                                      className={cn(
+                                        "font-medium",
+                                        result.isCorrect
+                                          ? "text-emerald-700"
+                                          : "text-rose-700"
+                                      )}
+                                    >
+                                      {result.studentAnswer}
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-gray-600">Đáp án:</div>
+                                    <div className="font-medium text-emerald-700">
+                                      {result.correctAnswer}
+                                    </div>
+                                  </div>
+                                  <Badge
+                                    variant={
+                                      result.isCorrect
+                                        ? "default"
+                                        : "destructive"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {result.isCorrect ? "Đúng" : "Sai"}
+                                  </Badge>
+                                </div>
+                              </div>
+                            ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
       </CardContent>
