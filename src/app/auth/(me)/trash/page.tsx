@@ -2,15 +2,19 @@
 import TrashTable from "@/components/organisms/table-trash";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { useToolResultsWithParamsService } from "@/services/toolResultService";
+import {
+  useToolResultsWithParamsService,
+  useUpdateToolResultStatusService,
+} from "@/services/toolResultService";
 import { ToolResultResponse } from "@/types";
 import { useState } from "react";
+import { toast } from "sonner";
 
 function TrashPage() {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
-
+  const { mutate } = useUpdateToolResultStatusService();
   const {
     data: toolResults,
     refetch,
@@ -32,8 +36,24 @@ function TrashPage() {
   const handleRestore = (item: ToolResultResponse) => {
     console.log("Item ID:", item.id);
 
-    // TODO: Call API to restore item
-    // Example: updateToolResult(item.id, { status: "ARCHIVED" })
+    mutate(
+      {
+        id: String(item.id),
+        field: "status",
+        queryParams: { status: "ARCHIVED" },
+      },
+      {
+        onSuccess: () => {
+          console.log("Restore successful");
+          refetch(); // Refresh the data after successful restore
+          toast.success("Khôi phục thành công");
+        },
+        onError: (error) => {
+          console.error("Error restoring item:", error);
+          toast.error("Có lỗi xảy ra khi khôi phục");
+        },
+      }
+    );
   };
 
   return (
