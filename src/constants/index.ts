@@ -127,3 +127,23 @@ export type LibraryType = keyof typeof LIBRARY_TYPE_LABELS;
 export const getLibraryTypeName = (type: string): string => {
   return LIBRARY_TYPE_LABELS[type as LibraryType] || type;
 };
+
+// Tool Action Labels (for actions like "Create", "Generate", etc.)
+export const TOOL_ACTION_LABELS = {
+  LESSON_PLAN: "Tạo giáo án",
+  EXAM_CREATOR: "Tạo đề kiểm tra",
+  SLIDE_GENERATOR: "Tạo slide bài giảng",
+  QUIZ_GAME: "Tạo trò chơi câu hỏi",
+} as const;
+
+// Type definition for tool action types
+export type ToolActionType = keyof typeof TOOL_ACTION_LABELS;
+
+/**
+ * Convert tool action code to Vietnamese action name
+ * @param actionCode - The tool action code (e.g., "LESSON_PLAN", "EXAM_CREATOR")
+ * @returns Vietnamese action name
+ */
+export const getToolActionName = (actionCode: string): string => {
+  return TOOL_ACTION_LABELS[actionCode as ToolActionType] || actionCode;
+};

@@ -13,6 +13,7 @@ import * as Icons from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import * as FaIcons from "react-icons/fa6";
+import { getToolActionName } from "@/constants";
 
 interface HistoryCardProps {
   data?: any;
@@ -40,7 +41,7 @@ export default function HistoryCard({ data, className }: HistoryCardProps) {
 
       <div className="flex items-center justify-between">
         <h3 className="mt-2 font-calsans text-sm text-black line-clamp-1">
-          {data?.code}
+          {getToolActionName(data?.code)}
         </h3>
         <DropdownMenu>
           <DropdownMenuTrigger className="rounded-full hover:bg-accent p-2 cursor-pointer">
