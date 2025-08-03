@@ -6,6 +6,7 @@ import {
   Inbox,
   Search,
   Settings,
+  Trash,
   User,
 } from "lucide-react";
 
@@ -38,6 +39,11 @@ const items = [
     url: "/auth/order-history",
     icon: History,
   },
+  {
+    title: "Thùng rác",
+    url: "/auth/trash",
+    icon: Trash,
+  },
 
   {
     title: "Settings",
@@ -60,13 +66,13 @@ export function AppSidebar() {
             />
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="p-3">
+            <SidebarMenu className="p-3 flex items-start justify-start ">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span className="text-base">{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

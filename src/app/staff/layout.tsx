@@ -8,9 +8,9 @@ import Header from "@/components/organisms/header";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SidebarMenu } from "@/components/molecules/sidebar-menu";
-import Account from "@/components/molecules/account";
 import { usePathname } from "next/navigation";
 import { SlideTemplateProvider } from "@/contexts/SlideTemplateContext";
+import AvatarButton from "@/components/organisms/avatar-button";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -55,7 +55,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   height="35"
                 />
               </Button>
-              <Account src={"/images/avatarLogo.png"} />
+              <AvatarButton />
             </div>
           </div>
         </Sider>
