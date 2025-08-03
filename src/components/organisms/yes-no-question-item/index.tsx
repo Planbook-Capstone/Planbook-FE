@@ -43,30 +43,38 @@ export default function YesNoQuestionItem({
       return [
         {
           id: "a",
-          text: convertBrTagsToLineBreaks(question.statements.a.text),
-          isCorrect: question.statements.a.answer,
+          text: convertBrTagsToLineBreaks(
+            String(question.statements.a?.text || "")
+          ),
+          isCorrect: Boolean(question.statements.a?.answer || false),
         },
         {
           id: "b",
-          text: convertBrTagsToLineBreaks(question.statements.b.text),
-          isCorrect: question.statements.b.answer,
+          text: convertBrTagsToLineBreaks(
+            String(question.statements.b?.text || "")
+          ),
+          isCorrect: Boolean(question.statements.b?.answer || false),
         },
         {
           id: "c",
-          text: convertBrTagsToLineBreaks(question.statements.c.text),
-          isCorrect: question.statements.c.answer,
+          text: convertBrTagsToLineBreaks(
+            String(question.statements.c?.text || "")
+          ),
+          isCorrect: Boolean(question.statements.c?.answer || false),
         },
         {
           id: "d",
-          text: convertBrTagsToLineBreaks(question.statements.d.text),
-          isCorrect: question.statements.d.answer,
+          text: convertBrTagsToLineBreaks(
+            String(question.statements.d?.text || "")
+          ),
+          isCorrect: Boolean(question.statements.d?.answer || false),
         },
       ];
     }
     return (
       question.options?.map((option) => ({
         ...option,
-        text: convertBrTagsToLineBreaks(option.text),
+        text: convertBrTagsToLineBreaks(String(option.text || "")),
       })) || []
     );
   };

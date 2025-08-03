@@ -38,6 +38,7 @@ interface ExamContextType {
   updateShortQuestionImage: (questionId: string, imagePath: string) => void;
   setExamFromApiResponse: (apiResponse: any) => void;
   clearExamData: () => void;
+  clearLocalStorage: () => void;
   hasUnsavedChanges: boolean;
   markAsSaved: () => void;
   disableReloadWarning: boolean;
@@ -112,7 +113,37 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
         if (saved) {
           try {
             const data = JSON.parse(saved);
-            return data.examYesNoQuestions || [];
+            const questions = data.examYesNoQuestions || [];
+
+            // Migrate old format to new format
+            return questions.map((question: any) => {
+              if (question.statements) {
+                // Ensure statements have proper format
+                const migratedStatements = {
+                  a: {
+                    text: String(question.statements.a?.text || ""),
+                    answer: Boolean(question.statements.a?.answer || false),
+                  },
+                  b: {
+                    text: String(question.statements.b?.text || ""),
+                    answer: Boolean(question.statements.b?.answer || false),
+                  },
+                  c: {
+                    text: String(question.statements.c?.text || ""),
+                    answer: Boolean(question.statements.c?.answer || false),
+                  },
+                  d: {
+                    text: String(question.statements.d?.text || ""),
+                    answer: Boolean(question.statements.d?.answer || false),
+                  },
+                };
+                return {
+                  ...question,
+                  statements: migratedStatements,
+                };
+              }
+              return question;
+            });
           } catch (e) {
             console.error("Error parsing saved exam data:", e);
           }
@@ -151,6 +182,14 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
       };
       localStorage.setItem(EXAM_DATA_KEY, JSON.stringify(data));
       localStorage.setItem(UNSAVED_CHANGES_KEY, "true");
+    }
+  };
+
+  // Clear localStorage data
+  const clearLocalStorage = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(EXAM_DATA_KEY);
+      localStorage.removeItem(UNSAVED_CHANGES_KEY);
     }
   };
 
@@ -211,27 +250,14 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
   }, [hasUnsavedChanges, disableReloadWarning]);
 
   const updateQuestion = (question: Question) => {
-    console.log("🔄 ExamContext - updateQuestion called with:", question);
     setExamQuestions((prev) => {
       const updated = prev.map((q) => {
         // Use string comparison to handle both string and number IDs
         if (String(q.id) === String(question.id)) {
-          console.log(
-            "🔄 ExamContext - Updating question:",
-            q.id,
-            "from correctAnswer:",
-            q.correctAnswer,
-            "to:",
-            question.correctAnswer
-          );
           return question;
         }
         return q;
       });
-      console.log(
-        "🔄 ExamContext - New questions array:",
-        updated.map((q) => ({ id: q.id, correctAnswer: q.correctAnswer }))
-      );
       return updated;
     });
     setHasUnsavedChanges(true);
@@ -354,17 +380,11 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
   };
 
   const setExamFromApiResponse = (apiResponse: any) => {
-    console.log("=== SETTING EXAM FROM API RESPONSE ===");
-    console.log("API Response:", apiResponse);
-
     const examData = apiResponse?.data?.data || apiResponse?.data;
     if (!examData) {
       console.error("No exam data found in API response");
       return;
     }
-
-    // Update basic exam info
-    console.log("🔄 Mapping API data to basicExamInfo:", examData);
 
     const newBasicInfo: BasicExamInfo = {
       template_name:
@@ -378,7 +398,6 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
       atomic_masses: examData.atomicMasses || examData.atomic_masses || null, // Map from API field name
     };
 
-    console.log("🔄 New basicExamInfo:", newBasicInfo);
     setBasicExamInfo(newBasicInfo);
 
     // Process parts and questions
@@ -452,22 +471,11 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
       });
     });
 
-    console.log("Processed questions:", {
-      multipleChoice: allQuestions,
-      yesNo: allYesNoQuestions,
-      short: allShortQuestions,
-    });
-
     // Update state
     setExamQuestions(allQuestions);
     setExamYesNoQuestions(allYesNoQuestions);
     setExamShortQuestions(allShortQuestions);
     setHasUnsavedChanges(true);
-
-    console.log("=== STATE UPDATED ===");
-    console.log("New examQuestions state:", allQuestions);
-    console.log("New examYesNoQuestions state:", allYesNoQuestions);
-    console.log("New examShortQuestions state:", allShortQuestions);
   };
 
   const value: ExamContextType = {
@@ -493,6 +501,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
     updateShortQuestionImage,
     setExamFromApiResponse,
     clearExamData,
+    clearLocalStorage,
     hasUnsavedChanges,
     markAsSaved,
     disableReloadWarning,
