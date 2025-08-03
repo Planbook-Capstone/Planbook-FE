@@ -4,63 +4,63 @@
 
 // Routes
 export const ROUTES = {
-  HOME: '/',
-  PRODUCTS: '/products',
+  HOME: "/",
+  PRODUCTS: "/products",
   PRODUCT_DETAILS: (id: string) => `/products/${id}`,
-  CART: '/cart',
-  CHECKOUT: '/checkout',
-  LOGIN: '/login',
-  REGISTER: '/register',
-  PROFILE: '/profile',
-  ORDERS: '/orders',
+  CART: "/cart",
+  CHECKOUT: "/checkout",
+  LOGIN: "/login",
+  REGISTER: "/register",
+  PROFILE: "/profile",
+  ORDERS: "/orders",
   ORDER_DETAILS: (id: string) => `/orders/${id}`,
 };
 
 // API endpoints
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    LOGOUT: '/auth/logout',
-    REFRESH_TOKEN: '/auth/refresh-token',
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+    LOGOUT: "/auth/logout",
+    REFRESH_TOKEN: "/auth/refresh-token",
   },
   USERS: {
-    ME: '/users/me',
-    PROFILE: '/users/profile',
+    ME: "/users/me",
+    PROFILE: "/users/profile",
   },
   PRODUCTS: {
-    LIST: '/products',
+    LIST: "/products",
     DETAILS: (id: string) => `/products/${id}`,
-    SEARCH: '/products/search',
+    SEARCH: "/products/search",
   },
   CART: {
-    GET: '/cart',
-    ADD: '/cart/add',
-    UPDATE: '/cart/update',
-    REMOVE: '/cart/remove',
-    CLEAR: '/cart/clear',
+    GET: "/cart",
+    ADD: "/cart/add",
+    UPDATE: "/cart/update",
+    REMOVE: "/cart/remove",
+    CLEAR: "/cart/clear",
   },
   ORDERS: {
-    LIST: '/orders',
+    LIST: "/orders",
     DETAILS: (id: string) => `/orders/${id}`,
-    CREATE: '/orders',
+    CREATE: "/orders",
     CANCEL: (id: string) => `/orders/${id}/cancel`,
   },
 };
 
 // Local storage keys
 export const STORAGE_KEYS = {
-  AUTH_TOKEN: 'auth_token',
-  REFRESH_TOKEN: 'refresh_token',
-  CART: 'cart',
-  THEME: 'theme',
-  LANGUAGE: 'language',
+  AUTH_TOKEN: "auth_token",
+  REFRESH_TOKEN: "refresh_token",
+  CART: "cart",
+  THEME: "theme",
+  LANGUAGE: "language",
 };
 
 // Theme
 export const THEMES = {
-  LIGHT: 'light',
-  DARK: 'dark',
+  LIGHT: "light",
+  DARK: "dark",
 };
 
 // Pagination
@@ -104,6 +104,26 @@ export const ORDER_STATUS_COLOR = {
   FAILED: "bg-red-100 text-red-800",
   EXPIRED: "bg-red-100 text-red-800",
   RETRY: "bg-yellow-100 text-yellow-800",
+};
 
+// Library/Document Types
+export const LIBRARY_TYPE_LABELS = {
+  LESSON_PLAN: "Giáo án",
+  WORKSHEET: "Bài tập",
+  EXAM: "Đề kiểm tra",
+  SLIDE: "Slide bài giảng",
+  QUIZ: "Đề luyện tập",
+  OTHER: "Tài liệu khác",
+} as const;
 
-}
+// Type definition for library types
+export type LibraryType = keyof typeof LIBRARY_TYPE_LABELS;
+
+/**
+ * Convert library type to Vietnamese name
+ * @param type - The library type (e.g., "LESSON_PLAN", "WORKSHEET")
+ * @returns Vietnamese name of the type
+ */
+export const getLibraryTypeName = (type: string): string => {
+  return LIBRARY_TYPE_LABELS[type as LibraryType] || type;
+};

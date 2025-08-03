@@ -1,13 +1,5 @@
 import { Button } from "@/components/ui/Button";
-import {
-  FaBoxArchive,
-  FaBriefcase,
-  FaCalendar,
-  FaCertificate,
-  FaFile,
-  FaFlask,
-} from "react-icons/fa6";
-import { IconType } from "react-icons";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,9 +84,16 @@ export default function HistoryCard({ data, className }: HistoryCardProps) {
       </p>
       <div className="flex justify-between items-center text-xs text-[#2B2B2B] mt-4">
         <span className="px-2 py-1.5 border rounded-full">
-          15:00 20/03/2025
+          {new Date(data?.updatedAt).toLocaleString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false, // để dùng định dạng 24h thay vì AM/PM
+          })}
         </span>
-        <span>4 nguồn</span>
+        <span>{data?.tokenUsed} token</span>
       </div>
     </div>
   );

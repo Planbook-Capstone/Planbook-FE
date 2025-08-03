@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef, memo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import MainLayout from "@/components/layout/MainLayout";
 import FolderCard from "@/components/molecules/folder-card";
 import CreateFolderModal from "@/components/organisms/create-folder-modal";
@@ -96,7 +96,7 @@ FallingTextContainer.displayName = "FallingTextContainer";
 function MyLibrary() {
   const searchParams = useSearchParams();
   const currentView = useRef(searchParams.get("view") || "grid");
-
+  const router = useRouter();
   // Handle URL view changes (separate from FallingText logic)
   useEffect(() => {
     const newView = searchParams.get("view") || "grid";
@@ -110,29 +110,34 @@ function MyLibrary() {
 
   const myFolder = [
     {
-      name: "Tài liệu tham khảo",
+      name: "Giáo án",
       colorId: "1",
       folderId: 1,
+      type: "LESSON_PLAN",
     },
     {
-      name: "Đề thi",
+      name: "Đề kiểm tra",
       colorId: "2",
       folderId: 2,
+      type: "EXAM",
     },
     {
-      name: "Bài tập",
+      name: "Bài luyện tập",
       colorId: "3",
       folderId: 3,
+      type: "QUIZ",
     },
     {
-      name: "Mẫu tài liệu",
+      name: "Slide bài giảng",
       colorId: "4",
       folderId: 4,
+      type: "SLIDE",
     },
     {
-      name: "Mẫu tài liệu",
+      name: "Tài liệu khác",
       colorId: "5",
       folderId: 5,
+      type: "OTHER",
     },
   ];
   return (
@@ -155,14 +160,16 @@ function MyLibrary() {
         <FallingTextContainer />
       </div>
       <ItemSection title="Phân loại tài liệu" action={<CreateFolderModal />} />
-      <div className="grid grid-cols-2 lg:grid-cols-8 -ml-7">
+      <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8  mx-auto">
         {myFolder?.map((f) => (
-          <FolderCard
-            key={f.folderId}
-            id={f.folderId.toString()}
-            colorId={f.colorId}
-            title={f.name}
-          />
+          <div onClick={() => router.push(`/my-library/${f.type}`)}>
+            <FolderCard
+              key={f.folderId}
+              id={f.folderId.toString()}
+              colorId={f.colorId}
+              title={f.name}
+            />
+          </div>
         ))}
       </div>
     </MainLayout>
