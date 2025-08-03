@@ -114,6 +114,13 @@ export const staffItems = [
     active: "/icons/folder-active.svg",
   },
   {
+    label: "Kho đề",
+    key: "question-bank",
+    icon: <HomeOutlined />,
+    image: "/icons/exam.svg",
+    active: "/icons/exam-active.svg",
+  },
+  {
     label: "Mẫu Slide",
     key: "slide-templates",
     icon: <HomeOutlined />,
