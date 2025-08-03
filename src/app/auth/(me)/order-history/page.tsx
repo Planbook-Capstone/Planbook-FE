@@ -124,7 +124,11 @@ function OrderHistoryPage() {
       {/* Order Cards */}
       {!isLoading && !error && (
         <div>
-          <OrderTable orders={orders} onViewDetail={handleViewDetail} />
+          <OrderTable
+            orders={orders}
+            onViewDetail={handleViewDetail}
+            mode="user"
+          />
         </div>
       )}
 
