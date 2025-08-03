@@ -5,6 +5,7 @@ import { SlideElement } from "@/types";
 import TextElement from "./TextElement";
 import ImageElement from "./ImageElement";
 import VideoElement from "./VideoElement";
+import ShapeElement from "./ShapeElement";
 import AlignmentGuides from "./AlignmentGuides";
 import AlignmentToolbar from "./AlignmentToolbar";
 import ContextMenu from "./ContextMenu";
@@ -24,6 +25,8 @@ interface EditorCanvasProps {
   onSendBackward?: (elementId: string) => void;
   onCopyElement?: (id: string) => void;
   onPasteElement?: () => void;
+  onRotateLeft?: (elementId: string) => void;
+  onRotateRight?: (elementId: string) => void;
   width?: number;
   height?: number;
   background?: string;
@@ -44,6 +47,8 @@ export default function EditorCanvas({
   onSendBackward,
   onCopyElement,
   onPasteElement,
+  onRotateLeft,
+  onRotateRight,
   width: _width,
   height: _height,
   background = "#ffffff",
@@ -226,6 +231,13 @@ export default function EditorCanvas({
   // Context menu handlers
   const handleContextMenu = useCallback(
     (elementId: string, x: number, y: number) => {
+      console.log(
+        "EditorCanvas: Setting context menu for element:",
+        elementId,
+        "at position:",
+        x,
+        y
+      );
       setContextMenu({ x, y, elementId });
     },
     []
@@ -244,6 +256,10 @@ export default function EditorCanvas({
 
   const handleBringToFront = useCallback(
     (elementId: string) => {
+      console.log(
+        "EditorCanvas: Bring to front called for element:",
+        elementId
+      );
       onBringToFront?.(elementId);
     },
     [onBringToFront]
@@ -268,6 +284,22 @@ export default function EditorCanvas({
       onSendBackward?.(elementId);
     },
     [onSendBackward]
+  );
+
+  const handleRotateLeft = useCallback(
+    (elementId: string) => {
+      console.log("EditorCanvas: Rotate left called for element:", elementId);
+      onRotateLeft?.(elementId);
+    },
+    [onRotateLeft]
+  );
+
+  const handleRotateRight = useCallback(
+    (elementId: string) => {
+      console.log("EditorCanvas: Rotate right called for element:", elementId);
+      onRotateRight?.(elementId);
+    },
+    [onRotateRight]
   );
 
   // Handle drag and drop for images
@@ -361,34 +393,25 @@ export default function EditorCanvas({
             element={element}
             isSelected={selectedElementId === element.id}
             isEditing={editingElementId === element.id}
-            onSelect={() => handleSelectElement(element.id)}
+            onSelect={handleSelectElement}
             onStartEditing={() => handleEditElement(element.id)}
             onStopEditing={() => handleStopEdit()}
-            onUpdate={(updates) => onUpdateElement(element.id, updates)}
-            onDelete={() => onDeleteElement(element.id)}
+            onUpdate={onUpdateElement}
+            onDelete={onDeleteElement}
           />
         );
       case "shape":
-        // TODO: Implement ShapeElement component
         return (
-          <div
+          <ShapeElement
             key={element.id}
-            style={{
-              position: "absolute",
-              left: element.x,
-              top: element.y,
-              width: element.width,
-              height: element.height,
-              zIndex:
-                selectedElementId === element.id ? 999 : element.zIndex ?? 0,
-              border:
-                selectedElementId === element.id
-                  ? "2px solid #3b82f6"
-                  : "1px solid #ccc",
-              background: element.fill || "#e0e0e0",
-              cursor: "pointer",
-            }}
-            onClick={() => handleSelectElement(element.id)}
+            element={element}
+            isSelected={selectedElementId === element.id}
+            onSelect={handleSelectElement}
+            onUpdate={onUpdateElement}
+            onDelete={onDeleteElement}
+            otherElements={elements.filter((el) => el.id !== element.id)}
+            onSnapUpdate={setAlignmentGuides}
+            onContextMenu={handleContextMenu}
           />
         );
       default:
@@ -482,6 +505,8 @@ export default function EditorCanvas({
               onSendToBack={handleSendToBack}
               onBringForward={handleBringForward}
               onSendBackward={handleSendBackward}
+              onRotateLeft={handleRotateLeft}
+              onRotateRight={handleRotateRight}
               hasCopiedElement={hasCopiedElement}
             />
           )}

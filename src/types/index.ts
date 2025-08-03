@@ -439,10 +439,11 @@ export interface ShapeElement {
   y: number;
   width: number;
   height: number;
-  shapeType: "rectangle" | "circle" | "triangle";
+  shapeType: "rectangle" | "circle" | "triangle" | "star";
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
+  opacity?: number; // 0 to 1
   zIndex?: number;
   rotation?: number; // in degrees
 }

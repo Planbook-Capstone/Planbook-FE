@@ -21,7 +21,7 @@ export function Tabs({ tabs, defaultTab, className }: TabsProps) {
   return (
     <div className={cn("w-full flex flex-col", className)}>
       {/* Tab Headers */}
-      <div className="flex border border-gray-200 rounded-full p-1 mb-4">
+      <div className="flex border border-gray-200 rounded-full p-1 mb-4 sticky top-2 z-50 bg-white">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -39,7 +39,7 @@ export function Tabs({ tabs, defaultTab, className }: TabsProps) {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 min-h-0">{activeTabContent}</div>
+      <div className="h-full">{activeTabContent}</div>
     </div>
   );
 }

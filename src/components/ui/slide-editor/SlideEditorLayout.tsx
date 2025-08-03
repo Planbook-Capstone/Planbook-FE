@@ -14,9 +14,11 @@ import { useElementPositioning } from "@/hooks/useElementPositioning";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import BackgroundSidebar from "./BackgroundSidebar";
 import MaterialsLibrarySidebar from "./MaterialsLibrarySidebar";
+import ShapesSidebar from "./ShapesSidebar";
+import ShapeToolbar from "./ShapeToolbar";
 import SlidePresentation from "./SlidePresentation";
 
-import { ImageElement, VideoElement } from "@/types";
+import { ImageElement, VideoElement, ShapeElement } from "@/types";
 import { TextColorProvider } from "./TextColorContext";
 import { SlideTemplateTempData } from "@/contexts/SlideTemplateContext";
 
@@ -206,9 +208,8 @@ export default function SlideEditorLayout({
   const elements = currentSlide?.elements || [];
 
   // Get selected element
-  const selectedElement = elements.find(
-    (el) => el.id === selectedElementId
-  ) as TextElementType | null;
+  const selectedElement =
+    elements.find((el) => el.id === selectedElementId) || null;
 
   // Helper function to update slides and push to history
   const updateSlides = useCallback(
@@ -221,8 +222,14 @@ export default function SlideEditorLayout({
 
   // Undo/Redo handlers
   const handleUndo = useCallback(() => {
+    console.log("Undo triggered, canUndo:", canUndo);
     const previousState = undoSlides();
     if (previousState) {
+      console.log(
+        "Undo successful, previous state:",
+        previousState.length,
+        "slides"
+      );
       // Check if current slide still exists, if not switch to first slide
       const currentSlideExists = previousState.some(
         (slide) => slide.id === currentSlideId
@@ -231,8 +238,10 @@ export default function SlideEditorLayout({
         setCurrentSlideId(previousState[0].id);
       }
       setSelectedElementId(null); // Clear selection on undo
+    } else {
+      console.log("Undo failed - no previous state");
     }
-  }, [undoSlides, currentSlideId]);
+  }, [undoSlides, currentSlideId, canUndo]);
 
   const handleRedo = useCallback(() => {
     const nextState = redoSlides();
@@ -595,6 +604,31 @@ export default function SlideEditorLayout({
     [currentSlideId, updateSlides]
   );
 
+  // Handle updating shape style
+  const handleUpdateShapeStyle = useCallback(
+    (id: string, updates: Partial<ShapeElement>) => {
+      updateSlides((prev) =>
+        prev.map((slide) =>
+          slide.id === currentSlideId
+            ? {
+                ...slide,
+                elements: slide.elements.map((el) => {
+                  if (el.id === id && el.type === "shape") {
+                    return {
+                      ...el,
+                      ...updates,
+                    };
+                  }
+                  return el;
+                }),
+              }
+            : slide
+        )
+      );
+    },
+    [currentSlideId, updateSlides]
+  );
+
   // Handle adding image from URL (for ImageLibrarySidebar)
   const handleAddImageFromUrl = useCallback(
     (imageUrl: string) => {
@@ -633,6 +667,33 @@ export default function SlideEditorLayout({
       };
 
       handleAddElement(videoElement);
+    },
+    [handleAddElement, getCenterPosition]
+  );
+
+  // Handle adding shape
+  const handleAddShape = useCallback(
+    (
+      shapeType: "rectangle" | "circle" | "triangle" | "star",
+      fill?: string,
+      stroke?: string
+    ) => {
+      const centerPosition = getCenterPosition({ width: 150, height: 150 });
+
+      const shapeElement: ShapeElement = {
+        id: `shape-${Date.now()}`,
+        type: "shape",
+        x: centerPosition.x,
+        y: centerPosition.y,
+        width: 150,
+        height: 150,
+        shapeType,
+        fill: fill || "#3b82f6",
+        stroke: stroke || "#1e40af",
+        strokeWidth: 2,
+      };
+
+      handleAddElement(shapeElement);
     },
     [handleAddElement, getCenterPosition]
   );
@@ -764,6 +825,51 @@ export default function SlideEditorLayout({
       );
     },
     [currentSlideId, normalizeZIndex, updateSlides]
+  );
+
+  // Handle rotation
+  const handleRotateLeft = useCallback(
+    (elementId: string) => {
+      updateSlides((prev) =>
+        prev.map((slide) =>
+          slide.id === currentSlideId
+            ? {
+                ...slide,
+                elements: slide.elements.map((el) => {
+                  if (el.id === elementId) {
+                    const currentRotation = (el as any).rotation || 0;
+                    return { ...el, rotation: currentRotation - 15 };
+                  }
+                  return el;
+                }),
+              }
+            : slide
+        )
+      );
+    },
+    [currentSlideId, updateSlides]
+  );
+
+  const handleRotateRight = useCallback(
+    (elementId: string) => {
+      updateSlides((prev) =>
+        prev.map((slide) =>
+          slide.id === currentSlideId
+            ? {
+                ...slide,
+                elements: slide.elements.map((el) => {
+                  if (el.id === elementId) {
+                    const currentRotation = (el as any).rotation || 0;
+                    return { ...el, rotation: currentRotation + 15 };
+                  }
+                  return el;
+                }),
+              }
+            : slide
+        )
+      );
+    },
+    [currentSlideId, updateSlides]
   );
 
   // Handle adding new slide
@@ -1210,6 +1316,12 @@ export default function SlideEditorLayout({
       active: "/icons/academic-active.svg",
     },
     {
+      label: "Hình dạng",
+      key: "shapes",
+      image: "/icons/category.svg",
+      active: "/icons/category-active.svg",
+    },
+    {
       label: "Học liệu",
       key: "materials",
       image: "/icons/folder.svg",
@@ -1279,6 +1391,10 @@ export default function SlideEditorLayout({
             />
           )}
 
+          {activeTab === "shapes" && (
+            <ShapesSidebar onAddShape={handleAddShape} />
+          )}
+
           {activeTab === "materials" && (
             <MaterialsLibrarySidebar
               onAddImage={handleAddImageFromUrl}
@@ -1299,8 +1415,18 @@ export default function SlideEditorLayout({
             {selectedElement && selectedElement.type === "text" && (
               <div className="pt-2 flex justify-center ">
                 <TextToolbar
-                  selectedElement={selectedElement}
+                  selectedElement={selectedElement as TextElementType}
                   onUpdateStyle={handleUpdateTextStyle}
+                />
+              </div>
+            )}
+
+            {/* Shape Formatting Toolbar */}
+            {selectedElement && selectedElement.type === "shape" && (
+              <div className="pt-2 flex justify-center ">
+                <ShapeToolbar
+                  selectedElement={selectedElement as ShapeElement}
+                  onUpdateStyle={handleUpdateShapeStyle}
                 />
               </div>
             )}
@@ -1322,6 +1448,8 @@ export default function SlideEditorLayout({
                   onSendToBack={handleSendToBack}
                   onBringForward={handleBringForward}
                   onSendBackward={handleSendBackward}
+                  onRotateLeft={handleRotateLeft}
+                  onRotateRight={handleRotateRight}
                   onCopyElement={handleCopyElement}
                   onPasteElement={handlePasteElement}
                   slideFormat={slideFormat}

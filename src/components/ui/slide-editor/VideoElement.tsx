@@ -8,9 +8,9 @@ import { Play, Pause, Volume2, VolumeX, RotateCcw } from "lucide-react";
 interface VideoElementProps {
   element: VideoElementType;
   isSelected: boolean;
-  onSelect: () => void;
-  onUpdate: (updates: Partial<VideoElementType>) => void;
-  onDelete: () => void;
+  onSelect: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<VideoElementType>) => void;
+  onDelete: (id: string) => void;
   isEditing?: boolean;
   onStartEditing?: () => void;
   onStopEditing?: () => void;
@@ -42,15 +42,40 @@ export default function VideoElement({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStarted, setDragStarted] = useState(false);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Don't drag if clicking on video controls
+  // State for drag/resize
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [hasMoved, setHasMoved] = useState(false);
+
+  // Handle click for selection
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't select if clicking on video controls
     if ((e.target as HTMLElement).closest(".video-controls")) {
       return;
     }
 
     e.preventDefault();
     e.stopPropagation();
+    onSelect(element.id);
+  };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Don't drag if clicking on video controls or resize handles
+    if (
+      (e.target as HTMLElement).closest(".video-controls") ||
+      (e.target as HTMLElement).classList.contains("resize-handle")
+    ) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log("VideoElement: Mouse down for drag");
+
+    // Always select the element first
+    onSelect(element.id);
+
+    // Start dragging immediately with mouse move tracking
     const startX = e.clientX;
     const startY = e.clientY;
     const startElementX = element.x;
@@ -61,30 +86,27 @@ export default function VideoElement({
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
 
-      // Only start dragging if mouse moved more than 3px (threshold)
-      if (!hasMoved && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
+      // Only start dragging if mouse moved more than 5px (threshold)
+      if (!hasMoved && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
         hasMoved = true;
         setIsDragging(true);
-        setDragStarted(true);
+        console.log("VideoElement: Started dragging");
       }
 
       if (hasMoved) {
-        onUpdate({
-          x: startElementX + deltaX,
-          y: startElementY + deltaY,
+        const newX = startElementX + deltaX;
+        const newY = startElementY + deltaY;
+        console.log("VideoElement: Dragging to", newX, newY);
+        onUpdate(element.id, {
+          x: Math.max(0, newX),
+          y: Math.max(0, newY),
         });
       }
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
-
-      // If no movement occurred, treat as click (select)
-      if (!hasMoved) {
-        onSelect();
-      }
-
-      setDragStarted(false);
+      console.log("VideoElement: Drag ended");
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
@@ -96,10 +118,30 @@ export default function VideoElement({
   // Simple resize state
   const [isResizing, setIsResizing] = useState(false);
 
-  // Simple resize handler
+  // Resize state
+  const [resizeStart, setResizeStart] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    elementX: 0,
+    elementY: 0,
+    direction: "",
+  });
+
+  // Handle resize handle mouse down
   const handleResizeStart = (e: React.MouseEvent, direction: string) => {
     e.preventDefault();
     e.stopPropagation();
+
+    console.log(
+      "VideoElement: Resize started",
+      direction,
+      "at",
+      e.clientX,
+      e.clientY
+    );
+
     setIsResizing(true);
 
     const startX = e.clientX;
@@ -118,54 +160,62 @@ export default function VideoElement({
       let newX = startElementX;
       let newY = startElementY;
 
-      // Handle different resize directions
+      console.log(
+        "VideoElement: Resizing",
+        direction,
+        "delta:",
+        deltaX,
+        deltaY
+      );
+
       switch (direction) {
-        case "se": // Southeast (bottom-right)
+        case "se": // Southeast - bottom right
           newWidth = Math.max(50, startWidth + deltaX);
           newHeight = Math.max(50, startHeight + deltaY);
           break;
-        case "sw": // Southwest (bottom-left)
+        case "sw": // Southwest - bottom left
           newWidth = Math.max(50, startWidth - deltaX);
           newHeight = Math.max(50, startHeight + deltaY);
           newX = startElementX + (startWidth - newWidth);
           break;
-        case "ne": // Northeast (top-right)
+        case "ne": // Northeast - top right
           newWidth = Math.max(50, startWidth + deltaX);
           newHeight = Math.max(50, startHeight - deltaY);
           newY = startElementY + (startHeight - newHeight);
           break;
-        case "nw": // Northwest (top-left)
+        case "nw": // Northwest - top left
           newWidth = Math.max(50, startWidth - deltaX);
           newHeight = Math.max(50, startHeight - deltaY);
           newX = startElementX + (startWidth - newWidth);
           newY = startElementY + (startHeight - newHeight);
           break;
-        case "e": // East (right)
+        case "e": // East - right edge
           newWidth = Math.max(50, startWidth + deltaX);
           break;
-        case "w": // West (left)
+        case "w": // West - left edge
           newWidth = Math.max(50, startWidth - deltaX);
           newX = startElementX + (startWidth - newWidth);
           break;
-        case "n": // North (top)
+        case "n": // North - top edge
           newHeight = Math.max(50, startHeight - deltaY);
           newY = startElementY + (startHeight - newHeight);
           break;
-        case "s": // South (bottom)
+        case "s": // South - bottom edge
           newHeight = Math.max(50, startHeight + deltaY);
           break;
       }
 
-      onUpdate({
+      onUpdate(element.id, {
         width: newWidth,
         height: newHeight,
-        x: newX,
-        y: newY,
+        x: Math.max(0, newX),
+        y: Math.max(0, newY),
       });
     };
 
     const handleMouseUp = () => {
       setIsResizing(false);
+      console.log("VideoElement: Resize ended");
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
@@ -225,7 +275,7 @@ export default function VideoElement({
     const newMuted = !isMuted;
     setIsMuted(newMuted);
     video.muted = newMuted;
-    onUpdate({ muted: newMuted });
+    onUpdate(element.id, { muted: newMuted });
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -267,7 +317,7 @@ export default function VideoElement({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Delete" || e.key === "Backspace") {
       e.preventDefault();
-      onDelete();
+      onDelete(element.id);
     } else if (e.key === "Escape" && isEditing && onStopEditing) {
       onStopEditing();
     }
@@ -295,6 +345,7 @@ export default function VideoElement({
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
       onMouseDown={handleMouseDown}
+      onClick={handleClick}
       tabIndex={0}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => {
@@ -360,37 +411,37 @@ export default function VideoElement({
         <>
           {/* Corner resize handles */}
           <div
-            className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 rounded-full cursor-nw-resize"
+            className="resize-handle absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize shadow-sm"
             onMouseDown={(e) => handleResizeStart(e, "nw")}
           />
           <div
-            className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full cursor-ne-resize"
+            className="resize-handle absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full cursor-ne-resize shadow-sm"
             onMouseDown={(e) => handleResizeStart(e, "ne")}
           />
           <div
-            className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 rounded-full cursor-sw-resize"
+            className="resize-handle absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full cursor-sw-resize shadow-sm"
             onMouseDown={(e) => handleResizeStart(e, "sw")}
           />
           <div
-            className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 rounded-full cursor-se-resize"
+            className="resize-handle absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full cursor-se-resize shadow-sm"
             onMouseDown={(e) => handleResizeStart(e, "se")}
           />
 
           {/* Edge resize handles */}
           <div
-            className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full cursor-n-resize"
+            className="resize-handle absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-3 bg-blue-500 border border-white rounded cursor-n-resize shadow-sm"
             onMouseDown={(e) => handleResizeStart(e, "n")}
           />
           <div
-            className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full cursor-s-resize"
+            className="resize-handle absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-3 bg-blue-500 border border-white rounded cursor-s-resize shadow-sm"
             onMouseDown={(e) => handleResizeStart(e, "s")}
           />
           <div
-            className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full cursor-w-resize"
+            className="resize-handle absolute -left-1 top-1/2 transform -translate-y-1/2 w-3 h-2 bg-blue-500 border border-white rounded cursor-w-resize shadow-sm"
             onMouseDown={(e) => handleResizeStart(e, "w")}
           />
           <div
-            className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full cursor-e-resize"
+            className="resize-handle absolute -right-1 top-1/2 transform -translate-y-1/2 w-3 h-2 bg-blue-500 border border-white rounded cursor-e-resize shadow-sm"
             onMouseDown={(e) => handleResizeStart(e, "e")}
           />
         </>
