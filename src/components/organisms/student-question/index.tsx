@@ -136,7 +136,9 @@ export function StudentQuestion({
                     <span className="font-medium text-blue-600">
                       {key.toUpperCase()})
                     </span>{" "}
-                    {statement.text}
+                    {typeof statement === "object" && statement?.text
+                      ? statement.text
+                      : String(statement || "")}
                   </p>
 
                   <div className="flex gap-4">

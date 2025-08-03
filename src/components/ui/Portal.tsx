@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface PortalProps {
   children: React.ReactNode;
   containerId?: string;
 }
 
-export const Portal: React.FC<PortalProps> = ({ 
-  children, 
-  containerId = 'modal-root' 
+export const Portal: React.FC<PortalProps> = ({
+  children,
+  containerId = "modal-root",
 }) => {
   const [mounted, setMounted] = useState(false);
   const [container, setContainer] = useState<HTMLElement | null>(null);
@@ -18,17 +18,17 @@ export const Portal: React.FC<PortalProps> = ({
   useEffect(() => {
     // Create or get the container element
     let containerElement = document.getElementById(containerId);
-    
+
     if (!containerElement) {
-      containerElement = document.createElement('div');
+      containerElement = document.createElement("div");
       containerElement.id = containerId;
-      containerElement.style.position = 'fixed';
-      containerElement.style.top = '0';
-      containerElement.style.left = '0';
-      containerElement.style.width = '100%';
-      containerElement.style.height = '100%';
-      containerElement.style.zIndex = '999999';
-      containerElement.style.pointerEvents = 'none';
+      containerElement.style.position = "fixed";
+      containerElement.style.top = "0";
+      containerElement.style.left = "0";
+      containerElement.style.width = "100%";
+      containerElement.style.height = "100%";
+      containerElement.style.zIndex = "999999";
+      containerElement.style.pointerEvents = "none";
       document.body.appendChild(containerElement);
     }
 
@@ -48,9 +48,7 @@ export const Portal: React.FC<PortalProps> = ({
   }
 
   return createPortal(
-    <div style={{ pointerEvents: 'auto' }}>
-      {children}
-    </div>,
+    <div style={{ pointerEvents: "auto" }}>{children}</div>,
     container
   );
 };
