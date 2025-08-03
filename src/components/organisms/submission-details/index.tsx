@@ -302,10 +302,9 @@ export function SubmissionDetails({
                                 <div key={questionKey} className="space-y-1">
                                   <div className="text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded">
                                     Câu {questionResults[0].questionNumber} -
-                                    Đúng/Sai
                                   </div>
                                   <div className="ml-3 space-y-1">
-                                    {questionResults.map((result, idx) => (
+                                    {questionResults?.map((result, idx) => (
                                       <div
                                         key={`${result.questionId}-${idx}`}
                                         className={cn(

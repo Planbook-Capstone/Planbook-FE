@@ -90,9 +90,9 @@ const groupPart2ByQuestion = (results: ResultDetail[]) => {
 // Helper function to format question display
 const formatQuestionDisplay = (result: ResultDetail) => {
   if (result.question) {
-    return `Câu ${result.questionNumber}: ${result.question}`;
+    // return `Câu ${result.questionNumber}: ${result.question}`;
   }
-  return `Câu ${result.questionNumber}`;
+  return `${result.question}`;
 };
 
 // Helper function to render PHẦN II questions with grouping
@@ -102,8 +102,8 @@ const renderPart2Questions = (results: ResultDetail[]) => {
   return Object.entries(groupedQuestions).map(
     ([questionKey, questionResults]) => (
       <div key={questionKey} className="space-y-2">
-        <div className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-2 rounded-md">
-          Câu {questionResults[0].questionNumber} - Đúng/Sai
+        <div className="text-lg font-bold text-gray-700 bg-gray-50 px-3 py-2 rounded-md">
+          Câu {questionResults[0].questionNumber}
         </div>
         <div className="ml-4 space-y-2">
           {questionResults.map((result, idx) =>
@@ -292,7 +292,12 @@ export function SubmissionDetailsSheet({
                       </h5>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">
-                          {results.length} câu
+                          {section === "PHẦN II"
+                            ? `${
+                                Object.keys(groupPart2ByQuestion(results))
+                                  .length
+                              } câu (${results.length} ý)`
+                            : `${results.length} câu`}
                         </span>
                         {isCollapsed ? (
                           <ChevronDown className="h-4 w-4 text-gray-600" />
