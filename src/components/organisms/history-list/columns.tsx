@@ -1,6 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MoreVertical } from "lucide-react";
+import { getToolActionName } from "@/constants";
 
 export type HistoryItem = {
   id: number;
@@ -38,7 +39,7 @@ export const historyColumns: ColumnDef<HistoryItem>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span className="font-medium truncate max-w-[150px]">
-          {row.original?.code}
+          {getToolActionName(row.original.code)}
         </span>
       </div>
     ),

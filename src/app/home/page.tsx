@@ -28,7 +28,7 @@ export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
   const { data: bookTypes } = useBookTypesService();
-
+  const { user } = useAuth();
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
@@ -38,6 +38,7 @@ export default function Home() {
     [currentPage, pageSize], // dependencies for query key
     { retry: 1, staleTime: 0 }, // options
     {
+      userId: user?.id,
       offset: currentPage,
       pageSize: pageSize,
       sort: "createdAt,desc",
