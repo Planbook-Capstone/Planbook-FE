@@ -152,9 +152,10 @@ function MyLibraryDetail({ params }: Props) {
         {toolResults?.data?.content?.map((data: any, index: number) => (
           <div key={index} className="col-span-1 cursor-pointer">
             <DocumentItem
-              type="DOCX"
+              type={data?.type == "SLIDE" ? "PPTX" : "DOCX"}
               name={data?.name}
               description={data?.description}
+              lastModifiedTime={data?.updatedAt}
               onRemove={() => handleRemoveClick(data)}
               onClick={() => handleItemClick(data)}
             />

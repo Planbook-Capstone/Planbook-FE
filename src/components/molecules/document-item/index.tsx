@@ -7,6 +7,7 @@ interface Props {
   type: string;
   name: string;
   description: string;
+  lastModifiedTime?: string;
   onRemove?: () => void;
   onClick?: () => void;
 }
@@ -15,6 +16,7 @@ export default function DocumentItem({
   type,
   name,
   description,
+  lastModifiedTime,
   onRemove,
   onClick,
 }: Props) {
@@ -28,6 +30,7 @@ export default function DocumentItem({
         <div className="text-sm flex flex-col gap-2">
           <p className="font-calsans text-base">{name}</p>
           <p className=" line-clamp-2 text-sm font-questrial">{description}</p>
+          <p className="text-xs font-questrial">{lastModifiedTime}</p>
         </div>
       </div>
 

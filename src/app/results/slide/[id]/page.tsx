@@ -3,7 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { SlideEditorLayout } from "@/components/ui/slide-editor";
 import { useRouter } from "next/navigation";
-import { useToolResultByIdService, useUpdateToolResultService } from "@/services/toolResultService";
+import {
+  useToolResultByIdService,
+  useUpdateToolResultService,
+} from "@/services/toolResultService";
 import { useAppStore } from "@/store";
 import { toast } from "sonner";
 import Loading from "@/components/ui/loading";
@@ -23,20 +26,17 @@ export default function SlideResultEdit({ params }: Props) {
   const [toolResultData, setToolResultData] = useState<any>(null);
 
   // Fetch tool result data
-  const {
-    data: toolResult,
-    isLoading,
-    error,
-  } = useToolResultByIdService(id);
+  const { data: toolResult, isLoading, error } = useToolResultByIdService(id);
 
   // Update service
-  const { mutate: updateToolResult, isPending: isUpdating } = useUpdateToolResultService();
+  const { mutate: updateToolResult, isPending: isUpdating } =
+    useUpdateToolResultService();
 
   // Load slides from tool result data
   useEffect(() => {
     if (toolResult?.data) {
       setToolResultData(toolResult.data);
-      
+
       // Check if this is a SLIDE type
       if (toolResult.data.type !== "SLIDE") {
         toast.error("Đây không phải là slide có thể chỉnh sửa!");
@@ -54,6 +54,11 @@ export default function SlideResultEdit({ params }: Props) {
 
   // Handle save function - UPDATE existing tool result directly
   const handleSave = (currentSlides: any[]) => {
+    console.log("🚀 handleSave called!");
+    console.log("👤 User:", user);
+    console.log("📊 Tool result data:", toolResultData);
+    console.log("📋 Current slides received:", currentSlides);
+
     if (!user?.id) {
       toast.error("Không tìm thấy thông tin người dùng!");
       return;
@@ -64,12 +69,25 @@ export default function SlideResultEdit({ params }: Props) {
       return;
     }
 
-    // Use current slides from editor (always up-to-date)
-    const slidesToSave = currentSlides;
+    if (!currentSlides || currentSlides.length === 0) {
+      console.log(
+        "⚠️ currentSlides is empty, trying to use state slides:",
+        slides
+      );
+      if (!slides || slides.length === 0) {
+        toast.error("Không có slides để lưu!");
+        return;
+      }
+      // Fallback to state slides
+      var slidesToSave = slides;
+    } else {
+      // Use current slides from editor (always up-to-date)
+      var slidesToSave = currentSlides;
+    }
 
     // Export current slides as JSON data
     console.log("🔍 Slides to save:", slidesToSave);
-    
+
     const exportedData = {
       slides: slidesToSave.map((slide) => {
         console.log("🔍 Processing slide:", slide);
@@ -82,7 +100,7 @@ export default function SlideResultEdit({ params }: Props) {
       totalSlides: slidesToSave.length,
       createdAt: new Date().toISOString(),
     };
-    
+
     console.log("🔍 Exported data:", exportedData);
 
     const payload = {
@@ -91,11 +109,14 @@ export default function SlideResultEdit({ params }: Props) {
       updatedAt: new Date().toISOString(),
     };
 
+    console.log("📤 Final payload:", payload);
+
     // Update existing record
     updateToolResult(
       { id: id, data: payload },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          console.log("✅ Update success:", response);
           toast.success("Lưu slide thành công!");
           // Redirect to SLIDE library after 1 second
           setTimeout(() => {
@@ -103,6 +124,7 @@ export default function SlideResultEdit({ params }: Props) {
           }, 1000);
         },
         onError: (error: any) => {
+          console.error("❌ Update error:", error);
           toast.error(
             `Lưu slide thất bại: ${
               error?.response?.data?.message ||
