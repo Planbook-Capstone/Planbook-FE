@@ -20,7 +20,11 @@ import { BookLessonSelectorModal } from "@/components/modals/BookLessonSelectorM
 import { TemplateSelector } from "@/components/modals/TemplateSelector";
 import { WEBSOCKET_CONFIG } from "@/config/websocket";
 import { useAppStore } from "@/store";
-import { useCreateToolResultService } from "@/services/toolResultService";
+import {
+  useCreateToolResultService,
+  useToolResultByIdService,
+  useUpdateToolResultService,
+} from "@/services/toolResultService";
 import { SaveToolResultModal } from "@/components/modals/SaveToolResultModal";
 
 // Helper function to normalize text from API (convert object to string)
@@ -53,11 +57,16 @@ export default function SlideEditorDemo() {
   const [shouldTriggerAfterTemplateLoad, setShouldTriggerAfterTemplateLoad] =
     useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [userPrompt, setUserPrompt] = useState<string>("");
+  const [completedResultId, setCompletedResultId] = useState<string | null>(
+    null
+  );
 
   // Loading progress state for AI generation
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationMessage, setGenerationMessage] = useState("");
+  const [slideName, setSlideName] = useState<string>();
 
   const {
     data: templateDetail,
@@ -86,6 +95,13 @@ export default function SlideEditorDemo() {
 
   useEffect(() => {
     console.log("🔍 WebSocket data received:", websocketData);
+    if (websocketData?.result_id) {
+      setCompletedResultId(websocketData.result_id);
+      setIsGenerating(false);
+      toast.success("Tạo slide hoàn thành!", {
+        id: "slide-generation", // Replace loading toast
+      });
+    }
     setFinalData(websocketData);
 
     // Handle progress updates
@@ -94,13 +110,15 @@ export default function SlideEditorDemo() {
       const message = websocketData.message || "";
       const status = websocketData.status || "";
 
-      console.log("📊 Progress update:", { progress, message, status });
-
       setGenerationProgress(progress);
       setGenerationMessage(message);
 
       // Start generation tracking
-      if (progress > 0 && progress < 100) {
+      if (
+        progress > 0 &&
+        progress < 100 &&
+        websocketData?.tool_code === bookType?.data?.code
+      ) {
         setIsGenerating(true);
         // Show progress toast with AI icon
         toast.loading(
@@ -119,7 +137,11 @@ export default function SlideEditorDemo() {
       }
 
       // Complete generation
-      if (progress >= 100 || status === "completed") {
+      if (
+        progress >= 100 ||
+        status === "completed" ||
+        websocketData?.result_id
+      ) {
         setIsGenerating(false);
         toast.success("Tạo slide hoàn thành!", {
           id: "slide-generation", // Replace loading toast
@@ -200,8 +222,23 @@ export default function SlideEditorDemo() {
   const { data: bookType } = useBookTypeByIdService(query || "");
 
   // Create tool result service
-  const { mutate: createToolResult, isPending: isSaving } =
-    useCreateToolResultService();
+  const { mutate: updateToolResult, isPending: isSaving } =
+    useUpdateToolResultService();
+
+  // Get completed tool result
+  const { data: toolResult } = useToolResultByIdService(
+    completedResultId || "",
+    {
+      enabled: !!completedResultId,
+    }
+  );
+
+  // Console log when tool result is completed
+  useEffect(() => {
+    if (toolResult?.data) {
+      setSlideName(toolResult.data.name);
+    }
+  }, [toolResult]);
 
   // Console.log template - Don't auto-trigger, wait for user action
   useEffect(() => {
@@ -304,9 +341,17 @@ export default function SlideEditorDemo() {
   };
 
   // Handle book and lesson selection
-  const handleBookLessonConfirm = (bookId: string, lessonId: string) => {
+  const handleBookLessonConfirm = (
+    bookId: string,
+    lessonId: string,
+    prompt?: string
+  ) => {
     setSelectedBookId(bookId);
     setSelectedLessonId(lessonId);
+    // Set user prompt if provided
+    if (prompt) {
+      setUserPrompt(prompt);
+    }
     // Auto show template selector after book/lesson selection
     setTimeout(() => {
       setShowTemplateSelector(true);
@@ -354,6 +399,8 @@ export default function SlideEditorDemo() {
         input: templateDetail.data,
         workspaceId: 1,
       };
+
+      console.log({ user_config: userPrompt, data: payload.input });
 
       executeTool(payload, {
         onSuccess: (response: any) => {
@@ -430,6 +477,16 @@ export default function SlideEditorDemo() {
       return;
     }
 
+    if (!selectedLessonId) {
+      toast.error("Không tìm thấy lesson ID!");
+      return;
+    }
+
+    if (!completedResultId) {
+      toast.error("Không tìm thấy result ID!");
+      return;
+    }
+
     const exportedData = exportSlidesAsJson();
     if (!exportedData) {
       toast.error("Không có dữ liệu slide để lưu!");
@@ -444,27 +501,34 @@ export default function SlideEditorDemo() {
       name: name,
       description: description,
       data: exportedData,
+      userPrompt: userPrompt.trim() || null,
       status: "ARCHIVED",
-      lessonIds: [selectedLessonId],
+      lessonIds: [parseInt(selectedLessonId)],
+      updatedAt: new Date().toISOString(),
     };
 
-    createToolResult(payload, {
-      onSuccess: () => {
-        toast.success("Lưu giáo án thành công!");
-        setShowSaveModal(false);
-        // Redirect to home page after 1 second
-        setTimeout(() => {
-          router.push("/home");
-        }, 1000);
-      },
-      onError: (error: any) => {
-        toast.error(
-          `Lưu giáo án thất bại: ${
-            error?.response?.data?.message || error?.message || "Có lỗi xảy ra"
-          }`
-        );
-      },
-    });
+    updateToolResult(
+      { id: completedResultId || "", data: payload },
+      {
+        onSuccess: () => {
+          toast.success("Lưu thành công!");
+          setShowSaveModal(false);
+          // Stay on current page after save
+          setTimeout(() => {
+            router.push("/home");
+          }, 1000);
+        },
+        onError: (error: any) => {
+          toast.error(
+            `Lưu thất bại: ${
+              error?.response?.data?.message ||
+              error?.message ||
+              "Có lỗi xảy ra"
+            }`
+          );
+        },
+      }
+    );
   };
 
   // Test function to toggle role for development
@@ -494,6 +558,10 @@ export default function SlideEditorDemo() {
         <div className="h-screen flex flex-col">
           <SlideEditorLayout
             initialSlides={slides}
+            templateData={{
+              name: slideName || "Mẫu slide",
+              description: templateDetail?.data?.description || "",
+            }}
             onLoadSampleData={handleLoadSampleData}
             onClearData={handleClearData}
             isLoadingData={isLoading}

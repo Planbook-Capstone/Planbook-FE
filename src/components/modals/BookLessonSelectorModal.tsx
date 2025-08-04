@@ -20,7 +20,7 @@ import { useLessonsByChaptersService } from "@/services/lessonServices";
 interface BookLessonSelectorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (bookId: string, lessonId: string) => void;
+  onConfirm: (bookId: string, lessonId: string, userPrompt?: string) => void;
   title?: string;
 }
 
@@ -32,6 +32,7 @@ export const BookLessonSelectorModal: React.FC<
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedBook, setSelectedBook] = useState<string>("");
   const [selectedLesson, setSelectedLesson] = useState<string>("");
+  const [userPrompt, setUserPrompt] = useState<string>("");
 
   // Lấy data động từ API
   const { data: grades } = useGradesService();
@@ -61,7 +62,7 @@ export const BookLessonSelectorModal: React.FC<
 
   const handleConfirm = () => {
     if (selectedBook && selectedLesson) {
-      onConfirm(selectedBook, selectedLesson);
+      onConfirm(selectedBook, selectedLesson, userPrompt.trim() || undefined);
       handleClose();
     }
   };
@@ -138,6 +139,24 @@ export const BookLessonSelectorModal: React.FC<
               )}
             </div>
           )}
+        </div>
+
+        {/* User Prompt Section */}
+        <div className="px-6 pb-4">
+          <label
+            htmlFor="userPrompt"
+            className="block text-xs ml-2 font-medium text-gray-700 mb-2"
+          >
+            Câu lệnh mô tả cho AI:
+          </label>
+          <textarea
+            id="userPrompt"
+            value={userPrompt}
+            onChange={(e) => setUserPrompt(e.target.value)}
+            placeholder="Nhập câu lệnh mô tả để AI hiểu rõ hơn về nội dung bạn muốn tạo..."
+            className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            rows={3}
+          />
         </div>
 
         {/* Footer */}
