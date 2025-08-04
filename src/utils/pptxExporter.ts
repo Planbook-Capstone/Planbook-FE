@@ -398,32 +398,139 @@ async function addVideoElement(slide: any, element: ElementData) {
   );
 
   try {
-    // PowerPoint doesn't support embedded videos from URLs easily
-    // So we add a placeholder with video information
-    const videoName = element.src.split("/").pop() || "video";
-    const placeholderText = `🎬 Video: ${videoName}\n\nVideo URL: ${element.src}\n\n(Click to play in browser)`;
+    // Check if it's a local video file (blob URL)
+    const isLocalVideo =
+      element.src.startsWith("blob:") || element.src.startsWith("data:");
 
-    const textOptions = {
+    if (isLocalVideo) {
+      // For local videos, try to create a video thumbnail and embed as image
+      try {
+        console.log("🎬 Creating video thumbnail for embedding...");
+
+        // Create video thumbnail
+        const thumbnailData = await createVideoThumbnail(element.src);
+
+        if (thumbnailData) {
+          // Add thumbnail image
+          slide.addImage({
+            x: coords.x,
+            y: coords.y,
+            w: coords.w,
+            h: coords.h,
+            data: thumbnailData,
+            hyperlink: {
+              url: element.src,
+              tooltip: "Click to play video",
+            },
+          });
+
+          // Add play button overlay
+          const playSize = Math.min(coords.w, coords.h) * 0.2;
+          const playX = coords.x + (coords.w - playSize) / 2;
+          const playY = coords.y + (coords.h - playSize) / 2;
+
+          slide.addShape("triangle", {
+            x: playX,
+            y: playY,
+            w: playSize,
+            h: playSize,
+            fill: { color: "FFFFFF", transparency: 20 },
+            line: { color: "000000", width: 2 },
+            rotate: 90,
+            hyperlink: {
+              url: element.src,
+              tooltip: "Click to play video",
+            },
+          });
+
+          console.log("✅ Video thumbnail with play button created");
+          return;
+        }
+      } catch (thumbnailError) {
+        console.warn("Failed to create video thumbnail:", thumbnailError);
+      }
+    }
+
+    // Fallback: Create an enhanced video placeholder that looks professional
+    console.log("📝 Creating enhanced video placeholder...");
+
+    // Create a dark background rectangle
+    slide.addShape("rect", {
       x: coords.x,
       y: coords.y,
       w: coords.w,
       h: coords.h,
-      fontSize: 14,
+      fill: {
+        type: "solid",
+        color: "1a1a1a", // Dark background
+      },
+      line: { color: "404040", width: 2 },
+    });
+
+    // Add a play button triangle in the center
+    const playSize = Math.min(coords.w, coords.h) * 0.25;
+    const playX = coords.x + (coords.w - playSize) / 2;
+    const playY = coords.y + (coords.h - playSize) / 2;
+
+    slide.addShape("triangle", {
+      x: playX,
+      y: playY,
+      w: playSize,
+      h: playSize,
+      fill: { color: "FFFFFF" },
+      line: { width: 0 },
+      flipH: false,
+      rotate: 90, // Point to the right
+    });
+
+    // Add video title/name
+    const videoName = getVideoDisplayName(element.src);
+    slide.addText(videoName, {
+      x: coords.x + coords.w * 0.05,
+      y: coords.y + coords.h * 0.75,
+      w: coords.w * 0.9,
+      h: coords.h * 0.2,
+      fontSize: Math.max(10, Math.min(16, coords.h * 0.1)),
       fontFace: "Arial",
-      color: "333333",
+      color: "FFFFFF",
+      bold: true,
       align: "center",
       valign: "middle",
-      fill: { color: "F0F0F0" }, // Light gray background
-      line: { color: "CCCCCC", width: 1 }, // Border
-    };
+    });
 
-    slide.addText(placeholderText, textOptions);
+    // Add "Click to play" instruction
+    slide.addText("Click to play video", {
+      x: coords.x + coords.w * 0.05,
+      y: coords.y + coords.h * 0.05,
+      w: coords.w * 0.9,
+      h: coords.h * 0.15,
+      fontSize: Math.max(8, Math.min(12, coords.h * 0.08)),
+      fontFace: "Arial",
+      color: "CCCCCC",
+      align: "center",
+      valign: "middle",
+    });
 
-    // Video placeholder added successfully
+    // Add hyperlink overlay (transparent rectangle that covers the whole video area)
+    slide.addShape("rect", {
+      x: coords.x,
+      y: coords.y,
+      w: coords.w,
+      h: coords.h,
+      fill: { color: "FFFFFF", transparency: 100 }, // Completely transparent
+      line: { width: 0 },
+      hyperlink: {
+        url: element.src,
+        tooltip: `Play video: ${videoName}`,
+      },
+    });
+
+    console.log("✅ Enhanced video placeholder created with hyperlink");
   } catch (error) {
-    console.error("Error adding video placeholder to slide:", error);
-    // Add a simple placeholder if video processing fails
-    const textOptions = {
+    console.error("❌ Error adding video element:", error);
+
+    // Ultimate fallback - simple text
+    slide.addText(`🎬 Video\n${element.src}`, {
       x: coords.x,
       y: coords.y,
       w: coords.w,
@@ -433,8 +540,29 @@ async function addVideoElement(slide: any, element: ElementData) {
       color: "666666",
       align: "center",
       valign: "middle",
-    };
-    slide.addText(`[Video: Failed to load]`, textOptions);
+      fill: { color: "F5F5F5" },
+      line: { color: "CCCCCC", width: 1 },
+    });
+  }
+}
+
+// Helper function to get a clean video display name
+function getVideoDisplayName(src: string): string {
+  try {
+    if (src.includes("youtube.com") || src.includes("youtu.be")) {
+      return "YouTube Video";
+    } else if (src.includes("vimeo.com")) {
+      return "Vimeo Video";
+    } else {
+      // Extract filename from URL
+      const filename = src.split("/").pop()?.split("?")[0];
+      if (filename && filename.includes(".")) {
+        return filename.replace(/\.[^/.]+$/, ""); // Remove extension
+      }
+      return "Video";
+    }
+  } catch {
+    return "Video";
   }
 }
 

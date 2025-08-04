@@ -93,7 +93,7 @@ export default function ShapeToolbar({
           }
         />
         {showColorPicker === "fill" && (
-          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 min-w-[180px] w-max">
+          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-99999 min-w-[180px] w-max">
             <div className="grid grid-cols-4 gap-2 mb-3">
               {presetColors.map((color) => (
                 <button
@@ -128,7 +128,7 @@ export default function ShapeToolbar({
           }
         />
         {showColorPicker === "stroke" && (
-          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50 min-w-[180px] w-max">
+          <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-99999 min-w-[180px] w-max">
             <div className="grid grid-cols-4 gap-2 mb-3">
               {presetColors.map((color) => (
                 <button

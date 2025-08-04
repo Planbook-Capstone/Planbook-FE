@@ -186,26 +186,30 @@ export default function SlideEditorHeader({
           Trình chiếu
         </button>
 
-        {/* Template Actions - Hidden for teachers */}
-        {showTemplateActions && userRole !== "TEACHER" ? (
+        {/* Template Actions */}
+        {showTemplateActions ? (
           <>
-            <button
-              onClick={onCancel}
-              className="px-4 py-2 bg-gray-500 text-white text-sm rounded-full hover:bg-gray-600 transition-colors flex items-center gap-2"
-              title="Cancel and go back"
-            >
-              Hủy
-            </button>
-            <button
-              onClick={onSave}
-              className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
-              title="Save Template"
-            >
-              <Save className="w-4 h-4" />
-              Lưu Template
-            </button>
+            {/* Cancel button - Hidden for teachers */}
+            {userRole !== "TEACHER" && (
+              <button
+                onClick={onCancel}
+                className="px-4 py-2 bg-gray-500 text-white text-sm rounded-full hover:bg-gray-600 transition-colors flex items-center gap-2"
+                title="Cancel and go back"
+              >
+                Hủy
+              </button>
+            )}
           </>
         ) : null}
+        {/* Save button - Available for all users */}
+        <button
+          onClick={onSave}
+          className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
+          title="Save Template"
+        >
+          <Save className="w-4 h-4" />
+          Lưu Template
+        </button>
       </div>
     </header>
   );

@@ -1017,6 +1017,13 @@ export default function SlideEditorLayout({
           style: (element as any).style,
           src: (element as any).src, // For image elements
           alt: (element as any).alt, // For image elements
+          // Shape properties
+          shapeType: (element as any).shapeType,
+          fill: (element as any).fill,
+          stroke: (element as any).stroke,
+          strokeWidth: (element as any).strokeWidth,
+          opacity: (element as any).opacity,
+          rotation: (element as any).rotation,
         })),
         isVisible: slide.isVisible,
         background: slide.background, // Include background for export

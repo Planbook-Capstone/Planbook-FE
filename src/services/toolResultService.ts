@@ -4,6 +4,7 @@ import {
   createQueryWithPathParamHook,
   deleteMutationHook,
   updateMutationHook,
+  createMutationHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
@@ -27,6 +28,11 @@ export const useUpdateToolResultService = updateMutationHook(
 );
 
 export const useDeleteToolResultService = deleteMutationHook(
+  "tool-results",
+  API_ENDPOINTS.TOOL_RESULTS
+);
+
+export const useCreateToolResultService = createMutationHook(
   "tool-results",
   API_ENDPOINTS.TOOL_RESULTS
 );

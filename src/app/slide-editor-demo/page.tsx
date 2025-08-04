@@ -13,13 +13,15 @@ import {
 import Loading from "@/components/ui/loading";
 import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
 import { toast } from "sonner";
 import { BookLessonSelectorModal } from "@/components/modals/BookLessonSelectorModal";
 import { TemplateSelector } from "@/components/modals/TemplateSelector";
+import { SaveLessonPlanModal } from "@/components/modals/SaveLessonPlanModal";
 import { WEBSOCKET_CONFIG } from "@/config/websocket";
 import { useAppStore } from "@/store";
+import { useCreateToolResultService } from "@/services/toolResultService";
 
 // Helper function to normalize text from API (convert object to string)
 const normalizeTextFromAPI = (text: any): string => {
@@ -50,6 +52,7 @@ export default function SlideEditorDemo() {
   const [isAutoProcessing, setIsAutoProcessing] = useState(false);
   const [shouldTriggerAfterTemplateLoad, setShouldTriggerAfterTemplateLoad] =
     useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   // Loading progress state for AI generation
   const [isGenerating, setIsGenerating] = useState(false);
@@ -192,8 +195,13 @@ export default function SlideEditorDemo() {
   }, [websocketData]);
   const searchParams = useSearchParams();
   const query = searchParams.get("bookTypeId");
+  const router = useRouter();
 
   const { data: bookType } = useBookTypeByIdService(query || "");
+
+  // Create tool result service
+  const { mutate: createToolResult, isPending: isSaving } =
+    useCreateToolResultService();
 
   // Console.log template - Don't auto-trigger, wait for user action
   useEffect(() => {
@@ -393,6 +401,72 @@ export default function SlideEditorDemo() {
 
   const { user, setUser } = useAppStore();
 
+  // Function to export current slides as JSON data
+  const exportSlidesAsJson = () => {
+    if (!slides || slides.length === 0) {
+      return null;
+    }
+
+    return {
+      slides: slides.map((slide) => ({
+        id: slide.id,
+        elements: slide.slideData?.elements || slide.elements || [],
+        background: slide.slideData?.background || slide.background || null,
+      })),
+      totalSlides: slides.length,
+      createdAt: new Date().toISOString(),
+    };
+  };
+
+  // Function to handle save lesson plan
+  const handleSaveLessonPlan = (name: string, description: string) => {
+    if (!user?.id) {
+      toast.error("Không tìm thấy thông tin người dùng!");
+      return;
+    }
+
+    if (!selectedTemplateId) {
+      toast.error("Không tìm thấy template ID!");
+      return;
+    }
+
+    const exportedData = exportSlidesAsJson();
+    if (!exportedData) {
+      toast.error("Không có dữ liệu slide để lưu!");
+      return;
+    }
+
+    const payload = {
+      userId: user.id,
+      workspaceId: 1,
+      type: "SLIDE",
+      templateId: parseInt(selectedTemplateId),
+      name: name,
+      description: description,
+      data: exportedData,
+      status: "ARCHIVED",
+      lessonIds: [selectedLessonId],
+    };
+
+    createToolResult(payload, {
+      onSuccess: () => {
+        toast.success("Lưu giáo án thành công!");
+        setShowSaveModal(false);
+        // Redirect to home page after 1 second
+        setTimeout(() => {
+          router.push("/home");
+        }, 1000);
+      },
+      onError: (error: any) => {
+        toast.error(
+          `Lưu giáo án thất bại: ${
+            error?.response?.data?.message || error?.message || "Có lỗi xảy ra"
+          }`
+        );
+      },
+    });
+  };
+
   // Test function to toggle role for development
   const toggleRole = () => {
     if (user) {
@@ -430,6 +504,7 @@ export default function SlideEditorDemo() {
             isGenerating={isGenerating}
             generationProgress={generationProgress}
             totalSlides={websocketData?.partial_result?.total_slides || 0}
+            onSave={(slides, textBlocks) => setShowSaveModal(true)}
           />
         </div>
       )}
@@ -453,6 +528,14 @@ export default function SlideEditorDemo() {
           title="Chọn sách và bài học"
         />
       )}
+
+      {/* Save Lesson Plan Modal */}
+      <SaveLessonPlanModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={handleSaveLessonPlan}
+        isLoading={isSaving}
+      />
     </div>
   );
 }
