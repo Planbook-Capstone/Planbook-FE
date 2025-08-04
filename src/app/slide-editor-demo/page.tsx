@@ -396,7 +396,7 @@ export default function SlideEditorDemo() {
         toolType: "INTERNAL",
         book_id: parseInt(selectedBookId),
         lesson_id: selectedLessonId,
-        input: templateDetail.data,
+        input: { user_config: userPrompt, data: templateDetail?.data },
         workspaceId: 1,
       };
 
@@ -501,7 +501,6 @@ export default function SlideEditorDemo() {
       name: name,
       description: description,
       data: exportedData,
-      userPrompt: userPrompt.trim() || null,
       status: "ARCHIVED",
       lessonIds: [parseInt(selectedLessonId)],
       updatedAt: new Date().toISOString(),
