@@ -147,3 +147,30 @@ export type ToolActionType = keyof typeof TOOL_ACTION_LABELS;
 export const getToolActionName = (actionCode: string): string => {
   return TOOL_ACTION_LABELS[actionCode as ToolActionType] || actionCode;
 };
+
+
+export const getVariant = (status: string) => {
+  switch (status) {
+    case "KNOWLEDGE":
+      return "active";
+    case "APPLICATION":
+      return "warning";
+    default:
+      return "outline";
+  }
+}
+
+export const getDifficultyText = (level: string) => {
+  switch (level) {
+    case "KNOWLEDGE":
+      return "Nhận biết";
+    case "COMPREHENSION":
+      return "Thông hiểu";
+    case "APPLICATION":
+      return "Vận dụng";
+    case "ANALYSIS":
+      return "Phân tích";
+    default:
+      return level;
+  }
+};

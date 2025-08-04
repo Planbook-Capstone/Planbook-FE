@@ -24,7 +24,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio";
 
 // Types for form data
 interface QuestionFormData {
-  lessonId: number;
+  lessonIds: number[];
   questionType: "PART_I" | "PART_II" | "PART_III";
   difficultyLevel: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION" | "ANALYSIS";
   questionContent: QuestionContent;
@@ -34,7 +34,7 @@ interface QuestionFormData {
 
 // Validation schema
 const questionSchema = z.object({
-  lessonId: z.number().min(1, "Vui lòng chọn bài học"),
+  lessonIds: z.array(z.number()).min(1, "Vui lòng chọn ít nhất một bài học"),
   questionType: z.enum(["PART_I", "PART_II", "PART_III"]),
   difficultyLevel: z.enum([
     "KNOWLEDGE",
@@ -91,7 +91,7 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
   } = useForm<FormData>({
     resolver: zodResolver(questionSchema),
     defaultValues: {
-      lessonId: undefined,
+      lessonIds: [],
       questionType: "PART_I",
       difficultyLevel: "KNOWLEDGE",
       question: "",
@@ -126,7 +126,7 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
       // Show image field if editing question has an image
       setShowImageField(!!editingQuestion.questionContent.image);
       const baseValues = {
-        lessonId: editingQuestion.lessonId,
+        lessonIds: editingQuestion.lessonIds || (editingQuestion.lessonId ? [editingQuestion.lessonId] : []),
         questionType: editingQuestion.questionType,
         difficultyLevel: editingQuestion.difficultyLevel,
         question: editingQuestion.questionContent.question,
@@ -170,7 +170,7 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
       // Hide image field when creating new question
       setShowImageField(false);
       reset({
-        lessonId: undefined,
+        lessonIds: [],
         questionType: "PART_I",
         difficultyLevel: "KNOWLEDGE",
         question: "",
@@ -201,7 +201,7 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
   const handleFormSubmit = (data: FormData) => {
     // Transform form data to API format
     const formData: QuestionFormData = {
-      lessonId: data.lessonId,
+      lessonIds: data.lessonIds, // Send the full array of lesson IDs
       questionType: data.questionType,
       difficultyLevel: data.difficultyLevel,
       explanation: data.explanation,
@@ -605,33 +605,49 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Lesson Selection */}
       <div className="space-y-2">
-        <Label htmlFor="lessonId" className="text-sm font-medium text-gray-700">
+        <Label htmlFor="lessonIds" className="text-sm font-medium text-gray-700">
           Bài học <span className="text-red-500">*</span>
         </Label>
         <Controller
-          name="lessonId"
+          name="lessonIds"
           control={control}
-          rules={{ required: "Vui lòng chọn bài học" }}
+          rules={{ required: "Vui lòng chọn ít nhất một bài học" }}
           render={({ field }) => (
-            <Select
-              value={field.value?.toString() || ""}
-              onValueChange={(value) => field.onChange(parseInt(value))}
-            >
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="Chọn bài học" />
-              </SelectTrigger>
-              <SelectContent>
-                {getLessons().map((lesson: any) => (
-                  <SelectItem key={lesson.id} value={lesson.id.toString()}>
-                    {lesson.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="border rounded-md p-3 max-h-40 overflow-y-auto">
+              {getLessons().length === 0 ? (
+                <p className="text-gray-500 text-sm">Không có bài học nào</p>
+              ) : (
+                <div className="space-y-2">
+                  {getLessons().map((lesson: any) => (
+                    <label
+                      key={lesson.id}
+                      className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={field.value?.includes(lesson.id) || false}
+                        onChange={(e) => {
+                          const currentValue = field.value || [];
+                          if (e.target.checked) {
+                            field.onChange([...currentValue, lesson.id]);
+                          } else {
+                            field.onChange(
+                              currentValue.filter((id: number) => id !== lesson.id)
+                            );
+                          }
+                        }}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm">{lesson.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         />
-        {errors.lessonId && (
-          <p className="text-red-500 text-sm mt-1">{errors.lessonId.message}</p>
+        {errors.lessonIds && (
+          <p className="text-red-500 text-sm mt-1">{errors.lessonIds.message}</p>
         )}
       </div>
 
