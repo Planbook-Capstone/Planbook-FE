@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/Button";
 import { Download } from "lucide-react";
 
 interface DocumentInfo {
+  name: string;
   title: string;
   description: string;
   creator: string;
   createdAt: string;
+  updateAt: string;
 }
 
 interface DocumentInfoPanelProps {
@@ -19,13 +21,23 @@ export default function DocumentInfoPanel({
   documentInfo,
 }: DocumentInfoPanelProps) {
   const defaultInfo = {
+    name: "",
     title: "Kiểm tra hoá cuối kì - THPT Trần Phú",
     description:
       "Nghiên cứu các yếu tố ảnh hưởng đến tốc độ phản ứng, cơ chế phản ứng và biểu diễn cân bằng động.",
     creator: "Nguyễn Văn A",
     createdAt: "15:23 14/5/2025",
   };
-
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
   const info = documentInfo || defaultInfo;
 
   return (
@@ -34,7 +46,7 @@ export default function DocumentInfoPanel({
         <div className="grid grid-cols-[1fr_2fr] gap-1 text-sm">
           <div className="font-calsans text-nowrap ">Tên tài liệu</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
-            {info.title}
+            {info?.name}
           </div>
         </div>
 
@@ -45,17 +57,17 @@ export default function DocumentInfoPanel({
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_2fr] gap-1 text-sm">
+        {/* <div className="grid grid-cols-[1fr_2fr] gap-1 text-sm">
           <div className="font-calsans text-nowrap ">Người tạo</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
             {info.creator}
           </div>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-[1fr_2fr] gap-1 text-sm">
           <div className="font-calsans text-nowrap ">Ngày tạo</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
-            {info.createdAt}
+            {formatDate(info.createdAt)}
           </div>
         </div>
       </div>

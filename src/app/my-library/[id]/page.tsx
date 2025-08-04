@@ -115,7 +115,7 @@ function MyLibraryDetail({ params }: Props) {
       router.push(`/results/slide/${item.id}`);
     } else {
       // For other types, you can add different handling here
-      console.log("Clicked on non-SLIDE item:", item);
+      router.push(`/my-library/file/${item.id}`);
       // Future: router.push(`/results/lesson-plan/${item.id}`) etc.
     }
   };
