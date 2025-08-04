@@ -100,7 +100,7 @@ function OrderHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen p-3">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-calsans text-gray-900">
           Lịch sử đơn hàng
@@ -124,7 +124,11 @@ function OrderHistoryPage() {
       {/* Order Cards */}
       {!isLoading && !error && (
         <div>
-          <OrderTable orders={orders} onViewDetail={handleViewDetail} />
+          <OrderTable
+            orders={orders}
+            onViewDetail={handleViewDetail}
+            mode="user"
+          />
         </div>
       )}
 

@@ -50,6 +50,13 @@ export const adminItems = [
     active: "/icons/diamond-active.svg",
   },
   {
+    label: "Gói đăng ký",
+    key: "order",
+    icon: <HomeOutlined />,
+    image: "/icons/order.svg",
+    active: "/icons/order-active.svg",
+  },
+  {
     label: "Chức năng",
     key: "booktype",
     icon: <HomeOutlined />,
@@ -105,6 +112,13 @@ export const staffItems = [
     icon: <HomeOutlined />,
     image: "/icons/folder.svg",
     active: "/icons/folder-active.svg",
+  },
+  {
+    label: "Kho đề",
+    key: "question-bank",
+    icon: <HomeOutlined />,
+    image: "/icons/exam.svg",
+    active: "/icons/exam-active.svg",
   },
   {
     label: "Mẫu Slide",

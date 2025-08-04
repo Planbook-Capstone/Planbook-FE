@@ -5,6 +5,7 @@ import {
   patchMutationHook,
   createSearchQueryHook,
   createQueryWithPathParamHook,
+  createDynamicQueryHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
@@ -38,9 +39,8 @@ export const useOrderDetailService = createQueryWithPathParamHook(
   "order-detail",
   API_ENDPOINTS.ORDERS
 );
-// export const useOrderDetailService = (orderId: string) => {
-//   return createQueryHook(
-//     `order-detail-${orderId}`,
-//     `${API_ENDPOINTS.ORDERS}/${orderId}`
-//   )();
-// };
+// Service with pagination params
+export const useOrdersWithParamsService = createDynamicQueryHook(
+  "order",
+  API_ENDPOINTS.ORDERS
+);

@@ -370,6 +370,22 @@ export interface LessonPlanStepContent {
   }[];
 }
 
+// Tool Result Response Type
+export interface ToolResultResponse {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  status: "ACTIVE" | "DELETED" | "ARCHIVED" | "DRAFT";
+  data: any[]; // Array of any data structure
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  userId: string;
+  workspaceId: number;
+  templateId: number | null;
+  lessonIds: number[];
+}
+
 // Slide Editor Types
 export interface TextStyle {
   fontSize: number;
