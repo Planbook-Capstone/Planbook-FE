@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import {
   useToolResultsWithParamsService,
-  useDeleteToolResultService
+  useDeleteToolResultService,
 } from "@/services/toolResultService";
 import DocumentItem from "@/components/molecules/document-item";
 import { getLibraryTypeName } from "@/constants";
@@ -20,6 +20,7 @@ import { NoneExamIcon } from "@/constants/icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 interface Props {
   params: Promise<{
     id: string;
@@ -30,6 +31,7 @@ function MyLibraryDetail({ params }: Props) {
   const { id } = React.use(params);
 
   const { user } = useAuth();
+  const router = useRouter();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -62,7 +64,8 @@ function MyLibraryDetail({ params }: Props) {
   );
 
   // Delete service
-  const { mutate: deleteToolResult, isPending: isDeleting } = useDeleteToolResultService();
+  const { mutate: deleteToolResult, isPending: isDeleting } =
+    useDeleteToolResultService();
 
   const handlePageChange = (page: number) => {
     // Update current page state - this will trigger refetch automatically
@@ -93,7 +96,7 @@ function MyLibraryDetail({ params }: Props) {
         onError: (error) => {
           console.error("Error deleting item:", error);
           toast.error("Có lỗi xảy ra khi xóa tài liệu");
-        }
+        },
       });
     }
   };
@@ -102,6 +105,19 @@ function MyLibraryDetail({ params }: Props) {
   const handleCancelDelete = () => {
     setShowConfirmModal(false);
     setItemToDelete(null);
+  };
+
+  // Handle click on tool result item
+  const handleItemClick = (item: any) => {
+    // Check if the tool result type is SLIDE
+    if (item.type === "SLIDE") {
+      // Navigate to slide result editor with the tool result ID
+      router.push(`/results/slide/${item.id}`);
+    } else {
+      // For other types, you can add different handling here
+      console.log("Clicked on non-SLIDE item:", item);
+      // Future: router.push(`/results/lesson-plan/${item.id}`) etc.
+    }
   };
 
   if (isLoading) {
@@ -140,6 +156,7 @@ function MyLibraryDetail({ params }: Props) {
               name={data?.name}
               description={data?.description}
               onRemove={() => handleRemoveClick(data)}
+              onClick={() => handleItemClick(data)}
             />
           </div>
         ))}
