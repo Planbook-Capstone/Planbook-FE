@@ -277,6 +277,7 @@ export default function SlidePresentation({
             padding: "8px",
             wordWrap: "break-word",
             overflow: "hidden",
+            whiteSpace: "pre-wrap", // Allow line breaks in presentation mode
             border: "none",
             outline: "none",
             boxShadow: "none",
