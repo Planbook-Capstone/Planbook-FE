@@ -136,7 +136,7 @@ function MyLibraryDetail({ params }: Props) {
         {toolResults?.data?.content?.map((data: any, index: number) => (
           <div key={index} className="col-span-1 cursor-pointer">
             <DocumentItem
-              type="DOCX"
+              type={id === "SLIDE" ? "PPTX" : "DOCX"}
               name={data?.name}
               description={data?.description}
               onRemove={() => handleRemoveClick(data)}
