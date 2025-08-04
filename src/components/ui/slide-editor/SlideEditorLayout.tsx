@@ -13,12 +13,29 @@ import { SlideData } from "@/utils/pptxExporter";
 import { useElementPositioning } from "@/hooks/useElementPositioning";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import BackgroundSidebar from "./BackgroundSidebar";
-import ImageLibrarySidebar from "./ImageLibrarySidebar";
+import MaterialsLibrarySidebar from "./MaterialsLibrarySidebar";
+import ShapesSidebar from "./ShapesSidebar";
+import ShapeToolbar from "./ShapeToolbar";
 import SlidePresentation from "./SlidePresentation";
 
-import { ImageElement } from "@/types";
+import { ImageElement, VideoElement, ShapeElement } from "@/types";
 import { TextColorProvider } from "./TextColorContext";
 import { SlideTemplateTempData } from "@/contexts/SlideTemplateContext";
+
+// Helper function to normalize text from API (convert object to string)
+const normalizeTextFromAPI = (text: any): string => {
+  if (typeof text === "string") {
+    return text;
+  }
+
+  if (typeof text === "object" && text !== null) {
+    // Convert object like {"0": "line1", "1": "line2"} to "line1\nline2"
+    const keys = Object.keys(text).sort((a, b) => parseInt(a) - parseInt(b));
+    return keys.map((key) => text[key]).join("\n");
+  }
+
+  return String(text || "");
+};
 
 interface Slide {
   id: string;
@@ -40,6 +57,10 @@ interface SlideEditorLayoutProps {
   autoNavigateToLast?: boolean; // New prop to control auto-navigation
   onAutoNavigated?: () => void; // Callback when auto-navigation happens
   userRole?: string; // User role to control UI permissions
+  // Loading state props for skeleton
+  isGenerating?: boolean;
+  generationProgress?: number;
+  totalSlides?: number;
 }
 
 export default function SlideEditorLayout({
@@ -54,21 +75,19 @@ export default function SlideEditorLayout({
   autoNavigateToLast = false,
   onAutoNavigated,
   userRole = "admin", // Default to admin for full access
+  isGenerating = false,
+  generationProgress = 0,
+  totalSlides = 0,
 }: SlideEditorLayoutProps) {
   // Convert initialSlides to proper format if provided
   const getInitialSlides = (): Slide[] => {
     if (initialSlides && initialSlides.length > 0) {
-      console.log("🎯 Processing initialSlides:", initialSlides);
+      // Processing initial slides
       const processedSlides = initialSlides?.map((slide, index) => {
         // Check if data is in slideData property or directly in slide
         const slideData = (slide as any).slideData || slide;
 
-        console.log(`🔍 Slide ${index + 1} structure:`, {
-          hasSlideData: !!(slide as any).slideData,
-          slideDataElements: (slide as any).slideData?.elements?.length || 0,
-          directElements: slide.elements?.length || 0,
-          slideData: slideData,
-        });
+        // Processing slide structure
 
         return {
           id: slide.id || `slide-${index + 1}`,
@@ -79,7 +98,7 @@ export default function SlideEditorLayout({
             slideData.background || (slide as any).background || "#ffffff",
         };
       });
-      console.log("✅ Processed slides:", processedSlides);
+      // Slides processed successfully
       return processedSlides;
     }
 
@@ -112,8 +131,9 @@ export default function SlideEditorLayout({
   const [selectedElementId, setSelectedElementId] = useState<string | null>(
     null
   );
+  const [copiedElement, setCopiedElement] = useState<SlideElement | null>(null);
   const [activeTab, setActiveTab] = useState<string>("text"); // "text", "images", "background", or "effects"
-  const [selectedTransition, setSelectedTransition] = useState<string>("fade"); // Current selected transition
+  const [selectedTransition] = useState<string>("fade"); // Current selected transition
   const [isPresentationMode, setIsPresentationMode] = useState(false);
 
   // Update slides when initialSlides prop changes
@@ -123,10 +143,22 @@ export default function SlideEditorLayout({
         // Check if data is in slideData property or directly in slide
         const slideData = (slide as any).slideData || slide;
 
+        // Normalize text in elements
+        const normalizedElements = (
+          slideData.elements ||
+          slide.elements ||
+          []
+        ).map((element: any) => ({
+          ...element,
+          text: element.text
+            ? normalizeTextFromAPI(element.text)
+            : element.text,
+        }));
+
         return {
           id: slide.id || `slide-${index + 1}`,
           title: slide.title || `Slide ${index + 1}`,
-          elements: slideData.elements || slide.elements || [],
+          elements: normalizedElements,
           isVisible: slide.isVisible !== undefined ? slide.isVisible : true,
           background:
             slideData.background || (slide as any).background || "#ffffff",
@@ -135,14 +167,14 @@ export default function SlideEditorLayout({
 
       // Only update if slides actually changed
       if (JSON.stringify(slides) !== JSON.stringify(newSlides)) {
-        console.log("🔄 Loading new slides");
+        // Loading new slides
         replaceSlidesState(newSlides);
 
         // Auto navigate to the last slide (newest) when slides are updated
         if (autoNavigateToLast) {
           const lastSlideId = newSlides[newSlides.length - 1]?.id || "slide-1";
           setCurrentSlideId(lastSlideId);
-          console.log("🎯 Auto navigated to last slide:", lastSlideId);
+          // Auto navigated to last slide
 
           // Notify parent that auto-navigation happened
           if (onAutoNavigated) {
@@ -159,18 +191,14 @@ export default function SlideEditorLayout({
         }
         setSelectedElementId(null);
 
-        console.log("🔄 Updated slides in editor:", newSlides.length);
-        console.log(
-          "📄 Total elements:",
-          newSlides.reduce((total, slide) => total + slide.elements.length, 0)
-        );
+        // Slides updated in editor
       }
     }
   }, [initialSlides]); // Remove slides from dependencies
-  const [slideFormat, setSlideFormat] = useState<"16:9" | "4:3">("16:9");
+  const [slideFormat] = useState<"16:9" | "4:3">("16:9");
 
   // Export functionality
-  const { exportSlides, isExporting, error: exportError } = useSlideExport();
+  const { exportSlides, isExporting } = useSlideExport();
 
   // Element positioning
   const { getCenterPosition } = useElementPositioning(slideFormat);
@@ -180,9 +208,8 @@ export default function SlideEditorLayout({
   const elements = currentSlide?.elements || [];
 
   // Get selected element
-  const selectedElement = elements.find(
-    (el) => el.id === selectedElementId
-  ) as TextElementType | null;
+  const selectedElement =
+    elements.find((el) => el.id === selectedElementId) || null;
 
   // Helper function to update slides and push to history
   const updateSlides = useCallback(
@@ -195,8 +222,14 @@ export default function SlideEditorLayout({
 
   // Undo/Redo handlers
   const handleUndo = useCallback(() => {
+    console.log("Undo triggered, canUndo:", canUndo);
     const previousState = undoSlides();
     if (previousState) {
+      console.log(
+        "Undo successful, previous state:",
+        previousState.length,
+        "slides"
+      );
       // Check if current slide still exists, if not switch to first slide
       const currentSlideExists = previousState.some(
         (slide) => slide.id === currentSlideId
@@ -205,8 +238,10 @@ export default function SlideEditorLayout({
         setCurrentSlideId(previousState[0].id);
       }
       setSelectedElementId(null); // Clear selection on undo
+    } else {
+      console.log("Undo failed - no previous state");
     }
-  }, [undoSlides, currentSlideId]);
+  }, [undoSlides, currentSlideId, canUndo]);
 
   const handleRedo = useCallback(() => {
     const nextState = redoSlides();
@@ -231,16 +266,71 @@ export default function SlideEditorLayout({
     setIsPresentationMode(false);
   }, []);
 
+  // Handle copying element
+  const handleCopyElement = useCallback(
+    (id: string) => {
+      const currentSlide = slides.find((slide) => slide.id === currentSlideId);
+      if (!currentSlide) return;
+
+      const elementToCopy = currentSlide.elements.find((el) => el.id === id);
+      if (elementToCopy) {
+        setCopiedElement(elementToCopy);
+        // Optional: Show toast notification
+        // Element copied successfully
+      }
+    },
+    [currentSlideId, slides]
+  );
+
+  // Handle pasting element
+  const handlePasteElement = useCallback(() => {
+    if (!copiedElement) return;
+
+    // Generate new ID for the pasted element
+    const newId = `${copiedElement.type}-${Date.now()}`;
+
+    // Create a copy with new ID and slightly offset position
+    const pastedElement: SlideElement = {
+      ...copiedElement,
+      id: newId,
+      x: copiedElement.x + 20, // Offset by 20px
+      y: copiedElement.y + 20, // Offset by 20px
+    };
+
+    updateSlides((prev) =>
+      prev.map((slide) =>
+        slide.id === currentSlideId
+          ? {
+              ...slide,
+              elements: [...slide.elements, pastedElement],
+            }
+          : slide
+      )
+    );
+
+    // Select the newly pasted element
+    setSelectedElementId(newId);
+    // Element pasted successfully
+  }, [copiedElement, currentSlideId, updateSlides]);
+
   // Keyboard shortcuts for undo/redo and presentation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Check if we're in an input field
       const target = event.target as HTMLElement;
+      const activeElement = document.activeElement as HTMLElement;
+
+      // Keyboard event handling
+
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
-        target.contentEditable === "true"
+        target.contentEditable === "true" ||
+        target.isContentEditable ||
+        (activeElement && activeElement.contentEditable === "true") ||
+        (activeElement && activeElement.isContentEditable)
       ) {
+        // Skipping keyboard shortcuts while editing text
         return;
       }
 
@@ -267,13 +357,41 @@ export default function SlideEditorLayout({
         event.preventDefault();
         handleRedo();
       }
+
+      // Copy element (Ctrl+C)
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key === "c" &&
+        selectedElementId
+      ) {
+        event.preventDefault();
+        handleCopyElement(selectedElementId);
+      }
+
+      // Paste element (Ctrl+V)
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key === "v" &&
+        copiedElement
+      ) {
+        event.preventDefault();
+        handlePasteElement();
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleUndo, handleRedo, handleStartPresentation]);
+  }, [
+    handleUndo,
+    handleRedo,
+    handleStartPresentation,
+    selectedElementId,
+    copiedElement,
+    handleCopyElement,
+    handlePasteElement,
+  ]);
 
   // Utility function to normalize zIndex values
   const normalizeZIndex = useCallback(
@@ -377,6 +495,7 @@ export default function SlideEditorLayout({
         underline: false,
         color: "#000000",
         textAlign: "left",
+        verticalAlign: "top",
       },
     };
     handleAddElement(newTextElement);
@@ -402,6 +521,7 @@ export default function SlideEditorLayout({
         underline: false,
         color: "#000000",
         textAlign: "left",
+        verticalAlign: "top",
       },
     };
     handleAddElement(newTextElement);
@@ -427,6 +547,7 @@ export default function SlideEditorLayout({
         underline: false,
         color: "#000000",
         textAlign: "left",
+        verticalAlign: "top",
       },
     };
     handleAddElement(newTextElement);
@@ -452,6 +573,7 @@ export default function SlideEditorLayout({
         underline: false,
         color: "#000000",
         textAlign: "left",
+        verticalAlign: "top",
       },
     };
     handleAddElement(newTextElement);
@@ -482,6 +604,31 @@ export default function SlideEditorLayout({
     [currentSlideId, updateSlides]
   );
 
+  // Handle updating shape style
+  const handleUpdateShapeStyle = useCallback(
+    (id: string, updates: Partial<ShapeElement>) => {
+      updateSlides((prev) =>
+        prev.map((slide) =>
+          slide.id === currentSlideId
+            ? {
+                ...slide,
+                elements: slide.elements.map((el) => {
+                  if (el.id === id && el.type === "shape") {
+                    return {
+                      ...el,
+                      ...updates,
+                    };
+                  }
+                  return el;
+                }),
+              }
+            : slide
+        )
+      );
+    },
+    [currentSlideId, updateSlides]
+  );
+
   // Handle adding image from URL (for ImageLibrarySidebar)
   const handleAddImageFromUrl = useCallback(
     (imageUrl: string) => {
@@ -498,6 +645,55 @@ export default function SlideEditorLayout({
       };
 
       handleAddElement(imageElement);
+    },
+    [handleAddElement, getCenterPosition]
+  );
+
+  // Handle adding video from URL (for ImageLibrarySidebar)
+  const handleAddVideoFromUrl = useCallback(
+    (videoUrl: string) => {
+      const centerPosition = getCenterPosition({ width: 320, height: 240 });
+
+      const videoElement: VideoElement = {
+        id: `video-${Date.now()}`,
+        type: "video",
+        x: centerPosition.x,
+        y: centerPosition.y,
+        width: 320,
+        height: 240,
+        src: videoUrl,
+        controls: true,
+        muted: true, // Start muted for better UX
+      };
+
+      handleAddElement(videoElement);
+    },
+    [handleAddElement, getCenterPosition]
+  );
+
+  // Handle adding shape
+  const handleAddShape = useCallback(
+    (
+      shapeType: "rectangle" | "circle" | "triangle" | "star",
+      fill?: string,
+      stroke?: string
+    ) => {
+      const centerPosition = getCenterPosition({ width: 150, height: 150 });
+
+      const shapeElement: ShapeElement = {
+        id: `shape-${Date.now()}`,
+        type: "shape",
+        x: centerPosition.x,
+        y: centerPosition.y,
+        width: 150,
+        height: 150,
+        shapeType,
+        fill: fill || "#3b82f6",
+        stroke: stroke || "#1e40af",
+        strokeWidth: 2,
+      };
+
+      handleAddElement(shapeElement);
     },
     [handleAddElement, getCenterPosition]
   );
@@ -631,6 +827,51 @@ export default function SlideEditorLayout({
     [currentSlideId, normalizeZIndex, updateSlides]
   );
 
+  // Handle rotation
+  const handleRotateLeft = useCallback(
+    (elementId: string) => {
+      updateSlides((prev) =>
+        prev.map((slide) =>
+          slide.id === currentSlideId
+            ? {
+                ...slide,
+                elements: slide.elements.map((el) => {
+                  if (el.id === elementId) {
+                    const currentRotation = (el as any).rotation || 0;
+                    return { ...el, rotation: currentRotation - 15 };
+                  }
+                  return el;
+                }),
+              }
+            : slide
+        )
+      );
+    },
+    [currentSlideId, updateSlides]
+  );
+
+  const handleRotateRight = useCallback(
+    (elementId: string) => {
+      updateSlides((prev) =>
+        prev.map((slide) =>
+          slide.id === currentSlideId
+            ? {
+                ...slide,
+                elements: slide.elements.map((el) => {
+                  if (el.id === elementId) {
+                    const currentRotation = (el as any).rotation || 0;
+                    return { ...el, rotation: currentRotation + 15 };
+                  }
+                  return el;
+                }),
+              }
+            : slide
+        )
+      );
+    },
+    [currentSlideId, updateSlides]
+  );
+
   // Handle adding new slide
   const handleAddSlide = useCallback(() => {
     const newSlide: Slide = {
@@ -653,8 +894,10 @@ export default function SlideEditorLayout({
   // Handle slide duplication
   const handleSlideDuplicate = useCallback(
     (slideId: string) => {
-      const slideToClone = slides.find((s) => s.id === slideId);
-      if (slideToClone) {
+      const slideIndex = slides.findIndex((s) => s.id === slideId);
+      const slideToClone = slides[slideIndex];
+
+      if (slideToClone && slideIndex !== -1) {
         const newSlide: Slide = {
           ...slideToClone,
           id: `slide-${Date.now()}`,
@@ -664,10 +907,21 @@ export default function SlideEditorLayout({
             id: `${el.id}-copy-${Date.now()}`,
           })),
         };
-        updateSlides((prev) => [...prev, newSlide]);
+
+        // Slide duplicated successfully
+
+        updateSlides((prev) => {
+          const updatedSlides = [...prev];
+          // Insert new slide right after the original slide
+          updatedSlides.splice(slideIndex + 1, 0, newSlide);
+          return updatedSlides;
+        });
+
+        // Auto-select the new duplicated slide
+        setCurrentSlideId(newSlide.id);
       }
     },
-    [slides, updateSlides]
+    [slides, updateSlides, setCurrentSlideId]
   );
 
   // Handle slide deletion
@@ -696,6 +950,32 @@ export default function SlideEditorLayout({
       );
     },
     [updateSlides]
+  );
+
+  // Handle slide reorder (drag & drop)
+  const handleSlideReorder = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) return;
+
+      // Reordering slides
+
+      updateSlides((prev) => {
+        const updatedSlides = [...prev];
+        const [movedSlide] = updatedSlides.splice(fromIndex, 1);
+        updatedSlides.splice(toIndex, 0, movedSlide);
+
+        // Slides reordered successfully
+
+        return updatedSlides;
+      });
+
+      // If current slide was moved, keep it selected
+      if (slides[fromIndex]?.id === currentSlideId) {
+        // Current slide was moved, it will be at toIndex now
+        setCurrentSlideId(slides[fromIndex].id);
+      }
+    },
+    [updateSlides, slides, currentSlideId, setCurrentSlideId]
   );
 
   // Handle save
@@ -737,6 +1017,13 @@ export default function SlideEditorLayout({
           style: (element as any).style,
           src: (element as any).src, // For image elements
           alt: (element as any).alt, // For image elements
+          // Shape properties
+          shapeType: (element as any).shapeType,
+          fill: (element as any).fill,
+          stroke: (element as any).stroke,
+          strokeWidth: (element as any).strokeWidth,
+          opacity: (element as any).opacity,
+          rotation: (element as any).rotation,
         })),
         isVisible: slide.isVisible,
         background: slide.background, // Include background for export
@@ -748,9 +1035,7 @@ export default function SlideEditorLayout({
       });
 
       if (result.success) {
-        console.log(
-          `✅ Exported ${result.slideCount} slides to ${result.filename}`
-        );
+        // Export completed successfully
         alert(`Successfully exported ${result.slideCount} slides!`);
       } else {
         console.error("❌ Export failed:", result.error);
@@ -854,7 +1139,7 @@ export default function SlideEditorLayout({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      console.log("✅ JSON export completed successfully");
+      // JSON export completed successfully
       alert("JSON file downloaded successfully!");
     } catch (error) {
       console.error("❌ JSON export failed:", error);
@@ -983,15 +1268,7 @@ export default function SlideEditorLayout({
                 const x = clampToCanvas(originalX, canvasWidth, width);
                 const y = clampToCanvas(originalY, canvasHeight, height);
 
-                // Debug logging for problematic coordinates
-                if (originalX !== x || originalY !== y) {
-                  console.log(`🔧 Clamped element ${elementData.id}:`, {
-                    original: { x: originalX, y: originalY },
-                    clamped: { x, y },
-                    canvas: { width: canvasWidth, height: canvasHeight },
-                    elementSize: { width, height },
-                  });
-                }
+                // Coordinate clamping applied if needed
 
                 return {
                   id:
@@ -1023,10 +1300,10 @@ export default function SlideEditorLayout({
 
         // Update slide format if available
         if (importData.slideFormat) {
-          console.log("Imported slide format:", importData.slideFormat);
+          // Slide format imported
         }
 
-        console.log("✅ JSON import completed successfully");
+        // JSON import completed successfully
         alert(
           `Successfully imported ${importedSlides.length} slides! Coordinates have been validated and adjusted to fit canvas.`
         );
@@ -1046,8 +1323,14 @@ export default function SlideEditorLayout({
       active: "/icons/academic-active.svg",
     },
     {
+      label: "Hình dạng",
+      key: "shapes",
+      image: "/icons/category.svg",
+      active: "/icons/category-active.svg",
+    },
+    {
       label: "Học liệu",
-      key: "images",
+      key: "materials",
       image: "/icons/folder.svg",
       active: "/icons/folder-active.svg",
     },
@@ -1097,10 +1380,7 @@ export default function SlideEditorLayout({
         />
 
         {/* Main Content */}
-        <div
-          className="flex-1 flex overflow-auto w-full"
-          style={{ maxWidth: "100vw" }}
-        >
+        <div className="flex-1 flex w-full " style={{ maxWidth: "100vw" }}>
           {/* SlideEditorDirector - Tab Navigation */}
           <SlideEditorDirector
             menuItems={menuItems}
@@ -1118,8 +1398,15 @@ export default function SlideEditorLayout({
             />
           )}
 
-          {activeTab === "images" && (
-            <ImageLibrarySidebar onAddImage={handleAddImageFromUrl} />
+          {activeTab === "shapes" && (
+            <ShapesSidebar onAddShape={handleAddShape} />
+          )}
+
+          {activeTab === "materials" && (
+            <MaterialsLibrarySidebar
+              onAddImage={handleAddImageFromUrl}
+              onAddVideo={handleAddVideoFromUrl}
+            />
           )}
 
           {activeTab === "background" && (
@@ -1135,8 +1422,18 @@ export default function SlideEditorLayout({
             {selectedElement && selectedElement.type === "text" && (
               <div className="pt-2 flex justify-center ">
                 <TextToolbar
-                  selectedElement={selectedElement}
+                  selectedElement={selectedElement as TextElementType}
                   onUpdateStyle={handleUpdateTextStyle}
+                />
+              </div>
+            )}
+
+            {/* Shape Formatting Toolbar */}
+            {selectedElement && selectedElement.type === "shape" && (
+              <div className="pt-2 flex justify-center ">
+                <ShapeToolbar
+                  selectedElement={selectedElement as ShapeElement}
+                  onUpdateStyle={handleUpdateShapeStyle}
                 />
               </div>
             )}
@@ -1158,19 +1455,31 @@ export default function SlideEditorLayout({
                   onSendToBack={handleSendToBack}
                   onBringForward={handleBringForward}
                   onSendBackward={handleSendBackward}
+                  onRotateLeft={handleRotateLeft}
+                  onRotateRight={handleRotateRight}
+                  onCopyElement={handleCopyElement}
+                  onPasteElement={handlePasteElement}
                   slideFormat={slideFormat}
                   background={currentSlide?.background || "#ffffff"}
+                  selectedElementId={selectedElementId}
+                  hasCopiedElement={!!copiedElement}
                 />
 
                 {/* Horizontal Slide Panel */}
                 <HorizontalSlidePanel
-                  slides={slides}
+                  slides={slides.map((slide) => {
+                    return slide;
+                  })}
                   currentSlideId={currentSlideId}
                   onSlideSelect={handleSlideSelect}
                   onSlideAdd={handleAddSlide}
                   onSlideDuplicate={handleSlideDuplicate}
                   onSlideDelete={handleSlideDelete}
                   onSlideToggleVisibility={handleSlideToggleVisibility}
+                  onSlideReorder={handleSlideReorder}
+                  isGenerating={isGenerating}
+                  generationProgress={generationProgress}
+                  totalSlides={totalSlides}
                 />
               </div>
             </div>

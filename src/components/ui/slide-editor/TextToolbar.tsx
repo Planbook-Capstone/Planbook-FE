@@ -9,6 +9,9 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  AlignVerticalJustifyStart,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
   Plus,
   Minus,
 } from "lucide-react";
@@ -186,6 +189,34 @@ export default function TextToolbar({
             <AlignRight className="w-4 h-4" />
           ) : (
             <AlignLeft className="w-4 h-4" />
+          )}
+        </button>
+      </div>
+
+      {/* Vertical Alignment */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => {
+            const currentAlign = style.verticalAlign || "top";
+            const nextAlign =
+              currentAlign === "top"
+                ? "middle"
+                : currentAlign === "middle"
+                ? "bottom"
+                : "top";
+            handleStyleUpdate({ verticalAlign: nextAlign });
+          }}
+          className="p-2 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+          title={`Vertical Align: ${
+            style.verticalAlign || "top"
+          } (click to cycle)`}
+        >
+          {style.verticalAlign === "middle" ? (
+            <AlignVerticalJustifyCenter className="w-4 h-4" />
+          ) : style.verticalAlign === "bottom" ? (
+            <AlignVerticalJustifyEnd className="w-4 h-4" />
+          ) : (
+            <AlignVerticalJustifyStart className="w-4 h-4" />
           )}
         </button>
       </div>

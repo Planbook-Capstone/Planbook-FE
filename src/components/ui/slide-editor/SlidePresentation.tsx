@@ -240,13 +240,7 @@ export default function SlidePresentation({
     if (element.type === "text") {
       const textElement = element as any;
 
-      // Debug: Log all style properties to identify the purple background
-      console.log("Text element styles:", {
-        id: textElement.id,
-        text: textElement.text,
-        backgroundColor: textElement.style?.backgroundColor,
-        allStyles: textElement.style,
-      });
+      // Text element styling
 
       return (
         <div
@@ -312,6 +306,155 @@ export default function SlidePresentation({
       );
     }
 
+    if (element.type === "video") {
+      const videoElement = element as any;
+      return (
+        <video
+          key={element.id}
+          src={videoElement.src}
+          style={{
+            ...style,
+            objectFit: "contain",
+          }}
+          controls={videoElement.controls !== false}
+          autoPlay={videoElement.autoplay}
+          loop={videoElement.loop}
+          muted={videoElement.muted !== false} // Default to muted for presentation
+          preload="metadata"
+        />
+      );
+    }
+
+    if (element.type === "shape") {
+      const shapeElement = element as any;
+      const { shapeType, fill, stroke, strokeWidth, opacity, rotation } =
+        shapeElement;
+
+      // Calculate actual dimensions for presentation
+      const actualWidth = (element.width / 960) * window.innerWidth;
+      const actualHeight = (element.height / 540) * window.innerHeight;
+
+      const svgStyle: React.CSSProperties = {
+        ...style,
+        opacity: opacity !== undefined ? opacity : 1,
+        transform: rotation ? `rotate(${rotation}deg)` : undefined,
+        transformOrigin: "center center",
+      };
+
+      const shapeStyle = {
+        fill: fill || "#3b82f6",
+        stroke: stroke || "#1e40af",
+        strokeWidth: strokeWidth || 2,
+      };
+
+      // Use actual dimensions for viewBox to maintain proper scaling
+      const viewBoxWidth = Math.max(actualWidth, 100);
+      const viewBoxHeight = Math.max(actualHeight, 100);
+      const strokeOffset = (strokeWidth || 2) / 2;
+
+      switch (shapeType) {
+        case "rectangle":
+          return (
+            <div key={element.id} style={svgStyle}>
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+              >
+                <rect
+                  x={strokeOffset}
+                  y={strokeOffset}
+                  width={viewBoxWidth - strokeOffset * 2}
+                  height={viewBoxHeight - strokeOffset * 2}
+                  rx="4"
+                  {...shapeStyle}
+                />
+              </svg>
+            </div>
+          );
+        case "circle":
+          const radius =
+            Math.min(viewBoxWidth, viewBoxHeight) / 2 - strokeOffset;
+          const centerX = viewBoxWidth / 2;
+          const centerY = viewBoxHeight / 2;
+          return (
+            <div key={element.id} style={svgStyle}>
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+              >
+                <circle cx={centerX} cy={centerY} r={radius} {...shapeStyle} />
+              </svg>
+            </div>
+          );
+        case "triangle":
+          return (
+            <div key={element.id} style={svgStyle}>
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+              >
+                <polygon
+                  points={`${viewBoxWidth / 2},${strokeOffset} ${
+                    viewBoxWidth - strokeOffset
+                  },${viewBoxHeight - strokeOffset} ${strokeOffset},${
+                    viewBoxHeight - strokeOffset
+                  }`}
+                  {...shapeStyle}
+                />
+              </svg>
+            </div>
+          );
+        case "star":
+          const cx = viewBoxWidth / 2;
+          const cy = viewBoxHeight / 2;
+          const outerRadius =
+            Math.min(viewBoxWidth, viewBoxHeight) / 2 - strokeOffset;
+          const innerRadius = outerRadius * 0.4;
+
+          const starPoints = [];
+          for (let i = 0; i < 10; i++) {
+            const angle = (i * Math.PI) / 5 - Math.PI / 2;
+            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+            const x = cx + radius * Math.cos(angle);
+            const y = cy + radius * Math.sin(angle);
+            starPoints.push(`${x},${y}`);
+          }
+
+          return (
+            <div key={element.id} style={svgStyle}>
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+              >
+                <polygon points={starPoints.join(" ")} {...shapeStyle} />
+              </svg>
+            </div>
+          );
+        default:
+          return (
+            <div key={element.id} style={svgStyle}>
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+              >
+                <rect
+                  x={strokeOffset}
+                  y={strokeOffset}
+                  width={viewBoxWidth - strokeOffset * 2}
+                  height={viewBoxHeight - strokeOffset * 2}
+                  {...shapeStyle}
+                />
+              </svg>
+            </div>
+          );
+      }
+    }
+
     return null;
   };
 
@@ -319,12 +462,10 @@ export default function SlidePresentation({
   const getBackgroundStyle = (slide?: any): React.CSSProperties => {
     const targetSlide = slide || currentSlide;
     if (!targetSlide?.background) {
-      console.log("No background found, using white");
       return { backgroundColor: "#ffffff" };
     }
 
     const bg = targetSlide.background;
-    console.log("Slide background:", bg);
 
     if (bg.startsWith("#")) {
       return { backgroundColor: bg };

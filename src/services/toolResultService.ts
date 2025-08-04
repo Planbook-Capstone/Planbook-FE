@@ -5,6 +5,7 @@ import {
   deleteMutationHook,
   patchMutationHook,
   updateMutationHook,
+  createMutationHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
@@ -37,3 +38,7 @@ export const useUpdateToolResultStatusService = patchMutationHook(
   API_ENDPOINTS.TOOL_RESULTS
 );
 
+export const useCreateToolResultService = createMutationHook(
+  "tool-results",
+  API_ENDPOINTS.TOOL_RESULTS
+);

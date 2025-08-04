@@ -4,13 +4,14 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { SlideElement } from "@/types";
 import TextElement from "./TextElement";
 import ImageElement from "./ImageElement";
+import VideoElement from "./VideoElement";
+import ShapeElement from "./ShapeElement";
 import AlignmentGuides from "./AlignmentGuides";
 import AlignmentToolbar from "./AlignmentToolbar";
 import ContextMenu from "./ContextMenu";
 import { AlignmentGuide, useSnapAlignment } from "@/hooks/useSnapAlignment";
 
-const PPTX_SLIDE_WIDTH = 960; // 10 inches at 96 DPI
-const PPTX_SLIDE_HEIGHT = 540; // 5.625 inches at 96 DPI
+// Canvas dimensions are calculated dynamically based on slide format
 
 interface EditorCanvasProps {
   elements: SlideElement[];
@@ -22,10 +23,16 @@ interface EditorCanvasProps {
   onSendToBack?: (elementId: string) => void;
   onBringForward?: (elementId: string) => void;
   onSendBackward?: (elementId: string) => void;
+  onCopyElement?: (id: string) => void;
+  onPasteElement?: () => void;
+  onRotateLeft?: (elementId: string) => void;
+  onRotateRight?: (elementId: string) => void;
   width?: number;
   height?: number;
   background?: string;
   slideFormat?: "16:9" | "4:3";
+  selectedElementId?: string | null;
+  hasCopiedElement?: boolean;
 }
 
 export default function EditorCanvas({
@@ -38,14 +45,18 @@ export default function EditorCanvas({
   onSendToBack,
   onBringForward,
   onSendBackward,
-  width,
-  height,
+  onCopyElement,
+  onPasteElement,
+  onRotateLeft,
+  onRotateRight,
+  width: _width,
+  height: _height,
   background = "#ffffff",
   slideFormat = "16:9",
+  selectedElementId,
+  hasCopiedElement,
 }: EditorCanvasProps) {
-  // Debug logging
-  console.log("🎨 EditorCanvas received elements:", elements);
-  console.log("🎨 Elements count:", elements?.length || 0);
+  // Canvas setup
   // Calculate canvas dimensions based on slide format
   const getCanvasDimensions = () => {
     // Force standard dimensions regardless of props
@@ -58,18 +69,7 @@ export default function EditorCanvas({
 
   const canvasDimensions = getCanvasDimensions();
 
-  // Debug canvas dimensions
-  console.log("🔍 Canvas Dimensions Debug:", {
-    slideFormat,
-    width: width,
-    height: height,
-    calculated: canvasDimensions,
-    PPTX_SLIDE_WIDTH,
-    PPTX_SLIDE_HEIGHT,
-  });
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(
-    null
-  );
+  // Canvas dimensions calculated
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
   const [contextMenu, setContextMenu] = useState<{
@@ -107,11 +107,7 @@ export default function EditorCanvas({
   };
 
   // Snap alignment hook for manual alignment
-  const {
-    alignToCanvasCenter,
-    alignToHorizontalCenter,
-    alignToVerticalCenter,
-  } = useSnapAlignment({
+  const { alignToCanvasCenter } = useSnapAlignment({
     canvasWidth: canvasDimensions.width,
     canvasHeight: canvasDimensions.height,
   });
@@ -119,7 +115,6 @@ export default function EditorCanvas({
   // Handle canvas click to deselect elements
   const handleCanvasClick = useCallback(() => {
     // Always deselect when clicking on canvas - elements will stopPropagation if clicked
-    setSelectedElementId(null);
     setEditingElementId(null);
     onSelectElement?.(null);
   }, [onSelectElement]);
@@ -128,7 +123,6 @@ export default function EditorCanvas({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setSelectedElementId(null);
         setEditingElementId(null);
         onSelectElement?.(null);
       }
@@ -141,7 +135,6 @@ export default function EditorCanvas({
   // Handle element selection
   const handleSelectElement = useCallback(
     (id: string) => {
-      setSelectedElementId(id);
       setEditingElementId(null);
       onSelectElement?.(id);
     },
@@ -149,10 +142,13 @@ export default function EditorCanvas({
   );
 
   // Handle element editing
-  const handleEditElement = useCallback((id: string) => {
-    setSelectedElementId(id);
-    setEditingElementId(id);
-  }, []);
+  const handleEditElement = useCallback(
+    (id: string) => {
+      onSelectElement?.(id);
+      setEditingElementId(id);
+    },
+    [onSelectElement]
+  );
 
   // Handle stop editing
   const handleStopEdit = useCallback(() => {
@@ -171,27 +167,27 @@ export default function EditorCanvas({
     [elements, alignToCanvasCenter, onUpdateElement]
   );
 
-  const handleAlignHorizontalCenter = useCallback(
-    (elementId: string) => {
-      const element = elements.find((el) => el.id === elementId);
-      if (element) {
-        const newPosition = alignToHorizontalCenter(element);
-        onUpdateElement(elementId, newPosition);
-      }
-    },
-    [elements, alignToHorizontalCenter, onUpdateElement]
-  );
+  // const handleAlignHorizontalCenter = useCallback(
+  //   (elementId: string) => {
+  //     const element = elements.find((el) => el.id === elementId);
+  //     if (element) {
+  //       const newPosition = alignToHorizontalCenter(element);
+  //       onUpdateElement(elementId, newPosition);
+  //     }
+  //   },
+  //   [elements, alignToHorizontalCenter, onUpdateElement]
+  // );
 
-  const handleAlignVerticalCenter = useCallback(
-    (elementId: string) => {
-      const element = elements.find((el) => el.id === elementId);
-      if (element) {
-        const newPosition = alignToVerticalCenter(element);
-        onUpdateElement(elementId, newPosition);
-      }
-    },
-    [elements, alignToVerticalCenter, onUpdateElement]
-  );
+  // const handleAlignVerticalCenter = useCallback(
+  //   (elementId: string) => {
+  //     const element = elements.find((el) => el.id === elementId);
+  //     if (element) {
+  //       const newPosition = alignToVerticalCenter(element);
+  //       onUpdateElement(elementId, newPosition);
+  //     }
+  //   },
+  //   [elements, alignToVerticalCenter, onUpdateElement]
+  // );
 
   // Edge alignment handlers
   const handleAlignLeft = useCallback(
@@ -235,6 +231,13 @@ export default function EditorCanvas({
   // Context menu handlers
   const handleContextMenu = useCallback(
     (elementId: string, x: number, y: number) => {
+      console.log(
+        "EditorCanvas: Setting context menu for element:",
+        elementId,
+        "at position:",
+        x,
+        y
+      );
       setContextMenu({ x, y, elementId });
     },
     []
@@ -244,13 +247,19 @@ export default function EditorCanvas({
     setContextMenu(null);
   }, []);
 
-  const handleCopyElement = useCallback((elementId: string) => {
-    // TODO: Implement copy functionality
-    console.log("Copy element:", elementId);
-  }, []);
+  const handleCopyElement = useCallback(
+    (elementId: string) => {
+      onCopyElement?.(elementId);
+    },
+    [onCopyElement]
+  );
 
   const handleBringToFront = useCallback(
     (elementId: string) => {
+      console.log(
+        "EditorCanvas: Bring to front called for element:",
+        elementId
+      );
       onBringToFront?.(elementId);
     },
     [onBringToFront]
@@ -275,6 +284,22 @@ export default function EditorCanvas({
       onSendBackward?.(elementId);
     },
     [onSendBackward]
+  );
+
+  const handleRotateLeft = useCallback(
+    (elementId: string) => {
+      console.log("EditorCanvas: Rotate left called for element:", elementId);
+      onRotateLeft?.(elementId);
+    },
+    [onRotateLeft]
+  );
+
+  const handleRotateRight = useCallback(
+    (elementId: string) => {
+      console.log("EditorCanvas: Rotate right called for element:", elementId);
+      onRotateRight?.(elementId);
+    },
+    [onRotateRight]
   );
 
   // Handle drag and drop for images
@@ -329,8 +354,6 @@ export default function EditorCanvas({
 
   // Render elements based on type
   const renderElement = (element: SlideElement) => {
-    console.log("🎨 Rendering element:", element.type, element);
-
     switch (element.type) {
       case "text":
         return (
@@ -355,7 +378,7 @@ export default function EditorCanvas({
             key={element.id}
             element={element}
             isSelected={selectedElementId === element.id}
-            onSelect={handleSelectElement}
+            onSelect={() => handleSelectElement(element.id)}
             onUpdate={onUpdateElement}
             onDelete={onDeleteElement}
             otherElements={elements.filter((el) => el.id !== element.id)}
@@ -363,27 +386,32 @@ export default function EditorCanvas({
             onContextMenu={handleContextMenu}
           />
         );
-      case "shape":
-        // TODO: Implement ShapeElement component
+      case "video":
         return (
-          <div
+          <VideoElement
             key={element.id}
-            style={{
-              position: "absolute",
-              left: element.x,
-              top: element.y,
-              width: element.width,
-              height: element.height,
-              zIndex:
-                selectedElementId === element.id ? 999 : element.zIndex ?? 0,
-              border:
-                selectedElementId === element.id
-                  ? "2px solid #3b82f6"
-                  : "1px solid #ccc",
-              background: element.fill || "#e0e0e0",
-              cursor: "pointer",
-            }}
-            onClick={() => handleSelectElement(element.id)}
+            element={element}
+            isSelected={selectedElementId === element.id}
+            isEditing={editingElementId === element.id}
+            onSelect={handleSelectElement}
+            onStartEditing={() => handleEditElement(element.id)}
+            onStopEditing={() => handleStopEdit()}
+            onUpdate={onUpdateElement}
+            onDelete={onDeleteElement}
+          />
+        );
+      case "shape":
+        return (
+          <ShapeElement
+            key={element.id}
+            element={element}
+            isSelected={selectedElementId === element.id}
+            onSelect={handleSelectElement}
+            onUpdate={onUpdateElement}
+            onDelete={onDeleteElement}
+            otherElements={elements.filter((el) => el.id !== element.id)}
+            onSnapUpdate={setAlignmentGuides}
+            onContextMenu={handleContextMenu}
           />
         );
       default:
@@ -398,7 +426,7 @@ export default function EditorCanvas({
     >
       {/* Alignment toolbar */}
       <AlignmentToolbar
-        selectedElementId={selectedElementId}
+        selectedElementId={selectedElementId || null}
         onAlignToCenter={handleAlignToCenter}
         onAlignLeft={handleAlignLeft}
         onAlignRight={handleAlignRight}
@@ -451,10 +479,7 @@ export default function EditorCanvas({
               .slice() // Create a copy to avoid mutating the original array
               .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
 
-            console.log("🎨 Rendering sorted elements:", sortedElements);
-
-            return sortedElements.map((element, index) => {
-              console.log(`🎨 Rendering element ${index}:`, element);
+            return sortedElements.map((element) => {
               return renderElement(element);
             });
           })()}
@@ -474,11 +499,15 @@ export default function EditorCanvas({
               elementId={contextMenu.elementId}
               onClose={handleCloseContextMenu}
               onCopy={handleCopyElement}
+              onPaste={onPasteElement}
               onDelete={onDeleteElement}
               onBringToFront={handleBringToFront}
               onSendToBack={handleSendToBack}
               onBringForward={handleBringForward}
               onSendBackward={handleSendBackward}
+              onRotateLeft={handleRotateLeft}
+              onRotateRight={handleRotateRight}
+              hasCopiedElement={hasCopiedElement}
             />
           )}
         </div>

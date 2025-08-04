@@ -30,7 +30,7 @@ export function Gallery({
   className = "",
 }: GalleryProps) {
   return (
-    <div className={`gallery-container ${className}`}>
+    <div className={`gallery-container h-auto ${className}`}>
       <style jsx global>{`
         .gallery-container .masonry-grid {
           column-count: 2;
@@ -40,7 +40,6 @@ export function Gallery({
 
         .gallery-container .masonry-item {
           break-inside: avoid;
-          margin-bottom: ${margin}px;
           display: inline-block;
           width: 100%;
         }

@@ -13,13 +13,30 @@ import {
 import Loading from "@/components/ui/loading";
 import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
 import { toast } from "sonner";
 import { BookLessonSelectorModal } from "@/components/modals/BookLessonSelectorModal";
 import { TemplateSelector } from "@/components/modals/TemplateSelector";
+import { SaveLessonPlanModal } from "@/components/modals/SaveLessonPlanModal";
 import { WEBSOCKET_CONFIG } from "@/config/websocket";
 import { useAppStore } from "@/store";
+import { useCreateToolResultService } from "@/services/toolResultService";
+
+// Helper function to normalize text from API (convert object to string)
+const normalizeTextFromAPI = (text: any): string => {
+  if (typeof text === "string") {
+    return text;
+  }
+
+  if (typeof text === "object" && text !== null) {
+    // Convert object like {"0": "line1", "1": "line2"} to "line1\nline2"
+    const keys = Object.keys(text).sort((a, b) => parseInt(a) - parseInt(b));
+    return keys.map((key) => text[key]).join("\n");
+  }
+
+  return String(text || "");
+};
 
 export default function SlideEditorDemo() {
   const [slides, setSlides] = useState<any[]>([]);
@@ -35,6 +52,12 @@ export default function SlideEditorDemo() {
   const [isAutoProcessing, setIsAutoProcessing] = useState(false);
   const [shouldTriggerAfterTemplateLoad, setShouldTriggerAfterTemplateLoad] =
     useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+
+  // Loading progress state for AI generation
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationMessage, setGenerationMessage] = useState("");
 
   const {
     data: templateDetail,
@@ -64,9 +87,106 @@ export default function SlideEditorDemo() {
   useEffect(() => {
     console.log("🔍 WebSocket data received:", websocketData);
     setFinalData(websocketData);
+
+    // Handle progress updates
+    if (websocketData?.type === "progress") {
+      const progress = websocketData.progress || 0;
+      const message = websocketData.message || "";
+      const status = websocketData.status || "";
+
+      console.log("📊 Progress update:", { progress, message, status });
+
+      setGenerationProgress(progress);
+      setGenerationMessage(message);
+
+      // Start generation tracking
+      if (progress > 0 && progress < 100) {
+        setIsGenerating(true);
+        // Show progress toast with AI icon
+        toast.loading(
+          <div className="flex items-center gap-2">
+            <img
+              src="/loading/loading_AI.gif"
+              alt="AI Loading"
+              className="w-5 h-5"
+            />
+            <span>Đã hoàn thành slide ({progress}%)</span>
+          </div>,
+          {
+            id: "slide-generation", // Use same ID to update existing toast
+          }
+        );
+      }
+
+      // Complete generation
+      if (progress >= 100 || status === "completed") {
+        setIsGenerating(false);
+        toast.success("Tạo slide hoàn thành!", {
+          id: "slide-generation", // Replace loading toast
+        });
+      }
+    }
+
     const newSlides = websocketData?.partial_result?.processed_template?.slides;
     if (newSlides && newSlides.length > 0) {
-      setSlides(newSlides);
+      // Normalize text in all slides before setting
+      const normalizedSlides = newSlides.map((slide: any) => {
+        console.log("🔍 Processing slide:", {
+          id: slide.id,
+          hasElements: !!slide.elements,
+          hasSlideData: !!slide.slideData,
+          slideDataElements: slide.slideData?.elements?.length || 0,
+        });
+
+        // Debug slide background
+        console.log("🎨 Slide background data:", {
+          slideId: slide.id,
+          slideBackground: slide.background,
+          slideDataBackground: slide.slideData?.background,
+          hasSlideData: !!slide.slideData,
+        });
+
+        // Process elements in slideData.elements (the actual elements)
+        const normalizedSlideDataElements =
+          slide.slideData?.elements?.map((element: any) => {
+            console.log("🔍 Processing slideData element:", {
+              id: element.id,
+              type: element.type,
+              originalText: element.text,
+              textType: typeof element.text,
+              isObject: typeof element.text === "object",
+            });
+
+            const normalizedText = element.text
+              ? normalizeTextFromAPI(element.text)
+              : element.text;
+
+            console.log("✅ Normalized text:", {
+              original: element.text,
+              normalized: normalizedText,
+              normalizedType: typeof normalizedText,
+            });
+
+            return {
+              ...element,
+              text: normalizedText,
+            };
+          }) || [];
+
+        return {
+          ...slide,
+          // Keep original elements array (might be empty)
+          elements: slide.elements || [],
+          // Update slideData.elements with normalized text
+          slideData: {
+            ...slide.slideData,
+            elements: normalizedSlideDataElements,
+          },
+        };
+      });
+
+      console.log("🔄 Normalized slides:", normalizedSlides);
+      setSlides(normalizedSlides);
       setHasLoadedData(true);
       setShouldAutoNavigate(true); // Enable auto-navigation for WebSocket data
 
@@ -75,8 +195,13 @@ export default function SlideEditorDemo() {
   }, [websocketData]);
   const searchParams = useSearchParams();
   const query = searchParams.get("bookTypeId");
+  const router = useRouter();
 
   const { data: bookType } = useBookTypeByIdService(query || "");
+
+  // Create tool result service
+  const { mutate: createToolResult, isPending: isSaving } =
+    useCreateToolResultService();
 
   // Console.log template - Don't auto-trigger, wait for user action
   useEffect(() => {
@@ -152,7 +277,9 @@ export default function SlideEditorDemo() {
             y: element.y,
             width: element.width,
             height: element.height,
-            text: element.text || "",
+            text: element.text
+              ? normalizeTextFromAPI(element.text)
+              : element.text || "",
             style: element.style || {},
             // Add any additional properties needed
           };
@@ -231,7 +358,25 @@ export default function SlideEditorDemo() {
       executeTool(payload, {
         onSuccess: (response: any) => {
           toast.success("Gửi dữ liệu thành công!");
-          toast.success("Vui lòng chờ trong giây lát...");
+
+          // Start generation tracking
+          setIsGenerating(true);
+          setGenerationProgress(0);
+          setGenerationMessage("Đang khởi tạo...");
+
+          toast.loading(
+            <div className="flex items-center gap-2">
+              <img
+                src="/loading/loading_AI.gif"
+                alt="AI Loading"
+                className="w-5 h-5"
+              />
+              <span>AI đang tạo slide cho bạn...</span>
+            </div>,
+            {
+              id: "slide-generation",
+            }
+          );
 
           setEnabled(true);
           setIsAutoProcessing(false);
@@ -255,6 +400,72 @@ export default function SlideEditorDemo() {
   };
 
   const { user, setUser } = useAppStore();
+
+  // Function to export current slides as JSON data
+  const exportSlidesAsJson = () => {
+    if (!slides || slides.length === 0) {
+      return null;
+    }
+
+    return {
+      slides: slides.map((slide) => ({
+        id: slide.id,
+        elements: slide.slideData?.elements || slide.elements || [],
+        background: slide.slideData?.background || slide.background || null,
+      })),
+      totalSlides: slides.length,
+      createdAt: new Date().toISOString(),
+    };
+  };
+
+  // Function to handle save lesson plan
+  const handleSaveLessonPlan = (name: string, description: string) => {
+    if (!user?.id) {
+      toast.error("Không tìm thấy thông tin người dùng!");
+      return;
+    }
+
+    if (!selectedTemplateId) {
+      toast.error("Không tìm thấy template ID!");
+      return;
+    }
+
+    const exportedData = exportSlidesAsJson();
+    if (!exportedData) {
+      toast.error("Không có dữ liệu slide để lưu!");
+      return;
+    }
+
+    const payload = {
+      userId: user.id,
+      workspaceId: 1,
+      type: "SLIDE",
+      templateId: parseInt(selectedTemplateId),
+      name: name,
+      description: description,
+      data: exportedData,
+      status: "ARCHIVED",
+      lessonIds: [selectedLessonId],
+    };
+
+    createToolResult(payload, {
+      onSuccess: () => {
+        toast.success("Lưu giáo án thành công!");
+        setShowSaveModal(false);
+        // Redirect to home page after 1 second
+        setTimeout(() => {
+          router.push("/home");
+        }, 1000);
+      },
+      onError: (error: any) => {
+        toast.error(
+          `Lưu giáo án thất bại: ${
+            error?.response?.data?.message || error?.message || "Có lỗi xảy ra"
+          }`
+        );
+      },
+    });
+  };
 
   // Test function to toggle role for development
   const toggleRole = () => {
@@ -280,16 +491,22 @@ export default function SlideEditorDemo() {
       )}
 
       {selectedTemplateId && (
-        <SlideEditorLayout
-          initialSlides={slides}
-          onLoadSampleData={handleLoadSampleData}
-          onClearData={handleClearData}
-          isLoadingData={isLoading}
-          hasLoadedData={hasLoadedData}
-          userRole={user?.role}
-          autoNavigateToLast={shouldAutoNavigate} // Auto navigate to newest slide from WebSocket
-          onAutoNavigated={() => setShouldAutoNavigate(false)} // Reset flag after navigation
-        />
+        <div className="h-screen flex flex-col">
+          <SlideEditorLayout
+            initialSlides={slides}
+            onLoadSampleData={handleLoadSampleData}
+            onClearData={handleClearData}
+            isLoadingData={isLoading}
+            hasLoadedData={hasLoadedData}
+            userRole={user?.role}
+            autoNavigateToLast={shouldAutoNavigate} // Auto navigate to newest slide from WebSocket
+            onAutoNavigated={() => setShouldAutoNavigate(false)} // Reset flag after navigation
+            isGenerating={isGenerating}
+            generationProgress={generationProgress}
+            totalSlides={websocketData?.partial_result?.total_slides || 0}
+            onSave={(slides, textBlocks) => setShowSaveModal(true)}
+          />
+        </div>
       )}
 
       {/* Template Selector Modal */}
@@ -311,6 +528,14 @@ export default function SlideEditorDemo() {
           title="Chọn sách và bài học"
         />
       )}
+
+      {/* Save Lesson Plan Modal */}
+      <SaveLessonPlanModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={handleSaveLessonPlan}
+        isLoading={isSaving}
+      />
     </div>
   );
 }

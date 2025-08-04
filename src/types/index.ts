@@ -164,7 +164,7 @@ export interface SlideTemplateFormData {
 }
 
 // Export order types from separate file
-export * from './order';
+export * from "./order";
 
 // User types
 // export interface UserResponse {
@@ -395,6 +395,7 @@ export interface TextStyle {
   underline?: boolean;
   color?: string;
   textAlign?: "left" | "center" | "right";
+  verticalAlign?: "top" | "middle" | "bottom";
 }
 
 export interface Position {
@@ -432,6 +433,21 @@ export interface ImageElement {
   zIndex?: number;
 }
 
+export interface VideoElement {
+  id: string;
+  type: "video";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  src: string;
+  autoplay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
+  controls?: boolean;
+  zIndex?: number;
+}
+
 export interface ShapeElement {
   id: string;
   type: "shape";
@@ -439,15 +455,20 @@ export interface ShapeElement {
   y: number;
   width: number;
   height: number;
-  shapeType: "rectangle" | "circle" | "triangle";
+  shapeType: "rectangle" | "circle" | "triangle" | "star";
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
+  opacity?: number; // 0 to 1
   zIndex?: number;
   rotation?: number; // in degrees
 }
 
-export type SlideElement = TextElement | ImageElement | ShapeElement;
+export type SlideElement =
+  | TextElement
+  | ImageElement
+  | VideoElement
+  | ShapeElement;
 
 export interface SlideData {
   id: string;

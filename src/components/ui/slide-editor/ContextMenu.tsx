@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Copy,
+  Clipboard,
   Trash2,
   MoveUp,
   MoveDown,
@@ -22,6 +23,7 @@ interface ContextMenuProps {
   elementId: string | null;
   onClose: () => void;
   onCopy?: (elementId: string) => void;
+  onPaste?: () => void;
   onDelete?: (elementId: string) => void;
   onBringToFront?: (elementId: string) => void;
   onSendToBack?: (elementId: string) => void;
@@ -31,6 +33,7 @@ interface ContextMenuProps {
   onFlipVertical?: (elementId: string) => void;
   onRotateLeft?: (elementId: string) => void;
   onRotateRight?: (elementId: string) => void;
+  hasCopiedElement?: boolean;
 }
 
 export default function ContextMenu({
@@ -39,6 +42,7 @@ export default function ContextMenu({
   elementId,
   onClose,
   onCopy,
+  onPaste,
   onDelete,
   onBringToFront,
   onSendToBack,
@@ -48,6 +52,7 @@ export default function ContextMenu({
   onFlipVertical,
   onRotateLeft,
   onRotateRight,
+  hasCopiedElement,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +87,13 @@ export default function ContextMenu({
       icon: Copy,
       action: () => onCopy?.(elementId),
       shortcut: "Ctrl+C",
+    },
+    {
+      label: "Paste",
+      icon: Clipboard,
+      action: () => onPaste?.(),
+      shortcut: "Ctrl+V",
+      disabled: !hasCopiedElement,
     },
     {
       label: "Delete",
@@ -143,13 +155,37 @@ export default function ContextMenu({
     onClose();
   };
 
+  // Adjust position to keep menu within viewport
+  const adjustedPosition = React.useMemo(() => {
+    const menuWidth = 200; // Approximate menu width
+    const menuHeight = 300; // Approximate menu height
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let adjustedX = x;
+    let adjustedY = y;
+
+    // Adjust horizontal position
+    if (x + menuWidth > viewportWidth) {
+      adjustedX = viewportWidth - menuWidth - 10;
+    }
+
+    // Adjust vertical position
+    if (y + menuHeight > viewportHeight) {
+      adjustedY = viewportHeight - menuHeight - 10;
+    }
+
+    return { x: Math.max(10, adjustedX), y: Math.max(10, adjustedY) };
+  }, [x, y]);
+
   return (
     <div
       ref={menuRef}
-      className="fixed bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 min-w-48"
+      className="fixed bg-white rounded-lg shadow-xl border border-gray-200 py-2 min-w-48"
       style={{
-        left: x,
-        top: y,
+        left: adjustedPosition.x,
+        top: adjustedPosition.y,
+        zIndex: 9999,
       }}
     >
       {menuItems.map((item, index) => {
