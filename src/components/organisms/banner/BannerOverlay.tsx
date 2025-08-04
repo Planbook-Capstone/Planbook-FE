@@ -87,13 +87,12 @@ const BannerOverlay = ({
       {/* Dynamic Quick Actions */}
       <div className="mt-6 flex flex-wrap gap-3 justify-center pointer-events-auto">
         {actionsToShow.map((action, index) => (
-          <Link
+          <span
             key={index}
-            href={action.href}
             className="px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-full text-sm font-questrial hover:bg-white/20 transition-all duration-200 border border-white/20 hover:scale-105 transform"
           >
             {action.title}
-          </Link>
+          </span>
         ))}
       </div>
     </div>

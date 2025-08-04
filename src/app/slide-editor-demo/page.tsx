@@ -18,10 +18,10 @@ import { useBookTypeByIdService } from "@/services/bookTypeServices";
 import { toast } from "sonner";
 import { BookLessonSelectorModal } from "@/components/modals/BookLessonSelectorModal";
 import { TemplateSelector } from "@/components/modals/TemplateSelector";
-import { SaveLessonPlanModal } from "@/components/modals/SaveLessonPlanModal";
 import { WEBSOCKET_CONFIG } from "@/config/websocket";
 import { useAppStore } from "@/store";
 import { useCreateToolResultService } from "@/services/toolResultService";
+import { SaveToolResultModal } from "@/components/modals/SaveToolResultModal";
 
 // Helper function to normalize text from API (convert object to string)
 const normalizeTextFromAPI = (text: any): string => {
@@ -217,9 +217,9 @@ export default function SlideEditorDemo() {
       }
     }
     if (error) {
-      toast.error(
-        `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
-      );
+      // toast.error(
+      //   `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
+      // );
     }
   }, [
     templateDetail,
@@ -530,11 +530,12 @@ export default function SlideEditorDemo() {
       )}
 
       {/* Save Lesson Plan Modal */}
-      <SaveLessonPlanModal
+      <SaveToolResultModal
         isOpen={showSaveModal}
         onClose={() => setShowSaveModal(false)}
         onSave={handleSaveLessonPlan}
         isLoading={isSaving}
+        initialData={null}
       />
     </div>
   );
