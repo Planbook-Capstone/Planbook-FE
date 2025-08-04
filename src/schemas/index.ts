@@ -15,6 +15,15 @@ export {
 export { frameworkSchema, type FrameworkFormData } from "./framework.schema";
 export { tagSchema, type TagData } from "./tag.schema";
 export {
+  materialSchema,
+  type MaterialFormData,
+  type FileData,
+  type MaterialTag,
+  getFileCategory,
+  formatFileSize,
+  getFileIcon,
+} from "./material.schema";
+export {
   createUserSchema,
   updateUserSchema,
   type CreateUserFormData,

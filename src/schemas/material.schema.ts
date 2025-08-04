@@ -76,6 +76,10 @@ export const materialSchema = z.object({
     .min(1, "Vui lòng chọn ít nhất 1 loại học liệu")
     .max(5, "Chỉ được chọn tối đa 5 loại học liệu"),
 
+  lessonId: z
+    .string()
+    .min(1, "Vui lòng chọn bài học"),
+
   file: fileSchema,
 });
 
