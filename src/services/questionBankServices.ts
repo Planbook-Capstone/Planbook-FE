@@ -1,4 +1,10 @@
-import { createSearchQueryHook } from "@/hooks/react-query";
+import {
+  createSearchQueryHook,
+  createMutationHook,
+  updateMutationHook,
+  deleteMutationHook,
+  createQueryHook,
+} from "@/hooks/react-query";
 import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
 
 /**
@@ -21,9 +27,8 @@ export interface QuestionContent {
   // For PART_I (Multiple choice)
   options?: Record<string, string>;
   answer?: string;
-  // For PART_II (True/False)
-  statements?: Record<string, string>;
-  answers?: Record<string, boolean>;
+  // For PART_II (True/False) - statements with text and answer
+  statements?: Record<string, { text: string; answer: boolean }>;
   // For PART_III (Short answer)
   keywords?: string[];
 }
@@ -80,3 +85,35 @@ export const useQuestionBankFilterService = (
     }
   );
 };
+
+/**
+ * Hook for getting all question banks
+ */
+export const useQuestionBanksService = createQueryHook(
+  "questionBanks",
+  EXAM_ENDPOINTS.QUESTION_BANKS
+);
+
+/**
+ * Hook for creating a new question bank
+ */
+export const useCreateQuestionBankService = createMutationHook(
+  "questionBanks",
+  EXAM_ENDPOINTS.QUESTION_BANKS
+);
+
+/**
+ * Hook for updating an existing question bank
+ */
+export const useUpdateQuestionBankService = updateMutationHook(
+  "questionBanks",
+  EXAM_ENDPOINTS.QUESTION_BANKS
+);
+
+/**
+ * Hook for deleting a question bank
+ */
+export const useDeleteQuestionBankService = deleteMutationHook(
+  "questionBanks",
+  EXAM_ENDPOINTS.QUESTION_BANKS
+);

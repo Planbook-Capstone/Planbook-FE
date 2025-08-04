@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MoreVertical } from "lucide-react";
 import { getToolActionName } from "@/constants";
+import LessonNamesCell from "./LessonNamesCell";
 
 export type HistoryItem = {
   id: number;
@@ -47,11 +48,30 @@ export const historyColumns: ColumnDef<HistoryItem>[] = [
   {
     accessorKey: "lessonIds",
     header: "Bài học đã chọn",
-    cell: ({ row }) => (
-      <div className="text-muted-foreground truncate max-w-[240px]">
-        {row.original?.lessonIds}
-      </div>
-    ),
+    cell: ({ row }) => {
+      // Parse lessonIds if it's a string
+      let lessonIds: string[] | number[] = [];
+      const originalLessonIds = row.original?.lessonIds;
+
+      if (typeof originalLessonIds === 'string') {
+        try {
+          // Try to parse as JSON array
+          const parsed = JSON.parse(originalLessonIds);
+          lessonIds = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          // If parsing fails, treat as comma-separated string
+          lessonIds = originalLessonIds.split(',').map(id => id.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(originalLessonIds)) {
+        lessonIds = originalLessonIds;
+      }
+
+      return (
+        <div className="max-w-[240px]">
+          <LessonNamesCell lessonIds={lessonIds} />
+        </div>
+      );
+    },
   },
   {
     accessorKey: "updatedAt",

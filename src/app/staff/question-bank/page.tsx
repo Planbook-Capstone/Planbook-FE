@@ -1,7 +1,229 @@
-import React from "react";
+"use client";
+
+import React, { useState, useMemo } from "react";
+import { Tabs, message, Typography } from "antd";
+import { Button } from "@/components/ui/Button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import { QuestionBankForm } from "@/components/forms/question-bank/QuestionBankForm";
+import QuestionBankTable from "@/components/organisms/question-bank-table";
+import {
+  useQuestionBanksService,
+  useCreateQuestionBankService,
+  useUpdateQuestionBankService,
+  useDeleteQuestionBankService,
+  QuestionBankItem,
+  QuestionContent,
+} from "@/services/questionBankServices";
+import { useLessonsService } from "@/services/lessonServices";
+
+const { Title, Text } = Typography;
+
+// Types for form data
+interface QuestionFormData {
+  lessonId: number;
+  questionType: "PART_I" | "PART_II" | "PART_III";
+  difficultyLevel: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION" | "ANALYSIS";
+  questionContent: QuestionContent;
+  explanation: string;
+  referenceSource?: string;
+}
 
 function QuestionBankManagementPage() {
-  return <div>QuestionBankManagementPage</div>;
+  const [activeTab, setActiveTab] = useState<"PART_I" | "PART_II" | "PART_III">(
+    "PART_I"
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] =
+    useState<QuestionBankItem | null>(null);
+
+  // API hooks
+  const { data: questionsData, isLoading } = useQuestionBanksService();
+  const { data: lessonsData } = useLessonsService();
+
+  // Use mock data if real data is not available
+  const finalLessonsData = lessonsData;
+  const finalQuestionsData = questionsData;
+  const createMutation = useCreateQuestionBankService();
+  const updateMutation = useUpdateQuestionBankService();
+  const deleteMutation = useDeleteQuestionBankService();
+
+  // Filter questions by type
+  const questionsByType = useMemo(() => {
+    if (!finalQuestionsData?.data)
+      return { PART_I: [], PART_II: [], PART_III: [] };
+
+    return finalQuestionsData.data.reduce(
+      (acc: Record<string, QuestionBankItem[]>, question: QuestionBankItem) => {
+        const type = question.questionType;
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(question);
+        return acc;
+      },
+      { PART_I: [], PART_II: [], PART_III: [] } as Record<
+        string,
+        QuestionBankItem[]
+      >
+    );
+  }, [finalQuestionsData]);
+
+  // Handle form submission
+  const handleSubmit = async (values: QuestionFormData) => {
+    try {
+      if (editingQuestion) {
+        await updateMutation.mutateAsync({
+          id: editingQuestion.id.toString(),
+          data: values,
+        });
+        message.success("Cập nhật câu hỏi thành công!");
+      } else {
+        await createMutation.mutateAsync(values);
+        message.success("Thêm câu hỏi thành công!");
+      }
+
+      setIsModalOpen(false);
+      setEditingQuestion(null);
+    } catch (error) {
+      message.error("Có lỗi xảy ra!");
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteMutation.mutateAsync(id.toString());
+      message.success("Xóa câu hỏi thành công!");
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi xóa!");
+    }
+  };
+
+  // Open modal for adding new question
+  const handleAddNew = () => {
+    setEditingQuestion(null);
+    setIsModalOpen(true);
+  };
+
+  // Open modal for editing
+  const handleEdit = (question: QuestionBankItem) => {
+    setEditingQuestion(question);
+    setIsModalOpen(true);
+  };
+
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <Title level={2}>Quản lý Ngân hàng Câu hỏi</Title>
+        <Text type="secondary">
+          Quản lý câu hỏi theo từng phần: Trắc nghiệm, Đúng/Sai, Tự luận
+        </Text>
+      </div>
+
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(key as any)}
+        tabBarExtraContent={
+          <Dialog
+            open={isModalOpen && !editingQuestion}
+            onOpenChange={(open) => {
+              setIsModalOpen(open);
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button
+                className="bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
+                onClick={handleAddNew}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Thêm câu hỏi mới
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Thêm câu hỏi mới</DialogTitle>
+              </DialogHeader>
+              <QuestionBankForm
+                editingQuestion={null}
+                lessonsData={finalLessonsData}
+                loading={createMutation.isPending}
+                onSubmit={handleSubmit}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+        items={[
+          {
+            key: "PART_I",
+            label: "PART I - Trắc nghiệm",
+            children: (
+              <QuestionBankTable
+                questions={questionsByType.PART_I || []}
+                loading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                lessonsData={finalLessonsData}
+              />
+            ),
+          },
+          {
+            key: "PART_II",
+            label: "PART II - Đúng/Sai",
+            children: (
+              <QuestionBankTable
+                questions={questionsByType.PART_II || []}
+                loading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                lessonsData={finalLessonsData}
+              />
+            ),
+          },
+          {
+            key: "PART_III",
+            label: "PART III - Tự luận",
+            children: (
+              <QuestionBankTable
+                questions={questionsByType.PART_III || []}
+                loading={isLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                lessonsData={finalLessonsData}
+              />
+            ),
+          },
+        ]}
+      />
+
+      {/* Edit Dialog */}
+      <Dialog
+        open={isModalOpen && !!editingQuestion}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsModalOpen(false);
+            setEditingQuestion(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa câu hỏi</DialogTitle>
+          </DialogHeader>
+          <QuestionBankForm
+            editingQuestion={editingQuestion}
+            lessonsData={finalLessonsData}
+            loading={updateMutation.isPending}
+            onSubmit={handleSubmit}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }
 
 export default QuestionBankManagementPage;

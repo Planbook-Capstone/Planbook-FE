@@ -33,3 +33,8 @@ export const useLessonsByChaptersService = createMultiQueryHook(
   "lessonsByChapter",
   (chapterId) => `${API_ENDPOINTS.MASTER_DATA.LESSONS_BY_CHAPTER}/${chapterId}`
 );
+
+export const useLessonsByIdsService = createMultiQueryHook(
+  "lessonById",
+  (lessonId) => `${API_ENDPOINTS.MASTER_DATA.LESSONS}/${lessonId}`
+);

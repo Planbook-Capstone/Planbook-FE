@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import * as FaIcons from "react-icons/fa6";
 import { getToolActionName } from "@/constants";
+import { useLessonsByIdsService } from "@/services/lessonServices";
 
 interface HistoryCardProps {
   data?: any;
@@ -23,6 +24,15 @@ interface HistoryCardProps {
 export default function HistoryCard({ data, className }: HistoryCardProps) {
   const [dropdownIcon, setDropdownIcon] = useState<string>("FaBookBookmark");
   const [dropdownIconColor, setDropdownIconColor] = useState("");
+
+  // Fetch multiple lessons by IDs using the new service
+  const lessonQueries = useLessonsByIdsService(data?.lessonIds || []);
+
+  // Get all lessons data
+  const lessons = lessonQueries
+    .filter((query: any) => query.data)
+    .map((query: any) => query.data?.data)
+    .filter(Boolean);
 
   const IconComponent = FaIcons[dropdownIcon as keyof typeof FaIcons];
   return (
@@ -79,10 +89,13 @@ export default function HistoryCard({ data, className }: HistoryCardProps) {
         </DropdownMenu>
       </div>
 
-      <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-        Soạn giáo án theo từng bài cụ thể. Soạn giáo án theo từng bài cụ thể.
-        Soạn giáo án theo từng bài cụ thể. Soạn giáo án theo từng bài cụ thể.
-      </p>
+      <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+        {lessons.length > 0
+          ? lessons.map((lesson, index) => (
+              <div key={index}>{lesson?.name}</div>
+            ))
+          : "Không có bài học"}
+      </div>
       <div className="flex justify-between items-center text-xs text-[#2B2B2B] mt-4">
         <span className="px-2 py-1.5 border rounded-full">
           {new Date(data?.updatedAt).toLocaleString("vi-VN", {

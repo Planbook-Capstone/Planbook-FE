@@ -52,7 +52,6 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
   const [questionToRemove, setQuestionToRemove] =
     useState<QuestionBankItem | null>(null);
   const [filterParams, setFilterParams] = useState<QuestionBankFilterParams>({
-    lessonId: lessonId || 2, // Default to lesson 2 if not provided
     page: 0,
     size: 20,
   });
@@ -72,7 +71,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
   } = useQuestionBankFilterService(filterParams);
 
   const { data: lessonsData } = useLessonsService();
-
+  console.log(lessonsData);
   // Filter handlers
   const handleQuestionTypeChange = (value: string) => {
     if (value === "all") {
