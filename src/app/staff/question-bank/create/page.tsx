@@ -17,7 +17,18 @@ function CreateQuestionBankForm() {
     'Thành phần dịch vị dạ dày gồm 95% là nước, enzyme và hydrochloric acid. Sự có mặt của hydrochloric acid làm cho pH của dịch vị trong khoảng từ 2 – 3. Khi độ acid trong dịch vị dạ dày tăng thì dễ bị ợ chua, ợ hơi, ói mửa, buồn nôn, loét dạ dày, tá tràng. Để làm giảm bớt lượng acid dư trong dịch vị dạ dày người ta thường uống thuốc muối dạ dày "Nabica" từng lượng nhỏ và cách quãng. Phát biểu nào sau đây là sai?'
   );
 
+  const [options, setOptions] = useState([
+    "Công thức hoá học của thuốc muối “Nabica” là NaHCO3.",
+    "Khi uống từng lượng nhỏ và cách quãng thuốc muối “Nabica” thì pH của dịch vị dạ dày sẽ tăng từ từ.",
+    "Đây là đáp án C.",
+    "Đây là đáp án D.",
+  ]);
 
+  const handleOptionChange = (index: number, value: string) => {
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
+  };
 
   // Định nghĩa màu sắc cho từng tag
   const getTagColor = (tag: string) => {
@@ -52,7 +63,7 @@ function CreateQuestionBankForm() {
             defaultValue={"(Đề TN THPT QG - 2020)"}
             placeholder={"Nguồn"}
           />
-          <Input className="text-orange-500 max-w-fit border-none" />
+          <Input defaultValue={"[Bài 1_Hóa 10]"} className="text-orange-500 max-w-fit border-none" />
           <Select value={selectedTag} onValueChange={setSelectedTag}>
             <SelectTrigger
               className={`w-32 rounded-full px-3 py-1.5 text-xs font-medium border-2 ${getTagColor(
@@ -91,17 +102,20 @@ function CreateQuestionBankForm() {
         />
       </div>
       <div className="pl-12 grid grid-cols-1 space-y-2 mt-2">
-        <p>A. Công thức hoá học của thuốc muối “Nabica” là NaHCO3.</p>
-        <p>
-          B.Khi uống từng lượng nhỏ và cách quãng thuốc muối “Nabica” thì pH của
-          dịch vị dạ dày sẽ tăng từ từ.
-        </p>
-        <p>C. Công thức hoá học của thuốc muối “Nabica” là NaHCO3.</p>
-        <p>D. Công thức hoá học của thuốc muối “Nabica” là NaHCO3.</p>
+        {options.map((opt, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <span>{String.fromCharCode(65 + index)}.</span>
+            <Input
+              value={opt}
+              onChange={(e: any) => handleOptionChange(index, e.target.value)}
+              className="flex-1 border-none shadow-none"
+              placeholder={`Đáp án ${String.fromCharCode(65 + index)}`}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
 export default CreateQuestionBankForm;
-
