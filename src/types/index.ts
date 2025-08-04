@@ -88,6 +88,24 @@ export type TagResponse = {
   description: string | null;
 };
 
+export type ChapterResponse = {
+  id: bigint;
+  name: string;
+  createdAt: string | null;
+  status: string | null;
+  updatedAt: string | null;
+  bookId: bigint | null;
+};
+
+export type LessonResponse = {
+  id: bigint;
+  name: string;
+  createdAt: string | null;
+  status: string | null;
+  updatedAt: string | null;
+  chapterId: bigint | null;
+};
+
 // Types for slide template API
 export type SlideTemplateStatus = "ACTIVE" | "INACTIVE";
 

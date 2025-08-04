@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import DocumentInfoPanel, {
   DocumentInfo,
-} from "@/components/organisms/exam-document-panel";
+} from "@/components/organisms/document-panel";
 import AssetsPanel from "@/components/organisms/assets-panel";
 import ExamContent from "@/components/organisms/exam-content";
 import ExamSidebar from "@/components/organisms/exam-sidebar";

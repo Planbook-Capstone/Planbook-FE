@@ -1,0 +1,76 @@
+"use client";
+import React from "react";
+import { theme } from "antd";
+import { DetailHeader } from "@/components/organisms/header/DetailHeader";
+import { Download, Share2, ChevronLeft } from "lucide-react";
+import { getLibraryTypeName } from "@/constants";
+import { useToolResultByIdService } from "@/services/toolResultService";
+import { DowloadIcon } from "@/constants/icon";
+import DocumentInfoPanel from "@/components/organisms/document-panel";
+
+interface FileLayoutProps {
+  children: React.ReactNode;
+  params: Promise<{
+    fileId: string;
+  }>;
+}
+export default function FileLayout({ children, params }: FileLayoutProps) {
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
+  const { fileId } = React.use(params);
+
+  const { data } = useToolResultByIdService(fileId);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DetailHeader
+        breadcrumbs={[
+          {
+            label: "Thư viện",
+            href: "/my-library",
+            onClick: () => console.log("Back to library"),
+            beforeIcon: <ChevronLeft className="w-4 h-4" />,
+          },
+          {
+            label: getLibraryTypeName(data?.data?.type),
+            href: `/my-library/${data?.data?.type}`,
+            onClick: () => console.log("Back to category"),
+          },
+          {
+            label: `${data?.data?.name}`,
+            active: true,
+          },
+        ]}
+        // actions={[
+        //   {
+        //     label: "Tải về máy",
+        //     icon: DowloadIcon,
+        //     onClick: () => alert("Download file!"),
+        //     variant: "default",
+        //   },
+        //   {
+        //     label: "Chia sẻ",
+        //     icon: <Share2 className="w-4 h-4" />,
+        //     onClick: () => alert("Share file!"),
+        //     variant: "outline",
+        //   },
+        // ]}
+      />
+      <div className="grid grid-cols-3 p-5">
+        <div>
+          <DocumentInfoPanel documentInfo={data?.data} />
+        </div>
+        <div
+          style={{
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+          }}
+          className="shadow-sm border col-span-2"
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}

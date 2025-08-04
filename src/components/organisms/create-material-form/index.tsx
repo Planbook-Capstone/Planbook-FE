@@ -27,6 +27,7 @@ import {
 import { useTagService } from "@/services/tagServices";
 import { useCreateMaterialService } from "@/services/materialServices";
 import { TagResponse } from "@/types";
+import LessonSelector from "@/components/molecules/lesson-selector";
 
 interface CreateMaterialFormProps {
   onClose?: () => void;
@@ -56,6 +57,7 @@ function CreateMaterialForm({
       name: "",
       description: "",
       tags: [],
+      lessonId: "",
       file: undefined,
     },
   });
@@ -76,6 +78,7 @@ function CreateMaterialForm({
           description: data.description,
           url: "null", // Will be set by backend after file upload
           tagIds: data.tags,
+          lessonId: data.lessonId,
         })
       );
 
@@ -231,6 +234,27 @@ function CreateMaterialForm({
         />
         {errors.tags && (
           <p className="text-red-500 text-sm">{errors.tags.message}</p>
+        )}
+      </div>
+
+      {/* Lesson Selection Field */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">
+          Bài học <span className="text-red-500">*</span>
+        </label>
+        <Controller
+          name="lessonId"
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <LessonSelector
+              value={value}
+              onValueChange={onChange}
+              placeholder="Chọn bài học"
+            />
+          )}
+        />
+        {errors.lessonId && (
+          <p className="text-red-500 text-sm">{errors.lessonId.message}</p>
         )}
       </div>
 
