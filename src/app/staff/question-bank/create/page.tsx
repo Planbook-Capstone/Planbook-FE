@@ -14,14 +14,16 @@ import { useState } from "react";
 function CreateQuestionBankForm() {
   const [selectedTag, setSelectedTag] = useState("Vận dụng");
   const [questionContent, setQuestionContent] = useState(
-    "Thành phần dịch vị dạ dày gồm 95% là nước, enzyme và hydrochloric acid. Sự có mặt của hydrochloric acid làm cho pH của dịch vị trong khoảng từ 2 – 3. Khi độ acid trong dịch vị dạ dày tăng thì dễ bị ợ chua, ợ hơi, ói mửa, buồn nôn, loét dạ dày, tá tràng. Để làm giảm bớt lượng acid dư trong dịch vị dạ dày người ta thường uống thuốc muối dạ dày \"Nabica\" từng lượng nhỏ và cách quãng. Phát biểu nào sau đây là sai?"
+    'Thành phần dịch vị dạ dày gồm 95% là nước, enzyme và hydrochloric acid. Sự có mặt của hydrochloric acid làm cho pH của dịch vị trong khoảng từ 2 – 3. Khi độ acid trong dịch vị dạ dày tăng thì dễ bị ợ chua, ợ hơi, ói mửa, buồn nôn, loét dạ dày, tá tràng. Để làm giảm bớt lượng acid dư trong dịch vị dạ dày người ta thường uống thuốc muối dạ dày "Nabica" từng lượng nhỏ và cách quãng. Phát biểu nào sau đây là sai?'
   );
+
+
 
   // Định nghĩa màu sắc cho từng tag
   const getTagColor = (tag: string) => {
     switch (tag) {
       case "Vận dụng":
-        return "bg-emerald-500 text-white border-emerald-500";
+        return "bg-emerald-100 text-emerald-800 border-emerald-500";
       case "Thông hiểu":
         return "bg-amber-100 text-yellow-700 border-amber-200";
       case "Nhận biết":
@@ -35,6 +37,16 @@ function CreateQuestionBankForm() {
       <div className="gap-2">
         <div className="flex gap-2 items-center">
           <p className="font-bold">Câu 1:</p>
+          <Select defaultValue="A">
+            <SelectTrigger className="w-32 h-8 text-xs">
+              <SelectValue defaultValue={"A"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="A">Dạng 1</SelectItem>
+              <SelectItem value="B">Dạng 2</SelectItem>
+              <SelectItem value="C">Dạng 3</SelectItem>
+            </SelectContent>
+          </Select>
           <Input
             className="text-blue-500 max-w-fit border-none"
             defaultValue={"(Đề TN THPT QG - 2020)"}
@@ -77,14 +89,6 @@ function CreateQuestionBankForm() {
           placeholder="Nhập nội dung câu hỏi..."
           className="text-base leading-relaxed"
         />
-
-
-          khoảng từ 2 – 3. Khi độ acid trong dịch vị dạ dày tăng thì dễ bị ợ
-          chua, ợ hơi, ói mửa, buồn nôn, loét dạ dày, tá tràng. Để làm giảm bớt
-          lượng acid dư trong dịch vị dạ dày người ta thường uống thuốc muối dạ
-          dày “Nabica” từng lượng nhỏ và cách quãng. Phát biểu nào sau đây là
-          sai?
-        </p>
       </div>
       <div className="pl-12 grid grid-cols-1 space-y-2 mt-2">
         <p>A. Công thức hoá học của thuốc muối “Nabica” là NaHCO3.</p>
@@ -100,3 +104,4 @@ function CreateQuestionBankForm() {
 }
 
 export default CreateQuestionBankForm;
+
