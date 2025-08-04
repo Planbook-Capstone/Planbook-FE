@@ -22,6 +22,7 @@ import {
   QuestionContent,
 } from "@/services/questionBankServices";
 import { useLessonsService } from "@/services/lessonServices";
+import { Badge } from "@/components/ui/badge";
 
 const { Title, Text } = Typography;
 
@@ -117,12 +118,34 @@ function QuestionBankManagementPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <Title level={2}>Quản lý Ngân hàng Câu hỏi</Title>
-        <Text type="secondary">
-          Quản lý câu hỏi theo từng phần: Trắc nghiệm, Đúng/Sai, Tự luận
-        </Text>
+    <div className="p-5">
+      <div className="text-base">
+        <div className="gap-2">
+          <div className="flex gap-2 items-center">
+            <p className="font-bold">Câu 1:</p>
+            <p className="text-blue-500">(Đề TN THPT QG - 2020) </p>
+            <p className="text-orange-500">[Bài 3_Lớp 10]</p>
+            <Badge variant={"success"}>Vận dụng</Badge>
+          </div>
+          <p>
+            Thành phần dịch vị dạ dày gồm 95% là nước, enzyme và hydrochloric
+            acid. Sự có mặt của hydrochloric acid làm cho pH của dịch vị trong
+            khoảng từ 2 – 3. Khi độ acid trong dịch vị dạ dày tăng thì dễ bị ợ
+            chua, ợ hơi, ói mửa, buồn nôn, loét dạ dày, tá tràng. Để làm giảm
+            bớt lượng acid dư trong dịch vị dạ dày người ta thường uống thuốc
+            muối dạ dày “Nabica” từng lượng nhỏ và cách quãng. Phát biểu nào sau
+            đây là sai?
+          </p>
+        </div>
+        <div className="pl-12 grid grid-cols-1 space-y-2 mt-2">
+          <p>A. Công thức hoá học của thuốc muối “Nabica” là NaHCO3.</p>
+          <p className="">
+            B.Khi uống từng lượng nhỏ và cách quãng thuốc muối “Nabica” thì pH
+            của dịch vị dạ dày sẽ tăng từ từ.
+          </p>
+          <p>C. Công thức hoá học của thuốc muối “Nabica” là NaHCO3.</p>
+          <p>D. Công thức hoá học của thuốc muối “Nabica” là NaHCO3.</p>
+        </div>
       </div>
 
       <Tabs
