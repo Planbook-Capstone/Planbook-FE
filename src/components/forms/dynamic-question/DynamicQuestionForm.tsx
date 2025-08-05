@@ -58,6 +58,7 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = form;
   const watchedHasImage = watch("hasImage");
   const watchedQuestionType = watch("questionType");
+  const watchedImage = watch("image");
 
   // Reset form when question type changes
   useEffect(() => {
@@ -383,8 +384,21 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                           const file = e.target.files?.[0];
                           onChange(file);
                         }}
-                        className="w-full"
+                        className="w-full cursor-pointer"
                       />
+                      <p className="text-sm text-gray-500 mt-2">
+                        Chọn ảnh để tải lên (PNG, JPG, JPEG)
+                      </p>
+                      {watchedImage && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+                          <img
+                            src={URL.createObjectURL(watchedImage as File)}
+                            alt="Preview"
+                            className="max-w-full max-h-48 object-contain rounded border"
+                          />
+                        </div>
+                      )}
                     </div>
                   </FormControl>
                   <FormMessage />

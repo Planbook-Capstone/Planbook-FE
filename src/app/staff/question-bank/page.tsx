@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { getDifficultyText, getVariant } from "@/constants";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
+import { DynamicQuestionForm } from "@/components/forms/dynamic-question/DynamicQuestionForm";
 
 // Types for form data
 interface QuestionFormData {
@@ -224,16 +225,17 @@ function QuestionBankManagementPage() {
                 Thêm câu hỏi mới
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="!max-w-5xl !max-h-[95vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Thêm câu hỏi mới</DialogTitle>
               </DialogHeader>
-              <QuestionBankForm
+              <DynamicQuestionForm onSubmit={handleSubmit} />
+              {/* <QuestionBankForm
                 editingQuestion={null}
                 lessonsData={finalLessonsData}
                 loading={createMutation.isPending}
                 onSubmit={handleSubmit}
-              />
+              /> */}
             </DialogContent>
           </Dialog>
         </div>
@@ -246,8 +248,8 @@ function QuestionBankManagementPage() {
                 <div className="flex gap-2 items-center justify-between">
                   <div className="flex gap-2 items-center">
                     <p className="font-bold">Câu {idx + 1}:</p>
-                    <p className="text-blue-500">
-                      ({question.referenceSource})
+                    <p className="text-blue-500 font-semibold">
+                      [{question.referenceSource}]
                     </p>
                     <p className="text-orange-500">
                       [{getLessonNames(question)}]
@@ -275,11 +277,11 @@ function QuestionBankManagementPage() {
                     </Button>
                   </div>
                 </div>
-                <p>{question.questionContent.question}</p>
+                <p className="font-[600] text-lg">{question.questionContent.question}</p>
               </div>
-              <div className="pl-12 grid grid-cols-1 space-y-2 mt-2">
+              <div className="pl-12 grid grid-cols-1 space-y-2 mt-2 text-lg">
                 {question.questionContent.options &&
-                  Object.entries(question.questionContent.options).map(
+                  Object.entries(question.questionContent.options)?.map(
                     ([key, value]) => (
                       <p key={key}>
                         {key}. {String(value)}
@@ -287,7 +289,7 @@ function QuestionBankManagementPage() {
                     )
                   )}
                   {question?.questionContent?.answer &&
-                  <p className="text-red-500">Đáp án: {question.questionContent.answer}</p>
+                  <p className="text-green-700">Đáp án: {question.questionContent.answer}</p>
                 }
                 {question?.questionContent?.statements &&
                   Object.entries(question.questionContent.statements).map(
