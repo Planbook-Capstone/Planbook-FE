@@ -28,8 +28,8 @@ export default function DocumentItem({
       <div className="flex gap-4">
         <FileIcon type={type} size={"lg"} />
         <div className="text-sm flex flex-col gap-2">
-          <p className="font-calsans text-base">{name}</p>
-          <p className=" line-clamp-2 text-sm font-questrial">{description}</p>
+          <p className="font-calsans text-base line-clamp-1">{name}</p>
+          <p className=" line-clamp-1 text-sm font-questrial">{description}</p>
           <p className="text-xs font-questrial">{lastModifiedTime}</p>
         </div>
       </div>
