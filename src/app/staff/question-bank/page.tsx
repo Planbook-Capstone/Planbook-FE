@@ -10,7 +10,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit, Plus, XIcon } from "lucide-react";
+import { Edit, Plus, XIcon, Copy } from "lucide-react";
+import Link from "next/link";
 import { DynamicQuestionForm } from "@/components/forms/dynamic-question/DynamicQuestionForm";
 import {
   useQuestionBanksService,
@@ -26,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { getDifficultyText, getVariant } from "@/constants";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
+import Image from "next/image";
 // Types for form data - matching API format
 interface QuestionFormData {
   lessonIds?: number[];
@@ -293,6 +295,12 @@ function QuestionBankManagementPage() {
           >
             Dạng 3
           </Button>
+          <Link href="/staff/question-bank/create">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Copy className="w-4 h-4" />
+              Tạo nhiều câu hỏi
+            </Button>
+          </Link>
           <Dialog
             open={isModalOpen && !editingQuestion}
             onOpenChange={(open) => {
@@ -362,11 +370,14 @@ function QuestionBankManagementPage() {
                   {question.questionContent.question}
                 </p>
                 {question.questionContent.image && (
-                  <div className="w-52 h-52">
-                    <img
+                  <div className="max-w-full max-h-[250px] overflow-auto">
+                    <Image
                       src={question.questionContent.image}
                       alt="Question"
-                      className="w-full h-full object-cover"
+                      width={0}
+                      height={0}
+                      sizes="100vw"
+                      className="h-auto w-auto max-w-full max-h-[250px] rounded-md object-contain"
                     />
                   </div>
                 )}

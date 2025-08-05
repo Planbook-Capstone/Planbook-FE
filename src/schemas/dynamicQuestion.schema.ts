@@ -94,9 +94,16 @@ export const dynamicQuestionSchema = z.object({
 
 export type DynamicQuestionFormData = z.infer<typeof dynamicQuestionSchema>;
 
+// Schema for multiple questions form
+export const multipleDynamicQuestionSchema = z.object({
+  questions: z.array(dynamicQuestionSchema).min(1, "Phải có ít nhất một câu hỏi"),
+});
+
+export type MultipleDynamicQuestionFormData = z.infer<typeof multipleDynamicQuestionSchema>;
+
 // Helper function to get initial form values based on question type
-export const getInitialFormValues = (questionType: "PART_I" | "PART_II" | "PART_III"): Partial<DynamicQuestionFormData> => {
-  const baseValues: Partial<DynamicQuestionFormData> = {
+export const getInitialFormValues = (questionType: "PART_I" | "PART_II" | "PART_III"): DynamicQuestionFormData => {
+  const baseValues: DynamicQuestionFormData = {
     question: "",
     questionType,
     referenceSource: "",
@@ -104,36 +111,23 @@ export const getInitialFormValues = (questionType: "PART_I" | "PART_II" | "PART_
     explanation: "",
     hasImage: false,
     lessonIds: null,
+    // Initialize all possible fields
+    optionA: "",
+    optionB: "",
+    optionC: "",
+    optionD: "",
+    correctAnswers: [false, false, false, false],
+    statementA: "",
+    answerA: false,
+    statementB: "",
+    answerB: false,
+    statementC: "",
+    answerC: false,
+    statementD: "",
+    answerD: false,
+    essayAnswer: "",
   };
 
-  switch (questionType) {
-    case "PART_I":
-      return {
-        ...baseValues,
-        optionA: "",
-        optionB: "",
-        optionC: "",
-        optionD: "",
-        correctAnswers: [false, false, false, false],
-      };
-    case "PART_II":
-      return {
-        ...baseValues,
-        statementA: "",
-        answerA: false,
-        statementB: "",
-        answerB: false,
-        statementC: "",
-        answerC: false,
-        statementD: "",
-        answerD: false,
-      };
-    case "PART_III":
-      return {
-        ...baseValues,
-        essayAnswer: "",
-      };
-    default:
-      return baseValues;
-  }
+  // All fields are already initialized in baseValues
+  return baseValues;
 };

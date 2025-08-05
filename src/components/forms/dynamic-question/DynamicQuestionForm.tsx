@@ -27,7 +27,9 @@ import {
 } from "@/components/ui/form";
 import { QuestionContent } from "@/services/questionBankServices";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { X, BookOpen } from "lucide-react";
+import { LessonSelectorModal } from "@/components/modals/LessonSelectorModal";
+import { useLessonsByIdsService } from "@/services/lessonServices";
 
 // Types for form data - matching API format
 interface QuestionFormData {
@@ -87,6 +89,7 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   const [questionType, setQuestionType] = useState<
     "PART_I" | "PART_II" | "PART_III"
   >(initialData?.questionType || "PART_I");
+  const [isLessonModalOpen, setIsLessonModalOpen] = useState(false);
 
   const form = useForm<any>({
     resolver: zodResolver(questionFormSchema),
@@ -133,6 +136,14 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   const watchedQuestionType = watch("questionType");
   const watchedImage = watch("image");
   const watchedImageUrl = watch("imageUrl");
+  const watchedLessonIds = watch("lessonIds");
+
+  // Get lesson names for display
+  const lessonQueries = useLessonsByIdsService(watchedLessonIds || []);
+  const selectedLessons = lessonQueries
+    .filter(query => query.data?.data)
+    .map(query => query.data.data)
+    .filter(lesson => lesson && lesson.name);
 
   // Reset form when question type changes
   useEffect(() => {
@@ -437,29 +448,56 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
               )}
             />
 
-            <FormField
-              control={control}
-              name="lessonIds"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      className="text-orange-500 max-w-fit border-none shadow-none"
-                      placeholder="Bài học"
-                      value={field.value?.join(", ") || ""}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        const ids = e.target.value
-                          .split(",")
-                          .map((id: string) => parseInt(id.trim()))
-                          .filter((id: number) => !isNaN(id));
-                        field.onChange(ids.length > 0 ? ids : null);
-                      }}
-                    />
-                  </FormControl>
-                </FormItem>
+            <div className="flex flex-col gap-2">
+              <FormField
+                control={control}
+                name="lessonIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsLessonModalOpen(true)}
+                        className="text-orange-500 border-none shadow-none hover:bg-orange-50"
+                      >
+                        <BookOpen className="w-4 h-4 mr-1" />
+                        {selectedLessons.length > 0
+                          ? `${selectedLessons.length} bài học`
+                          : "Chọn bài học"
+                        }
+                      </Button>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {/* Display selected lessons */}
+              {selectedLessons.length > 0 && (
+                <div className="flex flex-wrap gap-1 max-w-md">
+                  {selectedLessons.map((lesson, lessonIndex) => (
+                    <span
+                      key={lessonIndex}
+                      className="inline-flex items-center px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded-full"
+                    >
+                      {lesson.name}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newLessonIds = (watchedLessonIds || []).filter(
+                            id => id !== Number(lesson.id)
+                          );
+                          setValue("lessonIds", newLessonIds);
+                        }}
+                        className="ml-1 hover:text-orange-900"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               )}
-            />
+            </div>
 
             <FormField
               control={control}
@@ -643,6 +681,17 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
           </Button>
         </div>
       </form>
+
+      {/* Lesson Selector Modal */}
+      <LessonSelectorModal
+        isOpen={isLessonModalOpen}
+        onClose={() => setIsLessonModalOpen(false)}
+        onConfirm={(selectedLessonIds) => {
+          setValue("lessonIds", selectedLessonIds);
+        }}
+        selectedLessonIds={watchedLessonIds || []}
+        title="Chọn bài học cho câu hỏi"
+      />
     </Form>
   );
 };
