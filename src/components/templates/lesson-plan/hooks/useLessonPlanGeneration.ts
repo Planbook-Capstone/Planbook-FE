@@ -74,7 +74,11 @@ export const useLessonPlanGeneration = ({
       setResultId(data.result_id);
     }
 
-    if (data?.children && data.children.length > 0 &&  data?.tool_code === bookType?.data?.code) {
+    if (
+      data?.children &&
+      data.children.length > 0 &&
+      data?.tool_code === bookType?.data?.code
+    ) {
       console.log("📊 Processing children data:", data.children);
 
       // Create a unique key for this data to prevent duplicate processing
@@ -129,7 +133,7 @@ export const useLessonPlanGeneration = ({
       toolId: bookType?.data?.id,
       toolType: "INTERNAL",
       lesson_id: lessonId?.toString(),
-      book_id: "1",
+      book_id: lessonById?.data?.chapter?.book?.id,
       input: mergedNode,
       workspaceId: 1,
       ...(resultId && { result_id: resultId }), // Add result_id if available
