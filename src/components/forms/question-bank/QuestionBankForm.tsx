@@ -91,7 +91,7 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
   } = useForm<FormData>({
     resolver: zodResolver(questionSchema),
     defaultValues: {
-      lessonIds: [],
+      lessonIds: [8],
       questionType: "PART_I",
       difficultyLevel: "KNOWLEDGE",
       question: "",

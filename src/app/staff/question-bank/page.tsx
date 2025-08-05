@@ -21,14 +21,17 @@ import {
   QuestionBankItem,
   QuestionContent,
 } from "@/services/questionBankServices";
-import { useLessonsService, useLessonsByIdsService } from "@/services/lessonServices";
+import {
+  useLessonsService,
+  useLessonsByIdsService,
+} from "@/services/lessonServices";
 import { Badge } from "@/components/ui/badge";
 import { getDifficultyText, getVariant } from "@/constants";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import { DynamicQuestionForm } from "@/components/forms/dynamic-question/DynamicQuestionForm";
 
-// Types for form data
+// Types for form data - matching API format
 interface QuestionFormData {
   lessonIds: number[];
   questionType: "PART_I" | "PART_II" | "PART_III";
@@ -38,16 +41,48 @@ interface QuestionFormData {
   referenceSource?: string;
 }
 
+// Types for DynamicQuestionForm data
+interface DynamicQuestionFormData {
+  question: string;
+  questionType: "PART_I" | "PART_II" | "PART_III";
+  lessonIds?: number[];
+  difficultyLevel?: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION" | "ANALYSIS";
+  explanation?: string;
+  referenceSource?: string;
+  hasImage?: boolean;
+  image?: File;
+  // PART_I fields
+  optionA?: string;
+  optionB?: string;
+  optionC?: string;
+  optionD?: string;
+  correctAnswers?: boolean[];
+  // PART_II fields
+  statementA?: string;
+  answerA?: boolean;
+  statementB?: string;
+  answerB?: boolean;
+  statementC?: string;
+  answerC?: boolean;
+  statementD?: string;
+  answerD?: boolean;
+  // PART_III fields
+  essayAnswer?: string;
+}
+
 function QuestionBankManagementPage() {
   const [activeTab, setActiveTab] = useState<"PART_I" | "PART_II" | "PART_III">(
     "PART_I"
   );
-  const [selectedType, setSelectedType] = useState<"PART_I" | "PART_II" | "PART_III">("PART_I");
+  const [selectedType, setSelectedType] = useState<
+    "PART_I" | "PART_II" | "PART_III"
+  >("PART_I");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] =
     useState<QuestionBankItem | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [questionToDelete, setQuestionToDelete] = useState<QuestionBankItem | null>(null);
+  const [questionToDelete, setQuestionToDelete] =
+    useState<QuestionBankItem | null>(null);
 
   // API hooks
   const { data: questionsData, isLoading } = useQuestionBanksService();
@@ -86,7 +121,7 @@ function QuestionBankManagementPage() {
     const lessonIds = new Set<number>();
     finalQuestionsData.data.forEach((question: QuestionBankItem) => {
       if (question.lessonIds) {
-        question.lessonIds.forEach(id => lessonIds.add(id));
+        question.lessonIds.forEach((id) => lessonIds.add(id));
       } else if (question.lessonId) {
         lessonIds.add(question.lessonId);
       }
@@ -106,12 +141,13 @@ function QuestionBankManagementPage() {
 
   // Helper function to get lesson names by IDs
   const getLessonNames = (question: QuestionBankItem) => {
-    const questionLessonIds = question.lessonIds || (question.lessonId ? [question.lessonId] : []);
+    const questionLessonIds =
+      question.lessonIds || (question.lessonId ? [question.lessonId] : []);
 
     if (questionLessonIds.length === 0) return "-";
 
     const lessonNames = questionLessonIds
-      .map(id => {
+      .map((id) => {
         const lesson = lessons.find((l: any) => l.id === id);
         return lesson?.name || `Lesson ${id}`;
       })
@@ -131,7 +167,7 @@ function QuestionBankManagementPage() {
         });
         message.success("Cập nhật câu hỏi thành công!");
       } else {
-        await createMutation.mutateAsync(values);
+        await createMutation.mutateAsync({ ...values, lessonId: 0 });
         message.success("Thêm câu hỏi thành công!");
       }
 
@@ -139,6 +175,19 @@ function QuestionBankManagementPage() {
       setEditingQuestion(null);
     } catch (error) {
       message.error("Có lỗi xảy ra!");
+    }
+  };
+
+  // Handle form submission for DynamicQuestionForm (already transformed data)
+  const handleDynamicSubmit = async (values: any) => {
+    console.log(values, "dynamic values");
+    try {
+      await createMutation.mutateAsync({ ...values, lessonId: 10 });
+      setIsModalOpen(false);
+      toast.success("Câu hỏi đã được tạo thành công!");
+    } catch (error) {
+      console.error("Error submitting question:", error);
+      toast.error("Có lỗi xảy ra khi lưu câu hỏi!");
     }
   };
 
@@ -180,8 +229,7 @@ function QuestionBankManagementPage() {
     setIsModalOpen(true);
   };
 
-
-  console.log(questionsByType[selectedType],"tran")
+  console.log(questionsByType[selectedType], "tran");
   return (
     <div className="px-5">
       <div className="pb-2 flex justify-end">
@@ -229,7 +277,7 @@ function QuestionBankManagementPage() {
               <DialogHeader>
                 <DialogTitle>Thêm câu hỏi mới</DialogTitle>
               </DialogHeader>
-              <DynamicQuestionForm onSubmit={handleSubmit} />
+              <DynamicQuestionForm onSubmit={handleDynamicSubmit} />
               {/* <QuestionBankForm
                 editingQuestion={null}
                 lessonsData={finalLessonsData}
@@ -277,7 +325,9 @@ function QuestionBankManagementPage() {
                     </Button>
                   </div>
                 </div>
-                <p className="font-[600] text-lg">{question.questionContent.question}</p>
+                <p className="font-[600] text-lg">
+                  {question.questionContent.question}
+                </p>
               </div>
               <div className="pl-12 grid grid-cols-1 space-y-2 mt-2 text-lg">
                 {question.questionContent.options &&
@@ -288,16 +338,24 @@ function QuestionBankManagementPage() {
                       </p>
                     )
                   )}
-                  {question?.questionContent?.answer &&
-                  <p className="text-green-700">Đáp án: {question.questionContent.answer}</p>
-                }
+                {question?.questionContent?.answer && (
+                  <p className="text-green-700">
+                    Đáp án: {question.questionContent.answer}
+                  </p>
+                )}
                 {question?.questionContent?.statements &&
                   Object.entries(question.questionContent.statements).map(
                     ([key, value]) => {
-                      const statement = value as { text: string; answer: boolean };
+                      const statement = value as {
+                        text: string;
+                        answer: boolean;
+                      };
                       return (
                         <p key={key}>
-                          {key}. {statement.text} <span className="text-red-500 font-bold">{statement.answer ? "Đúng" : "Sai"}</span>
+                          {key}. {statement.text}{" "}
+                          <span className="text-red-500 font-bold">
+                            {statement.answer ? "Đúng" : "Sai"}
+                          </span>
                         </p>
                       );
                     }
@@ -337,7 +395,9 @@ function QuestionBankManagementPage() {
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
         title="Xác nhận xóa câu hỏi"
-        itemName={questionToDelete?.questionContent.question.substring(0, 50) + "..."}
+        itemName={
+          questionToDelete?.questionContent.question.substring(0, 50) + "..."
+        }
         isLoading={deleteMutation.isPending}
       />
     </div>

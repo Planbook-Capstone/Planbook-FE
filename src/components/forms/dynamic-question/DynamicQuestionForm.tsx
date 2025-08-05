@@ -42,9 +42,9 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   loading = false,
   initialData,
 }) => {
-  const [questionType, setQuestionType] = useState<"PART_I" | "PART_II" | "PART_III">(
-    initialData?.questionType || "PART_I"
-  );
+  const [questionType, setQuestionType] = useState<
+    "PART_I" | "PART_II" | "PART_III"
+  >(initialData?.questionType || "PART_I");
 
   const form = useForm<DynamicQuestionFormData>({
     resolver: zodResolver(dynamicQuestionSchema),
@@ -55,7 +55,14 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
     mode: "onSubmit",
   });
 
-  const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = form;
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = form;
   const watchedHasImage = watch("hasImage");
   const watchedQuestionType = watch("questionType");
   const watchedImage = watch("image");
@@ -65,14 +72,14 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
     if (watchedQuestionType !== questionType) {
       setQuestionType(watchedQuestionType);
       const newValues = getInitialFormValues(watchedQuestionType);
-      
+
       // Keep common fields
       const currentValues = form.getValues();
       reset({
         ...newValues,
-        questionContent: currentValues.questionContent,
+        question: currentValues.question,
         referenceSource: currentValues.referenceSource,
-        lessonTag: currentValues.lessonTag,
+        lessonIds: currentValues.lessonIds,
         difficultyLevel: currentValues.difficultyLevel,
         explanation: currentValues.explanation,
         hasImage: currentValues.hasImage,
@@ -84,7 +91,49 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
 
   const handleFormSubmit = (data: DynamicQuestionFormData) => {
     try {
-      onSubmit(data);
+      // Transform data to match API format
+      const transformedData = {
+        lessonIds:
+          data.lessonIds && data.lessonIds.length > 0 ? data.lessonIds : null,
+        questionType: data.questionType,
+        difficultyLevel: data.difficultyLevel,
+        questionContent: {
+          question: data.question,
+          image: data.hasImage && data.image ? "image-url" : undefined,
+          // Add options for PART_I
+          ...(data.questionType === "PART_I" && {
+            options: {
+              A: data.optionA || "",
+              B: data.optionB || "",
+              C: data.optionC || "",
+              D: data.optionD || "",
+            },
+            answer:
+              data.correctAnswers?.findIndex((answer) => answer) !== -1
+                ? ["A", "B", "C", "D"][
+                    data.correctAnswers?.findIndex((answer) => answer) || 0
+                  ]
+                : "A",
+          }),
+          // Add statements for PART_II
+          ...(data.questionType === "PART_II" && {
+            statements: {
+              A: { text: data.statementA || "", answer: data.answerA || false },
+              B: { text: data.statementB || "", answer: data.answerB || false },
+              C: { text: data.statementC || "", answer: data.answerC || false },
+              D: { text: data.statementD || "", answer: data.answerD || false },
+            },
+          }),
+          // Add keywords for PART_III
+          ...(data.questionType === "PART_III" && {
+            keywords: data.essayAnswer ? [data.essayAnswer] : [],
+          }),
+        },
+        explanation: data.explanation || "",
+        referenceSource: data.referenceSource,
+      };
+
+      onSubmit(transformedData as any);
       toast.success("Câu hỏi đã được tạo thành công!");
     } catch (error) {
       toast.error("Có lỗi xảy ra khi tạo câu hỏi");
@@ -94,12 +143,14 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   // Get tag color based on difficulty level
   const getTagColor = (tag: string) => {
     switch (tag) {
-      case "Vận dụng":
+      case "APPLICATION":
         return "bg-emerald-100 text-emerald-800 border-emerald-500";
-      case "Thông hiểu":
+      case "COMPREHENSION":
         return "bg-amber-100 text-yellow-700 border-amber-200";
-      case "Nhận biết":
+      case "KNOWLEDGE":
         return "bg-blue-100 text-blue-700 border-blue-200";
+      case "ANALYSIS":
+        return "bg-purple-100 text-purple-700 border-purple-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
     }
@@ -185,7 +236,9 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                           <FormControl>
                             <Checkbox
                               checked={field.value === true}
-                              onCheckedChange={(checked) => field.onChange(checked ? true : false)}
+                              onCheckedChange={(checked) =>
+                                field.onChange(checked ? true : false)
+                              }
                             />
                           </FormControl>
                           <span>Đúng</span>
@@ -194,7 +247,9 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                           <FormControl>
                             <Checkbox
                               checked={field.value === false}
-                              onCheckedChange={(checked) => field.onChange(checked ? false : true)}
+                              onCheckedChange={(checked) =>
+                                field.onChange(checked ? false : true)
+                              }
                             />
                           </FormControl>
                           <span>Sai</span>
@@ -244,13 +299,16 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
           {/* Header section */}
           <div className="flex gap-2 items-center flex-wrap">
             <p className="font-bold">Câu hỏi:</p>
-            
+
             <FormField
               control={control}
               name="questionType"
               render={({ field }) => (
                 <FormItem>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger className="w-32 h-8 text-xs">
                         <SelectValue />
@@ -285,14 +343,22 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
 
             <FormField
               control={control}
-              name="lessonTag"
+              name="lessonIds"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <Input
                       {...field}
                       className="text-orange-500 max-w-fit border-none shadow-none"
-                      placeholder="Tag bài học (VD: [Bài 1_Hóa 10])"
+                      placeholder="Lesson IDs (comma separated)"
+                      value={field.value?.join(", ") || ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const ids = e.target.value
+                          .split(",")
+                          .map((id: string) => parseInt(id.trim()))
+                          .filter((id: number) => !isNaN(id));
+                        field.onChange(ids.length > 0 ? ids : null);
+                      }}
                     />
                   </FormControl>
                 </FormItem>
@@ -304,25 +370,43 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
               name="difficultyLevel"
               render={({ field }) => (
                 <FormItem>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger
                         className={`w-32 rounded-full px-3 py-1.5 text-xs font-medium border-2 ${getTagColor(
-                          field.value || "Nhận biết"
+                          field.value || "KNOWLEDGE"
                         )}`}
                       >
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-transparent border-none">
-                      <SelectItem value="Vận dụng" className="rounded-full mx-1 my-0.5 bg-emerald-500 text-white">
+                      <SelectItem
+                        value="APPLICATION"
+                        className="rounded-full mx-1 my-0.5 bg-emerald-500 text-white"
+                      >
                         Vận dụng
                       </SelectItem>
-                      <SelectItem value="Thông hiểu" className="rounded-full mx-1 my-0.5 bg-amber-100 text-yellow-700">
+                      <SelectItem
+                        value="COMPREHENSION"
+                        className="rounded-full mx-1 my-0.5 bg-amber-100 text-yellow-700"
+                      >
                         Thông hiểu
                       </SelectItem>
-                      <SelectItem value="Nhận biết" className="rounded-full mx-1 my-0.5 bg-blue-100 text-blue-700">
+                      <SelectItem
+                        value="KNOWLEDGE"
+                        className="rounded-full mx-1 my-0.5 bg-blue-100 text-blue-700"
+                      >
                         Nhận biết
+                      </SelectItem>
+                      <SelectItem
+                        value="ANALYSIS"
+                        className="rounded-full mx-1 my-0.5 bg-purple-100 text-purple-700"
+                      >
+                        Phân tích
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -351,7 +435,7 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
           {/* Question content */}
           <FormField
             control={control}
-            name="questionContent"
+            name="question"
             render={({ field }) => (
               <FormItem className="mt-4">
                 <FormControl>
@@ -391,7 +475,9 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                       </p>
                       {watchedImage && (
                         <div className="mt-4">
-                          <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+                          <p className="text-sm font-medium text-gray-700 mb-2">
+                            Preview:
+                          </p>
                           <img
                             src={URL.createObjectURL(watchedImage as File)}
                             alt="Preview"

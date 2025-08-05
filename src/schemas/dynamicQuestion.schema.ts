@@ -3,26 +3,26 @@ import { z } from "zod";
 // Base question schema
 export const dynamicQuestionSchema = z.object({
   // Required fields
-  questionContent: z
+  question: z
     .string()
     .min(1, "Nội dung câu hỏi không được để trống")
     .min(10, "Nội dung câu hỏi phải có ít nhất 10 ký tự"),
-  
+
   questionType: z.enum(["PART_I", "PART_II", "PART_III"], {
     required_error: "Vui lòng chọn loại câu hỏi",
   }),
 
   // Optional fields
+  lessonIds: z.array(z.number()).nullable().optional(),
   referenceSource: z.string().optional(),
-  lessonTag: z.string().optional(),
-  difficultyLevel: z.enum(["Nhận biết", "Thông hiểu", "Vận dụng"]).optional(),
+  difficultyLevel: z.enum(["KNOWLEDGE", "COMPREHENSION", "APPLICATION", "ANALYSIS"]).optional(),
   explanation: z.string().optional(),
   hasImage: z.boolean().default(false),
   image: z.instanceof(File).optional(),
 
   // PART_I (Multiple Choice) fields
   optionA: z.string().optional(),
-  optionB: z.string().optional(), 
+  optionB: z.string().optional(),
   optionC: z.string().optional(),
   optionD: z.string().optional(),
   correctAnswers: z.array(z.boolean()).optional(),
@@ -97,13 +97,13 @@ export type DynamicQuestionFormData = z.infer<typeof dynamicQuestionSchema>;
 // Helper function to get initial form values based on question type
 export const getInitialFormValues = (questionType: "PART_I" | "PART_II" | "PART_III"): Partial<DynamicQuestionFormData> => {
   const baseValues: Partial<DynamicQuestionFormData> = {
-    questionContent: "",
+    question: "",
     questionType,
     referenceSource: "",
-    lessonTag: "",
-    difficultyLevel: "Nhận biết",
+    difficultyLevel: "KNOWLEDGE",
     explanation: "",
     hasImage: false,
+    lessonIds: null,
   };
 
   switch (questionType) {
