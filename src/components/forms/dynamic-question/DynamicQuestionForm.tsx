@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { RichTextarea } from "@/components/ui/rich-textarea";
@@ -24,32 +25,97 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  dynamicQuestionSchema,
-  DynamicQuestionFormData,
-  getInitialFormValues,
-} from "@/schemas/dynamicQuestion.schema";
+import { QuestionContent } from "@/services/questionBankServices";
 import { toast } from "sonner";
+import { X } from "lucide-react";
+
+// Types for form data - matching API format
+interface QuestionFormData {
+  lessonIds?: number[];
+  questionType: "PART_I" | "PART_II" | "PART_III";
+  difficultyLevel: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION" | "ANALYSIS";
+  questionContent: QuestionContent;
+  explanation?: string;
+  referenceSource?: string;
+}
+
+// Form schema for internal form handling
+const questionFormSchema = z.object({
+  question: z.string().min(1, "Vui lòng nhập câu hỏi"),
+  questionType: z.enum(["PART_I", "PART_II", "PART_III"]),
+  lessonIds: z.array(z.number()).optional(),
+  difficultyLevel: z.enum(["KNOWLEDGE", "COMPREHENSION", "APPLICATION", "ANALYSIS"]),
+  explanation: z.string().optional(),
+  referenceSource: z.string().optional(),
+  hasImage: z.boolean().default(false),
+  image: z.union([z.instanceof(File), z.null(), z.undefined()]).optional(),
+  imageUrl: z.string().optional(), // For existing image URL when editing
+  // PART_I fields
+  optionA: z.string().optional(),
+  optionB: z.string().optional(),
+  optionC: z.string().optional(),
+  optionD: z.string().optional(),
+  correctAnswers: z.array(z.boolean()).optional(),
+  // PART_II fields
+  statementA: z.string().optional(),
+  answerA: z.boolean().optional(),
+  statementB: z.string().optional(),
+  answerB: z.boolean().optional(),
+  statementC: z.string().optional(),
+  answerC: z.boolean().optional(),
+  statementD: z.string().optional(),
+  answerD: z.boolean().optional(),
+  // PART_III fields
+  essayAnswer: z.string().optional(),
+});
+
+type FormData = z.infer<typeof questionFormSchema>;
 
 interface DynamicQuestionFormProps {
-  onSubmit: (data: DynamicQuestionFormData) => void;
+  onSubmit: (data: QuestionFormData) => void;
   loading?: boolean;
-  initialData?: Partial<DynamicQuestionFormData>;
+  initialData?: Partial<FormData>;
+  isEditing?: boolean; // Add prop to indicate edit mode
 }
 
 export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   onSubmit,
   loading = false,
   initialData,
+  isEditing = false,
 }) => {
   const [questionType, setQuestionType] = useState<
     "PART_I" | "PART_II" | "PART_III"
   >(initialData?.questionType || "PART_I");
 
-  const form = useForm<DynamicQuestionFormData>({
-    resolver: zodResolver(dynamicQuestionSchema),
+  const form = useForm<any>({
+    resolver: zodResolver(questionFormSchema),
     defaultValues: {
-      ...getInitialFormValues(questionType),
+      question: "",
+      questionType: "PART_I",
+      lessonIds: undefined,
+      difficultyLevel: "KNOWLEDGE",
+      explanation: "",
+      referenceSource: "",
+      hasImage: false,
+      imageUrl: "",
+      // PART_I fields
+      optionA: "",
+      optionB: "",
+      optionC: "",
+      optionD: "",
+      correctAnswers: [false, false, false, false],
+      // PART_II fields
+      statementA: "",
+      answerA: false,
+      statementB: "",
+      answerB: false,
+      statementC: "",
+      answerC: false,
+      statementD: "",
+      answerD: false,
+      // PART_III fields
+      essayAnswer: "",
       ...initialData,
     },
     mode: "onSubmit",
@@ -66,17 +132,16 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   const watchedHasImage = watch("hasImage");
   const watchedQuestionType = watch("questionType");
   const watchedImage = watch("image");
+  const watchedImageUrl = watch("imageUrl");
 
   // Reset form when question type changes
   useEffect(() => {
     if (watchedQuestionType !== questionType) {
       setQuestionType(watchedQuestionType);
-      const newValues = getInitialFormValues(watchedQuestionType);
 
       // Keep common fields
       const currentValues = form.getValues();
-      reset({
-        ...newValues,
+      const newDefaults = {
         question: currentValues.question,
         referenceSource: currentValues.referenceSource,
         lessonIds: currentValues.lessonIds,
@@ -85,21 +150,50 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
         hasImage: currentValues.hasImage,
         image: currentValues.image,
         questionType: watchedQuestionType,
-      });
+        // Reset type-specific fields
+        optionA: "",
+        optionB: "",
+        optionC: "",
+        optionD: "",
+        correctAnswers: [false, false, false, false],
+        statementA: "",
+        answerA: false,
+        statementB: "",
+        answerB: false,
+        statementC: "",
+        answerC: false,
+        statementD: "",
+        answerD: false,
+        essayAnswer: "",
+      };
+
+      reset(newDefaults);
     }
   }, [watchedQuestionType, questionType, form, reset]);
 
-  const handleFormSubmit = (data: DynamicQuestionFormData) => {
+  const handleFormSubmit = (data: any) => {
     try {
       // Transform data to match API format
-      const transformedData = {
-        lessonIds:
-          data.lessonIds && data.lessonIds.length > 0 ? data.lessonIds : null,
+      const transformedData: QuestionFormData & { imageFile?: File } = {
+        lessonIds: data.lessonIds && data.lessonIds.length > 0 ? data.lessonIds : undefined,
         questionType: data.questionType,
         difficultyLevel: data.difficultyLevel,
+        explanation: data.explanation || undefined,
+        referenceSource: data.referenceSource,
+        // Pass the File object separately for upload
+        imageFile: data.hasImage && data.image instanceof File ? data.image : undefined,
         questionContent: {
           question: data.question,
-          image: data.hasImage && data.image ? "image-url" : undefined,
+          // Handle image logic:
+          // - If hasImage is false: no image
+          // - If hasImage is true and image is File: will be uploaded (set to undefined for now)
+          // - If hasImage is true and image is null/undefined but imageUrl exists: use existing imageUrl
+          // - If hasImage is true but both image and imageUrl are null/empty: no image
+          image: data.hasImage
+            ? (data.image instanceof File
+                ? undefined // Will be set after upload
+                : (data.imageUrl || undefined)) // Use existing URL or undefined
+            : undefined,
           // Add options for PART_I
           ...(data.questionType === "PART_I" && {
             options: {
@@ -109,9 +203,9 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
               D: data.optionD || "",
             },
             answer:
-              data.correctAnswers?.findIndex((answer) => answer) !== -1
+              data.correctAnswers?.findIndex((answer: boolean) => answer) !== -1
                 ? ["A", "B", "C", "D"][
-                    data.correctAnswers?.findIndex((answer) => answer) || 0
+                    data.correctAnswers?.findIndex((answer: boolean) => answer) || 0
                   ]
                 : "A",
           }),
@@ -124,16 +218,14 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
               D: { text: data.statementD || "", answer: data.answerD || false },
             },
           }),
-          // Add keywords for PART_III
+          // Add answer for PART_III
           ...(data.questionType === "PART_III" && {
-            keywords: data.essayAnswer ? [data.essayAnswer] : [],
+            answer: data.essayAnswer || "",
           }),
         },
-        explanation: data.explanation || "",
-        referenceSource: data.referenceSource,
       };
 
-      onSubmit(transformedData as any);
+      onSubmit(transformedData);
       toast.success("Câu hỏi đã được tạo thành công!");
     } catch (error) {
       toast.error("Có lỗi xảy ra khi tạo câu hỏi");
@@ -181,12 +273,13 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                 <span>{letter}.</span>
                 <FormField
                   control={control}
-                  name={`option${letter}` as keyof DynamicQuestionFormData}
+                  name={`option${letter}` as any}
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
                         <Input
-                          {...field}
+                          value={field.value || ""}
+                          onChange={field.onChange}
                           className="border-none shadow-none"
                           placeholder={`Đáp án ${letter}`}
                         />
@@ -211,12 +304,13 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                   </span>
                   <FormField
                     control={control}
-                    name={`statement${letter}` as keyof DynamicQuestionFormData}
+                    name={`statement${letter}` as any}
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormControl>
                           <Input
-                            {...field}
+                            value={field.value || ""}
+                            onChange={field.onChange}
                             placeholder={`Nhập câu ${letter.toLowerCase()}...`}
                             className="border-none shadow-none"
                           />
@@ -229,7 +323,7 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                 <div className="flex gap-4 ml-8">
                   <FormField
                     control={control}
-                    name={`answer${letter}` as keyof DynamicQuestionFormData}
+                    name={`answer${letter}` as any}
                     render={({ field }) => (
                       <FormItem className="flex items-center space-x-2">
                         <div className="flex items-center gap-2">
@@ -308,9 +402,11 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    disabled={isEditing}
+                    
                   >
                     <FormControl>
-                      <SelectTrigger className="w-32 h-8 text-xs">
+                      <SelectTrigger className={`w-32 h-8 text-xs ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}>
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -350,7 +446,7 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                     <Input
                       {...field}
                       className="text-orange-500 max-w-fit border-none shadow-none"
-                      placeholder="Lesson IDs (comma separated)"
+                      placeholder="Bài học"
                       value={field.value?.join(", ") || ""}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const ids = e.target.value
@@ -402,12 +498,7 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                       >
                         Nhận biết
                       </SelectItem>
-                      <SelectItem
-                        value="ANALYSIS"
-                        className="rounded-full mx-1 my-0.5 bg-purple-100 text-purple-700"
-                      >
-                        Phân tích
-                      </SelectItem>
+                  
                     </SelectContent>
                   </Select>
                 </FormItem>
@@ -473,16 +564,41 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                       <p className="text-sm text-gray-500 mt-2">
                         Chọn ảnh để tải lên (PNG, JPG, JPEG)
                       </p>
-                      {watchedImage && (
+                      {(watchedImage || watchedImageUrl) && (
                         <div className="mt-4">
-                          <p className="text-sm font-medium text-gray-700 mb-2">
-                            Preview:
-                          </p>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm font-medium text-gray-700">
+                              Preview:
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Clear both image and imageUrl
+                                onChange(undefined);
+                                form.setValue("imageUrl", "");
+                              }}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Xóa ảnh
+                            </Button>
+                          </div>
                           <img
-                            src={URL.createObjectURL(watchedImage as File)}
+                            src={
+                              watchedImage
+                                ? URL.createObjectURL(watchedImage as File)
+                                : watchedImageUrl
+                            }
                             alt="Preview"
                             className="max-w-full max-h-48 object-contain rounded border"
                           />
+                          {watchedImageUrl && !watchedImage && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Ảnh hiện tại - Chọn file mới để thay thế
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -523,7 +639,7 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
         {/* Submit button */}
         <div className="mt-6 flex justify-end">
           <Button type="submit" disabled={loading}>
-            {loading ? "Đang tạo..." : "Tạo câu hỏi"}
+            {loading ? "Đang tạo..." : "Lưu câu hỏi"}
           </Button>
         </div>
       </form>
