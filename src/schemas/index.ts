@@ -24,6 +24,11 @@ export {
   getFileIcon,
 } from "./material.schema";
 export {
+  dynamicQuestionSchema,
+  type DynamicQuestionFormData,
+  getInitialFormValues,
+} from "./dynamicQuestion.schema";
+export {
   createUserSchema,
   updateUserSchema,
   type CreateUserFormData,
