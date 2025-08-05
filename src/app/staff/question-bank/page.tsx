@@ -22,12 +22,28 @@ import {
   QuestionContent,
 } from "@/services/questionBankServices";
 import { useCreateMaterialService } from "@/services/materialServices";
-import { useLessonsByIdsService } from "@/services/lessonServices";
+
 import { Badge } from "@/components/ui/badge";
 import { getDifficultyText, getVariant } from "@/constants";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useGradesService } from "@/services/gradeServices";
+import { useSubjectsByGradeService } from "@/services/subjectServices";
+import { useBooksBySubjectService } from "@/services/bookServices";
+import { useChaptersByBookService } from "@/services/chapterServices";
+import { useLessonsByChaptersService, useLessonsByIdsService } from "@/services/lessonServices";
+import { Search, X, BookOpen } from "lucide-react";
+import { LessonSelectorModal } from "@/components/modals/LessonSelectorModal";
 // Types for form data - matching API format
 interface QuestionFormData {
   lessonIds?: number[];
@@ -49,6 +65,15 @@ function QuestionBankManagementPage() {
   const [questionToDelete, setQuestionToDelete] =
     useState<QuestionBankItem | null>(null);
 
+  // Filter states
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedBook, setSelectedBook] = useState<string>("");
+  const [selectedLessonIds, setSelectedLessonIds] = useState<number[]>([]);
+  const [referenceFilter, setReferenceFilter] = useState<string>("");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("");
+  const [isLessonModalOpen, setIsLessonModalOpen] = useState(false);
+
   // API hooks
   const { data: questionsData } = useQuestionBanksService();
 
@@ -59,12 +84,67 @@ function QuestionBankManagementPage() {
   const deleteMutation = useDeleteQuestionBankService();
   const createMaterialMutation = useCreateMaterialService();
 
-  // Filter questions by type
+  // Filter API hooks
+  const { data: grades } = useGradesService();
+  const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
+    enabled: !!selectedGrade && selectedGrade !== "all",
+  });
+  const { data: books } = useBooksBySubjectService(selectedSubject, {
+    enabled: !!selectedSubject && selectedSubject !== "all",
+  });
+  const { data: chaptersResponse } = useChaptersByBookService(selectedBook, {
+    enabled: !!selectedBook && selectedBook !== "all",
+  });
+  const chapters = chaptersResponse?.data?.content || [];
+
+  // Get lessons by all chapter IDs for filter
+  const filterLessonQueries = useLessonsByChaptersService(
+    chapters.map((ch: any) => ch.id)
+  );
+
+  // Flatten all lessons from all chapters for filter
+  const filterLessons = filterLessonQueries
+    .filter((query) => query.data?.data?.content)
+    .flatMap((query) => query.data.data.content)
+    .filter((lesson: any) => lesson && lesson.id && lesson.name);
+
+  // Get selected lessons data for display
+  const selectedLessonsQueries = useLessonsByIdsService(selectedLessonIds);
+  const selectedLessons = selectedLessonsQueries
+    .filter(query => query.data?.data)
+    .map(query => query.data.data)
+    .filter(lesson => lesson && lesson.name);
+
+  // Filter questions by type and filters
   const questionsByType = useMemo(() => {
     if (!finalQuestionsData?.data)
       return { PART_I: [], PART_II: [], PART_III: [] };
 
-    return finalQuestionsData.data.reduce(
+    let filteredQuestions = finalQuestionsData.data;
+
+    // Apply filters
+    if (selectedLessonIds.length > 0) {
+      filteredQuestions = filteredQuestions.filter((question: QuestionBankItem) =>
+        selectedLessonIds.some(lessonId =>
+          question.lessonIds?.includes(lessonId) ||
+          question.lessonId === lessonId
+        )
+      );
+    }
+
+    if (referenceFilter) {
+      filteredQuestions = filteredQuestions.filter((question: QuestionBankItem) =>
+        question.referenceSource?.toLowerCase().includes(referenceFilter.toLowerCase())
+      );
+    }
+
+    if (difficultyFilter && difficultyFilter !== "all") {
+      filteredQuestions = filteredQuestions.filter((question: QuestionBankItem) =>
+        question.difficultyLevel === difficultyFilter
+      );
+    }
+
+    return filteredQuestions.reduce(
       (acc: Record<string, QuestionBankItem[]>, question: QuestionBankItem) => {
         const type = question.questionType;
         if (!acc[type]) acc[type] = [];
@@ -76,7 +156,7 @@ function QuestionBankManagementPage() {
         QuestionBankItem[]
       >
     );
-  }, [finalQuestionsData]);
+  }, [finalQuestionsData, selectedLessonIds, referenceFilter, difficultyFilter]);
 
   // Get all unique lesson IDs from questions
   const allLessonIds = useMemo(() => {
@@ -301,34 +381,181 @@ function QuestionBankManagementPage() {
               Tạo nhiều câu hỏi
             </Button>
           </Link>
-          <Dialog
-            open={isModalOpen && !editingQuestion}
-            onOpenChange={(open) => {
-              setIsModalOpen(open);
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button
-                className="bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
-                onClick={handleAddNew}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Thêm câu hỏi mới
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="!max-w-5xl !max-h-[95vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Thêm câu hỏi mới</DialogTitle>
-              </DialogHeader>
-              <DynamicQuestionForm
-                loading={createMutation.isPending}
-                onSubmit={handleSubmit}
-                isEditing={false}
-              />
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
+
+      {/* Filter Section */}
+      <div className="bg-gray-50 p-4 rounded-lg mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          {/* Grade Filter */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Khối lớp</Label>
+            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn khối lớp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {grades?.data?.content?.map((grade: any) => (
+                  <SelectItem key={grade.id} value={grade.id.toString()}>
+                    {grade.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Subject Filter */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Môn học</Label>
+            <Select
+              value={selectedSubject}
+              onValueChange={setSelectedSubject}
+              disabled={!selectedGrade}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn môn học" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {subjects?.data?.content?.map((subject: any) => (
+                  <SelectItem key={subject.id} value={subject.id.toString()}>
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Book Filter */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Sách giáo khoa</Label>
+            <Select
+              value={selectedBook}
+              onValueChange={setSelectedBook}
+              disabled={!selectedSubject}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn sách" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {books?.data?.content?.map((book: any) => (
+                  <SelectItem key={book.id} value={book.id.toString()}>
+                    {book.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Lesson Filter */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Bài học</Label>
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsLessonModalOpen(true)}
+                className="w-full justify-start text-left"
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                {selectedLessons.length > 0
+                  ? `${selectedLessons.length} bài học đã chọn`
+                  : "Chọn bài học"
+                }
+              </Button>
+
+              {/* Display selected lessons */}
+              {selectedLessons.length > 0 && (
+                <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+                  {selectedLessons.map((lesson, lessonIndex) => (
+                    <span
+                      key={lessonIndex}
+                      className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full"
+                    >
+                      {lesson.name}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newLessonIds = selectedLessonIds.filter(
+                            id => id !== Number(lesson.id)
+                          );
+                          setSelectedLessonIds(newLessonIds);
+                        }}
+                        className="ml-1 hover:text-blue-900"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Reference Source Filter */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Nguồn tham khảo</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Tìm theo nguồn..."
+                value={referenceFilter}
+                onChange={(e:any) => setReferenceFilter(e.target.value)}
+                className="pl-10"
+              />
+              {referenceFilter && (
+                <button
+                  onClick={() => setReferenceFilter("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Difficulty Filter */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Độ khó</Label>
+            <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn độ khó" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="KNOWLEDGE">Nhận biết</SelectItem>
+                <SelectItem value="COMPREHENSION">Thông hiểu</SelectItem>
+                <SelectItem value="APPLICATION">Vận dụng</SelectItem>
+                <SelectItem value="ANALYSIS">Phân tích</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Clear Filters Button */}
+        <div className="mt-4 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSelectedGrade("");
+              setSelectedSubject("");
+              setSelectedBook("");
+              setSelectedLessonIds([]);
+              setReferenceFilter("");
+              setDifficultyFilter("");
+            }}
+            className="flex items-center gap-2"
+          >
+            <X className="h-4 w-4" />
+            Xóa bộ lọc
+          </Button>
+        </div>
+      </div>
+
+      {/* Questions List */}
       <div className="space-y-4">
         {questionsByType[selectedType].map((question: any, idx: number) => (
           <div key={question.id}>
@@ -460,6 +687,17 @@ function QuestionBankManagementPage() {
           questionToDelete?.questionContent.question.substring(0, 50) + "..."
         }
         isLoading={deleteMutation.isPending}
+      />
+
+      {/* Lesson Selector Modal */}
+      <LessonSelectorModal
+        isOpen={isLessonModalOpen}
+        onClose={() => setIsLessonModalOpen(false)}
+        onConfirm={(selectedLessonIds) => {
+          setSelectedLessonIds(selectedLessonIds);
+        }}
+        selectedLessonIds={selectedLessonIds}
+        title="Chọn bài học để lọc"
       />
     </div>
   );
