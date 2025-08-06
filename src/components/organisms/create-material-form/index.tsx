@@ -25,13 +25,12 @@ import {
   FileData,
 } from "@/schemas/material.schema";
 import { useTagService } from "@/services/tagServices";
-import { useCreateMaterialService } from "@/services/materialServices";
 import { TagResponse } from "@/types";
 import LessonSelector from "@/components/molecules/lesson-selector";
 
 interface CreateMaterialFormProps {
   onClose?: () => void;
-  onSubmit?: (data: MaterialFormData) => void;
+  onSubmit?: (data: MaterialFormData) => Promise<void> | void;
 }
 
 function CreateMaterialForm({
@@ -40,15 +39,12 @@ function CreateMaterialForm({
 }: CreateMaterialFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: tags } = useTagService();
-  const createMaterialMutation = useCreateMaterialService();
 
   // React Hook Form setup
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid },
-    reset,
-    watch,
+    formState: { errors },
   } = useForm<MaterialFormData>({
     resolver: zodResolver(materialSchema),
     mode: "onSubmit", // Validate on submit and onChange after first submit
@@ -62,34 +58,13 @@ function CreateMaterialForm({
     },
   });
 
+  // Simple onSubmit function that calls the prop function
   const onSubmit = async (data: MaterialFormData) => {
     setIsSubmitting(true);
     try {
-      console.log("Material form data:", data);
-      console.log("Form errors:", errors);
-
-      const formData = new FormData();
-      formData.append("file", data.file as File);
-      formData.append(
-        "metadataJson",
-        JSON.stringify({
-          type: "test",
-          name: data.name,
-          description: data.description,
-          url: "null", // Will be set by backend after file upload
-          tagIds: data.tags,
-          lessonId: data.lessonId,
-        })
-      );
-
-      await createMaterialMutation.mutateAsync(formData);
-
-      toast.success("Material đã được tạo thành công!");
-      onSubmitProp?.(data);
-      onClose?.();
+      await onSubmitProp?.(data);
     } catch (error) {
-      console.error("Error creating material:", error);
-      toast.error("Có lỗi xảy ra khi tạo material!");
+      console.error("Error in form submission:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -102,15 +77,6 @@ function CreateMaterialForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
-      {/* Debug validation state */}
-      {/* {process.env.NODE_ENV === 'development' && (
-        <div className="p-2 bg-gray-100 rounded text-xs">
-          <div>Form Valid: {isValid ? 'Yes' : 'No'}</div>
-          <div>Errors: {JSON.stringify(errors, null, 2)}</div>
-        </div>
-      )} */}
-
-      {/* Material Name Field */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">
           Tên học liệu <span className="text-red-500">*</span>

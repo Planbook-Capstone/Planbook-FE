@@ -23,7 +23,7 @@ export const useMaterialSearchService = (tagIds?: string) => {
 };
 
 export const useCreateMaterialService = createMutationHook(
-  "private-materials",
+  "materials",
   API_ENDPOINTS.ACADEMIC_RESOURCE_UPLOAD
 );
 

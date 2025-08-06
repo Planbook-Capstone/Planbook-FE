@@ -9,13 +9,39 @@ import { MaterialFormData } from "@/schemas/material.schema";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import MaterialContent from "@/components/templates/material-content";
+import { useCreateMaterialService } from "@/services/materialServices";
+import { toast } from "sonner";
 
 export default function MaterialPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const createMaterialMutation = useCreateMaterialService();
 
-  const handleCreateMaterial = (data: MaterialFormData) => {
-    console.log("Creating material:", data);
-    // TODO: Call API to create material
+  const handleCreateMaterial = async (data: MaterialFormData) => {
+    try {
+      console.log("Creating material:", data);
+
+      const formData = new FormData();
+      formData.append("file", data.file as File);
+      formData.append(
+        "metadataJson",
+        JSON.stringify({
+          type: "test",
+          name: data.name,
+          description: data.description,
+          url: "null", // Will be set by backend after file upload
+          tagIds: data.tags,
+          lessonId: data.lessonId,
+        })
+      );
+
+      await createMaterialMutation.mutateAsync(formData);
+
+      toast.success("Material đã được tạo thành công!");
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error("Error creating material:", error);
+      toast.error("Có lỗi xảy ra khi tạo material!");
+    }
   };
 
   const tabs = [

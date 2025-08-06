@@ -30,6 +30,30 @@
   overflow: hidden;
 }
 
+/* Chemical formula input placeholder */
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* Chemical formula input styling */
+.chemical-formula-input sub {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+  bottom: -0.25em;
+}
+
+.chemical-formula-input sup {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+  top: -0.5em;
+}
+
 /* @custom-variant dark (&: is(.dark *)); */
 
 @theme inline {

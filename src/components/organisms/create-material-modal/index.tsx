@@ -13,7 +13,7 @@ import { MaterialFormData } from "@/schemas/material.schema";
 interface CreateMaterialModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (data: MaterialFormData) => void;
+  onSubmit?: (data: MaterialFormData) => Promise<void> | void;
 }
 
 export default function CreateMaterialModal({
@@ -21,9 +21,9 @@ export default function CreateMaterialModal({
   onClose,
   onSubmit,
 }: CreateMaterialModalProps) {
-  const handleSubmit = (data: MaterialFormData) => {
-    onSubmit?.(data);
-    onClose();
+  const handleSubmit = async (data: MaterialFormData) => {
+    await onSubmit?.(data);
+    // onClose will be called from the page after successful submission
   };
 
   return (

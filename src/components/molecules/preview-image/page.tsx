@@ -14,7 +14,7 @@ function PreviewImage({ item }: Props) {
           src={item.url}
           alt={item.name}
           fill
-          className="object-cover"
+          className="object-contain"
           sizes="(max-width: 768px) 50vw, 33vw"
         />
       </div>

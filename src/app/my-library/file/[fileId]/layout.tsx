@@ -58,7 +58,7 @@ export default function FileLayout({ children, params }: FileLayoutProps) {
         // ]}
       />
       <div className="grid grid-cols-3 p-5">
-        <div>
+        <div className="sticky top-0">
           <DocumentInfoPanel documentInfo={data?.data} />
         </div>
         <div
@@ -66,7 +66,7 @@ export default function FileLayout({ children, params }: FileLayoutProps) {
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
-          className="shadow-sm border col-span-2"
+          className="shadow-sm border col-span-2 min-h-screen overflow-y-auto"
         >
           {children}
         </div>

@@ -38,7 +38,8 @@ export interface QuestionContent {
  */
 export interface QuestionBankItem {
   id: number;
-  lessonId: number;
+  lessonId?: number; // For backward compatibility
+  lessonIds?: number[]; // For multiple lessons support
   questionType: "PART_I" | "PART_II" | "PART_III";
   questionTypeDescription: string;
   difficultyLevel: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION" | "ANALYSIS";
