@@ -260,19 +260,56 @@ export function InstanceDetails({
                     </p>
                     <p
                       onClick={handleCopyLink}
-                      className="font-questrial text-sm text-red-600 break-all cursor-pointer"
+                      className="font-questrial text-sm font-bold text-blue-600 break-all cursor-pointer"
                     >
-                      Click vào đây để copy link bài thi
+                      CLICK VÀO ĐÂY ĐỂ LẤY LINK BÀI THI
                     </p>
                   </div>
                 </div>
                 {instance.status !== "ACTIVE" && (
-                  <p className="text-sm text-orange-600 font-medium">
+                  <p className="text-sm text-purple-600 font-medium">
                     Học sinh chỉ có thể làm bài khi trạng thái là "Đang hoạt
                     động"
                   </p>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Layout 2 cột */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Cột trái - Điều khiển và thông tin */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Điều khiển trạng thái */}
+              {getAvailableStatusTransitions().length > 0 && (
+                <Card>
+                  <CardHeader className="text-lg font-calsans font-normal flex items-center gap-2">
+                    Điều khiển bài thi
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {getAvailableStatusTransitions().map((transition) => {
+                        const TransitionIcon = transition.icon;
+                        return (
+                          <Button
+                            key={transition.status}
+                            variant={(transition.variant as any) || "outline"}
+                            onClick={() =>
+                              handleStatusChange(transition.status)
+                            }
+                            disabled={changeStatusMutation.isPending}
+                            className="w-full flex items-center gap-2 justify-start py-5"
+                            size="sm"
+                          >
+                            <TransitionIcon className="w-4 h-4" />
+                            {transition.label}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>
@@ -311,41 +348,6 @@ export function InstanceDetails({
         </Button>
       </div>
       <SubmissionTable submitions={submissions} />
-
-      {/* Layout 2 cột */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Cột trái - Điều khiển và thông tin */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Điều khiển trạng thái */}
-          {getAvailableStatusTransitions().length > 0 && (
-            <Card>
-              <CardHeader className="text-lg font-calsans font-normal flex items-center gap-2">
-                Điều khiển bài thi
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {getAvailableStatusTransitions().map((transition) => {
-                    const TransitionIcon = transition.icon;
-                    return (
-                      <Button
-                        key={transition.status}
-                        variant={(transition.variant as any) || "outline"}
-                        onClick={() => handleStatusChange(transition.status)}
-                        disabled={changeStatusMutation.isPending}
-                        className="w-full flex items-center gap-2 justify-start py-5"
-                        size="sm"
-                      >
-                        <TransitionIcon className="w-4 h-4" />
-                        {transition.label}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
