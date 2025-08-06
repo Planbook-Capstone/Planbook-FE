@@ -397,7 +397,7 @@ export default function SlideEditorDemo() {
         book_id: parseInt(selectedBookId),
         lesson_id: selectedLessonId,
         input: { user_config: userPrompt, data: templateDetail?.data },
-        workspaceId: 1,
+        academicYearId: 1,
       };
 
       console.log({ user_config: userPrompt, data: payload.input });
@@ -495,7 +495,7 @@ export default function SlideEditorDemo() {
 
     const payload = {
       userId: user.id,
-      workspaceId: 1,
+      academicYearId: 1,
       type: "SLIDE",
       templateId: parseInt(selectedTemplateId),
       name: name,

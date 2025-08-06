@@ -135,7 +135,7 @@ export const useLessonPlanGeneration = ({
       lesson_id: lessonId?.toString(),
       book_id: lessonById?.data?.chapter?.book?.id,
       input: mergedNode,
-      workspaceId: 1,
+      academicYearId: 1,
       ...(resultId && { result_id: resultId }), // Add result_id if available
     };
 

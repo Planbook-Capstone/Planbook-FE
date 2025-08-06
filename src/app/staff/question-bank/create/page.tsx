@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MultipleDynamicQuestionForm } from "@/components/forms/dynamic-question/MultipleDynamicQuestionForm";
-import { DynamicQuestionFormData } from "@/schemas/dynamicQuestion.schema";
+import { DynamicQuestionFormData, MultipleDynamicQuestionFormData } from "@/schemas/dynamicQuestion.schema";
 import { toast } from "sonner";
 import { useCreateMaterialService } from "@/services/materialServices";
 import {
@@ -10,6 +10,7 @@ import {
   QuestionContent,
 } from "@/services/questionBankServices";
 import { Button } from "@/components/ui/Button";
+import { useExamImportService } from "@/services/examImportServices";
 
 // Types for API format
 interface QuestionFormData {
@@ -24,9 +25,22 @@ interface QuestionFormData {
 function CreateQuestionBankPage() {
   const createMutation = useCreateQuestionBankService();
   const createMaterialMutation = useCreateMaterialService();
+  const { mutate: importExam, isPending: isImporting } = useExamImportService();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [importedQuestions, setImportedQuestions] = useState<MultipleDynamicQuestionFormData | null>(null);
+  const [formKey, setFormKey] = useState<string>('default');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Debug: Log when importedQuestions changes
+  useEffect(() => {
+    console.log("=== IMPORTED QUESTIONS CHANGED ===");
+    console.log("importedQuestions:", importedQuestions);
+    if (importedQuestions) {
+      console.log("Number of questions:", importedQuestions.questions.length);
+      console.log("First question:", importedQuestions.questions[0]);
+    }
+  }, [importedQuestions]);
 
   // Handle file selection
   const handleFileSelect = () => {
@@ -51,11 +65,69 @@ function CreateQuestionBankPage() {
       // Save the selected file
       setSelectedFile(file);
       console.log("Selected file:", file);
-      toast.success(`Đã chọn file: ${file.name}`);
 
-      // TODO: Add your file processing logic here
-      // For example: parse DOCX/PDF content and convert to questions
+      // Don't clear previously imported questions - we'll append new ones
     }
+  };
+
+  // Map imported question data to form format
+  const mapImportedDataToFormData = (importedData: any[]): MultipleDynamicQuestionFormData => {
+    const mappedQuestions: DynamicQuestionFormData[] = importedData.map((item) => {
+      const baseQuestion: DynamicQuestionFormData = {
+        question: item.questionContent.question || "",
+        questionType: item.questionType || "PART_I",
+        difficultyLevel: item.difficultyLevel || "KNOWLEDGE",
+        explanation: item.explanation || "",
+        referenceSource: item.referenceSource || "",
+        hasImage: false,
+        lessonIds: item.lessonId ? [item.lessonId] : null,
+        // Initialize all fields
+        optionA: "",
+        optionB: "",
+        optionC: "",
+        optionD: "",
+        correctAnswers: [false, false, false, false],
+        statementA: "",
+        answerA: false,
+        statementB: "",
+        answerB: false,
+        statementC: "",
+        answerC: false,
+        statementD: "",
+        answerD: false,
+        essayAnswer: "",
+      };
+
+      // Map specific question type data
+      if (item.questionType === "PART_I" && item.questionContent.options) {
+        baseQuestion.optionA = item.questionContent.options.A || "";
+        baseQuestion.optionB = item.questionContent.options.B || "";
+        baseQuestion.optionC = item.questionContent.options.C || "";
+        baseQuestion.optionD = item.questionContent.options.D || "";
+
+        // Set correct answer
+        const correctAnswer = item.questionContent.answer;
+        if (correctAnswer === "A") baseQuestion.correctAnswers = [true, false, false, false];
+        else if (correctAnswer === "B") baseQuestion.correctAnswers = [false, true, false, false];
+        else if (correctAnswer === "C") baseQuestion.correctAnswers = [false, false, true, false];
+        else if (correctAnswer === "D") baseQuestion.correctAnswers = [false, false, false, true];
+      } else if (item.questionType === "PART_II" && item.questionContent.statements) {
+        baseQuestion.statementA = item.questionContent.statements.a?.text || "";
+        baseQuestion.answerA = item.questionContent.statements.a?.answer || false;
+        baseQuestion.statementB = item.questionContent.statements.b?.text || "";
+        baseQuestion.answerB = item.questionContent.statements.b?.answer || false;
+        baseQuestion.statementC = item.questionContent.statements.c?.text || "";
+        baseQuestion.answerC = item.questionContent.statements.c?.answer || false;
+        baseQuestion.statementD = item.questionContent.statements.d?.text || "";
+        baseQuestion.answerD = item.questionContent.statements.d?.answer || false;
+      } else if (item.questionType === "PART_III" && item.questionContent.answer) {
+        baseQuestion.essayAnswer = item.questionContent.answer || "";
+      }
+
+      return baseQuestion;
+    });
+
+    return { questions: mappedQuestions };
   };
 
   // Handle file processing
@@ -65,11 +137,70 @@ function CreateQuestionBankPage() {
       return;
     }
 
+    console.log("=== FILE SUBMIT HANDLER ===");
     console.log("Processing file:", selectedFile);
-    toast.info(`Đang xử lý file: ${selectedFile.name}...`);
 
-    // TODO: Add your file processing logic here
-    // For example: parse DOCX/PDF content and convert to questions
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    // Add staff_import field
+    formData.append('staff_import', 'true');
+
+    // Call the exam import service
+    importExam(formData, {
+      onSuccess: (response) => {
+        console.log("Exam import successful:", response?.data?.data);
+        toast.success("Import đề thi thành công!");
+
+        // Process the imported data and convert to question bank format
+        if (response?.data?.data && Array.isArray(response?.data?.data)) {
+          const newMappedData = mapImportedDataToFormData(response?.data?.data);
+          const isFirstImport = !importedQuestions;
+          const currentQuestionsCount = importedQuestions?.questions.length || 0;
+          const newQuestionsCount = newMappedData.questions.length;
+          const totalAfterImport = currentQuestionsCount + newQuestionsCount;
+
+          // Append to existing questions instead of replacing
+          setImportedQuestions(prevQuestions => {
+            if (prevQuestions) {
+              // Merge with existing questions
+              const combinedQuestions = {
+                questions: [...prevQuestions.questions, ...newMappedData.questions]
+              };
+              console.log("Appended questions. Total:", combinedQuestions.questions.length);
+              return combinedQuestions;
+            } else {
+              // First import
+              console.log("First import. Questions:", newMappedData.questions.length);
+              return newMappedData;
+            }
+          });
+
+          // Update form key to force re-render
+          setFormKey(`imported-${Date.now()}`);
+
+          console.log("New mapped questions:", newMappedData);
+          console.log("Current questions count:", currentQuestionsCount);
+          console.log("New questions count:", newQuestionsCount);
+          console.log("Total after import:", totalAfterImport);
+
+          // Show different message based on whether this is first import or additional
+          if (isFirstImport) {
+            toast.success(`Đã import thành công ${newQuestionsCount} câu hỏi!`);
+          } else {
+            toast.success(`Đã import thêm ${newQuestionsCount} câu hỏi! Tổng cộng: ${totalAfterImport} câu hỏi.`);
+          }
+        } else {
+          console.error("Invalid response data format:", response);
+          toast.error("Dữ liệu import không hợp lệ!");
+        }
+      },
+      onError: (error) => {
+        console.error("Exam import failed:", error);
+        toast.error("Import đề thi thất bại. Vui lòng thử lại!");
+      },
+    });
   };
 
   // Transform DynamicQuestionFormData to QuestionFormData
@@ -216,8 +347,9 @@ function CreateQuestionBankPage() {
               className="w-1/2"
               variant={"outline"}
               onClick={handleFileProcess}
+              disabled={isImporting}
             >
-              Xử lí
+              {isImporting ? "Đang xử lí..." : "Xử lí"}
             </Button>
           </div>
         )}
@@ -243,9 +375,14 @@ function CreateQuestionBankPage() {
           />
         </div>
       </div>
+
+
+
       <MultipleDynamicQuestionForm
+        key={formKey}
         onSubmit={handleMultipleSubmit}
         loading={isSubmitting}
+        initialData={importedQuestions || undefined}
       />
     </div>
   );

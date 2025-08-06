@@ -22,7 +22,7 @@ export default function ExamTemplateSelector({
 
   const handleModeSelect = (mode: "import" | "manual") => {
     setSelectedMode(mode);
-  };
+  };ExamFileImport
 
   const handleFileSubmit = (files: File[]) => {
     onImportFile(files);
