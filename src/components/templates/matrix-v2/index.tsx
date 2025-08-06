@@ -35,7 +35,10 @@ import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
 import { WEBSOCKET_CONFIG } from "@/config/websocket";
-import { useUpdateToolResultService, useToolResultByIdService } from "@/services/toolResultService";
+import {
+  useUpdateToolResultService,
+  useToolResultByIdService,
+} from "@/services/toolResultService";
 import ConfirmSaveResult from "@/components/modals/ConfirmSaveResult";
 import { Modal } from "@/components/ui/modal";
 import FileIcon from "@/components/ui/FileIcon";
@@ -60,7 +63,8 @@ export default function MatrixTemplate2() {
   const { mutate: executeTool } = useExecuteToolService();
 
   // Tool result services for saving
-  const { mutate: updateToolResult, isPending: isSavingResult } = useUpdateToolResultService();
+  const { mutate: updateToolResult, isPending: isSavingResult } =
+    useUpdateToolResultService();
   const { data: currentToolResult } = useToolResultByIdService(resultId || "", {
     enabled: !!resultId,
   });
@@ -100,16 +104,19 @@ export default function MatrixTemplate2() {
   const handleDownloadDocument = () => {
     if (finalData?.online_links?.download) {
       // Create a temporary link and trigger download
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = finalData.online_links.download;
-      link.download = finalData?.message || 'document.docx';
+      link.download = finalData?.message || "document.docx";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
   };
 
-  const handleSaveResult = (formData: { name: string; description?: string }) => {
+  const handleSaveResult = (formData: {
+    name: string;
+    description?: string;
+  }) => {
     if (!resultId) {
       toast.error("Không tìm thấy result ID để lưu kết quả");
       return;
@@ -118,7 +125,7 @@ export default function MatrixTemplate2() {
     const saveData = {
       name: formData.name,
       description: formData.description || "",
-      data:finalData.online_links,
+      data: finalData.online_links,
       status: "ARCHIVED",
     };
 
@@ -142,7 +149,6 @@ export default function MatrixTemplate2() {
     );
   };
 
- 
   // State for validation errors
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -284,6 +290,7 @@ export default function MatrixTemplate2() {
       duration: Number(duration),
       outputFormat: "docx",
       outputLink: "online",
+      isExportDocx: false,
       matrix: matrix.map((row) => ({
         lessonId: row.lessonID.toString(),
         totalQuestions: calculateRowTotal(row),
@@ -598,7 +605,6 @@ export default function MatrixTemplate2() {
                       key={`lesson-select-${rowIdx}`}
                       value={row.lessonID || "CLEAR_SELECTION"}
                       onValueChange={(val) => {
-                    
                         // Handle clear selection
                         const actualValue =
                           val === "CLEAR_SELECTION" ? "" : val;
@@ -868,15 +874,10 @@ export default function MatrixTemplate2() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Button
-                    variant={"dash"}
-                    onClick={handleViewDocument}
-                  >
+                  <Button variant={"dash"} onClick={handleViewDocument}>
                     <Eye />
                   </Button>
-                  <Button
-                    onClick={handleDownloadDocument}
-                  >
+                  <Button onClick={handleDownloadDocument}>
                     {DowloadIcon}
                   </Button>
                   <Button
