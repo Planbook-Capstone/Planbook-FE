@@ -3,6 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { Download } from "lucide-react";
+import { useLessonsByIdsService } from "@/services/lessonServices";
 
 interface DocumentInfo {
   name: string;
@@ -11,6 +12,7 @@ interface DocumentInfo {
   creator: string;
   createdAt: string;
   updateAt: string;
+  lessonIds?: string[];
 }
 
 interface DocumentInfoPanelProps {
@@ -39,32 +41,40 @@ export default function DocumentInfoPanel({
     });
   };
   const info = documentInfo || defaultInfo;
+  const lessonQueries = useLessonsByIdsService(documentInfo?.lessonIds || []);
 
+  // Get all lessons data
+  const lessons = lessonQueries
+    .filter((query: any) => query.data)
+    .map((query: any) => query.data?.data)
+    .filter(Boolean);
   return (
     <aside className="w-full px-6 py-6 space-y-6 ">
       <div className="space-y-2">
-        <div className="grid grid-cols-[1fr_2fr] gap-1 text-sm">
+        <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
           <div className="font-calsans text-nowrap ">Tên tài liệu</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
             {info?.name}
           </div>
         </div>
 
-        <div className="grid grid-cols-[1fr_2fr] gap-1 text-sm">
+        <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
           <div className="font-calsans text-nowrap">Mô tả</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
             {info.description}
           </div>
         </div>
 
-        {/* <div className="grid grid-cols-[1fr_2fr] gap-1 text-sm">
-          <div className="font-calsans text-nowrap ">Người tạo</div>
+        <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
+          <div className="font-calsans text-nowrap ">Bài học đã chọn</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
-            {info.creator}
+            {lessons.map((lesson: any) => (
+              <div key={lesson.id}>{lesson.name}</div>
+            ))}
           </div>
-        </div> */}
+        </div>
 
-        <div className="grid grid-cols-[1fr_2fr] gap-1 text-sm">
+        <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
           <div className="font-calsans text-nowrap ">Ngày tạo</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
             {formatDate(info.createdAt)}
