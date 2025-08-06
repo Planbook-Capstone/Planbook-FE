@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/Button";
@@ -39,6 +39,15 @@ export function MultipleDynamicQuestionForm({
     control: form.control,
     name: "questions",
   });
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      console.log("=== RESETTING FORM WITH NEW DATA ===");
+      console.log("New initialData:", initialData);
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
 
   const handleAddQuestion = () => {
     prepend(getInitialFormValues("PART_I"));

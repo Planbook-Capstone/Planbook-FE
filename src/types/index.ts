@@ -399,7 +399,7 @@ export interface ToolResultResponse {
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
   userId: string;
-  workspaceId: number;
+  academicYearId: number;
   templateId: number | null;
   lessonIds: number[];
 }

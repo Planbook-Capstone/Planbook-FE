@@ -215,6 +215,9 @@ function ExamTemplatesPageContent() {
       formData.append(`file`, file);
     });
 
+    // Add staff_import field
+    formData.append('staff_import', 'true');
+
     // Call the exam import service
     importExam(formData, {
       onSuccess: (response) => {

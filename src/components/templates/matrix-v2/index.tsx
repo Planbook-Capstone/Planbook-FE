@@ -363,7 +363,7 @@ export default function MatrixTemplate2() {
       book_id: 1,
       lesson_id: "4",
       input: examData,
-      workspaceId: 1,
+      academicYearId: 1,
     };
     executeTool(payload, {
       onSuccess: (e: any) => {
