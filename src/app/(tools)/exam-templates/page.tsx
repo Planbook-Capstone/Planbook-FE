@@ -216,7 +216,7 @@ function ExamTemplatesPageContent() {
     });
 
     // Add staff_import field
-    formData.append('staff_import', 'true');
+       formData.append('staff_import', 'false');
 
     // Call the exam import service
     importExam(formData, {

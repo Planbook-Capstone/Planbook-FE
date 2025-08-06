@@ -43,6 +43,7 @@ import ConfirmSaveResult from "@/components/modals/ConfirmSaveResult";
 import { Modal } from "@/components/ui/modal";
 import FileIcon from "@/components/ui/FileIcon";
 import { DowloadIcon } from "@/constants/icon";
+import TemplatePreview from "@/components/organisms/template-preview";
 
 export default function MatrixTemplate2() {
   const router = useRouter();
@@ -97,8 +98,8 @@ export default function MatrixTemplate2() {
   const handleViewDocument = () => {
     if (finalData?.online_links?.view) {
       setIframeUrl(finalData.online_links.view);
-      setShowIframe(true);
     }
+    setShowIframe(true);
   };
 
   const handleDownloadDocument = () => {
@@ -125,7 +126,7 @@ export default function MatrixTemplate2() {
     const saveData = {
       name: formData.name,
       description: formData.description || "",
-      data: finalData.online_links,
+      data: finalData?.exam_data,
       status: "ARCHIVED",
     };
 
@@ -403,18 +404,6 @@ export default function MatrixTemplate2() {
       }
     }
   }, [taskStatus]);
-
-  // Hiển thị LoadingAI khi đang có task và chưa hoàn thành
-  // if (response && !isTaskCompleted) {
-  //   return (
-  //     <div className="px-10">
-  //       <LoadingAI
-  //         message={taskStatus?.current_message || "Đang tạo đề thi..."}
-  //         progress={taskStatus?.current_progress || 0}
-  //       />
-  //     </div>
-  //   );
-  // }
 
   if (
     data?.status === "processing" &&
@@ -913,12 +902,8 @@ export default function MatrixTemplate2() {
         title="Xem trước tài liệu"
         size="xl"
       >
-        <div className="w-full h-[85vh]">
-          <iframe
-            src={iframeUrl}
-            className="w-full h-full border-0"
-            title="Document Preview"
-          />
+        <div className="w-full h-[85vh] overflow-y-auto">
+          <TemplatePreview data={finalData?.exam_data} />
         </div>
       </Modal>
 
