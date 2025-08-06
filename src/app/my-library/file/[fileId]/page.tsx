@@ -1,4 +1,5 @@
 "use client";
+import TemplatePreview from "@/components/organisms/template-preview";
 import PreviewModal from "@/components/PreviewModalv2";
 import { useLessonsByIdsService } from "@/services/lessonServices";
 import { useToolResultByIdService } from "@/services/toolResultService";
@@ -29,13 +30,9 @@ function FileDetailPage({ params }: Props) {
     <div className="p-6 h-screen">
       <div className="space-y-2 h-full">
         {data?.data?.type === "EXAM" && (
-          <div className="w-full h-full">
-            <iframe
-              src={data?.data?.data?.edit}
-              className="w-full h-full border-0"
-              title="Document Preview"
-            />
-          </div>
+         
+            <TemplatePreview data={data?.data?.data} />
+          
         )}
 
         {data?.data?.type === "LESSON_PLAN" && (
