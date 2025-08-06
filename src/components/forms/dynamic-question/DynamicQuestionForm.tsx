@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { RichTextarea } from "@/components/ui/rich-textarea";
+import { ChemicalFormulaInput } from "@/components/ui/chemical-formula-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/Switch";
 import { Label } from "@/components/ui/label";
@@ -90,6 +91,7 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
     "PART_I" | "PART_II" | "PART_III"
   >(initialData?.questionType || "PART_I");
   const [isLessonModalOpen, setIsLessonModalOpen] = useState(false);
+  const [useChemicalInput, setUseChemicalInput] = useState(false);
 
   const form = useForm<any>({
     resolver: zodResolver(questionFormSchema),
@@ -288,12 +290,21 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
-                        <Input
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          className="border-none shadow-none"
-                          placeholder={`Đáp án ${letter}`}
-                        />
+                        {useChemicalInput ? (
+                          <ChemicalFormulaInput
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder={`Đáp án ${letter} (có thể chứa công thức hóa học)`}
+                            className="border-none shadow-none"
+                          />
+                        ) : (
+                          <Input
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            className="border-none shadow-none"
+                            placeholder={`Đáp án ${letter}`}
+                          />
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -319,12 +330,21 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormControl>
-                          <Input
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            placeholder={`Nhập câu ${letter.toLowerCase()}...`}
-                            className="border-none shadow-none"
-                          />
+                          {useChemicalInput ? (
+                            <ChemicalFormulaInput
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              placeholder={`Nhập câu ${letter.toLowerCase()} (có thể chứa công thức hóa học)...`}
+                              className="border-none shadow-none"
+                            />
+                          ) : (
+                            <Input
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              placeholder={`Nhập câu ${letter.toLowerCase()}...`}
+                              className="border-none shadow-none"
+                            />
+                          )}
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -378,12 +398,21 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <RichTextarea
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                      placeholder="Nhập đáp án cho câu hỏi tự luận..."
-                      className="text-base leading-relaxed"
-                    />
+                    {useChemicalInput ? (
+                      <ChemicalFormulaInput
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder="Nhập đáp án cho câu hỏi tự luận (có thể chứa công thức hóa học)..."
+                        className="text-base leading-relaxed"
+                      />
+                    ) : (
+                      <RichTextarea
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder="Nhập đáp án cho câu hỏi tự luận..."
+                        className="text-base leading-relaxed"
+                      />
+                    )}
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -559,6 +588,15 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                 </FormItem>
               )}
             />
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={useChemicalInput}
+                onCheckedChange={setUseChemicalInput}
+                className="border border-neutral-700"
+              />
+              <Label>Công thức hóa học</Label>
+            </div>
           </div>
 
           {/* Question content */}
@@ -568,12 +606,21 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
             render={({ field }) => (
               <FormItem className="mt-4">
                 <FormControl>
-                  <RichTextarea
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Nhập nội dung câu hỏi..."
-                    className="text-base leading-relaxed"
-                  />
+                  {useChemicalInput ? (
+                    <ChemicalFormulaInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Nhập nội dung câu hỏi với công thức hóa học..."
+                      className="text-base leading-relaxed"
+                    />
+                  ) : (
+                    <RichTextarea
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Nhập nội dung câu hỏi..."
+                      className="text-base leading-relaxed"
+                    />
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -662,12 +709,21 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
                   Giải thích đáp án
                 </FormLabel>
                 <FormControl>
-                  <RichTextarea
-                    value={field.value || ""}
-                    onChange={field.onChange}
-                    placeholder="Nhập giải thích cho đáp án..."
-                    className="text-base leading-relaxed text-neutral-700"
-                  />
+                  {useChemicalInput ? (
+                    <ChemicalFormulaInput
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      placeholder="Nhập giải thích cho đáp án (có thể chứa công thức hóa học)..."
+                      className="text-base leading-relaxed text-neutral-700"
+                    />
+                  ) : (
+                    <RichTextarea
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      placeholder="Nhập giải thích cho đáp án..."
+                      className="text-base leading-relaxed text-neutral-700"
+                    />
+                  )}
                 </FormControl>
               </FormItem>
             )}

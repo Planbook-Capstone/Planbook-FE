@@ -28,6 +28,7 @@ import { getDifficultyText, getVariant } from "@/constants";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import Image from "next/image";
+import ChemicalFormula from "@/components/ChemicalFormula";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -41,7 +42,10 @@ import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
-import { useLessonsByChaptersService, useLessonsByIdsService } from "@/services/lessonServices";
+import {
+  useLessonsByChaptersService,
+  useLessonsByIdsService,
+} from "@/services/lessonServices";
 import { Search, X, BookOpen } from "lucide-react";
 import { LessonSelectorModal } from "@/components/modals/LessonSelectorModal";
 // Types for form data - matching API format
@@ -111,9 +115,9 @@ function QuestionBankManagementPage() {
   // Get selected lessons data for display
   const selectedLessonsQueries = useLessonsByIdsService(selectedLessonIds);
   const selectedLessons = selectedLessonsQueries
-    .filter(query => query.data?.data)
-    .map(query => query.data.data)
-    .filter(lesson => lesson && lesson.name);
+    .filter((query) => query.data?.data)
+    .map((query) => query.data.data)
+    .filter((lesson) => lesson && lesson.name);
 
   // Filter questions by type and filters
   const questionsByType = useMemo(() => {
@@ -124,23 +128,29 @@ function QuestionBankManagementPage() {
 
     // Apply filters
     if (selectedLessonIds.length > 0) {
-      filteredQuestions = filteredQuestions.filter((question: QuestionBankItem) =>
-        selectedLessonIds.some(lessonId =>
-          question.lessonIds?.includes(lessonId) ||
-          question.lessonId === lessonId
-        )
+      filteredQuestions = filteredQuestions.filter(
+        (question: QuestionBankItem) =>
+          selectedLessonIds.some(
+            (lessonId) =>
+              question.lessonIds?.includes(lessonId) ||
+              question.lessonId === lessonId
+          )
       );
     }
 
     if (referenceFilter) {
-      filteredQuestions = filteredQuestions.filter((question: QuestionBankItem) =>
-        question.referenceSource?.toLowerCase().includes(referenceFilter.toLowerCase())
+      filteredQuestions = filteredQuestions.filter(
+        (question: QuestionBankItem) =>
+          question.referenceSource
+            ?.toLowerCase()
+            .includes(referenceFilter.toLowerCase())
       );
     }
 
     if (difficultyFilter && difficultyFilter !== "all") {
-      filteredQuestions = filteredQuestions.filter((question: QuestionBankItem) =>
-        question.difficultyLevel === difficultyFilter
+      filteredQuestions = filteredQuestions.filter(
+        (question: QuestionBankItem) =>
+          question.difficultyLevel === difficultyFilter
       );
     }
 
@@ -156,7 +166,12 @@ function QuestionBankManagementPage() {
         QuestionBankItem[]
       >
     );
-  }, [finalQuestionsData, selectedLessonIds, referenceFilter, difficultyFilter]);
+  }, [
+    finalQuestionsData,
+    selectedLessonIds,
+    referenceFilter,
+    difficultyFilter,
+  ]);
 
   // Get all unique lesson IDs from questions
   const allLessonIds = useMemo(() => {
@@ -385,7 +400,7 @@ function QuestionBankManagementPage() {
       </div>
 
       {/* Filter Section */}
-      <div className="bg-gray-50 p-4 rounded-lg mb-6">
+      <div className="bg-gray-50 p-4 rounded-lg mb-6 flex">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
           {/* Grade Filter */}
           <div className="space-y-2">
@@ -462,8 +477,7 @@ function QuestionBankManagementPage() {
                 <BookOpen className="w-4 h-4 mr-2" />
                 {selectedLessons.length > 0
                   ? `${selectedLessons.length} bài học đã chọn`
-                  : "Chọn bài học"
-                }
+                  : "Chọn bài học"}
               </Button>
 
               {/* Display selected lessons */}
@@ -479,7 +493,7 @@ function QuestionBankManagementPage() {
                         type="button"
                         onClick={() => {
                           const newLessonIds = selectedLessonIds.filter(
-                            id => id !== Number(lesson.id)
+                            (id) => id !== Number(lesson.id)
                           );
                           setSelectedLessonIds(newLessonIds);
                         }}
@@ -502,7 +516,7 @@ function QuestionBankManagementPage() {
               <Input
                 placeholder="Tìm theo nguồn..."
                 value={referenceFilter}
-                onChange={(e:any) => setReferenceFilter(e.target.value)}
+                onChange={(e: any) => setReferenceFilter(e.target.value)}
                 className="pl-10"
               />
               {referenceFilter && (
@@ -519,7 +533,10 @@ function QuestionBankManagementPage() {
           {/* Difficulty Filter */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Độ khó</Label>
-            <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+            <Select
+              value={difficultyFilter}
+              onValueChange={setDifficultyFilter}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn độ khó" />
               </SelectTrigger>
@@ -528,7 +545,6 @@ function QuestionBankManagementPage() {
                 <SelectItem value="KNOWLEDGE">Nhận biết</SelectItem>
                 <SelectItem value="COMPREHENSION">Thông hiểu</SelectItem>
                 <SelectItem value="APPLICATION">Vận dụng</SelectItem>
-                <SelectItem value="ANALYSIS">Phân tích</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -593,8 +609,10 @@ function QuestionBankManagementPage() {
                     </Button>
                   </div>
                 </div>
-                <p className="font-[600] text-lg">
-                  {question.questionContent.question}
+                <p className="text-lg">
+                  <ChemicalFormula
+                    formula={question.questionContent.question}
+                  />
                 </p>
                 {question.questionContent.image && (
                   <div className="max-w-full max-h-[250px] overflow-auto">
@@ -614,7 +632,7 @@ function QuestionBankManagementPage() {
                   Object.entries(question.questionContent.options)?.map(
                     ([key, value]) => (
                       <p key={key}>
-                        {key}. {String(value)}
+                        {key}. <ChemicalFormula formula={String(value)} />
                       </p>
                     )
                   )}
@@ -641,10 +659,12 @@ function QuestionBankManagementPage() {
                     }
                   )}
               </div>
-              <p className="text-purple-700 text-lg">
-                <span className="font-bold">Giải thích: </span>
-                {question?.explanation || "-"}
-              </p>
+              {question?.explanation && (
+                <p className="text-purple-700 text-lg">
+                  <span className="font-bold">Giải thích: </span>
+                  <ChemicalFormula formula={question?.explanation || "-"} />
+                </p>
+              )}
             </div>
           </div>
         ))}
