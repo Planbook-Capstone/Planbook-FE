@@ -80,6 +80,8 @@ export type BookTypeResponse = {
   updatedAt: string | null;
   priority: number | null;
   tokenCostPerQuery: number | null;
+  code?: string;
+  href?: string;
 };
 
 export type TagResponse = {

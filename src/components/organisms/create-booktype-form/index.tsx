@@ -52,7 +52,7 @@ const FormSchema = z.object({
       invalid_type_error: "Phải là số",
     })
     .int("Phải là số nguyên")
-    .gt(0, "Phải lớn hơn 0"),
+    .gte(0, "Phải lớn hơn hoặc bằng 0"),
   priority: z.coerce
     .number({
       invalid_type_error: "Phải là số",
@@ -60,6 +60,7 @@ const FormSchema = z.object({
     .int("Phải là số nguyên")
     .gt(0, "Phải lớn hơn 0"),
   icon: z.any(), // Use z.any() to avoid SSR issues with File type
+  code: z.string().min(1, "Vui lòng nhập mã chức năng"),
 });
 
 interface CreateBookTypeFormProps {
@@ -73,6 +74,7 @@ interface CreateBookTypeFormProps {
     tokenCostPerQuery: number;
     priority?: number;
     icon?: string; // base64
+    code?: string;
   };
 }
 
@@ -94,6 +96,7 @@ function CreateBookTypeForm({
       tokenCostPerQuery: initialValues?.tokenCostPerQuery || undefined,
       priority: initialValues?.priority || undefined,
       icon: undefined,
+      code: initialValues?.code || "",
     },
     mode: "onChange",
   });
@@ -118,7 +121,13 @@ function CreateBookTypeForm({
 
     // If a new file is uploaded, validate and convert it
     if (data.icon && data.icon instanceof File) {
-      const allowedTypes = ["image/svg+xml", "image/png", "image/jpeg", "image/jpg", "image/gif"];
+      const allowedTypes = [
+        "image/svg+xml",
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/gif",
+      ];
       if (!allowedTypes.includes(data.icon.type)) {
         toast.error("Chỉ chấp nhận file SVG, PNG, JPG, JPEG hoặc GIF");
         return;
@@ -137,6 +146,7 @@ function CreateBookTypeForm({
       tokenCostPerQuery: data.tokenCostPerQuery,
       icon: base64Icon,
       priority: data.priority,
+      code: data.code,
     };
 
     console.log("Payload gửi lên API:", payload);
@@ -228,7 +238,7 @@ function CreateBookTypeForm({
             <FormItem>
               <FormLabel>Chi phí token mỗi lượt truy vấn</FormLabel>
               <FormControl>
-                <Input type="number" min={1} {...field} />
+                <Input type="number" min={0} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -311,6 +321,7 @@ interface CreateBookTypeModalProps {
     tokenCostPerQuery: number;
     icon?: string;
     priority?: number;
+    code?: string;
   };
   isEdit?: boolean;
   open?: boolean;
