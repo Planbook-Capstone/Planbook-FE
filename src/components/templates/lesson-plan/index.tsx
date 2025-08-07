@@ -8,14 +8,19 @@ import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 import LoadingAI from "@/components/molecules/loading";
+import EditModeStatus from "@/components/molecules/edit-mode-status";
 import { toast } from "sonner";
-import { useUpdateToolResultService, useToolResultByIdService } from "@/services/toolResultService";
+import {
+  useUpdateToolResultService,
+  useToolResultByIdService,
+} from "@/services/toolResultService";
 
 // Custom hooks
 import { useLessonPlanData } from "./hooks/useLessonPlanData";
 import { useLessonPlanActions } from "./hooks/useLessonPlanActions";
 import { useLessonPlanDragDrop } from "./hooks/useLessonPlanDragDrop";
 import { useLessonPlanGeneration } from "./hooks/useLessonPlanGeneration";
+import { useLessonPlanSelection } from "./hooks/useLessonPlanSelection";
 
 // Types and constants
 import { getComponentPalette } from "./constants";
@@ -78,6 +83,22 @@ function LessonPlanTemplate() {
     findNodeById,
     removeNodeById,
     setTrashData,
+  });
+
+  // Use custom hooks for selection and clipboard
+  const {
+    selectedNodeIds,
+    clipboard,
+    handleNodeSelect,
+    handleCopy,
+    handleCut,
+    handlePaste,
+    clearSelection,
+  } = useLessonPlanSelection({
+    demoData,
+    setDemoData,
+    updateFinalData,
+    isEditMode: showDeleteButtons, // Use showDeleteButtons as edit mode indicator
   });
 
   // Handle step changes
@@ -314,6 +335,10 @@ function LessonPlanTemplate() {
               onUpdateNodeContent={handleInputChange}
               onMoveChildUp={moveChildUp}
               onMoveChildDown={moveChildDown}
+              isEditMode={showDeleteButtons}
+              selectedNodeIds={selectedNodeIds}
+              onNodeSelect={handleNodeSelect}
+              onPaste={handlePaste}
             />
           </>
         </div>
@@ -327,6 +352,13 @@ function LessonPlanTemplate() {
           lesson={lessonById?.data}
           onSaveResult={handleSaveResult}
           currentResultData={currentToolResult?.data}
+        />
+
+        {/* Edit Mode Status */}
+        <EditModeStatus
+          isEditMode={showDeleteButtons}
+          selectedCount={selectedNodeIds.size}
+          clipboard={clipboard}
         />
       </div>
     </DragDropContext>
