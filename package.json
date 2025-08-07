@@ -15,7 +15,7 @@
         "@dnd-kit/utilities": "^3.2.2",
         "@hello-pangea/dnd": "^18.0.1",
         "@hookform/resolvers": "^5.0.1",
-        "@next/swc-darwin-arm64": "^15.4.5",
+      
         "@nivo/bar": "^0.99.0",
         "@nivo/core": "^0.99.0",
         "@nivo/line": "^0.99.0",
