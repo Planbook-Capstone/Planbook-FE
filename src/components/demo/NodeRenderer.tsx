@@ -595,12 +595,12 @@ export default function NodeRenderer({
 
   return (
     <div
-      className={`relative group rounded-lg mb-2 bg-white px-2 ${sectionClass}`}
+      className={`relative group rounded-lg mb-2 bg-white px-0 py-1 pl-2 ${sectionClass}`}
     >
       {/* Data source indicator - only show for new components */}
       {isNewComponent && (
         <div className="absolute top-2 right-8">
-          <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+          <span className="text-xs px-2 rounded-full bg-green-100 text-green-700">
             Mới
           </span>
         </div>
@@ -610,7 +610,7 @@ export default function NodeRenderer({
       {showDeleteButtons && (
         <button
           onClick={() => onDeleteNode(node.id.toString())}
-          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+          className="absolute top-2 right-2 bg-red-500 cursor-pointer text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
         >
           ×
         </button>
