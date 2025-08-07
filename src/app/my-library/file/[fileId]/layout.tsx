@@ -57,16 +57,30 @@ export default function FileLayout({ children, params }: FileLayoutProps) {
         //   },
         // ]}
       />
-      <div className="grid grid-cols-3 p-5">
-        <div className="sticky top-0">
-          <DocumentInfoPanel documentInfo={data?.data} />
+      <div
+        className={
+          data?.data?.type === "SLIDE"
+            ? "grid grid-cols-5 p-5"
+            : "grid grid-cols-3 p-5"
+        }
+      >
+        <div className="h-full">
+          <DocumentInfoPanel
+            documentInfo={data?.data}
+            variant={data?.data?.type !== "EXAM" ? "secondary" : "primary"}
+          />
         </div>
         <div
           style={{
-            background: colorBgContainer,
+            background:
+              data?.data?.type === "SLIDE" ? "transparent" : colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
-          className="shadow-sm border col-span-2 min-h-screen overflow-y-auto"
+          className={`overflow-y-auto ${
+            data?.data?.type === "SLIDE"
+              ? "min-h-auto col-span-4"
+              : "min-h-screen col-span-2 shadow-sm border"
+          }`}
         >
           {children}
         </div>
