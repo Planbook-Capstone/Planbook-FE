@@ -17,10 +17,14 @@ interface DocumentInfo {
 
 interface DocumentInfoPanelProps {
   documentInfo?: DocumentInfo;
+  className?: string;
+  variant?: "primary" | "secondary";
 }
 
 export default function DocumentInfoPanel({
   documentInfo,
+  className = "",
+  variant = "primary",
 }: DocumentInfoPanelProps) {
   const defaultInfo = {
     name: "",
@@ -48,8 +52,48 @@ export default function DocumentInfoPanel({
     .filter((query: any) => query.data)
     .map((query: any) => query.data?.data)
     .filter(Boolean);
+  if (variant === "secondary") {
+    return (
+      <aside
+        className={`w-full px-6 py-6 space-y-6  sticky top-0 ${className}`}
+      >
+        {/* Lesson names at the top with font-calsans */}
+        <div className="space-y-2">
+          <div className="font-calsans text-lg text-gray-900">
+            {lessons?.map((lesson: any) => (
+              <div key={lesson?.id}>{lesson?.name}</div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
+            <div className="font-calsans text-nowrap ">Tên tài liệu</div>
+            <div className="font-questrial text-gray-900  leading-relaxed">
+              {info?.name}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
+            <div className="font-calsans text-nowrap">Mô tả</div>
+            <div className="font-questrial text-gray-900  leading-relaxed">
+              {info?.description}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
+            <div className="font-calsans text-nowrap ">Ngày tạo</div>
+            <div className="font-questrial text-gray-900  leading-relaxed">
+              {formatDate(info?.createdAt)}
+            </div>
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
   return (
-    <aside className="w-full px-6 py-6 space-y-6 ">
+    <aside className={`w-full px-6 py-6 space-y-6 ${className}`}>
       <div className="space-y-2">
         <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
           <div className="font-calsans text-nowrap ">Tên tài liệu</div>
@@ -61,14 +105,14 @@ export default function DocumentInfoPanel({
         <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
           <div className="font-calsans text-nowrap">Mô tả</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
-            {info.description}
+            {info?.description}
           </div>
         </div>
 
         <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
           <div className="font-calsans text-nowrap ">Bài học đã chọn</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
-            {lessons.map((lesson: any) => (
+            {lessons?.map((lesson: any) => (
               <div key={lesson.id}>{lesson.name}</div>
             ))}
           </div>
@@ -77,7 +121,7 @@ export default function DocumentInfoPanel({
         <div className="grid grid-cols-[1fr_2fr] gap-1 text-base">
           <div className="font-calsans text-nowrap ">Ngày tạo</div>
           <div className="font-questrial text-gray-900  leading-relaxed">
-            {formatDate(info.createdAt)}
+            {formatDate(info?.createdAt)}
           </div>
         </div>
       </div>

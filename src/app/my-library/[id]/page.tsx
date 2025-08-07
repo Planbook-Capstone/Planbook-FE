@@ -109,15 +109,8 @@ function MyLibraryDetail({ params }: Props) {
 
   // Handle click on tool result item
   const handleItemClick = (item: any) => {
-    // Check if the tool result type is SLIDE
-    if (item.type === "SLIDE") {
-      // Navigate to slide result editor with the tool result ID
-      router.push(`/results/slide/${item.id}`);
-    } else {
-      // For other types, you can add different handling here
-      router.push(`/my-library/file/${item.id}`);
-      // Future: router.push(`/results/lesson-plan/${item.id}`) etc.
-    }
+    // For other types, you can add different handling here
+    router.push(`/my-library/file/${item.id}`);
   };
 
   if (isLoading) {
