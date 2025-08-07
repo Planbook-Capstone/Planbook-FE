@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
+import Squares from "@/components/ui/Squares";
 
 interface ExamPageProps {
   params: Promise<{
@@ -326,30 +327,7 @@ export default function ExamPage({ params }: ExamPageProps) {
 
   if (!hasStarted) {
     return (
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
-        {/* Video Background */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover z-0"
-          style={{ pointerEvents: "none" }}
-        >
-          <source
-            src="https://res.cloudinary.com/dpo0ad3aq/video/upload/Typography_02_zq3bam.mp4"
-            type="video/mp4"
-          />
-          <source
-            src="https://res.cloudinary.com/dpo0ad3aq/video/upload/f_webm,q_auto/Typography_02_zq3bam.webm"
-            type="video/webm"
-          />
-        </video>
-
-        {/* Overlay để làm mờ video */}
-        <div className="absolute inset-0 bg-black/20 z-10"></div>
-
+      <div className="relative min-h-screen overflow-hidden">
         {/* Content wrapper */}
         <div className="relative z-20">
           {/* Header */}
@@ -410,8 +388,17 @@ export default function ExamPage({ params }: ExamPageProps) {
               </div>
             </header>
           </TooltipProvider>
+          <div className="absolute bg-white inset-0">
+            <Squares
+              direction="diagonal"
+              speed={0.5}
+              borderColor="grey"
+              squareSize={100}
+              hoverFillColor="rgba(200, 200, 200, 0.5)"
+            />
+          </div>
 
-          <div className="container mx-auto px-4 py-8">
+          <div className="relative z-10 flex min-h-screen items-center justify-center pointer-events-none">
             <StudentInfoForm
               examInfo={{
                 examName: examData.examName,
