@@ -69,44 +69,49 @@ export function StudentInfoForm({
   };
 
   return (
-    <div className={cn("max-w-2xl mx-auto space-y-6", className)}>
+    <div
+      className={cn(
+        "max-w-2xl mx-auto space-y-6 z-50 pointer-events-auto",
+        className
+      )}
+    >
       {/* Welcome Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-calsans text-white">
+        <h1 className="text-3xl font-calsans text-black">
           Chào mừng đến với bài thi
         </h1>
-        <p className="text-white/80">
+        <p className="text-black">
           Vui lòng nhập thông tin của bạn để bắt đầu làm bài
         </p>
       </div>
 
       {/* Exam Information */}
-      <Card className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+      <Card className="bg-white backdrop-blur-md border border-white/20 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-xl text-center text-white">
+          <CardTitle className="text-xl text-center text-black">
             {examInfo.examName}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 text-black">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-3 p-3 rounded-lg">
               <div>
-                <p className="text-sm text-white/60">Môn học</p>
-                <p className="font-medium text-white">{examInfo.subject}</p>
+                <p className="text-sm text-black/60">Môn học</p>
+                <p className="font-medium ">{examInfo.subject}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-lg">
               <div>
-                <p className="text-sm text-white/60">Lớp</p>
-                <p className="font-medium text-white">Lớp {examInfo.grade}</p>
+                <p className="text-sm ">Lớp</p>
+                <p className="font-medium ">Lớp {examInfo.grade}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-lg">
               <div>
-                <p className="text-sm text-white/60">Thời gian</p>
-                <p className="font-medium text-white">
+                <p className="text-sm text-black/60">Thời gian</p>
+                <p className="font-medium text-black">
                   {examInfo.durationMinutes} phút
                 </p>
               </div>
@@ -114,40 +119,33 @@ export function StudentInfoForm({
 
             <div className="flex items-center gap-3 p-3 rounded-lg">
               <div>
-                <p className="text-sm text-white/60">Mã đề</p>
-                <p className="font-medium font-questrial text-white">
+                <p className="text-sm text-black/60">Mã đề</p>
+                <p className="font-medium font-questrial">
                   {examInfo.code}
                 </p>
               </div>
             </div>
 
-            {examInfo.school && (
-              <div className="flex items-center gap-3 p-3 rounded-lg">
-                <div className="w-5 h-5 text-center font-calsans">🏫</div>
-                <div>
-                  <p className="text-sm text-gray-500">Trường học</p>
-                  <p className="font-medium">{examInfo.school}</p>
+            <div className="flex items-center gap-3 p-3 rounded-lg w-full">
+              {examInfo.school && (
+                <div >
+                  <div className="w-5 h-5 text-center font-calsans">🏫</div>
+                  <div>
+                    <p className="text-sm text-gray-500">Trường học</p>
+                    <p className="font-medium">{examInfo.school}</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {examInfo.examCode && (
-              <div className="flex items-center gap-3 p-3 rounded-lg">
-                <div>
-                  <p className="text-sm text-gray-500">Mã đề thi</p>
-                  <p className="font-medium font-mono">{examInfo.examCode}</p>
+              {examInfo.totalScore && (
+                <div >
+                  <div>
+                    <p className="text-sm text-gray-500">Tổng điểm</p>
+                    <p className="font-medium">{examInfo.totalScore} điểm</p>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {examInfo.totalScore && (
-              <div className="flex items-center gap-3 p-3 rounded-lg">
-                <div>
-                  <p className="text-sm text-gray-500">Tổng điểm</p>
-                  <p className="font-medium">{examInfo.totalScore} điểm</p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {examInfo.atomicMasses && (
@@ -161,9 +159,9 @@ export function StudentInfoForm({
       </Card>
 
       {/* Student Info Form */}
-      <Card className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+      <Card className="bg-white backdrop-blur-md border border-white/20 shadow-xl text-black z-50">
         <CardHeader>
-          <CardTitle className="text-xl text-white">
+          <CardTitle className="text-xl text-black">
             Thông tin học sinh
           </CardTitle>
         </CardHeader>
@@ -171,20 +169,18 @@ export function StudentInfoForm({
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleSubmit)}
-              className="space-y-6"
+              className="space-y-6 z-50"
             >
               <FormField
                 control={form.control}
                 name="studentName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base text-white">
-                      Họ và tên *
-                    </FormLabel>
+                    <FormLabel className="text-base ">Họ và tên *</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Nhập họ và tên của bạn..."
-                        className="text-base h-12 bg-white border-white/30 text-black placeholder:text-black/60"
+                        className="text-base h-12 bg-neutral-300 border-white/30 text-black placeholder:text-black/60 z-50"
                         {...field}
                       />
                     </FormControl>
