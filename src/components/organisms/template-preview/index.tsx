@@ -42,13 +42,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
           {/* Preview Content */}
           <div className="flex-1 overflow-y-auto p-0">
             {/* A4 Page Container */}
-            <div
-              className="max-w-[210mm] mx-auto bg-white shadow-lg border border-gray-200"
-              style={{
-                minHeight: "297mm",
-                fontFamily: "Times New Roman, serif",
-              }}
-            >
+            <div>
               <div
                 className="p-8 text-black"
                 style={{ fontSize: "12pt", lineHeight: "1.5" }}
@@ -246,19 +240,20 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   yesNoQuestions.length +
                                   index +
                                   1}
-                                :        <span>
-                                    {" "}
-                                    <Badge
-                                      variant={getVariant(
-                                        question.difficultyLevel
-                                      )}
-                                      className="text-xs"
-                                    >
-                                      {getDifficultyText(
-                                        question.difficultyLevel
-                                      )}
-                                    </Badge>
-                                  </span>
+                                :{" "}
+                                <span>
+                                  {" "}
+                                  <Badge
+                                    variant={getVariant(
+                                      question.difficultyLevel
+                                    )}
+                                    className="text-xs"
+                                  >
+                                    {getDifficultyText(
+                                      question.difficultyLevel
+                                    )}
+                                  </Badge>
+                                </span>
                               </span>{" "}
                               {question.question}
                             </p>

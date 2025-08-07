@@ -8,6 +8,7 @@ import {
   convertLineBreaksToBrTags,
 } from "@/utils/textUtils";
 import { RichTextarea } from "@/components/ui/rich-textarea";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 interface CellContent {
   text?: string;
@@ -49,6 +50,8 @@ interface NodeRendererProps {
   onDeleteNode: (nodeId: string) => void;
   onUpdateNodeTitle: (nodeId: string, title: string) => void;
   onUpdateNodeContent: (nodeId: string, content: string) => void;
+  onMoveChildUp?: (nodeId: string) => void;
+  onMoveChildDown?: (nodeId: string) => void;
 }
 
 // Auto-resize textarea component
@@ -117,6 +120,8 @@ export default function NodeRenderer({
   onDeleteNode,
   onUpdateNodeTitle,
   onUpdateNodeContent,
+  onMoveChildUp,
+  onMoveChildDown,
 }: NodeRendererProps) {
   // Get drop zone colors based on depth level
   const getDropZoneColors = (depth: number) => {
@@ -676,10 +681,49 @@ export default function NodeRenderer({
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`ml-4 ${
+                          className={`ml-4 relative group ${
                             snapshot.isDragging ? "opacity-50" : ""
                           }`}
                         >
+                          {/* Move up/down buttons - only show for children with depth > 0 */}
+                          {depth >= 0 && onMoveChildUp && onMoveChildDown && (
+                            <div className="absolute -left-8 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-1 z-10">
+                              {/* Move up button - disabled if first child */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onMoveChildUp(child.id.toString());
+                                }}
+                                disabled={index === 0}
+                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors ${
+                                  index === 0
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                    : "bg-blue-500 text-white hover:bg-blue-600"
+                                }`}
+                                title="Di chuyển lên"
+                              >
+                                <ChevronUp size={12} />
+                              </button>
+
+                              {/* Move down button - disabled if last child */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onMoveChildDown(child.id.toString());
+                                }}
+                                disabled={index === node.children.length - 1}
+                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors ${
+                                  index === node.children.length - 1
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                    : "bg-blue-500 text-white hover:bg-blue-600"
+                                }`}
+                                title="Di chuyển xuống"
+                              >
+                                <ChevronDown size={12} />
+                              </button>
+                            </div>
+                          )}
+
                           <NodeRenderer
                             node={child}
                             depth={depth + 1}
@@ -687,6 +731,8 @@ export default function NodeRenderer({
                             onDeleteNode={onDeleteNode}
                             onUpdateNodeTitle={onUpdateNodeTitle}
                             onUpdateNodeContent={onUpdateNodeContent}
+                            onMoveChildUp={onMoveChildUp}
+                            onMoveChildDown={onMoveChildDown}
                           />
                         </div>
                       )}

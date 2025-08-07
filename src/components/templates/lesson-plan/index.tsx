@@ -59,6 +59,8 @@ function LessonPlanTemplate() {
     removeNodeById,
     handleDeleteNode,
     handleRestoreNode,
+    moveChildUp,
+    moveChildDown,
   } = useLessonPlanActions({
     demoData,
     setDemoData,
@@ -310,6 +312,8 @@ function LessonPlanTemplate() {
               onDeleteNode={handleDeleteNode}
               onUpdateNodeTitle={handleTitleChange}
               onUpdateNodeContent={handleInputChange}
+              onMoveChildUp={moveChildUp}
+              onMoveChildDown={moveChildDown}
             />
           </>
         </div>
