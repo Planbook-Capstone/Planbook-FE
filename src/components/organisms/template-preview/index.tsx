@@ -154,7 +154,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   )
                                 )}
                               </div>
-                              <p className="text-green-500 font-bold">
+                              <p className="text-teal-600 font-bold">
                                 Đáp án: {question.answer}
                               </p>
                             </div>
@@ -212,11 +212,11 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                       </span>
                                       <span>{statement.text}</span>
                                       {statement.answer ? (
-                                        <span className="text-green-500 ml-2">
+                                        <span className="text-teal-600 font-[600] ml-2">
                                           Đúng
                                         </span>
                                       ) : (
-                                        <span className="text-green-500 ml-2">
+                                        <span className="text-teal-600 font-[600] ml-2">
                                           Sai
                                         </span>
                                       )}
@@ -271,7 +271,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                 />
                               </div>
                             )}
-                            <p className="text-green-500 font-bold">
+                            <p className="text-teal-600 font-bold">
                               Đáp án: {question.answer}
                             </p>
                           </div>

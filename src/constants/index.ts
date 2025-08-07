@@ -171,6 +171,6 @@ export const getDifficultyText = (level: string) => {
     case "ANALYSIS":
       return "Phân tích";
     default:
-      return level;
+      return "Chưa xác định";
   }
 };

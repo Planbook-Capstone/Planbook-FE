@@ -637,7 +637,7 @@ function QuestionBankManagementPage() {
                     )
                   )}
                 {question?.questionContent?.answer && (
-                  <p className="text-green-700">
+                  <p className="text-green-700 font-[600]">
                     Đáp án: {question.questionContent.answer}
                   </p>
                 )}
