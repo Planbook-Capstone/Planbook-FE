@@ -1,7 +1,7 @@
 const SERVICES = {
   AUTH: "identity-service",
   MASTER_DATA: "master-data-service",
-  LESSON_PLAN: "lesson-plan-service",
+  LESSON_PLAN: "lesson-plan-template-service",
   ACADEMIC_RESOURCE: "academic-resource-service",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
@@ -81,7 +81,8 @@ export const API_ENDPOINTS = {
     BASE: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-plan-templates"),
 
     NODES: buildEndpoint(SERVICES.LESSON_PLAN, "/lesson-nodes"),
-    TREE: (id: string) => `/lesson-plan-service/api/lesson-nodes/${id}/tree`,
+    TREE: (id: string) =>
+      buildEndpoint(SERVICES.LESSON_PLAN, `/lesson-nodes/${id}/tree`),
 
     CHIDREN: (nodeId: string) =>
       buildEndpoint(SERVICES.LESSON_PLAN, `/lesson-nodes/${nodeId}/children`),

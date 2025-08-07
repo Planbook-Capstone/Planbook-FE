@@ -77,23 +77,115 @@ export const useLessonPlanDragDrop = ({
     }
   }, [createNewNode, setDemoData, updateFinalData, addChildToNode]);
 
+  // Check if a node is a descendant of another node
+  const isDescendantOf = useCallback((nodeId: string, potentialAncestorId: string, nodeList: DemoNode[]): boolean => {
+    const node = findNodeById(nodeList, nodeId);
+    if (!node) return false;
+
+    // Check all children recursively
+    const checkChildren = (children: DemoNode[]): boolean => {
+      for (const child of children) {
+        if (child.id.toString() === potentialAncestorId) {
+          return true;
+        }
+        if (child.children && child.children.length > 0) {
+          if (checkChildren(child.children)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    return checkChildren(node.children || []);
+  }, [findNodeById]);
+
   // Handle dragging existing nodes to create children relationships
   const handleNodeToNode = useCallback((draggableId: string, destination: any) => {
     const parentId = destination.droppableId.replace("node-", "");
     const draggedNode = findNodeById(demoData, draggableId);
 
-    if (draggedNode && draggedNode.id.toString() !== parentId) {
-      // Remove the node from its current position
-      const updatedData = removeNodeById(demoData, draggableId);
-      setDemoData(updatedData);
-      updateFinalData(updatedData);
-
-      // Add it as a child to the target node
-      setTimeout(() => {
-        addChildToNode(parentId, { ...draggedNode, parentId });
-      }, 0);
+    // Prevent invalid operations
+    if (!draggedNode || draggedNode.id.toString() === parentId) {
+      return; // Can't drop node on itself
     }
-  }, [demoData, findNodeById, removeNodeById, setDemoData, updateFinalData, addChildToNode]);
+
+    // Prevent creating circular relationships (node becoming child of its own descendant)
+    if (isDescendantOf(draggableId, parentId, demoData)) {
+      console.warn("Cannot create circular parent-child relationship");
+      return;
+    }
+
+    // Create a function to recursively find and update nodes
+    const moveNodeToParent = (nodes: DemoNode[]): DemoNode[] => {
+      return nodes.map(node => {
+        // If this is the target parent node, add the dragged node as a child
+        if (node.id.toString() === parentId) {
+          const updatedDraggedNode = {
+            ...draggedNode,
+            parentId: parentId,
+            orderIndex: node.children.length // Add to end of children
+          };
+          return {
+            ...node,
+            children: [...node.children, updatedDraggedNode]
+          };
+        }
+
+        // If this node has children, recursively process them
+        if (node.children && node.children.length > 0) {
+          return {
+            ...node,
+            children: moveNodeToParent(node.children)
+          };
+        }
+
+        return node;
+      });
+    };
+
+    // Remove the node from its current position and add it to the new parent in one operation
+    const dataWithoutDraggedNode = removeNodeById(demoData, draggableId);
+    const finalData = moveNodeToParent(dataWithoutDraggedNode);
+
+    setDemoData(finalData);
+    updateFinalData(finalData);
+  }, [demoData, findNodeById, removeNodeById, setDemoData, updateFinalData, isDescendantOf]);
+
+  // Handle dragging child nodes back to main canvas (make them independent)
+  const handleChildToCanvas = useCallback((draggableId: string, destination: any) => {
+    const draggedNode = findNodeById(demoData, draggableId);
+
+    if (draggedNode) {
+      // Remove the node from its current position (including from children)
+      const updatedData = removeNodeById(demoData, draggableId);
+
+      // Create independent node (reset parentId and set proper orderIndex)
+      const maxOrderIndex = updatedData.length > 0 ? Math.max(...updatedData.map((n) => n.orderIndex)) : -1;
+      const independentNode = {
+        ...draggedNode,
+        parentId: null,
+        orderIndex: destination.index !== undefined ? destination.index : maxOrderIndex + 1,
+      };
+
+      // Insert at the specified position or at the end
+      const newData = [...updatedData];
+      if (destination.index !== undefined) {
+        newData.splice(destination.index, 0, independentNode);
+        // Update order indices for all nodes
+        const reorderedData = newData.map((item, index) => ({
+          ...item,
+          orderIndex: index,
+        }));
+        setDemoData(reorderedData);
+        updateFinalData(reorderedData);
+      } else {
+        const finalData = [...newData, independentNode].sort((a, b) => a.orderIndex - b.orderIndex);
+        setDemoData(finalData);
+        updateFinalData(finalData);
+      }
+    }
+  }, [demoData, findNodeById, removeNodeById, setDemoData, updateFinalData]);
 
   // Handle dragging to trash
   const handleDragToTrash = useCallback((draggableId: string) => {
@@ -144,6 +236,13 @@ export const useLessonPlanDragDrop = ({
       else if (destination.droppableId === "trash") {
         handleDragToTrash(draggableId);
       }
+      // Dragging child nodes back to main canvas (make them independent)
+      else if (
+        source.droppableId.startsWith("node-") &&
+        destination.droppableId === "demo-canvas"
+      ) {
+        handleChildToCanvas(draggableId, destination);
+      }
       // Reordering within canvas
       else if (
         source.droppableId === "demo-canvas" &&
@@ -152,7 +251,7 @@ export const useLessonPlanDragDrop = ({
         handleCanvasReorder(source, destination);
       }
     },
-    [handlePaletteToCanvas, handleNodeToNode, handleDragToTrash, handleCanvasReorder]
+    [handlePaletteToCanvas, handleNodeToNode, handleDragToTrash, handleChildToCanvas, handleCanvasReorder]
   );
 
   return {

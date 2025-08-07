@@ -282,6 +282,94 @@ export const useLessonPlanActions = ({
     [trashData, addChildToNode, findParentExists, demoData, setDemoData, setTrashData, updateFinalData]
   );
 
+  // Move child node up in parent's children list
+  const moveChildUp = useCallback(
+    (nodeId: string) => {
+      const updateNodeOrder = (nodeList: DemoNode[]): DemoNode[] => {
+        return nodeList.map((node) => {
+          if (node.children && node.children.length > 0) {
+            const childIndex = node.children.findIndex(
+              (child) => child.id.toString() === nodeId
+            );
+
+            if (childIndex > 0) {
+              // Found the child and it's not the first one
+              const updatedChildren = [...node.children];
+              // Swap with previous sibling
+              [updatedChildren[childIndex - 1], updatedChildren[childIndex]] =
+              [updatedChildren[childIndex], updatedChildren[childIndex - 1]];
+
+              // Update orderIndex for both nodes
+              updatedChildren[childIndex - 1].orderIndex = childIndex - 1;
+              updatedChildren[childIndex].orderIndex = childIndex;
+
+              return {
+                ...node,
+                children: updatedChildren,
+              };
+            }
+
+            // Recursively check children
+            return {
+              ...node,
+              children: updateNodeOrder(node.children),
+            };
+          }
+          return node;
+        });
+      };
+
+      const updatedData = updateNodeOrder(demoData);
+      setDemoData(updatedData);
+      updateFinalData(updatedData);
+    },
+    [demoData, setDemoData, updateFinalData]
+  );
+
+  // Move child node down in parent's children list
+  const moveChildDown = useCallback(
+    (nodeId: string) => {
+      const updateNodeOrder = (nodeList: DemoNode[]): DemoNode[] => {
+        return nodeList.map((node) => {
+          if (node.children && node.children.length > 0) {
+            const childIndex = node.children.findIndex(
+              (child) => child.id.toString() === nodeId
+            );
+
+            if (childIndex >= 0 && childIndex < node.children.length - 1) {
+              // Found the child and it's not the last one
+              const updatedChildren = [...node.children];
+              // Swap with next sibling
+              [updatedChildren[childIndex], updatedChildren[childIndex + 1]] =
+              [updatedChildren[childIndex + 1], updatedChildren[childIndex]];
+
+              // Update orderIndex for both nodes
+              updatedChildren[childIndex].orderIndex = childIndex;
+              updatedChildren[childIndex + 1].orderIndex = childIndex + 1;
+
+              return {
+                ...node,
+                children: updatedChildren,
+              };
+            }
+
+            // Recursively check children
+            return {
+              ...node,
+              children: updateNodeOrder(node.children),
+            };
+          }
+          return node;
+        });
+      };
+
+      const updatedData = updateNodeOrder(demoData);
+      setDemoData(updatedData);
+      updateFinalData(updatedData);
+    },
+    [demoData, setDemoData, updateFinalData]
+  );
+
   return {
     handleInputChange,
     handleTitleChange,
@@ -292,5 +380,7 @@ export const useLessonPlanActions = ({
     handleDeleteNode,
     findParentExists,
     handleRestoreNode,
+    moveChildUp,
+    moveChildDown,
   };
 };

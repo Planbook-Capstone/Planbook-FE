@@ -36,6 +36,8 @@ interface CanvasProps {
   onDeleteNode: (nodeId: string) => void;
   onUpdateNodeTitle: (nodeId: string, title: string) => void;
   onUpdateNodeContent: (nodeId: string, content: string) => void;
+  onMoveChildUp?: (nodeId: string) => void;
+  onMoveChildDown?: (nodeId: string) => void;
 }
 
 export default function Canvas({
@@ -43,7 +45,9 @@ export default function Canvas({
   showDeleteButtons,
   onDeleteNode,
   onUpdateNodeTitle,
-  onUpdateNodeContent
+  onUpdateNodeContent,
+  onMoveChildUp,
+  onMoveChildDown
 }: CanvasProps) {
   return (
     <div className="flex-1 p-1 overflow-y-auto">
@@ -86,6 +90,8 @@ export default function Canvas({
                           onDeleteNode={onDeleteNode}
                           onUpdateNodeTitle={onUpdateNodeTitle}
                           onUpdateNodeContent={onUpdateNodeContent}
+                          onMoveChildUp={onMoveChildUp}
+                          onMoveChildDown={onMoveChildDown}
                         />
                       </div>
                     )}
