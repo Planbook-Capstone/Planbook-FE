@@ -542,9 +542,33 @@ export default function NodeRenderer({
                     "bg-blue-50"
                   );
 
-                  const imageUrl = e.dataTransfer.getData("text/plain");
-                  if (imageUrl) {
-                    onUpdateNodeContent(node.id, imageUrl);
+                  // Try to get JSON data first (new format)
+                  const jsonData = e.dataTransfer.getData("application/json");
+                  if (jsonData) {
+                    try {
+                      const imageData = JSON.parse(jsonData);
+                      if (imageData.url) {
+                        // Update content with URL
+                        onUpdateNodeContent(node.id, imageData.url);
+                        // Always update description (can be null to clear existing description)
+                        if (onUpdateNodeDescription) {
+                          onUpdateNodeDescription(node.id, imageData.description || null);
+                        }
+                      }
+                    } catch (error) {
+                      console.error("Error parsing image data:", error);
+                      // Fallback to text/plain
+                      const imageUrl = e.dataTransfer.getData("text/plain");
+                      if (imageUrl) {
+                        onUpdateNodeContent(node.id, imageUrl);
+                      }
+                    }
+                  } else {
+                    // Fallback to text/plain for backward compatibility
+                    const imageUrl = e.dataTransfer.getData("text/plain");
+                    if (imageUrl) {
+                      onUpdateNodeContent(node.id, imageUrl);
+                    }
                   }
                 }}
               >
