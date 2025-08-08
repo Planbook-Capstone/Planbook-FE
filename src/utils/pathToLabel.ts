@@ -9,7 +9,7 @@ export const getPageLabel = (pathname: string): string => {
   const pathMap: Record<string, string> = {
     // Tools pages
     "/lesson-plan": "Tạo giáo án",
-    "/lesson-plan-demo": "Lesson plan-demo",
+    "/shuffle-exam": "Trộn đề theo ma trận",
     "/exam": "Thi trực tuyến",
     "/exam-matrix": "Tạo bài kiểm tra",
     "/exam-creation": "Tạo bài kiểm",

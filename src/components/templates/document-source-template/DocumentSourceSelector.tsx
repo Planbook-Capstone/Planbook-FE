@@ -1,0 +1,649 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import FolderCard from "@/components/molecules/folder-card";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  useToolResultByIdService,
+  useToolResultsWithParamsService,
+} from "@/services/toolResultService";
+import FileIcon from "@/components/ui/FileIcon";
+import TemplatePreview from "@/components/organisms/template-preview";
+import { Button } from "@/components/ui/Button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useGradesService } from "@/services/gradeServices";
+import { useSubjectsByGradeService } from "@/services/subjectServices";
+import { useBooksBySubjectService } from "@/services/bookServices";
+import { useChaptersByBookService } from "@/services/chapterServices";
+import { useLessonsByChaptersService } from "@/services/lessonServices";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useQuestionBanksWithParamsService } from "@/services/questionBankServices";
+import QuestionRenderer from "@/components/molecules/question-render/QuestionRenderer";
+
+interface Folder {
+  name: string;
+  colorId: string;
+  folderId: number;
+  type: string;
+}
+
+interface DocumentSourceSelectorProps {
+  folders: Folder[];
+  selectedFolder: number;
+  onFolderSelect: (folderId: number) => void;
+  onFileSelect?: (fileData: any) => void;
+  selectedFiles?: any[]; // Danh sách file đã chọn
+  title?: string;
+  subtitle?: string;
+  className?: string;
+}
+
+function DocumentSourceSelector({
+  folders,
+  selectedFolder,
+  onFolderSelect,
+  onFileSelect,
+  selectedFiles = [],
+  title = "Chọn nguồn tài liệu",
+  subtitle = "Chọn một thư mục chứa câu hỏi để tạo đề thi",
+  className = "",
+}: DocumentSourceSelectorProps) {
+  // State để lưu file được chọn
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+
+  // State để hiển thị thông báo
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // State cho SYSTEM filter
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedBook, setSelectedBook] = useState<string>("");
+  const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
+  const [selectedExamType, setSelectedExamType] = useState<string>("1"); // Mặc định dạng 1
+  const [selectedDifficultLevel, setSelectedDifficultLevel] = useState<
+    string[]
+  >(["all"]); // Mặc định all
+
+  // Ref cho scroll container
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const getSelectedFolderData = () => {
+    return folders?.find((f) => f.folderId === selectedFolder);
+  };
+
+  const handleFileSelect = (fileId: string) => {
+    setSelectedFileId(fileId);
+    console.log("Selected file ID:", fileId);
+  };
+
+  const getSelectedFileData = () => {
+    if (!selectedFileId || !toolResults?.data?.content) return null;
+    return toolResults.data.content.find(
+      (file: any) => file.id === selectedFileId
+    );
+  };
+
+  // Kiểm tra xem file đã được chọn chưa
+  const isFileAlreadySelected = (fileId: string) => {
+    return selectedFiles.some((file: any) => file.id === fileId);
+  };
+
+  // Handlers cho SYSTEM filter
+  const handleGradeChange = (gradeId: string) => {
+    setSelectedGrade(gradeId);
+    setSelectedSubject("");
+    setSelectedBook("");
+    setSelectedLessons([]);
+  };
+
+  const handleSubjectChange = (subjectId: string) => {
+    setSelectedSubject(subjectId);
+    setSelectedBook("");
+    setSelectedLessons([]);
+  };
+
+  const handleBookChange = (bookId: string) => {
+    setSelectedBook(bookId);
+    setSelectedLessons([]);
+  };
+
+  const handleLessonToggle = (lessonId: string) => {
+    setSelectedLessons((prev) =>
+      prev.includes(lessonId)
+        ? prev.filter((id) => id !== lessonId)
+        : [...prev, lessonId]
+    );
+  };
+
+  const handleDifficultLevelToggle = (level: string) => {
+    setSelectedDifficultLevel((prev) => {
+      if (level === "all") {
+        // Nếu chọn "Tất cả", bỏ chọn tất cả các mức độ khác
+        return ["all"];
+      }
+
+      // Nếu đang chọn "Tất cả" và chọn mức độ cụ thể, bỏ chọn "Tất cả"
+      let newLevels = prev.includes("all") ? [] : [...prev];
+
+      if (newLevels.includes(level)) {
+        // Bỏ chọn mức độ này
+        newLevels = newLevels.filter((l) => l !== level);
+        // Nếu không còn mức độ nào được chọn, chọn lại "Tất cả"
+        return newLevels.length === 0 ? ["all"] : newLevels;
+      } else {
+        // Thêm mức độ này vào danh sách
+        return [...newLevels, level];
+      }
+    });
+  };
+
+  const handleSelectLessons = () => {
+    if (selectedLessons.length > 0 && onFileSelect) {
+      const lessonsData = {
+        type: "LESSONS",
+        grade: selectedGrade,
+        subject: selectedSubject,
+        book: selectedBook,
+        lessons: selectedLessons,
+        examType: selectedExamType,
+        difficultLevel: selectedDifficultLevel,
+        lessonDetails: lessons.filter((lesson: any) =>
+          selectedLessons.includes(lesson.id.toString())
+        ),
+      };
+      onFileSelect(lessonsData);
+
+      // Hiển thị thông báo thành công
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 3000);
+    }
+  };
+
+  // Xử lý khi click button "Chọn"
+  const handleSelectFile = () => {
+    if (selectedFileId && fileData?.data?.data && onFileSelect) {
+      const selectedFileInfo = getSelectedFileData();
+      const fileDataToSend = {
+        ...selectedFileInfo,
+        content: fileData.data.data,
+      };
+      onFileSelect(fileDataToSend);
+
+      // Hiển thị thông báo thành công
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 3000); // Ẩn thông báo sau 3 giây
+    }
+  };
+
+  const { user } = useAuth();
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(13);
+
+  const {
+    data: toolResults,
+    refetch,
+    isLoading,
+  } = useToolResultsWithParamsService(
+    [currentPage, pageSize], // dependencies for query key
+    { retry: 1, staleTime: 0 }, // options
+    {
+      userId: user?.id,
+      page: currentPage + 1,
+      size: pageSize,
+      sort: "createdAt,desc",
+      type: "EXAM",
+      status: "ARCHIVED",
+    }
+  );
+
+  const { data: fileData } = useToolResultByIdService(selectedFileId || "");
+
+  // API calls cho SYSTEM filter
+  const { data: grades } = useGradesService();
+  const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
+    enabled: !!selectedGrade,
+  });
+  const { data: books } = useBooksBySubjectService(selectedSubject, {
+    enabled: !!selectedSubject,
+  });
+  const { data: chaptersResponse } = useChaptersByBookService(selectedBook, {
+    enabled: !!selectedBook,
+  });
+
+  const chapters = chaptersResponse?.data?.content || [];
+
+  // Get lessons by all chapter IDs
+  const lessonQueries = useLessonsByChaptersService(
+    chapters.map((ch: any) => ch.id)
+  );
+
+  // Flatten all lessons from all chapters
+  const lessons = lessonQueries
+    .filter((query) => query.data?.data?.content)
+    .flatMap((query) => query.data.data.content)
+    .filter((lesson: any) => lesson && lesson.id && lesson.name);
+
+  // Auto-select first file when data is loaded
+  useEffect(() => {
+    if (
+      !selectedFileId &&
+      toolResults?.data?.content &&
+      toolResults.data.content.length > 0 &&
+      getSelectedFolderData()?.type === "EXAM"
+    ) {
+      setSelectedFileId(toolResults.data.content[0].id);
+    }
+  }, [toolResults?.data?.content, selectedFileId, selectedFolder]);
+
+  // Map UI values to API values
+  const mapExamTypeToAPI = (examType: string) => {
+    const mapping: { [key: string]: string } = {
+      '1': 'PART_I',
+      '2': 'PART_II',
+      '3': 'PART_III'
+    };
+    return mapping[examType];
+  };
+
+  const mapDifficultLevelToAPI = (levels: string[]) => {
+    if (levels.includes('all')) return undefined;
+
+    const mapping: { [key: string]: string } = {
+      'nhan_biet': 'KNOWLEDGE',
+      'thong_hieu': 'COMPREHENSION',
+      'van_dung': 'APPLICATION'
+    };
+
+    return levels.map(level => mapping[level]).filter(Boolean).join(',');
+  };
+
+  const { data: questions } = useQuestionBanksWithParamsService(
+    [
+      selectedGrade,
+      selectedSubject,
+      selectedBook,
+      selectedLessons,
+      selectedExamType,
+      selectedDifficultLevel,
+    ], // dependencies for query key
+    { retry: 1, staleTime: 0 }, // options
+    {
+      lessonIds:
+        selectedLessons.length > 0 ? selectedLessons.join(",") : undefined,
+      questionTypes: mapExamTypeToAPI(selectedExamType),
+      difficultyLevels: mapDifficultLevelToAPI(selectedDifficultLevel),
+    }
+  );
+
+  // Scroll về top khi questions data thay đổi
+  useEffect(() => {
+    if (scrollContainerRef.current && questions?.data) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [questions?.data, selectedGrade, selectedSubject, selectedBook, selectedLessons, selectedExamType, selectedDifficultLevel]);
+
+  return (
+    <div className={`space-y-6 ${className}`}>
+      <div className="mb-8">
+        <h2 className="text-lg font-calsans">{title}</h2>
+        <h3 className="text-base font-questrial text-neutral-500">
+          {subtitle}
+        </h3>
+      </div>
+
+      {/* Two-column layout */}
+      <div className="grid grid-cols-5 gap-6">
+        {/* Left column - Folders */}
+        <div className="w-full col-span-2">
+          <div className="grid grid-cols-4 gap-4">
+            {folders?.map((f) => (
+              <div key={f.folderId} onClick={() => onFolderSelect(f.folderId)}>
+                <FolderCard
+                  id={f.folderId.toString()}
+                  colorId={f.colorId}
+                  title={f.name}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-4 py-3">
+            {getSelectedFolderData()?.type === "EXAM" &&
+              toolResults?.data?.content?.map((toolResult: any) => (
+                <div
+                  key={toolResult.id}
+                  onClick={() => handleFileSelect(toolResult.id)}
+                  className={`flex items-start justify-between border rounded-md px-4 py-4 relative cursor-pointer hover:shadow-md transition-all ${
+                    selectedFileId === toolResult.id
+                      ? "bg-blue-50 border-blue-300 shadow-md"
+                      : "bg-white border-gray-200"
+                  }`}
+                >
+                  <div className="flex gap-4">
+                    <FileIcon type={"DOCX"} size={"lg"} />
+                    <div className="text-sm flex flex-col gap-2">
+                      <p className="font-calsans text-base line-clamp-1">
+                        {toolResult.name}
+                      </p>
+                      <p className=" line-clamp-1 text-sm font-questrial">
+                        {toolResult.description}
+                      </p>
+                      <p className="text-xs font-questrial">
+                        {toolResult.updatedAt}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedFileId === toolResult.id && (
+                    <div className="absolute top-2 right-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+              ))}
+          </div>
+
+          {getSelectedFolderData()?.type === "SYSTEM" && (
+            <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-semibold text-gray-700">
+                Chọn bài học từ ngân hàng câu hỏi
+              </h4>
+
+              {/* Grade Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Khối học
+                </label>
+                <Select value={selectedGrade} onValueChange={handleGradeChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Chọn khối học" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades?.data?.content?.map((grade: any) => (
+                      <SelectItem
+                        key={grade.id.toString()}
+                        value={grade.id.toString()}
+                      >
+                        {grade.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Subject Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Môn học
+                </label>
+                <Select
+                  value={selectedSubject}
+                  onValueChange={handleSubjectChange}
+                  disabled={!selectedGrade}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        selectedGrade ? "Chọn môn học" : "Chọn khối học trước"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects?.data?.content?.map((subject: any) => (
+                      <SelectItem
+                        key={subject.id.toString()}
+                        value={subject.id.toString()}
+                      >
+                        {subject.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Book Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Sách
+                </label>
+                <Select
+                  value={selectedBook}
+                  onValueChange={handleBookChange}
+                  disabled={!selectedSubject}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        selectedSubject ? "Chọn sách" : "Chọn môn học trước"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {books?.data?.content?.map((book: any) => (
+                      <SelectItem
+                        key={book.id.toString()}
+                        value={book.id.toString()}
+                      >
+                        {book.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Exam Type Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Dạng đề
+                </label>
+                <Select
+                  value={selectedExamType}
+                  onValueChange={setSelectedExamType}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Chọn dạng đề" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Dạng 1</SelectItem>
+                    <SelectItem value="2">Dạng 2</SelectItem>
+                    <SelectItem value="3">Dạng 3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Difficult Level Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Mức độ khó (
+                  {selectedDifficultLevel.includes("all")
+                    ? "Tất cả"
+                    : selectedDifficultLevel.length + " đã chọn"}
+                  )
+                </label>
+                <div className="space-y-2 border rounded p-3 bg-white">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="level-all"
+                      checked={selectedDifficultLevel.includes("all")}
+                      onCheckedChange={() => handleDifficultLevelToggle("all")}
+                    />
+                    <label
+                      htmlFor="level-all"
+                      className="text-sm cursor-pointer flex-1 font-medium"
+                    >
+                      Tất cả
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="level-nhan-biet"
+                      checked={selectedDifficultLevel.includes("nhan_biet")}
+                      onCheckedChange={() =>
+                        handleDifficultLevelToggle("nhan_biet")
+                      }
+                    />
+                    <label
+                      htmlFor="level-nhan-biet"
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      Nhận biết
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="level-thong-hieu"
+                      checked={selectedDifficultLevel.includes("thong_hieu")}
+                      onCheckedChange={() =>
+                        handleDifficultLevelToggle("thong_hieu")
+                      }
+                    />
+                    <label
+                      htmlFor="level-thong-hieu"
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      Thông hiểu
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="level-van-dung"
+                      checked={selectedDifficultLevel.includes("van_dung")}
+                      onCheckedChange={() =>
+                        handleDifficultLevelToggle("van_dung")
+                      }
+                    />
+                    <label
+                      htmlFor="level-van-dung"
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      Vận dụng
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lesson Selection */}
+              {selectedBook && lessons.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Bài học ({selectedLessons.length} đã chọn)
+                  </label>
+                  <div className="max-h-40 overflow-y-auto space-y-2 border rounded p-2 bg-white">
+                    {lessons.map((lesson: any) => (
+                      <div
+                        key={lesson.id}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`lesson-${lesson.id}`}
+                          checked={selectedLessons.includes(
+                            lesson.id.toString()
+                          )}
+                          onCheckedChange={() =>
+                            handleLessonToggle(lesson.id.toString())
+                          }
+                        />
+                        <label
+                          htmlFor={`lesson-${lesson.id}`}
+                          className="text-sm cursor-pointer flex-1"
+                        >
+                          {lesson.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+
+                  {selectedLessons.length > 0 && (
+                    <div className="flex justify-between items-center pt-2">
+                      {showSuccessMessage && (
+                        <div className="text-green-600 text-sm font-medium">
+                          ✓ Đã chọn {selectedLessons.length} bài học!
+                        </div>
+                      )}
+                      <Button onClick={handleSelectLessons} className="ml-auto">
+                        Chọn {selectedLessons.length} bài học
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right column - Preview */}
+        <div
+          ref={scrollContainerRef}
+          className="w-full border rounded-md p-2 col-span-3 h-[700px] overflow-y-auto"
+        >
+          <div className="flex justify-between items-center">
+            {getSelectedFolderData()?.type === "SYSTEM" && (
+              <div className="p-4">
+                <h3 className="text-base font-calsans  text-gray-700 ">
+                  Ngân hàng câu hỏi
+                </h3>
+                <div className="space-y-5">
+                  {questions?.data?.map((question: any, idx: number) => (
+                    <div key={question.id}>
+                      <QuestionRenderer
+                        question={question}
+                        questionNumber={idx + 1}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="h-full">
+            {selectedFileId && getSelectedFolderData()?.type === "EXAM" && (
+              <>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-md font-semibold mb-4 text-gray-700">
+                    Xem trước nội dung
+                  </h3>
+                  {selectedFileId &&
+                    getSelectedFolderData()?.type === "EXAM" && (
+                      <div className="flex items-center gap-2">
+                        {showSuccessMessage && (
+                          <div className="text-green-600 text-sm font-medium">
+                            ✓ Đã chọn thành công!
+                          </div>
+                        )}
+                        <Button
+                          onClick={handleSelectFile}
+                          disabled={!selectedFileId || !fileData?.data?.data}
+                          variant={
+                            isFileAlreadySelected(selectedFileId || "")
+                              ? "outline"
+                              : "default"
+                          }
+                        >
+                          {isFileAlreadySelected(selectedFileId || "")
+                            ? "Đã chọn"
+                            : "Chọn"}
+                        </Button>
+                      </div>
+                    )}
+                </div>
+                <TemplatePreview data={fileData?.data?.data} />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default DocumentSourceSelector;

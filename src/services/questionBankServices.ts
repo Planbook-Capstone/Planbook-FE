@@ -4,6 +4,7 @@ import {
   updateMutationHook,
   deleteMutationHook,
   createQueryHook,
+  createDynamicQueryHook,
 } from "@/hooks/react-query";
 import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
 
@@ -117,4 +118,14 @@ export const useUpdateQuestionBankService = updateMutationHook(
 export const useDeleteQuestionBankService = deleteMutationHook(
   "questionBanks",
   EXAM_ENDPOINTS.QUESTION_BANKS
+);
+
+export const useQuestionBanksWithParamsService = createDynamicQueryHook(
+  "questionBanks",
+  EXAM_ENDPOINTS.QUESTION_BANKS
+);
+
+export const useShuffleExamService = createMutationHook(
+  "questionBanks",
+  EXAM_ENDPOINTS.EXAM_GENERATOR
 );
