@@ -43,7 +43,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         ))}
         {showAnswer && questionContent.answer && (
           <p className="text-green-700 font-[600]">
-            Đáp án: {questionContent.answer}
+            Đáp án: <ChemicalFormula formula={String(questionContent.answer)} />
           </p>
         )}
       </div>
@@ -59,7 +59,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           const statementValue = statement as { text: string; answer: boolean };
           return (
             <p key={key}>
-              {key}. {statementValue.text}{" "}
+              {key}. <ChemicalFormula formula={statementValue.text} />{" "}
               {showAnswer && (
                 <span className="text-green-700 font-bold">
                   {statementValue.answer ? "Đúng" : "Sai"}
@@ -77,7 +77,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       <div className="pl-12 grid grid-cols-1 space-y-2 mt-2 text-lg">
         {showAnswer && questionContent.answer && (
           <p className="text-green-700 font-[600]">
-            Đáp án: {questionContent?.answer}
+            Đáp án: <ChemicalFormula formula={String(questionContent.answer)} />
           </p>
         )}
       </div>

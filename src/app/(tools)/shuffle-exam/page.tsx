@@ -9,6 +9,8 @@ import { Steps } from "@/components/ui/steps";
 import { useShuffleExamService } from "@/services/questionBankServices";
 import { toast } from "sonner";
 import TemplatePreview from "@/components/organisms/template-preview";
+import { DowloadIcon } from "@/constants/icon";
+import { downloadExamAsDocx, downloadAllExamsAsDocx } from "@/utils/examDownloadUtils";
 
 interface ExamMatrixData {
   part1: { nb: number; th: number; vd: number };
@@ -97,9 +99,11 @@ function ShuffleExamPage() {
 
   // Callback để xử lý khi file được chọn từ DocumentSourceSelector
   const handleFileSelect = (fileData: any) => {
-    if (fileData.action === 'remove') {
+    if (fileData.action === "remove") {
       // Xóa file khỏi danh sách
-      setPersonalExams((prev) => prev.filter((exam) => exam.id !== fileData.fileId));
+      setPersonalExams((prev) =>
+        prev.filter((exam) => exam.id !== fileData.fileId)
+      );
       console.log("Removed file from selection:", fileData.fileId);
       return;
     }
@@ -181,6 +185,8 @@ function ShuffleExamPage() {
     return "";
   };
 
+  console.log(examResult);
+
   const handleSubmit = () => {
     if (canSubmit()) {
       // Transform matrixData to the expected API format
@@ -212,6 +218,8 @@ function ShuffleExamPage() {
       const apiPayload = {
         toolId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
         academicYearId: 1,
+        grade: examInfo.grade,
+        subject: examInfo.subject,
         school: examInfo.school,
         examTitle: examInfo.examTitle,
         duration: examInfo.duration,
@@ -259,8 +267,6 @@ function ShuffleExamPage() {
               title="Chọn nguồn tài liệu"
               subtitle="Chọn một thư mục chứa câu hỏi để tạo đề thi"
             />
-
-     
           </div>
         );
       case 2:
@@ -315,7 +321,7 @@ function ShuffleExamPage() {
               <h1 className="font-calsans w-full text-base lg:text-xl mb-4">
                 Mã đề
               </h1>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 lg:grid-cols-5 gap-2">
                 {examResult?.map((exam: any, index: number) => (
                   <Button
                     key={index}
@@ -330,6 +336,22 @@ function ShuffleExamPage() {
                     </p>
                   </Button>
                 ))}
+              </div>
+              <div className="grid grid-cols-2 gap-2 py-4">
+                <Button
+                  onClick={() => {
+                    if (examResult && examResult[selectedExamIndex]) {
+                      downloadExamAsDocx(
+                        examResult[selectedExamIndex].questionOnly
+                      );
+                    }
+                  }}
+                >
+                  {DowloadIcon} Tải đề này
+                </Button>
+                <Button variant="outline" onClick={() => downloadAllExamsAsDocx(examResult)}>
+                  {DowloadIcon} Tải tất cả
+                </Button>
               </div>
             </div>
 
@@ -422,8 +444,11 @@ function ShuffleExamPage() {
           {currentStep === 3 && (
             <Button
               onClick={() => {
-                // Logic để tải xuống hoặc xem đề thi
-                console.log("Download exam");
+                if (examResult && examResult[selectedExamIndex]) {
+                  downloadExamAsDocx(
+                    examResult[selectedExamIndex].questionOnly
+                  );
+                }
               }}
             >
               Tải xuống đề thi

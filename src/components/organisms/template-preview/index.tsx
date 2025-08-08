@@ -13,6 +13,7 @@ interface TemplatePreviewProps {
 }
 
 export default function TemplatePreview({ data }: TemplatePreviewProps) {
+  
   const handleDownload = async () => {
     // TODO: Implement download functionality for template
   };
@@ -55,19 +56,19 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                   <div className="flex justify-between items-start mb-4">
                     <div className="text-center" style={{ width: "30%" }}>
                       <p className="font-bold text-sm">
-                        BỘ GIÁO DỤC VÀ ĐÀO TẠO
+                        SỞ GIÁO DỤC VÀ ĐÀO TẠO
                       </p>
                       <p className="font-bold text-sm text-center mt-1">
                         ĐỀ THI CHÍNH THỨC
                       </p>
                     </div>
                     <div className="text-center flex-1">
-                      <p className="font-bold text-lg">KIỂM TRA CUỐI KỲ I</p>
+                      <p className="font-bold text-lg">{data?.examTitle?.toUpperCase() || "ĐỀ KIỂM TRA LỚP 12"}</p>
                       <p className="font-bold text-base mt-1">
-                        Môn: ........ - Lớp ........
+                        Môn: {data?.subject || "......"}. - Lớp {data?.grade || "....."}
                       </p>
                       <p className="text-sm mt-1">
-                        Thời gian làm bài: ..... phút, không kể thời gian phát
+                        Thời gian làm bài:{data?.duration || "..."} phút, không kể thời gian phát
                         đề
                       </p>
                     </div>
@@ -134,7 +135,11 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                     </Badge>
                                   </span>
                                 </span>{" "}
-                                {question.question}
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: question.question || ''
+                                  }}
+                                />
                               </p>
                               {question.illustrationImage && (
                                 <div className="mb-3">
@@ -152,15 +157,24 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                       <span className="font-medium mr-2">
                                         {key.toUpperCase()}.
                                       </span>
-                                      <span>{value as string}</span>
+                                      <span
+                                        dangerouslySetInnerHTML={{
+                                          __html: (value as string) || ''
+                                        }}
+                                      />
                                     </div>
                                   )
                                 )}
                               </div>
-                              <p className="text-teal-600 font-bold">
-                                {question?.answer &&
-                                  `Đáp án: ${question?.answer}`}
-                              </p>
+                              {question?.answer && (
+                                <p className="text-teal-600 font-bold">
+                                  Đáp án: <span
+                                    dangerouslySetInnerHTML={{
+                                      __html: question.answer
+                                    }}
+                                  />
+                                </p>
+                              )}
                             </div>
                           )
                         )}
@@ -219,7 +233,11 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                       <span className="font-medium mr-2">
                                         {key.toUpperCase()}.
                                       </span>
-                                      <span>{statement.text}</span>
+                                      <span
+                                        dangerouslySetInnerHTML={{
+                                          __html: statement.text || ''
+                                        }}
+                                      />
 
                                       {typeof statement?.answer ===
                                         "boolean" && (
@@ -284,10 +302,15 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                 />
                               </div>
                             )}
-                            <p className="text-teal-600 font-bold">
-                              {question?.answer &&
-                                `Đáp án: ${question?.answer}`}
-                            </p>
+                            {question?.answer && (
+                              <p className="text-teal-600 font-bold">
+                                Đáp án: <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: question.answer
+                                  }}
+                                />
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>
