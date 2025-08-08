@@ -36,7 +36,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
     yesNoQuestions.length +
     shortQuestions.length;
 
-  console.log(data);
+ 
 
   return (
     <div>
