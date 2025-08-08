@@ -8,7 +8,6 @@ import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 import LoadingAI from "@/components/molecules/loading";
-import EditModeStatus from "@/components/molecules/edit-mode-status";
 import { toast } from "sonner";
 import {
   useUpdateToolResultService,
@@ -21,6 +20,7 @@ import { useLessonPlanActions } from "./hooks/useLessonPlanActions";
 import { useLessonPlanDragDrop } from "./hooks/useLessonPlanDragDrop";
 import { useLessonPlanGeneration } from "./hooks/useLessonPlanGeneration";
 import { useLessonPlanSelection } from "./hooks/useLessonPlanSelection";
+import { useLessonPlanUndoRedo } from "./hooks/useLessonPlanUndoRedo";
 
 // Types and constants
 import { getComponentPalette } from "./constants";
@@ -99,6 +99,21 @@ function LessonPlanTemplate() {
     setDemoData,
     updateFinalData,
     isEditMode: showDeleteButtons, // Use showDeleteButtons as edit mode indicator
+  });
+
+  // Use custom hooks for undo/redo
+  const {
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    saveToHistory,
+    historyLength,
+    currentIndex,
+  } = useLessonPlanUndoRedo({
+    demoData,
+    setDemoData,
+    updateFinalData,
   });
 
   // Handle step changes
@@ -310,6 +325,10 @@ function LessonPlanTemplate() {
               onExportJSON={handleGenerationLessonPlan}
               sidebarCollapsed={sidebarCollapsed}
               onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={undo}
+              onRedo={redo}
             />
           </div>
 
@@ -352,13 +371,6 @@ function LessonPlanTemplate() {
           lesson={lessonById?.data}
           onSaveResult={handleSaveResult}
           currentResultData={currentToolResult?.data}
-        />
-
-        {/* Edit Mode Status */}
-        <EditModeStatus
-          isEditMode={showDeleteButtons}
-          selectedCount={selectedNodeIds.size}
-          clipboard={clipboard}
         />
       </div>
     </DragDropContext>

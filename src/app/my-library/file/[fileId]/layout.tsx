@@ -2,11 +2,14 @@
 import React from "react";
 import { theme } from "antd";
 import { DetailHeader } from "@/components/organisms/header/DetailHeader";
-import { Download, Share2, ChevronLeft } from "lucide-react";
+import { Download, Share2, ChevronLeft, Settings } from "lucide-react";
 import { getLibraryTypeName } from "@/constants";
 import { useToolResultByIdService } from "@/services/toolResultService";
 import { DowloadIcon } from "@/constants/icon";
-import DocumentInfoPanel from "@/components/organisms/document-panel";
+import DocumentInfoPanel, {
+  CustomButton,
+} from "@/components/organisms/document-panel";
+import { useRouter } from "next/navigation";
 
 interface FileLayoutProps {
   children: React.ReactNode;
@@ -19,8 +22,28 @@ export default function FileLayout({ children, params }: FileLayoutProps) {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   const { fileId } = React.use(params);
+  const router = useRouter();
 
   const { data } = useToolResultByIdService(fileId);
+
+  // Create custom buttons based on document type
+  const customButtons: CustomButton[] = React.useMemo(() => {
+    const buttons: CustomButton[] = [];
+
+    if (data?.data?.type === "SLIDE") {
+      buttons.push({
+        label: "Tùy chỉnh mẫu",
+        onClick: () => {
+          router.push(`/results/slide/${fileId}`);
+        },
+        variant: "custom",
+        icon: <Settings className="w-4 h-4" />,
+        className: "text-sm py-3",
+      });
+    }
+
+    return buttons;
+  }, [data?.data?.type, fileId, router]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -68,6 +91,7 @@ export default function FileLayout({ children, params }: FileLayoutProps) {
           <DocumentInfoPanel
             documentInfo={data?.data}
             variant={data?.data?.type !== "EXAM" ? "secondary" : "primary"}
+            customButtons={customButtons}
           />
         </div>
         <div
