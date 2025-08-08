@@ -1,6 +1,6 @@
 "use client";
 
-import { File, FileIcon, FileText } from "lucide-react";
+import { File, FileIcon, FileText, Undo2, Redo2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import Image from "next/image";
 
@@ -11,6 +11,11 @@ interface ToolbarProps {
   onExportJSON: () => void;
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
+  // Undo/Redo props
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export default function Toolbar({
@@ -20,6 +25,10 @@ export default function Toolbar({
   onExportJSON,
   sidebarCollapsed,
   onToggleSidebar,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
 }: ToolbarProps) {
   return (
     <div className=" p-4">
@@ -36,6 +45,36 @@ export default function Toolbar({
         </div> */}
 
         <div className="flex items-center gap-3">
+          {/* Undo/Redo buttons */}
+          {(onUndo || onRedo) && (
+            <div className="flex items-center gap-1 mr-2">
+              <Button
+                onClick={onUndo}
+                disabled={!canUndo}
+                variant="outline"
+                size="sm"
+                className="px-2"
+                title={`Undo (${
+                  navigator.platform.includes("Mac") ? "⌘" : "Ctrl"
+                }+Z)`}
+              >
+                <Undo2 size={16} />
+              </Button>
+              <Button
+                onClick={onRedo}
+                disabled={!canRedo}
+                variant="outline"
+                size="sm"
+                className="px-2"
+                title={`Redo (${
+                  navigator.platform.includes("Mac") ? "⌘⇧" : "Ctrl+Shift"
+                }+Z)`}
+              >
+                <Redo2 size={16} />
+              </Button>
+            </div>
+          )}
+
           <Button
             onClick={onExportJSON}
             className=" flex items-center justify-center bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"

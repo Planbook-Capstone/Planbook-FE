@@ -52,6 +52,11 @@ interface NodeRendererProps {
   onUpdateNodeContent: (nodeId: string, content: string) => void;
   onMoveChildUp?: (nodeId: string) => void;
   onMoveChildDown?: (nodeId: string) => void;
+  // Selection props
+  isEditMode?: boolean;
+  selectedNodeIds?: Set<string>;
+  onNodeSelect?: (nodeId: string, isCtrlPressed: boolean) => void;
+  onPaste?: (targetNodeId: string) => void;
 }
 
 // Auto-resize textarea component
@@ -122,6 +127,10 @@ export default function NodeRenderer({
   onUpdateNodeContent,
   onMoveChildUp,
   onMoveChildDown,
+  isEditMode = false,
+  selectedNodeIds = new Set(),
+  onNodeSelect,
+  onPaste,
 }: NodeRendererProps) {
   // Get drop zone colors based on depth level
   const getDropZoneColors = (depth: number) => {
@@ -593,9 +602,65 @@ export default function NodeRenderer({
   const isSection = node.type === "SECTION" || node.type === "SUBSECTION";
   const sectionClass = isSection ? " pl-4" : "";
 
+  // Check if this node is selected
+  const isSelected = selectedNodeIds.has(node.id);
+
+  // Check if this node can be a paste target (all nodes can have children now)
+  const canBePasteTarget = isEditMode;
+
+  // Handle node click for selection
+  const handleNodeClick = (e: React.MouseEvent) => {
+    if (isEditMode && onNodeSelect) {
+      // Don't select if clicking on input/textarea elements
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+        return;
+      }
+
+      e.stopPropagation();
+      const isCtrlPressed = e.ctrlKey || e.metaKey;
+      onNodeSelect(node.id, isCtrlPressed);
+    }
+  };
+
+  // Handle paste on right click or context menu
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault(); // Always prevent default context menu
+    e.stopPropagation(); // Stop event bubbling
+
+    console.log("🖱️ Right click on node:", node.id, "type:", node.type);
+    console.log("✏️ Edit mode:", isEditMode);
+    console.log("📋 Can be paste target:", canBePasteTarget);
+    console.log("🔧 onPaste function exists:", !!onPaste);
+
+    if (isEditMode && onPaste && canBePasteTarget) {
+      console.log("✅ Calling onPaste for node:", node.id);
+      onPaste(node.id);
+    } else {
+      console.log("❌ Paste not triggered - conditions not met");
+      if (!isEditMode) {
+        console.log("  - Not in edit mode");
+      }
+      if (!onPaste) {
+        console.log("  - No onPaste function");
+      }
+      if (!canBePasteTarget) {
+        console.log("  - Cannot be paste target (not in edit mode)");
+      }
+    }
+  };
+
   return (
     <div
-      className={`relative group rounded-lg mb-2 bg-white px-0 py-1 pl-2 ${sectionClass}`}
+      className={`relative group rounded-lg mb-2 bg-white px-0 py-1 pl-2 ${sectionClass} ${
+        isEditMode ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""
+      } ${isSelected ? "ring-2 ring-blue-500 bg-blue-50 shadow-md" : ""} ${
+        canBePasteTarget && !isSelected && isEditMode
+          ? "border border-dashed border-gray-300"
+          : ""
+      }`}
+      onClick={handleNodeClick}
+      onContextMenu={handleContextMenu}
     >
       {/* Data source indicator - only show for new components */}
       {isNewComponent && (
@@ -685,44 +750,47 @@ export default function NodeRenderer({
                             snapshot.isDragging ? "opacity-50" : ""
                           }`}
                         >
-                          {/* Move up/down buttons - only show for children with depth > 0 */}
-                          {depth >= 0 && onMoveChildUp && onMoveChildDown && (
-                            <div className="absolute -left-8 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-1 z-10">
-                              {/* Move up button - disabled if first child */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onMoveChildUp(child.id.toString());
-                                }}
-                                disabled={index === 0}
-                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors ${
-                                  index === 0
-                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                    : "bg-blue-500 text-white hover:bg-blue-600"
-                                }`}
-                                title="Di chuyển lên"
-                              >
-                                <ChevronUp size={12} />
-                              </button>
+                          {/* Move up/down buttons - only show in edit mode */}
+                          {depth >= 0 &&
+                            onMoveChildUp &&
+                            onMoveChildDown &&
+                            isEditMode && (
+                              <div className="absolute -left-8 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-1 z-10">
+                                {/* Move up button - disabled if first child */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onMoveChildUp(child.id.toString());
+                                  }}
+                                  disabled={index === 0}
+                                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors ${
+                                    index === 0
+                                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                      : "bg-blue-500 text-white hover:bg-blue-600"
+                                  }`}
+                                  title="Di chuyển lên"
+                                >
+                                  <ChevronUp size={12} />
+                                </button>
 
-                              {/* Move down button - disabled if last child */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onMoveChildDown(child.id.toString());
-                                }}
-                                disabled={index === node.children.length - 1}
-                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors ${
-                                  index === node.children.length - 1
-                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                    : "bg-blue-500 text-white hover:bg-blue-600"
-                                }`}
-                                title="Di chuyển xuống"
-                              >
-                                <ChevronDown size={12} />
-                              </button>
-                            </div>
-                          )}
+                                {/* Move down button - disabled if last child */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onMoveChildDown(child.id.toString());
+                                  }}
+                                  disabled={index === node.children.length - 1}
+                                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors ${
+                                    index === node.children.length - 1
+                                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                      : "bg-blue-500 text-white hover:bg-blue-600"
+                                  }`}
+                                  title="Di chuyển xuống"
+                                >
+                                  <ChevronDown size={12} />
+                                </button>
+                              </div>
+                            )}
 
                           <NodeRenderer
                             node={child}
@@ -733,6 +801,10 @@ export default function NodeRenderer({
                             onUpdateNodeContent={onUpdateNodeContent}
                             onMoveChildUp={onMoveChildUp}
                             onMoveChildDown={onMoveChildDown}
+                            isEditMode={isEditMode}
+                            selectedNodeIds={selectedNodeIds}
+                            onNodeSelect={onNodeSelect}
+                            onPaste={onPaste}
                           />
                         </div>
                       )}

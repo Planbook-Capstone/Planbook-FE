@@ -13,7 +13,9 @@ export const useLessonPlanData = () => {
   const [demoData, setDemoData] = useState<DemoNode[]>([]);
   const [trashData, setTrashData] = useState<DemoNode[]>([]);
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
-  const [activeTab, setActiveTab] = useState<"components" | "images" | "trash">("components");
+  const [activeTab, setActiveTab] = useState<"components" | "images" | "trash">(
+    "components"
+  );
   const [showPreview, setShowPreview] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -23,7 +25,9 @@ export const useLessonPlanData = () => {
   const lessonId = searchParams.get("lessonId");
 
   // API hooks
-  const { data: treeData } = useLessonPlanNodeTreeService(LESSON_PLAN_CONFIG.defaultLessonPlanId)();
+  const { data: treeData } = useLessonPlanNodeTreeService(
+    LESSON_PLAN_CONFIG.defaultLessonPlanId
+  )();
   const { data: lessonById } = useLessonByIdService(lessonId || "");
 
   const items = treeData?.data?.map((item: any) => ({
@@ -55,7 +59,10 @@ export const useLessonPlanData = () => {
   // Convert lesson plan data to DemoNode format
   const convertLessonPlanToDemoNode = useCallback(
     (lessonPlanData: any): DemoNode[] => {
-      console.log("🔄 convertLessonPlanToDemoNode called with:", lessonPlanData);
+      console.log(
+        "🔄 convertLessonPlanToDemoNode called with:",
+        lessonPlanData
+      );
 
       if (!lessonPlanData) {
         console.log("❌ No lesson plan data provided");
@@ -80,7 +87,9 @@ export const useLessonPlanData = () => {
           "SECTION",
           "SUBSECTION",
         ];
-        const nodeType = validTypes.includes(node.type) ? node.type : "PARAGRAPH";
+        const nodeType = validTypes.includes(node.type)
+          ? node.type
+          : "PARAGRAPH";
 
         return {
           id: node.id?.toString() || uuidv4(),
@@ -92,7 +101,9 @@ export const useLessonPlanData = () => {
           type: nodeType as any,
           orderIndex: node.orderIndex !== undefined ? node.orderIndex : index,
           metadata: node.metadata || {},
-          status: (node.status === "DELETED" ? "DELETED" : "ACTIVE") as "ACTIVE" | "DELETED",
+          status: (node.status === "DELETED" ? "DELETED" : "ACTIVE") as
+            | "ACTIVE"
+            | "DELETED",
           children: node.children
             ? node.children.map((child: any, childIndex: number) =>
                 convertNode(child, childIndex)
@@ -107,8 +118,14 @@ export const useLessonPlanData = () => {
       if (Array.isArray(lessonPlanData)) {
         console.log("📋 Processing array data, length:", lessonPlanData.length);
         result = lessonPlanData.map((node, index) => convertNode(node, index));
-      } else if (lessonPlanData.children && Array.isArray(lessonPlanData.children)) {
-        console.log("📋 Processing children data, length:", lessonPlanData.children.length);
+      } else if (
+        lessonPlanData.children &&
+        Array.isArray(lessonPlanData.children)
+      ) {
+        console.log(
+          "📋 Processing children data, length:",
+          lessonPlanData.children.length
+        );
         result = lessonPlanData.children.map((node: any, index: number) =>
           convertNode(node, index)
         );
@@ -146,7 +163,9 @@ export const useLessonPlanData = () => {
             orderIndex: apiNode.orderIndex || 0,
             metadata: apiNode.metadata,
             status: apiNode.status || "ACTIVE",
-            children: apiNode.children ? apiNode.children.map(convertApiToDemoNode) : [],
+            children: apiNode.children
+              ? apiNode.children.map(convertApiToDemoNode)
+              : [],
           };
         };
 
@@ -183,12 +202,12 @@ export const useLessonPlanData = () => {
     setCurrentStep,
     finalData,
     setFinalData,
-    
+
     // API data
     items,
     lessonById,
     lessonId,
-    
+
     // Utilities
     updateFinalData,
     convertLessonPlanToDemoNode,
