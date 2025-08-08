@@ -552,7 +552,8 @@ export default function NodeRenderer({
                         onUpdateNodeContent(node.id, imageData.url);
                         // Always update description (can be null to clear existing description)
                         if (onUpdateNodeDescription) {
-                          onUpdateNodeDescription(node.id, imageData.description || null);
+                          const newDescription = imageData.description || null;
+                          onUpdateNodeDescription(node.id, newDescription);
                         }
                       }
                     } catch (error) {
