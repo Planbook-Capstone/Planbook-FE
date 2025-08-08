@@ -10,11 +10,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit, Plus, XIcon, Copy } from "lucide-react";
+import { Edit, Plus, XIcon, Copy, Filter } from "lucide-react";
 import Link from "next/link";
 import { DynamicQuestionForm } from "@/components/forms/dynamic-question/DynamicQuestionForm";
 import {
-  useQuestionBanksService,
+  useQuestionBanksWithParamsService,
   useCreateQuestionBankService,
   useUpdateQuestionBankService,
   useDeleteQuestionBankService,
@@ -29,8 +29,6 @@ import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import Image from "next/image";
 import ChemicalFormula from "@/components/ChemicalFormula";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -46,8 +44,7 @@ import {
   useLessonsByChaptersService,
   useLessonsByIdsService,
 } from "@/services/lessonServices";
-import { Search, X, BookOpen } from "lucide-react";
-import { LessonSelectorModal } from "@/components/modals/LessonSelectorModal";
+import { Checkbox } from "@/components/ui/checkbox";
 // Types for form data - matching API format
 interface QuestionFormData {
   lessonIds?: number[];
@@ -73,15 +70,51 @@ function QuestionBankManagementPage() {
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedBook, setSelectedBook] = useState<string>("");
-  const [selectedLessonIds, setSelectedLessonIds] = useState<number[]>([]);
-  const [referenceFilter, setReferenceFilter] = useState<string>("");
-  const [difficultyFilter, setDifficultyFilter] = useState<string>("");
-  const [isLessonModalOpen, setIsLessonModalOpen] = useState(false);
+  const [selectedExamType, setSelectedExamType] = useState<string>("");
+  const [selectedDifficultLevel, setSelectedDifficultLevel] = useState<
+    string[]
+  >(["all"]);
+  const [selectedLessonsList, setSelectedLessonsList] = useState<string[]>([]);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
 
-  // API hooks
-  const { data: questionsData } = useQuestionBanksService();
+  const mapDifficultLevelToAPI = (levels: string[]) => {
+    if (levels.includes("all")) return undefined;
 
-  // Use mock data if real data is not available
+    const mapping: { [key: string]: string } = {
+      nhan_biet: "KNOWLEDGE",
+      thong_hieu: "COMPREHENSION",
+      van_dung: "APPLICATION",
+    };
+
+    return levels
+      .map((level) => mapping[level])
+      .filter(Boolean)
+      .join(",");
+  };
+
+  // API hooks with filter parameters
+  const { data: questionsData } = useQuestionBanksWithParamsService(
+    [
+      selectedGrade,
+      selectedSubject,
+      selectedBook,
+      selectedLessonsList,
+      selectedExamType,
+      selectedDifficultLevel,
+    ], // dependencies for query key
+    { retry: 1, staleTime: 0 }, // options
+    {
+      lessonIds:
+        selectedLessonsList.length > 0
+          ? selectedLessonsList.join(",")
+          : undefined,
+      questionTypes: selectedExamType,
+      difficultyLevels: mapDifficultLevelToAPI(selectedDifficultLevel),
+    }
+  );
+
+  // Use filtered data
   const finalQuestionsData = questionsData;
   const createMutation = useCreateQuestionBankService();
   const updateMutation = useUpdateQuestionBankService();
@@ -112,49 +145,12 @@ function QuestionBankManagementPage() {
     .flatMap((query) => query.data.data.content)
     .filter((lesson: any) => lesson && lesson.id && lesson.name);
 
-  // Get selected lessons data for display
-  const selectedLessonsQueries = useLessonsByIdsService(selectedLessonIds);
-  const selectedLessons = selectedLessonsQueries
-    .filter((query) => query.data?.data)
-    .map((query) => query.data.data)
-    .filter((lesson) => lesson && lesson.name);
-
-  // Filter questions by type and filters
+  // Group questions by type - API already handles filtering
   const questionsByType = useMemo(() => {
     if (!finalQuestionsData?.data)
       return { PART_I: [], PART_II: [], PART_III: [] };
 
-    let filteredQuestions = finalQuestionsData.data;
-
-    // Apply filters
-    if (selectedLessonIds.length > 0) {
-      filteredQuestions = filteredQuestions.filter(
-        (question: QuestionBankItem) =>
-          selectedLessonIds.some(
-            (lessonId) =>
-              question.lessonIds?.includes(lessonId) ||
-              question.lessonId === lessonId
-          )
-      );
-    }
-
-    if (referenceFilter) {
-      filteredQuestions = filteredQuestions.filter(
-        (question: QuestionBankItem) =>
-          question.referenceSource
-            ?.toLowerCase()
-            .includes(referenceFilter.toLowerCase())
-      );
-    }
-
-    if (difficultyFilter && difficultyFilter !== "all") {
-      filteredQuestions = filteredQuestions.filter(
-        (question: QuestionBankItem) =>
-          question.difficultyLevel === difficultyFilter
-      );
-    }
-
-    return filteredQuestions.reduce(
+    return finalQuestionsData.data.reduce(
       (acc: Record<string, QuestionBankItem[]>, question: QuestionBankItem) => {
         const type = question.questionType;
         if (!acc[type]) acc[type] = [];
@@ -166,12 +162,7 @@ function QuestionBankManagementPage() {
         QuestionBankItem[]
       >
     );
-  }, [
-    finalQuestionsData,
-    selectedLessonIds,
-    referenceFilter,
-    difficultyFilter,
-  ]);
+  }, [finalQuestionsData]);
 
   // Get all unique lesson IDs from questions
   const allLessonIds = useMemo(() => {
@@ -362,9 +353,71 @@ function QuestionBankManagementPage() {
     setIsModalOpen(true);
   };
 
+  // Handler functions for new filter UI
+  const handleGradeChange = (value: string) => {
+    setSelectedGrade(value);
+    setSelectedSubject("");
+    setSelectedBook("");
+    setSelectedLessonsList([]);
+  };
+
+  const handleSubjectChange = (value: string) => {
+    setSelectedSubject(value);
+    setSelectedBook("");
+    setSelectedLessonsList([]);
+  };
+
+  const handleBookChange = (value: string) => {
+    setSelectedBook(value);
+    setSelectedLessonsList([]);
+  };
+
+  const handleDifficultLevelToggle = (level: string) => {
+    if (level === "all") {
+      if (selectedDifficultLevel.includes("all")) {
+        setSelectedDifficultLevel([]);
+      } else {
+        setSelectedDifficultLevel(["all"]);
+      }
+    } else {
+      const newLevels = selectedDifficultLevel.filter((l) => l !== "all");
+      if (newLevels.includes(level)) {
+        setSelectedDifficultLevel(newLevels.filter((l) => l !== level));
+      } else {
+        setSelectedDifficultLevel([...newLevels, level]);
+      }
+    }
+  };
+
+  const handleLessonToggle = (lessonId: string) => {
+    if (selectedLessonsList.includes(lessonId)) {
+      setSelectedLessonsList(
+        selectedLessonsList.filter((id) => id !== lessonId)
+      );
+    } else {
+      setSelectedLessonsList([...selectedLessonsList, lessonId]);
+    }
+  };
+
+  const handleSelectLessons = () => {
+    setShowSuccessMessage(true);
+    setTimeout(() => setShowSuccessMessage(false), 3000);
+  };
+
   return (
     <div className="px-5">
-      <div className="pb-2 flex justify-end">
+      <div className="pb-2 flex justify-between items-center">
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => setShowFilter(!showFilter)}
+          >
+            <Filter className="w-4 h-4" />
+            {showFilter ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
+          </Button>
+        </div>
         <div className="flex gap-2">
           <Button
             size={"sm"}
@@ -400,176 +453,188 @@ function QuestionBankManagementPage() {
       </div>
 
       {/* Filter Section */}
-      <div className="bg-gray-50 p-4 rounded-lg mb-6 flex">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          {/* Grade Filter */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Khối lớp</Label>
-            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn khối lớp" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                {grades?.data?.content?.map((grade: any) => (
-                  <SelectItem key={grade.id} value={grade.id.toString()}>
-                    {grade.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Subject Filter */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Môn học</Label>
-            <Select
-              value={selectedSubject}
-              onValueChange={setSelectedSubject}
-              disabled={!selectedGrade}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn môn học" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                {subjects?.data?.content?.map((subject: any) => (
-                  <SelectItem key={subject.id} value={subject.id.toString()}>
-                    {subject.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Book Filter */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Sách giáo khoa</Label>
-            <Select
-              value={selectedBook}
-              onValueChange={setSelectedBook}
-              disabled={!selectedSubject}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn sách" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                {books?.data?.content?.map((book: any) => (
-                  <SelectItem key={book.id} value={book.id.toString()}>
-                    {book.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Lesson Filter */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Bài học</Label>
-            <div className="space-y-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsLessonModalOpen(true)}
-                className="w-full justify-start text-left"
-              >
-                <BookOpen className="w-4 h-4 mr-2" />
-                {selectedLessons.length > 0
-                  ? `${selectedLessons.length} bài học đã chọn`
-                  : "Chọn bài học"}
-              </Button>
-
-              {/* Display selected lessons */}
-              {selectedLessons.length > 0 && (
-                <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
-                  {selectedLessons.map((lesson, lessonIndex) => (
-                    <span
-                      key={lessonIndex}
-                      className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full"
-                    >
-                      {lesson.name}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newLessonIds = selectedLessonIds.filter(
-                            (id) => id !== Number(lesson.id)
-                          );
-                          setSelectedLessonIds(newLessonIds);
-                        }}
-                        className="ml-1 hover:text-blue-900"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Reference Source Filter */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Nguồn tham khảo</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Tìm theo nguồn..."
-                value={referenceFilter}
-                onChange={(e: any) => setReferenceFilter(e.target.value)}
-                className="pl-10"
-              />
-              {referenceFilter && (
-                <button
-                  onClick={() => setReferenceFilter("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+      {showFilter && (
+        <div className="space-y-4 p-4 bg-gray-50 rounded-lg mb-6 grid grid-cols-6 gap-5">
+        {/* Grade Selection */}
+        <div className="space-y-2 ">
+          <label className="text-sm font-medium text-gray-700">Khối học</label>
+          <Select value={selectedGrade} onValueChange={handleGradeChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Chọn khối học" />
+            </SelectTrigger>
+            <SelectContent>
+              {grades?.data?.content?.map((grade: any) => (
+                <SelectItem
+                  key={grade.id.toString()}
+                  value={grade.id.toString()}
                 >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+                  {grade.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Subject Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Môn học</label>
+          <Select
+            value={selectedSubject}
+            onValueChange={handleSubjectChange}
+            disabled={!selectedGrade}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue
+                placeholder={
+                  selectedGrade ? "Chọn môn học" : "Chọn khối học trước"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {subjects?.data?.content?.map((subject: any) => (
+                <SelectItem
+                  key={subject.id.toString()}
+                  value={subject.id.toString()}
+                >
+                  {subject.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Book Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Sách</label>
+          <Select
+            value={selectedBook}
+            onValueChange={handleBookChange}
+            disabled={!selectedSubject}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue
+                placeholder={
+                  selectedSubject ? "Chọn sách" : "Chọn môn học trước"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {books?.data?.content?.map((book: any) => (
+                <SelectItem key={book.id.toString()} value={book.id.toString()}>
+                  {book.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Difficult Level Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">
+            Mức độ khó (
+            {selectedDifficultLevel.includes("all")
+              ? "Tất cả"
+              : selectedDifficultLevel.length + " đã chọn"}
+            )
+          </label>
+          <div className="space-y-2 border rounded p-3 bg-white">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="level-all"
+                checked={selectedDifficultLevel.includes("all")}
+                onCheckedChange={() => handleDifficultLevelToggle("all")}
+              />
+              <label
+                htmlFor="level-all"
+                className="text-sm cursor-pointer flex-1 font-medium"
+              >
+                Tất cả
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="level-nhan-biet"
+                checked={selectedDifficultLevel.includes("nhan_biet")}
+                onCheckedChange={() => handleDifficultLevelToggle("nhan_biet")}
+              />
+              <label
+                htmlFor="level-nhan-biet"
+                className="text-sm cursor-pointer flex-1"
+              >
+                Nhận biết
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="level-thong-hieu"
+                checked={selectedDifficultLevel.includes("thong_hieu")}
+                onCheckedChange={() => handleDifficultLevelToggle("thong_hieu")}
+              />
+              <label
+                htmlFor="level-thong-hieu"
+                className="text-sm cursor-pointer flex-1"
+              >
+                Thông hiểu
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="level-van-dung"
+                checked={selectedDifficultLevel.includes("van_dung")}
+                onCheckedChange={() => handleDifficultLevelToggle("van_dung")}
+              />
+              <label
+                htmlFor="level-van-dung"
+                className="text-sm cursor-pointer flex-1"
+              >
+                Vận dụng
+              </label>
             </div>
           </div>
+        </div>
 
-          {/* Difficulty Filter */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Độ khó</Label>
-            <Select
-              value={difficultyFilter}
-              onValueChange={setDifficultyFilter}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn độ khó" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="KNOWLEDGE">Nhận biết</SelectItem>
-                <SelectItem value="COMPREHENSION">Thông hiểu</SelectItem>
-                <SelectItem value="APPLICATION">Vận dụng</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Lesson Selection */}
+        {selectedBook && filterLessons.length > 0 && (
+          <div className="space-y-2 col-span-2">
+            <label className="text-sm font-medium text-gray-700">
+              Bài học ({selectedLessonsList.length} đã chọn)
+            </label>
+            <div className="max-h-40 overflow-y-auto space-y-2 border rounded p-2 bg-white">
+              {filterLessons?.map((lesson: any) => (
+                <div key={lesson.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`lesson-${lesson.id}`}
+                    checked={selectedLessonsList.includes(lesson.id.toString())}
+                    onCheckedChange={() =>
+                      handleLessonToggle(lesson.id.toString())
+                    }
+                  />
+                  <label
+                    htmlFor={`lesson-${lesson.id}`}
+                    className="text-sm cursor-pointer flex-1"
+                  >
+                    {lesson.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+
+            {selectedLessonsList.length > 0 && (
+              <div className="flex justify-between items-center pt-2">
+                {showSuccessMessage && (
+                  <div className="text-green-600 text-sm font-medium">
+                    ✓ Đã chọn {selectedLessonsList.length} bài học!
+                  </div>
+                )}
+                <Button onClick={handleSelectLessons} className="ml-auto">
+                  Chọn {selectedLessonsList.length} bài học
+                </Button>
+              </div>
+            )}
           </div>
-        </div>
-
-        {/* Clear Filters Button */}
-        <div className="mt-4 flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSelectedGrade("");
-              setSelectedSubject("");
-              setSelectedBook("");
-              setSelectedLessonIds([]);
-              setReferenceFilter("");
-              setDifficultyFilter("");
-            }}
-            className="flex items-center gap-2"
-          >
-            <X className="h-4 w-4" />
-            Xóa bộ lọc
-          </Button>
-        </div>
+        )}
       </div>
+      )}
 
       {/* Questions List */}
       <div className="space-y-4">
@@ -707,17 +772,6 @@ function QuestionBankManagementPage() {
           questionToDelete?.questionContent.question.substring(0, 50) + "..."
         }
         isLoading={deleteMutation.isPending}
-      />
-
-      {/* Lesson Selector Modal */}
-      <LessonSelectorModal
-        isOpen={isLessonModalOpen}
-        onClose={() => setIsLessonModalOpen(false)}
-        onConfirm={(selectedLessonIds) => {
-          setSelectedLessonIds(selectedLessonIds);
-        }}
-        selectedLessonIds={selectedLessonIds}
-        title="Chọn bài học để lọc"
       />
     </div>
   );

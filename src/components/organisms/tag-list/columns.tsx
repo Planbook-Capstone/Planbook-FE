@@ -1,21 +1,17 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { TagResponse } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/Button";
-import { MoreVertical } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
-import UpdateGradeModal from "../update-grade-modal";
-import { useState } from "react";
-import { useUpdateGradeStatus } from "@/services/gradeServices";
 
-export const tagColumns: ColumnDef<TagResponse>[] = [
+import { Button } from "@/components/ui/Button";
+import { Edit } from "lucide-react";
+
+interface TagColumnHandlers {
+  onEdit: (tag: TagResponse) => void;
+}
+
+export const tagColumns = (
+  handlers: TagColumnHandlers
+): ColumnDef<TagResponse>[] => [
   {
     id: "index",
     header: "STT",
@@ -32,5 +28,25 @@ export const tagColumns: ColumnDef<TagResponse>[] = [
     accessorKey: "description",
     header: "Mô tả",
     cell: ({ row }) => row.original.description,
+  },
+  {
+    id: "actions",
+    header: "Hành động",
+    cell: ({ row }) => {
+      const tag = row.original;
+      return (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handlers.onEdit(tag)}
+            className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+            title="Chỉnh sửa"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+        </div>
+      );
+    },
   },
 ];

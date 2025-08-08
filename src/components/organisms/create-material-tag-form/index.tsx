@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Plus } from "lucide-react";
 import { tagSchema } from "@/schemas";
-import { useCreateTagService } from "@/services/tagServices";
+import { useCreateTagService, useUpdateTagService } from "@/services/tagServices";
 
 interface CreateMaterialTagFormProps {
   onClose?: () => void;
@@ -34,12 +34,14 @@ interface CreateMaterialTagFormProps {
     name: string;
     description: string;
   };
+  isEdit?: boolean;
 }
 
 function CreateMaterialTagForm({
   onClose,
   onSuccess,
   initialValues,
+  isEdit = false,
 }: CreateMaterialTagFormProps) {
   const form = useForm<z.infer<typeof tagSchema>>({
     resolver: zodResolver(tagSchema),
@@ -51,19 +53,37 @@ function CreateMaterialTagForm({
   });
 
   const { mutate: createTag } = useCreateTagService();
+  const { mutate: updateTag } = useUpdateTagService();
 
   const onSubmit = (data: z.infer<typeof tagSchema>) => {
-    createTag(data, {
-      onSuccess: () => {
-        toast.success("Tạo loại học liệu thành công!");
-        form.reset();
-        onClose?.();
-        onSuccess?.();
-      },
-      onError: (error) => {
-        toast.error("Tạo loại học liệu thất bại");
-      },
-    });
+    if (isEdit && initialValues?.id) {
+      updateTag(
+        { id: initialValues.id, data },
+        {
+          onSuccess: () => {
+            toast.success("Cập nhật loại học liệu thành công!");
+            form.reset();
+            onClose?.();
+            onSuccess?.();
+          },
+          onError: (error) => {
+            toast.error("Cập nhật loại học liệu thất bại");
+          },
+        }
+      );
+    } else {
+      createTag(data, {
+        onSuccess: () => {
+          toast.success("Tạo loại học liệu thành công!");
+          form.reset();
+          onClose?.();
+          onSuccess?.();
+        },
+        onError: (error) => {
+          toast.error("Tạo loại học liệu thất bại");
+        },
+      });
+    }
   };
   return (
     <Form {...form}>
@@ -95,7 +115,7 @@ function CreateMaterialTagForm({
           )}
         />
 
-        <Button type="submit">{initialValues ? "Chỉnh sửa" : "Tạo mới"}</Button>
+        <Button type="submit">{isEdit ? "Cập nhật" : "Tạo mới"}</Button>
       </form>
     </Form>
   );
@@ -154,6 +174,7 @@ function CreateMaterialTagModal({
           onClose={() => setIsOpen(false)}
           onSuccess={onSuccess}
           initialValues={initialValues}
+          isEdit={isEdit}
         />
       </DialogContent>
     </Dialog>
