@@ -6,6 +6,7 @@ import { Download } from "lucide-react";
 import { useLessonsByIdsService } from "@/services/lessonServices";
 
 interface DocumentInfo {
+  id?: string;
   name: string;
   title: string;
   description: string;
@@ -13,18 +14,36 @@ interface DocumentInfo {
   createdAt: string;
   updateAt: string;
   lessonIds?: string[];
+  type?: string;
+}
+
+interface CustomButton {
+  label: string;
+  onClick: () => void;
+  variant?:
+    | "default"
+    | "outline"
+    | "secondary"
+    | "destructive"
+    | "ghost"
+    | "link"
+    | "custom";
+  icon?: React.ReactNode;
+  className?: string;
 }
 
 interface DocumentInfoPanelProps {
   documentInfo?: DocumentInfo;
   className?: string;
   variant?: "primary" | "secondary";
+  customButtons?: CustomButton[];
 }
 
 export default function DocumentInfoPanel({
   documentInfo,
   className = "",
   variant = "primary",
+  customButtons = [],
 }: DocumentInfoPanelProps) {
   const defaultInfo = {
     name: "",
@@ -88,6 +107,23 @@ export default function DocumentInfoPanel({
             </div>
           </div>
         </div>
+
+        {/* Custom Buttons */}
+        {customButtons.length > 0 && (
+          <div className="space-y-2">
+            {customButtons.map((button, index) => (
+              <Button
+                key={index}
+                onClick={button.onClick}
+                variant={button.variant || "default"}
+                className={`w-full ${button.className || ""}`}
+              >
+                {button.icon && <span className="mr-2">{button.icon}</span>}
+                {button.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </aside>
     );
   }
@@ -126,6 +162,23 @@ export default function DocumentInfoPanel({
         </div>
       </div>
 
+      {/* Custom Buttons */}
+      {customButtons.length > 0 && (
+        <div className="space-y-2">
+          {customButtons.map((button, index) => (
+            <Button
+              key={index}
+              onClick={button.onClick}
+              variant={button.variant || "default"}
+              className={`w-full ${button.className || ""}`}
+            >
+              {button.icon && <span className="mr-2">{button.icon}</span>}
+              {button.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
       {/* <Button className="w-full bg-gray-800 hover:bg-gray-700 text-white text-xs py-3">
         <Download className="h-3 w-3 mr-2" />
         In phiếu trả lời trắc nghiệm
@@ -134,4 +187,4 @@ export default function DocumentInfoPanel({
   );
 }
 
-export type { DocumentInfo, DocumentInfoPanelProps };
+export type { DocumentInfo, DocumentInfoPanelProps, CustomButton };

@@ -81,8 +81,8 @@ export const BookLessonSelectorModal: React.FC<
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
+    <div className="h-full w-full bg-opacity-50 z-50 flex justify-center p-4">
+      <div className="bg-white rounded-lg w-full overflow-auto">
         {/* Header */}
         <div className="p-6 border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-calsans">{title}</h2>
@@ -160,7 +160,7 @@ export const BookLessonSelectorModal: React.FC<
         </div>
 
         {/* Footer */}
-        <div className="p-6  border-gray-200 flex justify-end gap-3">
+        <div className="p-6 relative bottom-0 border-gray-200 flex justify-end gap-3">
           <Button variant="outline" onClick={handleClose}>
             Hủy
           </Button>

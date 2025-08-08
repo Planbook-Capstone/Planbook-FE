@@ -16,7 +16,6 @@ export const useLessonPlanActions = ({
   setTrashData,
   updateFinalData,
 }: UseLessonPlanActionsProps) => {
-  
   // Handle content changes
   const handleInputChange = useCallback(
     (nodeId: string, value: string) => {
@@ -279,7 +278,15 @@ export const useLessonPlanActions = ({
         );
       }
     },
-    [trashData, addChildToNode, findParentExists, demoData, setDemoData, setTrashData, updateFinalData]
+    [
+      trashData,
+      addChildToNode,
+      findParentExists,
+      demoData,
+      setDemoData,
+      setTrashData,
+      updateFinalData,
+    ]
   );
 
   // Move child node up in parent's children list
@@ -296,8 +303,10 @@ export const useLessonPlanActions = ({
               // Found the child and it's not the first one
               const updatedChildren = [...node.children];
               // Swap with previous sibling
-              [updatedChildren[childIndex - 1], updatedChildren[childIndex]] =
-              [updatedChildren[childIndex], updatedChildren[childIndex - 1]];
+              [updatedChildren[childIndex - 1], updatedChildren[childIndex]] = [
+                updatedChildren[childIndex],
+                updatedChildren[childIndex - 1],
+              ];
 
               // Update orderIndex for both nodes
               updatedChildren[childIndex - 1].orderIndex = childIndex - 1;
@@ -340,8 +349,10 @@ export const useLessonPlanActions = ({
               // Found the child and it's not the last one
               const updatedChildren = [...node.children];
               // Swap with next sibling
-              [updatedChildren[childIndex], updatedChildren[childIndex + 1]] =
-              [updatedChildren[childIndex + 1], updatedChildren[childIndex]];
+              [updatedChildren[childIndex], updatedChildren[childIndex + 1]] = [
+                updatedChildren[childIndex + 1],
+                updatedChildren[childIndex],
+              ];
 
               // Update orderIndex for both nodes
               updatedChildren[childIndex].orderIndex = childIndex;
