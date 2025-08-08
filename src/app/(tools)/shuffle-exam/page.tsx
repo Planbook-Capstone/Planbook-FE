@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Steps } from "@/components/ui/steps";
 import { useShuffleExamService } from "@/services/questionBankServices";
 import { toast } from "sonner";
+import TemplatePreview from "@/components/organisms/template-preview";
 
 interface ExamMatrixData {
   part1: { nb: number; th: number; vd: number };
@@ -21,12 +22,16 @@ function ShuffleExamPage() {
 
   // State để lưu danh sách các file đã chọn
   const [personalExams, setPersonalExams] = useState<any[]>([]);
+  const [systemQuestions, setSystemQuestions] = useState<any[]>([]);
 
   const { mutate: generateExam, isPending: isGeneratingExam } =
     useShuffleExamService();
 
   // State để lưu kết quả tạo đề thi
   const [examResult, setExamResult] = useState<any>(null);
+
+  // State để lưu index đề thi được chọn để preview
+  const [selectedExamIndex, setSelectedExamIndex] = useState<number>(0);
 
   const [matrixData, setMatrixData] = useState<ExamMatrixData>({
     part1: { nb: 0, th: 0, vd: 0 },
@@ -65,6 +70,13 @@ function ShuffleExamPage() {
     }
   }, []);
 
+  // Reset selectedExamIndex khi có examResult mới
+  useEffect(() => {
+    if (examResult && examResult.length > 0) {
+      setSelectedExamIndex(0);
+    }
+  }, [examResult]);
+
   const handleMatrixChange = (newMatrix: ExamMatrixData) => {
     setMatrixData(newMatrix);
   };
@@ -85,6 +97,13 @@ function ShuffleExamPage() {
 
   // Callback để xử lý khi file được chọn từ DocumentSourceSelector
   const handleFileSelect = (fileData: any) => {
+    if (fileData.action === 'remove') {
+      // Xóa file khỏi danh sách
+      setPersonalExams((prev) => prev.filter((exam) => exam.id !== fileData.fileId));
+      console.log("Removed file from selection:", fileData.fileId);
+      return;
+    }
+
     // Kiểm tra xem file đã được chọn chưa
     const isAlreadySelected = personalExams.some(
       (exam) => exam.id === fileData.id
@@ -97,6 +116,12 @@ function ShuffleExamPage() {
     } else {
       console.log("File already selected:", fileData.name);
     }
+  };
+
+  // Callback để xử lý khi câu hỏi system được chọn
+  const handleSystemQuestionSelect = (questions: any[]) => {
+    setSystemQuestions(questions);
+    console.log("Selected system questions:", questions);
   };
 
   const handleNextStep = () => {
@@ -156,8 +181,6 @@ function ShuffleExamPage() {
     return "";
   };
 
-  console.log(personalExams[0]?.data?.parts, "personalExams");
-
   const handleSubmit = () => {
     if (canSubmit()) {
       // Transform matrixData to the expected API format
@@ -193,7 +216,7 @@ function ShuffleExamPage() {
         examTitle: examInfo.examTitle,
         duration: examInfo.duration,
         personalExams: transformedPersonalExams,
-        systemQuestions: [], // Add system questions if available
+        systemQuestions: systemQuestions, // Include selected system questions
         matrixConfig,
         numberOfExams: examInfo.numberOfExams,
       };
@@ -206,20 +229,14 @@ function ShuffleExamPage() {
           // console.log("Exam generation successful:", response);
           console.log("Exam generation successful:", response?.data?.data);
           toast.success("Tạo đề thi thành công!");
-          const result = {
-            examInfo,
-            matrixData,
-            selectedFolder,
-            personalExams,
-            apiResponse: response,
-            createdAt: new Date().toISOString(),
-            status: "success",
-          };
-          setExamResult(result);
+          setExamResult(response?.data?.data);
           setCurrentStep(3); // Chuyển đến step kết quả
         },
         onError: (error) => {
-          console.error("Exam generation failed:", error?.response?.data?.message);
+          console.error(
+            "Exam generation failed:",
+            error?.response?.data?.message
+          );
           toast.error(`${error?.response?.data?.message}`);
         },
       });
@@ -237,50 +254,13 @@ function ShuffleExamPage() {
               onFolderSelect={handleFolderSelect}
               onFileSelect={handleFileSelect}
               selectedFiles={personalExams}
+              onSystemQuestionSelect={handleSystemQuestionSelect}
+              selectedSystemQuestions={systemQuestions}
               title="Chọn nguồn tài liệu"
               subtitle="Chọn một thư mục chứa câu hỏi để tạo đề thi"
             />
 
-            {/* Hiển thị danh sách file đã chọn */}
-            {personalExams.length > 0 && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold text-gray-700 mb-3">
-                  Đã chọn {personalExams.length} file:
-                </h4>
-                <div className="space-y-2">
-                  {personalExams.map((exam, index) => (
-                    <div
-                      key={exam.id}
-                      className="flex items-center justify-between bg-white p-3 rounded border"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-600">
-                          #{index + 1}
-                        </span>
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {exam.name}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {exam.description}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setPersonalExams((prev) =>
-                            prev.filter((e) => e.id !== exam.id)
-                          );
-                        }}
-                        className="text-red-500 hover:text-red-700 text-sm"
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+     
           </div>
         );
       case 2:
@@ -294,6 +274,7 @@ function ShuffleExamPage() {
                   {personalExams.map((exam) => (
                     <p key={exam.id}>{exam.name}.docx</p>
                   ))}
+                  Đã chọn {systemQuestions.length} câu hỏi từ hệ thống
                 </h3>
               </div>
               <div>
@@ -329,8 +310,34 @@ function ShuffleExamPage() {
         );
       case 3:
         return (
-          <div className="space-y-6">
-heelo
+          <div className="grid grid-cols-3 gap-5 h-screen ">
+            <div className="sticky top-0 p-4 w-full h-fit max-h-screen col-span-1 flex flex-col">
+              <h1 className="font-calsans w-full text-base lg:text-xl mb-4">
+                Mã đề
+              </h1>
+              <div className="grid grid-cols-5 gap-2">
+                {examResult?.map((exam: any, index: number) => (
+                  <Button
+                    key={index}
+                    variant={
+                      selectedExamIndex === index ? "default" : "outline"
+                    }
+                    onClick={() => setSelectedExamIndex(index)}
+                    className="w-full justify-start"
+                  >
+                    <p className="text-base font-questrial font-[600]">
+                      {exam?.questionOnly?.examCode}
+                    </p>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-y-auto col-span-2 max-h-screen ">
+              <TemplatePreview
+                data={examResult?.[selectedExamIndex]?.questionOnly}
+              />
+            </div>
           </div>
         );
       default:

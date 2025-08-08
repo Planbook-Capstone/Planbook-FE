@@ -148,7 +148,6 @@ export const getToolActionName = (actionCode: string): string => {
   return TOOL_ACTION_LABELS[actionCode as ToolActionType] || actionCode;
 };
 
-
 export const getVariant = (status: string) => {
   switch (status) {
     case "KNOWLEDGE":
@@ -158,7 +157,7 @@ export const getVariant = (status: string) => {
     default:
       return "outline";
   }
-}
+};
 
 export const getDifficultyText = (level: string) => {
   switch (level) {
@@ -170,6 +169,17 @@ export const getDifficultyText = (level: string) => {
       return "Vận dụng";
     case "ANALYSIS":
       return "Phân tích";
+    default:
+      return "Chưa xác định";
+  }
+};
+
+export const getsourceTypeText = (text: string) => {
+  switch (text) {
+    case "SYSTEM":
+      return "Hệ thống";
+    case "USER_UPLOAD":
+      return "Cá nhân";
     default:
       return "Chưa xác định";
   }
