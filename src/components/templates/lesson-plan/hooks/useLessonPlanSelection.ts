@@ -7,6 +7,7 @@ interface UseLessonPlanSelectionProps {
   setDemoData: React.Dispatch<React.SetStateAction<DemoNode[]>>;
   updateFinalData: (newDemoData: DemoNode[]) => void;
   isEditMode: boolean;
+  onDeleteNode?: (nodeId: string) => void; // Add delete function prop
 }
 
 export const useLessonPlanSelection = ({
@@ -14,6 +15,7 @@ export const useLessonPlanSelection = ({
   setDemoData,
   updateFinalData,
   isEditMode,
+  onDeleteNode,
 }: UseLessonPlanSelectionProps) => {
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(
     new Set()
@@ -82,10 +84,12 @@ export const useLessonPlanSelection = ({
     ): DemoNode[] => {
       return nodes.map((node) => {
         if (node.id === parentId) {
-          const maxOrderIndex = Math.max(
-            ...node.children.map((child) => child.orderIndex),
-            -1
-          );
+          // Fix: Handle empty children array properly
+          const childOrderIndexes =
+            node.children?.map((child) => child.orderIndex) || [];
+          const maxOrderIndex =
+            childOrderIndexes.length > 0 ? Math.max(...childOrderIndexes) : -1;
+
           const newChildren = nodesToAdd.map((nodeToAdd, index) => ({
             ...nodeToAdd,
             parentId: parentId,
@@ -94,7 +98,7 @@ export const useLessonPlanSelection = ({
           }));
           return {
             ...node,
-            children: [...node.children, ...newChildren],
+            children: [...(node.children || []), ...newChildren],
           };
         }
         if (node.children && node.children.length > 0) {
@@ -238,13 +242,33 @@ export const useLessonPlanSelection = ({
   // Handle paste operation
   const handlePaste = useCallback(
     (targetNodeId: string) => {
-      if (!isEditMode || !clipboard || clipboard.nodes.length === 0) return;
+      console.log("🔄 handlePaste called with targetNodeId:", targetNodeId);
+      console.log("📋 Clipboard:", clipboard);
+      console.log("✏️ Edit mode:", isEditMode);
+
+      if (!isEditMode || !clipboard || clipboard.nodes.length === 0) {
+        console.log("❌ Paste failed - conditions not met");
+        return;
+      }
+
+      // Find target node to verify it exists
+      const targetNode = findNodeById(demoData, targetNodeId);
+      console.log("🎯 Target node:", targetNode);
+
+      if (!targetNode) {
+        console.log("❌ Target node not found");
+        toast.error("Không tìm thấy node đích để paste");
+        return;
+      }
 
       const newDemoData = addNodesToParent(
         demoData,
         targetNodeId,
         clipboard.nodes
       );
+
+      console.log("✅ New demo data after paste:", newDemoData);
+
       setDemoData(newDemoData);
       updateFinalData(newDemoData);
 
@@ -267,6 +291,7 @@ export const useLessonPlanSelection = ({
       addNodesToParent,
       setDemoData,
       updateFinalData,
+      findNodeById,
     ]
   );
 
@@ -285,10 +310,58 @@ export const useLessonPlanSelection = ({
         handleCut();
       } else if (isCtrlOrCmd && event.key.toLowerCase() === "v") {
         event.preventDefault();
-        // For paste, we need a target node selected
-        if (selectedNodeIds.size === 1) {
-          const targetNodeId = Array.from(selectedNodeIds)[0];
-          handlePaste(targetNodeId);
+        // For paste, find the main selected node (not its children)
+        if (selectedNodeIds.size > 0) {
+          // Find the parent node among selected nodes (the one that doesn't have a selected parent)
+          let targetNodeId: string | null = null;
+
+          for (const nodeId of selectedNodeIds) {
+            const node = findNodeById(demoData, nodeId);
+            if (node && !hasSelectedParent(nodeId, demoData)) {
+              // Any node can be a paste target now
+              targetNodeId = nodeId;
+              break;
+            }
+          }
+
+          if (targetNodeId) {
+            handlePaste(targetNodeId);
+          } else {
+            toast.error("Không tìm thấy node phù hợp để paste");
+          }
+        } else {
+          toast.error("Vui lòng chọn một node để paste");
+        }
+      } else if (event.key === "Delete" || event.key === "Backspace") {
+        event.preventDefault();
+        // Delete selected nodes
+        if (selectedNodeIds.size > 0 && onDeleteNode) {
+          // Find parent nodes (nodes that don't have selected parents)
+          const nodesToDelete: string[] = [];
+
+          selectedNodeIds.forEach((nodeId) => {
+            if (!hasSelectedParent(nodeId, demoData)) {
+              nodesToDelete.push(nodeId);
+            }
+          });
+
+          if (nodesToDelete.length > 0) {
+            // Delete each parent node (this will also delete their children)
+            nodesToDelete.forEach((nodeId) => {
+              onDeleteNode(nodeId);
+            });
+
+            // Clear selection after deletion
+            setSelectedNodeIds(new Set());
+
+            toast.success(
+              `Đã xóa ${nodesToDelete.length} node${
+                nodesToDelete.length > 1 ? "s" : ""
+              }`
+            );
+          }
+        } else if (selectedNodeIds.size === 0) {
+          toast.error("Vui lòng chọn node để xóa");
         }
       }
     };
@@ -297,7 +370,17 @@ export const useLessonPlanSelection = ({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isEditMode, handleCopy, handleCut, handlePaste, selectedNodeIds]);
+  }, [
+    isEditMode,
+    handleCopy,
+    handleCut,
+    handlePaste,
+    selectedNodeIds,
+    findNodeById,
+    demoData,
+    hasSelectedParent,
+    onDeleteNode,
+  ]);
 
   return {
     selectedNodeIds,

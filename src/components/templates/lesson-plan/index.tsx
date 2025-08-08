@@ -99,6 +99,7 @@ function LessonPlanTemplate() {
     setDemoData,
     updateFinalData,
     isEditMode: showDeleteButtons, // Use showDeleteButtons as edit mode indicator
+    onDeleteNode: handleDeleteNode, // Pass delete function for keyboard shortcuts
   });
 
   // Use custom hooks for undo/redo

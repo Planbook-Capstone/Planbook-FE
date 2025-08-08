@@ -605,9 +605,8 @@ export default function NodeRenderer({
   // Check if this node is selected
   const isSelected = selectedNodeIds.has(node.id);
 
-  // Check if this node can be a paste target (only sections and subsections can have children)
-  const canBePasteTarget =
-    isEditMode && (node.type === "SECTION" || node.type === "SUBSECTION");
+  // Check if this node can be a paste target (all nodes can have children now)
+  const canBePasteTarget = isEditMode;
 
   // Handle node click for selection
   const handleNodeClick = (e: React.MouseEvent) => {
@@ -626,9 +625,28 @@ export default function NodeRenderer({
 
   // Handle paste on right click or context menu
   const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault(); // Always prevent default context menu
+    e.stopPropagation(); // Stop event bubbling
+
+    console.log("🖱️ Right click on node:", node.id, "type:", node.type);
+    console.log("✏️ Edit mode:", isEditMode);
+    console.log("📋 Can be paste target:", canBePasteTarget);
+    console.log("🔧 onPaste function exists:", !!onPaste);
+
     if (isEditMode && onPaste && canBePasteTarget) {
-      e.preventDefault();
+      console.log("✅ Calling onPaste for node:", node.id);
       onPaste(node.id);
+    } else {
+      console.log("❌ Paste not triggered - conditions not met");
+      if (!isEditMode) {
+        console.log("  - Not in edit mode");
+      }
+      if (!onPaste) {
+        console.log("  - No onPaste function");
+      }
+      if (!canBePasteTarget) {
+        console.log("  - Cannot be paste target (not in edit mode)");
+      }
     }
   };
 
@@ -637,7 +655,7 @@ export default function NodeRenderer({
       className={`relative group rounded-lg mb-2 bg-white px-0 py-1 pl-2 ${sectionClass} ${
         isEditMode ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""
       } ${isSelected ? "ring-2 ring-blue-500 bg-blue-50 shadow-md" : ""} ${
-        canBePasteTarget && !isSelected
+        canBePasteTarget && !isSelected && isEditMode
           ? "border border-dashed border-gray-300"
           : ""
       }`}
