@@ -9,8 +9,14 @@ import { Steps } from "@/components/ui/steps";
 import { useShuffleExamService } from "@/services/questionBankServices";
 import { toast } from "sonner";
 import TemplatePreview from "@/components/organisms/template-preview";
+import AnswerKeyTable from "@/components/organisms/answer-key-table";
 import { DowloadIcon } from "@/constants/icon";
-import { downloadExamAsDocx, downloadAllExamsAsDocx } from "@/utils/examDownloadUtils";
+import {
+  downloadExamAsDocx,
+  downloadAllExamsAsDocx,
+  downloadAnswerKeyAsDocx,
+  downloadAllAnswerKeysAsDocx,
+} from "@/utils/examDownloadUtils";
 
 interface ExamMatrixData {
   part1: { nb: number; th: number; vd: number };
@@ -34,6 +40,9 @@ function ShuffleExamPage() {
 
   // State để lưu index đề thi được chọn để preview
   const [selectedExamIndex, setSelectedExamIndex] = useState<number>(0);
+
+  // State để quản lý chế độ xem (đề thi hoặc đáp án)
+  const [viewMode, setViewMode] = useState<"exam" | "answer">("exam");
 
   const [matrixData, setMatrixData] = useState<ExamMatrixData>({
     part1: { nb: 0, th: 0, vd: 0 },
@@ -337,28 +346,86 @@ function ShuffleExamPage() {
                   </Button>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-2 py-4">
-                <Button
-                  onClick={() => {
-                    if (examResult && examResult[selectedExamIndex]) {
-                      downloadExamAsDocx(
-                        examResult[selectedExamIndex].questionOnly
-                      );
-                    }
-                  }}
-                >
-                  {DowloadIcon} Tải đề này
-                </Button>
-                <Button variant="outline" onClick={() => downloadAllExamsAsDocx(examResult)}>
-                  {DowloadIcon} Tải tất cả
-                </Button>
+              <div className="space-y-3 py-4">
+                {/* Exam download buttons */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => {
+                      if (examResult && examResult[selectedExamIndex]) {
+                        downloadExamAsDocx(
+                          examResult[selectedExamIndex].questionOnly
+                        );
+                      }
+                    }}
+                  >
+                    {DowloadIcon} Tải đề này
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => downloadAllExamsAsDocx(examResult)}
+                  >
+                    {DowloadIcon} Tải tất cả đề
+                  </Button>
+                </div>
+
+                {/* Answer key download buttons */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      if (examResult && examResult[selectedExamIndex]) {
+                        downloadAnswerKeyAsDocx(
+                          examResult[selectedExamIndex].answerOnly
+                        );
+                      }
+                    }}
+                  >
+                    {DowloadIcon} Tải đáp án này
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => downloadAllAnswerKeysAsDocx(examResult)}
+                  >
+                    {DowloadIcon} Tải tất cả đáp án
+                  </Button>
+                </div>
               </div>
             </div>
 
-            <div className="border rounded-lg overflow-y-auto col-span-2 max-h-screen ">
-              <TemplatePreview
-                data={examResult?.[selectedExamIndex]?.questionOnly}
-              />
+            <div className="border rounded-lg overflow-y-auto col-span-2 max-h-screen">
+              {/* View mode tabs */}
+              <div className="sticky top-0 bg-white border-b p-4 z-10">
+                <div className="flex space-x-2">
+                  <Button
+                    variant={viewMode === "exam" ? "default" : "outline"}
+                    onClick={() => setViewMode("exam")}
+                    size="sm"
+                  >
+                    Đề thi
+                  </Button>
+                  <Button
+                    variant={viewMode === "answer" ? "default" : "outline"}
+                    onClick={() => setViewMode("answer")}
+                    size="sm"
+                  >
+                    Đáp án
+                  </Button>
+                </div>
+              </div>
+
+              {/* Content based on view mode */}
+              <div className="p-4">
+                {viewMode === "exam" ? (
+                  <TemplatePreview
+                    data={examResult?.[selectedExamIndex]?.questionOnly}
+                  />
+                ) : (
+                  <AnswerKeyTable
+                    answerData={examResult?.[selectedExamIndex]?.answerOnly
+}
+                  />
+                )}
+              </div>
             </div>
           </div>
         );

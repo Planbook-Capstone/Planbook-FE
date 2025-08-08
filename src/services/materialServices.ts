@@ -2,6 +2,9 @@ import {
   createMutationHook,
   createQueryHook,
   createSearchQueryHook,
+  createQueryWithPathParamHook,
+  updateMutationUploadFilesHook,
+  updateMutationHook,
 } from "@/hooks/react-query";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import api from "@/config/axios";
@@ -67,5 +70,17 @@ export const useMaterialInternalInfiniteService = () => {
     initialPageParam: 0,
   });
 };
+
+// Get material by ID
+export const useMaterialByIdService = createQueryWithPathParamHook(
+  "material-detail",
+  API_ENDPOINTS.ACADEMIC_RESOURCE
+);
+
+// Update material service
+export const useUpdateMaterialService = updateMutationHook(
+  "materials",
+  API_ENDPOINTS.ACADEMIC_RESOURCE
+);
 
 // export const useUpdateBookStatus = patchMutationHook("books", API_ENDPOINTS.BOOKS);

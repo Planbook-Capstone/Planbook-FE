@@ -548,10 +548,7 @@ export default function PreviewModal({
                   {DowloadIcon}
                   <span>Tải về</span>
                 </Button>
-                <Button onClick={() => {}} variant={"custom"}>
-                  <Share2 />
-                  <span>Export docx online</span>
-                </Button>
+
                 <Button onClick={handleConfirmSaveResult} variant={"default"}>
                   <span>Lưu kết quả</span>
                 </Button>
