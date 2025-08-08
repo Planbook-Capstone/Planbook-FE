@@ -16,7 +16,9 @@ export { frameworkSchema, type FrameworkFormData } from "./framework.schema";
 export { tagSchema, type TagData } from "./tag.schema";
 export {
   materialSchema,
+  editMaterialSchema,
   type MaterialFormData,
+  type EditMaterialFormData,
   type FileData,
   type MaterialTag,
   getFileCategory,

@@ -86,6 +86,30 @@ export const materialSchema = z.object({
 // Type inference
 export type MaterialFormData = z.infer<typeof materialSchema>;
 
+// Edit material schema (tags are readonly)
+export const editMaterialSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Tên material không được để trống")
+    .min(3, "Tên material phải có ít nhất 3 ký tự")
+    .max(100, "Tên material không được quá 100 ký tự"),
+
+  description: z
+    .string()
+    .min(1, "Mô tả không được để trống")
+    .min(10, "Mô tả phải có ít nhất 10 ký tự")
+    .max(500, "Mô tả không được quá 500 ký tự"),
+
+  lessonId: z
+    .string()
+    .optional(),
+
+  file: fileSchema.optional(), // File is optional for edit
+});
+
+// Edit material form data type
+export type EditMaterialFormData = z.infer<typeof editMaterialSchema>;
+
 // File type for better type safety
 export interface FileData {
   size: number;
