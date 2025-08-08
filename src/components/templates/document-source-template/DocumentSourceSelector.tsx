@@ -39,6 +39,8 @@ interface DocumentSourceSelectorProps {
   onFolderSelect: (folderId: number) => void;
   onFileSelect?: (fileData: any) => void;
   selectedFiles?: any[]; // Danh sách file đã chọn
+  onSystemQuestionSelect?: (questions: any[]) => void; // Callback để chọn câu hỏi từ system
+  selectedSystemQuestions?: any[]; // Danh sách câu hỏi system đã chọn
   title?: string;
   subtitle?: string;
   className?: string;
@@ -50,6 +52,8 @@ function DocumentSourceSelector({
   onFolderSelect,
   onFileSelect,
   selectedFiles = [],
+  onSystemQuestionSelect,
+  selectedSystemQuestions = [],
   title = "Chọn nguồn tài liệu",
   subtitle = "Chọn một thư mục chứa câu hỏi để tạo đề thi",
   className = "",
@@ -69,6 +73,8 @@ function DocumentSourceSelector({
   const [selectedDifficultLevel, setSelectedDifficultLevel] = useState<
     string[]
   >(["all"]); // Mặc định all
+
+  // State không cần thiết nữa vì chúng ta lưu trực tiếp
 
   // Ref cho scroll container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -167,21 +173,112 @@ function DocumentSourceSelector({
     }
   };
 
-  // Xử lý khi click button "Chọn"
+  // Xử lý chọn/bỏ chọn câu hỏi - tự động lưu/xóa
+  const handleQuestionToggle = (questionId: string) => {
+    if (!questions?.data || !onSystemQuestionSelect) return;
+
+    const question = questions.data.find((q: any) => q.id.toString() === questionId);
+    if (!question) return;
+
+    const existingIds = new Set(selectedSystemQuestions.map((q: any) => q.id.toString()));
+
+    if (existingIds.has(questionId)) {
+      // Nếu câu hỏi đã được chọn trước đó, xóa khỏi danh sách
+      const updatedQuestions = selectedSystemQuestions.filter((q: any) => q.id.toString() !== questionId);
+      onSystemQuestionSelect(updatedQuestions);
+
+      // Hiển thị thông báo xóa
+      setMessageType('remove');
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 2000);
+    } else {
+      // Nếu câu hỏi chưa được chọn, thêm vào danh sách
+      const updatedQuestions = [...selectedSystemQuestions, question];
+      onSystemQuestionSelect(updatedQuestions);
+
+      // Hiển thị thông báo thêm
+      setMessageType('add');
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 2000);
+    }
+  };
+
+  // Xử lý chọn tất cả câu hỏi - tự động lưu
+  const handleSelectAllQuestions = () => {
+    if (!questions?.data || !onSystemQuestionSelect) return;
+
+    // Lọc ra những câu hỏi chưa có trong danh sách đã chọn trước đó
+    const existingIds = new Set(selectedSystemQuestions.map((q: any) => q.id.toString()));
+    const newQuestions = questions.data.filter((q: any) => !existingIds.has(q.id.toString()));
+
+    if (newQuestions.length > 0) {
+      // Nối đuôi với danh sách câu hỏi đã có
+      const updatedQuestions = [...selectedSystemQuestions, ...newQuestions];
+      onSystemQuestionSelect(updatedQuestions);
+
+      // Hiển thị thông báo thành công
+      setMessageType('add');
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 2000);
+    }
+  };
+
+  // Xử lý bỏ chọn tất cả câu hỏi hiện tại trên trang
+  const handleDeselectAllQuestions = () => {
+    if (!questions?.data || !onSystemQuestionSelect) return;
+
+    const currentPageQuestionIds = new Set(questions.data.map((q: any) => q.id.toString()));
+    const updatedQuestions = selectedSystemQuestions.filter((q: any) =>
+      !currentPageQuestionIds.has(q.id.toString())
+    );
+
+    onSystemQuestionSelect(updatedQuestions);
+
+    // Hiển thị thông báo
+    setMessageType('remove');
+    setShowSuccessMessage(true);
+    setTimeout(() => {
+      setShowSuccessMessage(false);
+    }, 2000);
+  };
+
+  // State để lưu loại thông báo
+  const [messageType, setMessageType] = useState<'add' | 'remove'>('add');
+
+  // Xử lý khi click button "Chọn" hoặc "Hủy chọn"
   const handleSelectFile = () => {
-    if (selectedFileId && fileData?.data?.data && onFileSelect) {
-      const selectedFileInfo = getSelectedFileData();
-      const fileDataToSend = {
-        ...selectedFileInfo,
-        content: fileData.data.data,
-      };
-      onFileSelect(fileDataToSend);
+    if (selectedFileId && onFileSelect) {
+      const isAlreadySelected = isFileAlreadySelected(selectedFileId);
+
+      if (isAlreadySelected) {
+        // Nếu file đã được chọn, xóa khỏi danh sách
+        onFileSelect({ action: 'remove', fileId: selectedFileId });
+        setMessageType('remove');
+      } else {
+        // Nếu file chưa được chọn, thêm vào danh sách
+        if (fileData?.data?.data) {
+          const selectedFileInfo = getSelectedFileData();
+          const fileDataToSend = {
+            ...selectedFileInfo,
+            content: fileData.data.data,
+            action: 'add'
+          };
+          onFileSelect(fileDataToSend);
+          setMessageType('add');
+        }
+      }
 
       // Hiển thị thông báo thành công
       setShowSuccessMessage(true);
       setTimeout(() => {
         setShowSuccessMessage(false);
-      }, 3000); // Ẩn thông báo sau 3 giây
+      }, 3000);
     }
   };
 
@@ -539,7 +636,7 @@ function DocumentSourceSelector({
                     Bài học ({selectedLessons.length} đã chọn)
                   </label>
                   <div className="max-h-40 overflow-y-auto space-y-2 border rounded p-2 bg-white">
-                    {lessons.map((lesson: any) => (
+                    {lessons?.map((lesson: any) => (
                       <div
                         key={lesson.id}
                         className="flex items-center space-x-2"
@@ -588,19 +685,84 @@ function DocumentSourceSelector({
         >
           <div className="flex justify-between items-center">
             {getSelectedFolderData()?.type === "SYSTEM" && (
-              <div className="p-4">
-                <h3 className="text-base font-calsans  text-gray-700 ">
-                  Ngân hàng câu hỏi
-                </h3>
+              <div className="p-4 w-full">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-base font-calsans text-gray-700">
+                    Ngân hàng câu hỏi ({selectedSystemQuestions.length} đã chọn)
+                  </h3>
+                  <div className="flex gap-2">
+                    {questions?.data?.length > 0 && (
+                      <>
+                        {/* Kiểm tra xem có câu hỏi nào trên trang hiện tại đã được chọn không */}
+                        {questions.data.some((q: any) =>
+                          selectedSystemQuestions.some((sq: any) => sq.id.toString() === q.id.toString())
+                        ) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleDeselectAllQuestions}
+                          >
+                            Bỏ chọn trang này
+                          </Button>
+                        )}
+                        {/* Kiểm tra xem có câu hỏi nào trên trang hiện tại chưa được chọn không */}
+                        {questions.data.some((q: any) =>
+                          !selectedSystemQuestions.some((sq: any) => sq.id.toString() === q.id.toString())
+                        ) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleSelectAllQuestions}
+                          >
+                            Chọn trang này
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+                {showSuccessMessage && (
+                  <div className={`mb-4 p-2 border rounded text-sm ${
+                    messageType === 'remove'
+                      ? 'bg-orange-100 border-orange-300 text-orange-700'
+                      : 'bg-green-100 border-green-300 text-green-700'
+                  }`}>
+                    {messageType === 'remove'
+                      ? '✓ Đã bỏ chọn câu hỏi!'
+                      : '✓ Đã chọn câu hỏi!'
+                    } Tổng: {selectedSystemQuestions.length} câu hỏi
+                  </div>
+                )}
                 <div className="space-y-5">
-                  {questions?.data?.map((question: any, idx: number) => (
-                    <div key={question.id}>
-                      <QuestionRenderer
-                        question={question}
-                        questionNumber={idx + 1}
-                      />
-                    </div>
-                  ))}
+                  {questions?.data?.map((question: any, idx: number) => {
+                    const isSelected = selectedSystemQuestions.some((q: any) => q.id.toString() === question.id.toString());
+
+                    return (
+                      <div key={question.id} className="relative">
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            id={`question-${question.id}`}
+                            checked={isSelected}
+                            onCheckedChange={() => handleQuestionToggle(question.id.toString())}
+                            className="mt-2"
+                          />
+                          <div className="flex-1">
+                            <div>
+                              <QuestionRenderer
+                                question={question}
+                                questionNumber={idx + 1}
+                              />
+                              {isSelected && (
+                                <div className="mt-2 text-xs text-green-600 font-medium">
+                                  ✓ Đã được chọn
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -616,8 +778,15 @@ function DocumentSourceSelector({
                     getSelectedFolderData()?.type === "EXAM" && (
                       <div className="flex items-center gap-2">
                         {showSuccessMessage && (
-                          <div className="text-green-600 text-sm font-medium">
-                            ✓ Đã chọn thành công!
+                          <div className={`text-sm font-medium ${
+                            messageType === 'remove'
+                              ? 'text-orange-600'
+                              : 'text-green-600'
+                          }`}>
+                            {messageType === 'remove'
+                              ? '✓ Đã hủy chọn thành công!'
+                              : '✓ Đã chọn thành công!'
+                            }
                           </div>
                         )}
                         <Button
@@ -630,7 +799,7 @@ function DocumentSourceSelector({
                           }
                         >
                           {isFileAlreadySelected(selectedFileId || "")
-                            ? "Đã chọn"
+                            ? "Hủy chọn"
                             : "Chọn"}
                         </Button>
                       </div>

@@ -6,7 +6,7 @@ import { X, Share2 } from "lucide-react";
 import { DowloadIcon } from "@/constants/icon";
 import { useExamTemplateByIdService } from "@/services/examTemplateServices";
 import { Badge } from "@/components/ui/badge";
-import { getDifficultyText, getVariant } from "@/constants";
+import { getDifficultyText, getsourceTypeText, getVariant } from "@/constants";
 
 interface TemplatePreviewProps {
   data: any;
@@ -34,6 +34,8 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
     multipleChoiceQuestions.length +
     yesNoQuestions.length +
     shortQuestions.length;
+
+  console.log(data);
 
   return (
     <div>
@@ -89,7 +91,9 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                       style={{ width: "20%" }}
                     >
                       <div className="border-2 border-black px-6 py-2 flex items-center justify-center">
-                        <p className="text-sm text-center">Mã đề: 001</p>
+                        <p className="text-sm text-center">
+                          Mã đề: {data?.examCode || "001"}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -111,6 +115,11 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                               <p className="font-medium text-gray-900 mb-2">
                                 <span className="font-bold">
                                   Câu {index + 1}:
+                                  {question?.sourceType && (
+                                    <span>
+                                      [{getsourceTypeText(question.sourceType)}]
+                                    </span>
+                                  )}
                                   <span>
                                     {" "}
                                     <Badge
@@ -149,7 +158,8 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                 )}
                               </div>
                               <p className="text-teal-600 font-bold">
-                                Đáp án: {question.answer}
+                                {question?.answer &&
+                                  `Đáp án: ${question?.answer}`}
                               </p>
                             </div>
                           )
@@ -171,6 +181,11 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                               <span className="font-bold">
                                 Câu {multipleChoiceQuestions.length + index + 1}
                                 :{" "}
+                                {question?.sourceType && (
+                                  <span>
+                                    [{getsourceTypeText(question.sourceType)}]
+                                  </span>
+                                )}
                                 <span>
                                   {" "}
                                   <Badge
@@ -205,13 +220,11 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                         {key.toUpperCase()}.
                                       </span>
                                       <span>{statement.text}</span>
-                                      {statement.answer ? (
+
+                                      {typeof statement?.answer ===
+                                        "boolean" && (
                                         <span className="text-teal-600 font-[600] ml-2">
-                                          Đúng
-                                        </span>
-                                      ) : (
-                                        <span className="text-teal-600 font-[600] ml-2">
-                                          Sai
+                                          {statement.answer ? "Đúng" : "Sai"}
                                         </span>
                                       )}
                                     </div>
@@ -241,6 +254,11 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   index +
                                   1}
                                 :{" "}
+                                {question?.sourceType && (
+                                  <span>
+                                    [{getsourceTypeText(question.sourceType)}]
+                                  </span>
+                                )}
                                 <span>
                                   {" "}
                                   <Badge
@@ -267,7 +285,8 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                               </div>
                             )}
                             <p className="text-teal-600 font-bold">
-                              Đáp án: {question.answer}
+                              {question?.answer &&
+                                `Đáp án: ${question?.answer}`}
                             </p>
                           </div>
                         ))}
