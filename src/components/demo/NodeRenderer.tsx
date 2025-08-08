@@ -29,6 +29,7 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
+  description?: string | null; // New field for image descriptions
   fieldType: "INPUT" | "TABLE" | "IMAGE";
   type:
     | "PARAGRAPH"
@@ -50,6 +51,7 @@ interface NodeRendererProps {
   onDeleteNode: (nodeId: string) => void;
   onUpdateNodeTitle: (nodeId: string, title: string) => void;
   onUpdateNodeContent: (nodeId: string, content: string) => void;
+  onUpdateNodeDescription?: (nodeId: string, description: string) => void; // New handler for description
   onMoveChildUp?: (nodeId: string) => void;
   onMoveChildDown?: (nodeId: string) => void;
   // Selection props
@@ -125,6 +127,7 @@ export default function NodeRenderer({
   onDeleteNode,
   onUpdateNodeTitle,
   onUpdateNodeContent,
+  onUpdateNodeDescription,
   onMoveChildUp,
   onMoveChildDown,
   isEditMode = false,
@@ -520,59 +523,76 @@ export default function NodeRenderer({
 
         case "IMAGE":
           return (
-            <div
-              className="field-image w-full"
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.currentTarget.classList.add("border-blue-500", "bg-blue-50");
-              }}
-              onDragLeave={(e) => {
-                e.currentTarget.classList.remove(
-                  "border-blue-500",
-                  "bg-blue-50"
-                );
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.currentTarget.classList.remove(
-                  "border-blue-500",
-                  "bg-blue-50"
-                );
+            <div className="field-image w-full">
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.add("border-blue-500", "bg-blue-50");
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.classList.remove(
+                    "border-blue-500",
+                    "bg-blue-50"
+                  );
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove(
+                    "border-blue-500",
+                    "bg-blue-50"
+                  );
 
-                const imageUrl = e.dataTransfer.getData("text/plain");
-                if (imageUrl) {
-                  onUpdateNodeContent(node.id, imageUrl);
-                }
-              }}
-            >
-              {node.content ? (
-                <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 text-center bg-white hover:border-gray-400 transition-colors">
-                  <img
-                    src={node.content}
-                    alt="Uploaded image"
-                    className="max-w-full max-h-64 mx-auto rounded-lg shadow-sm"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = "none";
-                      target.nextElementSibling?.classList.remove("hidden");
-                    }}
-                  />
-                  <div className="hidden text-red-500 text-sm mt-2">
-                    Không thể tải hình ảnh
+                  const imageUrl = e.dataTransfer.getData("text/plain");
+                  if (imageUrl) {
+                    onUpdateNodeContent(node.id, imageUrl);
+                  }
+                }}
+              >
+                {node.content ? (
+                  <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 text-center bg-white hover:border-gray-400 transition-colors">
+                    <img
+                      src={node.content}
+                      alt="Uploaded image"
+                      className="max-w-full max-h-64 mx-auto rounded-lg shadow-sm"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        target.nextElementSibling?.classList.remove("hidden");
+                      }}
+                    />
+                    <div className="hidden text-red-500 text-sm mt-2">
+                      Không thể tải hình ảnh
+                    </div>
+                    <p className="text-gray-500 text-sm mt-2">
+                      Kéo hình ảnh khác để thay thế
+                    </p>
                   </div>
-                  <p className="text-gray-500 text-sm mt-2">
-                    Kéo hình ảnh khác để thay thế
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors">
-                  <div className="text-4xl mb-2">🖼️</div>
-                  <p className="text-gray-500">
-                    Kéo hình ảnh từ panel bên trái vào đây
-                  </p>
-                  <p className="text-gray-400 text-sm mt-1">
-                    Hoặc click để chọn file
-                  </p>
+                ) : (
+                  <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors">
+                    <div className="text-4xl mb-2">🖼️</div>
+                    <p className="text-gray-500">
+                      Kéo hình ảnh từ panel bên trái vào đây
+                    </p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Hoặc click để chọn file
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Description field - only show for IMAGE type */}
+              {node.type === "IMAGE" && (
+                <div className="mt-2">
+                  <AutoResizeTextarea
+                    value={node.description || ""}
+                    onChange={(value) => {
+                      if (onUpdateNodeDescription) {
+                        onUpdateNodeDescription(node.id, value);
+                      }
+                    }}
+                    placeholder="Nhập mô tả cho hình ảnh..."
+                    className="w-full text-sm text-gray-600 italic border-none bg-transparent resize-none focus:outline-none focus:ring-0 placeholder-gray-400"
+                  />
                 </div>
               )}
             </div>
@@ -799,6 +819,7 @@ export default function NodeRenderer({
                             onDeleteNode={onDeleteNode}
                             onUpdateNodeTitle={onUpdateNodeTitle}
                             onUpdateNodeContent={onUpdateNodeContent}
+                            onUpdateNodeDescription={onUpdateNodeDescription}
                             onMoveChildUp={onMoveChildUp}
                             onMoveChildDown={onMoveChildDown}
                             isEditMode={isEditMode}

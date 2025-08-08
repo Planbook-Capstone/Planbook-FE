@@ -38,6 +38,7 @@ export const useLessonPlanDragDrop = ({
       parentId: null,
       title: `Mới: ${componentType.title}`,
       content: nodeContent,
+      description: null, // Default description is null
       fieldType: componentType.fieldType,
       type: componentType.type,
       orderIndex: 0,

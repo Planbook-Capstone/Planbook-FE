@@ -13,6 +13,7 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
+  description?: string | null; // New field for image descriptions
   fieldType: "INPUT" | "TABLE" | "IMAGE";
   type:
     | "PARAGRAPH"

@@ -59,6 +59,7 @@ function LessonPlanTemplate() {
   const {
     handleInputChange,
     handleTitleChange,
+    handleDescriptionChange,
     addChildToNode,
     findNodeById,
     removeNodeById,
@@ -156,6 +157,7 @@ function LessonPlanTemplate() {
           parentId: null,
           title: item.title || "",
           content: item.description || "",
+          description: null, // Default description is null
           fieldType: "INPUT", // fieldType only has INPUT, TABLE, IMAGE
           type: "SECTION",
           orderIndex: items.indexOf(item),
@@ -353,6 +355,7 @@ function LessonPlanTemplate() {
               onDeleteNode={handleDeleteNode}
               onUpdateNodeTitle={handleTitleChange}
               onUpdateNodeContent={handleInputChange}
+              onUpdateNodeDescription={handleDescriptionChange}
               onMoveChildUp={moveChildUp}
               onMoveChildDown={moveChildDown}
               isEditMode={showDeleteButtons}

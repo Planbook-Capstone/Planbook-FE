@@ -26,6 +26,7 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
+  description?: string | null; // New field for image descriptions
   fieldType: "INPUT" | "TABLE" | "IMAGE";
   type:
     | "PARAGRAPH"
@@ -499,6 +500,12 @@ export default function PreviewModal({
                   <div className="text-4xl mb-2">🖼️</div>
                   <p>Không thể tải hình ảnh</p>
                 </div>
+                {/* Display description if exists */}
+                {node.description && (
+                  <div className="text-center text-sm text-gray-600 italic mt-2">
+                    {node.description}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="border border-gray-300 bg-gray-50 p-8 text-center rounded">

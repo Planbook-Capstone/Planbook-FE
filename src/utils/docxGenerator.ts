@@ -335,6 +335,7 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
+  description?: string | null; // New field for image descriptions
   fieldType: "INPUT" | "TABLE" | "IMAGE";
   type:
     | "PARAGRAPH"
@@ -1215,13 +1216,36 @@ export const generateDocx = async (
                     }),
                   ],
                   spacing: {
-                    after: 120, // 6pt
+                    after: node.description ? 60 : 120, // Less space if description follows
                   },
                   indent: {
                     left: depth * 360,
                   },
                 })
               );
+
+              // Add description if exists
+              if (node.description) {
+                elements.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: node.description,
+                        italics: true,
+                        size: 22, // Slightly smaller than normal text
+                        color: "666666", // Gray color
+                      }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                    spacing: {
+                      after: 120, // 6pt
+                    },
+                    indent: {
+                      left: depth * 360,
+                    },
+                  })
+                );
+              }
             } else {
               // Fallback to placeholder if image loading fails
               elements.push(
@@ -1234,13 +1258,36 @@ export const generateDocx = async (
                     }),
                   ],
                   spacing: {
-                    after: 120, // 6pt
+                    after: node.description ? 60 : 120, // Less space if description follows
                   },
                   indent: {
                     left: depth * 360,
                   },
                 })
               );
+
+              // Add description if exists (even when image fails)
+              if (node.description) {
+                elements.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: node.description,
+                        italics: true,
+                        size: 22, // Slightly smaller than normal text
+                        color: "666666", // Gray color
+                      }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                    spacing: {
+                      after: 120, // 6pt
+                    },
+                    indent: {
+                      left: depth * 360,
+                    },
+                  })
+                );
+              }
             }
           } catch (error) {
             console.error("Error adding image to DOCX:", error);
@@ -1255,13 +1302,36 @@ export const generateDocx = async (
                   }),
                 ],
                 spacing: {
-                  after: 120, // 6pt
+                  after: node.description ? 60 : 120, // Less space if description follows
                 },
                 indent: {
                   left: depth * 360,
                 },
               })
             );
+
+            // Add description if exists (even when error occurs)
+            if (node.description) {
+              elements.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: node.description,
+                      italics: true,
+                      size: 22, // Slightly smaller than normal text
+                      color: "666666", // Gray color
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                  spacing: {
+                    after: 120, // 6pt
+                  },
+                  indent: {
+                    left: depth * 360,
+                  },
+                })
+              );
+            }
           }
         } else {
           // No image content
@@ -1275,13 +1345,36 @@ export const generateDocx = async (
                 }),
               ],
               spacing: {
-                after: 120, // 6pt
+                after: node.description ? 60 : 120, // Less space if description follows
               },
               indent: {
                 left: depth * 360,
               },
             })
           );
+
+          // Add description if exists (even when no image)
+          if (node.description) {
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: node.description,
+                    italics: true,
+                    size: 22, // Slightly smaller than normal text
+                    color: "666666", // Gray color
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  after: 120, // 6pt
+                },
+                indent: {
+                  left: depth * 360,
+                },
+              })
+            );
+          }
         }
 
         // Process children

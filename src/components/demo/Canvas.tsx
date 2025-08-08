@@ -22,6 +22,7 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
+  description?: string | null; // New field for image descriptions
   fieldType: "INPUT" | "TABLE" | "IMAGE";
   type:
     | "PARAGRAPH"
@@ -42,6 +43,7 @@ interface CanvasProps {
   onDeleteNode: (nodeId: string) => void;
   onUpdateNodeTitle: (nodeId: string, title: string) => void;
   onUpdateNodeContent: (nodeId: string, content: string) => void;
+  onUpdateNodeDescription?: (nodeId: string, description: string) => void; // New handler for description
   onMoveChildUp?: (nodeId: string) => void;
   onMoveChildDown?: (nodeId: string) => void;
   // Selection props
@@ -57,6 +59,7 @@ export default function Canvas({
   onDeleteNode,
   onUpdateNodeTitle,
   onUpdateNodeContent,
+  onUpdateNodeDescription,
   onMoveChildUp,
   onMoveChildDown,
   isEditMode = false,
@@ -111,6 +114,7 @@ export default function Canvas({
                             onDeleteNode={onDeleteNode}
                             onUpdateNodeTitle={onUpdateNodeTitle}
                             onUpdateNodeContent={onUpdateNodeContent}
+                            onUpdateNodeDescription={onUpdateNodeDescription}
                             onMoveChildUp={onMoveChildUp}
                             onMoveChildDown={onMoveChildDown}
                             isEditMode={isEditMode}
