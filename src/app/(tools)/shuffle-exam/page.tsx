@@ -5,6 +5,9 @@ import ExamMatrixForm from "@/components/forms/ExamMatrixForm";
 import ExamInfoForm, { ExamInfo } from "@/components/forms/ExamInfoForm";
 import DocumentSourceSelector from "@/components/templates/document-source-template/DocumentSourceSelector";
 import { Button } from "@/components/ui/Button";
+import { Steps } from "@/components/ui/steps";
+import { useShuffleExamService } from "@/services/questionBankServices";
+import { toast } from "sonner";
 
 interface ExamMatrixData {
   part1: { nb: number; th: number; vd: number };
@@ -18,6 +21,12 @@ function ShuffleExamPage() {
 
   // State để lưu danh sách các file đã chọn
   const [personalExams, setPersonalExams] = useState<any[]>([]);
+
+  const { mutate: generateExam, isPending: isGeneratingExam } =
+    useShuffleExamService();
+
+  // State để lưu kết quả tạo đề thi
+  const [examResult, setExamResult] = useState<any>(null);
 
   const [matrixData, setMatrixData] = useState<ExamMatrixData>({
     part1: { nb: 0, th: 0, vd: 0 },
@@ -58,8 +67,6 @@ function ShuffleExamPage() {
 
   const handleMatrixChange = (newMatrix: ExamMatrixData) => {
     setMatrixData(newMatrix);
-    // Có thể thêm logic xử lý khác ở đây
-    console.log("Matrix updated:", newMatrix);
   };
 
   const handleExamInfoChange = (
@@ -93,7 +100,7 @@ function ShuffleExamPage() {
   };
 
   const handleNextStep = () => {
-    if (currentStep < 2) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -149,16 +156,73 @@ function ShuffleExamPage() {
     return "";
   };
 
+  console.log(personalExams[0]?.data?.parts, "personalExams");
+
   const handleSubmit = () => {
     if (canSubmit()) {
-      // Handle exam creation logic here
-      console.log("Creating exam with:", {
-        examInfo,
-        matrixData,
-        selectedFolder,
-        personalExams, // Thêm personalExams vào log
+      // Transform matrixData to the expected API format
+      const matrixConfig = {
+        "PHẦN I": {
+          nb: matrixData.part1.nb,
+          th: matrixData.part1.th,
+          vd: matrixData.part1.vd,
+        },
+        "PHẦN II": {
+          nb: matrixData.part2.nb,
+          th: matrixData.part2.th,
+          vd: matrixData.part2.vd,
+        },
+        "PHẦN III": {
+          nb: matrixData.part3.nb,
+          th: matrixData.part3.th,
+          vd: matrixData.part3.vd,
+        },
+      };
+
+      // Transform personalExams to the expected API format
+      const transformedPersonalExams = personalExams?.map((exam) => ({
+        sourceExamId: exam.id || exam.sourceExamId,
+        contentJson: exam?.data,
+      }));
+
+      // Prepare the API request payload
+      const apiPayload = {
+        toolId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        academicYearId: 1,
+        school: examInfo.school,
+        examTitle: examInfo.examTitle,
+        duration: examInfo.duration,
+        personalExams: transformedPersonalExams,
+        systemQuestions: [], // Add system questions if available
+        matrixConfig,
+        numberOfExams: examInfo.numberOfExams,
+      };
+
+      console.log("Creating exam with API payload:", apiPayload);
+
+      // Call the API using the shuffle exam service
+      generateExam(apiPayload, {
+        onSuccess: (response) => {
+          // console.log("Exam generation successful:", response);
+          console.log("Exam generation successful:", response?.data?.data);
+          toast.success("Tạo đề thi thành công!");
+          const result = {
+            examInfo,
+            matrixData,
+            selectedFolder,
+            personalExams,
+            apiResponse: response,
+            createdAt: new Date().toISOString(),
+            status: "success",
+          };
+          setExamResult(result);
+          setCurrentStep(3); // Chuyển đến step kết quả
+        },
+        onError: (error) => {
+          console.error("Exam generation failed:", error?.response?.data?.message);
+          toast.error(`${error?.response?.data?.message}`);
+        },
       });
-      alert("Đề thi đã được tạo thành công!");
     }
   };
 
@@ -263,58 +327,53 @@ function ShuffleExamPage() {
             </div>
           </div>
         );
+      case 3:
+        return (
+          <div className="space-y-6">
+heelo
+          </div>
+        );
       default:
         return null;
     }
   };
 
+  const stepItems = [
+    {
+      title: "Chọn nguồn tài liệu",
+      description: "Chọn thư mục và file câu hỏi",
+    },
+    {
+      title: "Thông tin đề thi",
+      description: "Cấu hình thông tin và ma trận đề thi",
+    },
+    {
+      title: "Kết quả",
+      description: "Xem và tải xuống đề thi đã tạo",
+    },
+  ];
+
+  const handleStepChange = (step: number) => {
+    // Bước 1 và 2: có thể chuyển qua lại tự do
+    if (step === 0 || step === 1) {
+      setCurrentStep(step + 1);
+    }
+    // Bước 3: chỉ có thể truy cập nếu đã có kết quả từ submit
+    else if (step === 2 && examResult) {
+      setCurrentStep(step + 1);
+    }
+  };
+
   return (
     <div className="p-10">
-      {/* Step Indicator */}
+      {/* Step Navigation */}
       <div className="mb-8">
-        <div className="flex items-center justify-center space-x-4">
-          <div className="flex items-center">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors ${
-                currentStep >= 1
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-600"
-              } hover:bg-blue-600`}
-              onClick={() => setCurrentStep(1)}
-            >
-              1
-            </div>
-            <span
-              className="ml-2 text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600"
-              onClick={() => setCurrentStep(1)}
-            >
-              Chọn nguồn tài liệu
-            </span>
-          </div>
-          <div
-            className={`w-16 h-0.5 ${
-              currentStep >= 2 ? "bg-blue-500" : "bg-gray-300"
-            }`}
-          ></div>
-          <div className="flex items-center">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors ${
-                currentStep >= 2
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-600"
-              } hover:bg-blue-600`}
-              onClick={() => setCurrentStep(2)}
-            >
-              2
-            </div>
-            <span
-              className="ml-2 text-sm font-medium text-gray-700 cursor-pointer hover:text-blue-600"
-              onClick={() => setCurrentStep(2)}
-            >
-              Thông tin đề thi
-            </span>
-          </div>
-        </div>
+        <Steps
+          current={currentStep - 1}
+          items={stepItems}
+          onChange={handleStepChange}
+          className="max-w-4xl mx-auto"
+        />
       </div>
 
       {/* Step Content */}
@@ -342,12 +401,26 @@ function ShuffleExamPage() {
               )}
               <Button
                 onClick={handleSubmit}
-                disabled={!canSubmit()}
-                className={!canSubmit() ? "opacity-50 cursor-not-allowed" : ""}
+                disabled={!canSubmit() || isGeneratingExam}
+                className={
+                  !canSubmit() || isGeneratingExam
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }
               >
-                Tạo đề thi
+                {isGeneratingExam ? "Đang tạo đề thi..." : "Tạo đề thi"}
               </Button>
             </div>
+          )}
+          {currentStep === 3 && (
+            <Button
+              onClick={() => {
+                // Logic để tải xuống hoặc xem đề thi
+                console.log("Download exam");
+              }}
+            >
+              Tải xuống đề thi
+            </Button>
           )}
         </div>
       </div>

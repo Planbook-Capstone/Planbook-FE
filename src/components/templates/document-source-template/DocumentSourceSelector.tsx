@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import FolderCard from "@/components/molecules/folder-card";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -65,6 +65,13 @@ function DocumentSourceSelector({
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedBook, setSelectedBook] = useState<string>("");
   const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
+  const [selectedExamType, setSelectedExamType] = useState<string>("1"); // Mặc định dạng 1
+  const [selectedDifficultLevel, setSelectedDifficultLevel] = useState<
+    string[]
+  >(["all"]); // Mặc định all
+
+  // Ref cho scroll container
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const getSelectedFolderData = () => {
     return folders?.find((f) => f.folderId === selectedFolder);
@@ -114,6 +121,28 @@ function DocumentSourceSelector({
     );
   };
 
+  const handleDifficultLevelToggle = (level: string) => {
+    setSelectedDifficultLevel((prev) => {
+      if (level === "all") {
+        // Nếu chọn "Tất cả", bỏ chọn tất cả các mức độ khác
+        return ["all"];
+      }
+
+      // Nếu đang chọn "Tất cả" và chọn mức độ cụ thể, bỏ chọn "Tất cả"
+      let newLevels = prev.includes("all") ? [] : [...prev];
+
+      if (newLevels.includes(level)) {
+        // Bỏ chọn mức độ này
+        newLevels = newLevels.filter((l) => l !== level);
+        // Nếu không còn mức độ nào được chọn, chọn lại "Tất cả"
+        return newLevels.length === 0 ? ["all"] : newLevels;
+      } else {
+        // Thêm mức độ này vào danh sách
+        return [...newLevels, level];
+      }
+    });
+  };
+
   const handleSelectLessons = () => {
     if (selectedLessons.length > 0 && onFileSelect) {
       const lessonsData = {
@@ -122,6 +151,8 @@ function DocumentSourceSelector({
         subject: selectedSubject,
         book: selectedBook,
         lessons: selectedLessons,
+        examType: selectedExamType,
+        difficultLevel: selectedDifficultLevel,
         lessonDetails: lessons.filter((lesson: any) =>
           selectedLessons.includes(lesson.id.toString())
         ),
@@ -216,15 +247,52 @@ function DocumentSourceSelector({
     }
   }, [toolResults?.data?.content, selectedFileId, selectedFolder]);
 
+  // Map UI values to API values
+  const mapExamTypeToAPI = (examType: string) => {
+    const mapping: { [key: string]: string } = {
+      '1': 'PART_I',
+      '2': 'PART_II',
+      '3': 'PART_III'
+    };
+    return mapping[examType];
+  };
+
+  const mapDifficultLevelToAPI = (levels: string[]) => {
+    if (levels.includes('all')) return undefined;
+
+    const mapping: { [key: string]: string } = {
+      'nhan_biet': 'KNOWLEDGE',
+      'thong_hieu': 'COMPREHENSION',
+      'van_dung': 'APPLICATION'
+    };
+
+    return levels.map(level => mapping[level]).filter(Boolean).join(',');
+  };
+
   const { data: questions } = useQuestionBanksWithParamsService(
-    [selectedGrade, selectedSubject, selectedBook, selectedLessons], // dependencies for query key
+    [
+      selectedGrade,
+      selectedSubject,
+      selectedBook,
+      selectedLessons,
+      selectedExamType,
+      selectedDifficultLevel,
+    ], // dependencies for query key
     { retry: 1, staleTime: 0 }, // options
     {
-      lessonId: selectedLessons,
+      lessonIds:
+        selectedLessons.length > 0 ? selectedLessons.join(",") : undefined,
+      questionTypes: mapExamTypeToAPI(selectedExamType),
+      difficultyLevels: mapDifficultLevelToAPI(selectedDifficultLevel),
     }
   );
 
-  console.log(questions, "tran");
+  // Scroll về top khi questions data thay đổi
+  useEffect(() => {
+    if (scrollContainerRef.current && questions?.data) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [questions?.data, selectedGrade, selectedSubject, selectedBook, selectedLessons, selectedExamType, selectedDifficultLevel]);
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -373,6 +441,97 @@ function DocumentSourceSelector({
                 </Select>
               </div>
 
+              {/* Exam Type Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Dạng đề
+                </label>
+                <Select
+                  value={selectedExamType}
+                  onValueChange={setSelectedExamType}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Chọn dạng đề" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Dạng 1</SelectItem>
+                    <SelectItem value="2">Dạng 2</SelectItem>
+                    <SelectItem value="3">Dạng 3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Difficult Level Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Mức độ khó (
+                  {selectedDifficultLevel.includes("all")
+                    ? "Tất cả"
+                    : selectedDifficultLevel.length + " đã chọn"}
+                  )
+                </label>
+                <div className="space-y-2 border rounded p-3 bg-white">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="level-all"
+                      checked={selectedDifficultLevel.includes("all")}
+                      onCheckedChange={() => handleDifficultLevelToggle("all")}
+                    />
+                    <label
+                      htmlFor="level-all"
+                      className="text-sm cursor-pointer flex-1 font-medium"
+                    >
+                      Tất cả
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="level-nhan-biet"
+                      checked={selectedDifficultLevel.includes("nhan_biet")}
+                      onCheckedChange={() =>
+                        handleDifficultLevelToggle("nhan_biet")
+                      }
+                    />
+                    <label
+                      htmlFor="level-nhan-biet"
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      Nhận biết
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="level-thong-hieu"
+                      checked={selectedDifficultLevel.includes("thong_hieu")}
+                      onCheckedChange={() =>
+                        handleDifficultLevelToggle("thong_hieu")
+                      }
+                    />
+                    <label
+                      htmlFor="level-thong-hieu"
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      Thông hiểu
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="level-van-dung"
+                      checked={selectedDifficultLevel.includes("van_dung")}
+                      onCheckedChange={() =>
+                        handleDifficultLevelToggle("van_dung")
+                      }
+                    />
+                    <label
+                      htmlFor="level-van-dung"
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      Vận dụng
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               {/* Lesson Selection */}
               {selectedBook && lessons.length > 0 && (
                 <div className="space-y-2">
@@ -423,7 +582,10 @@ function DocumentSourceSelector({
         </div>
 
         {/* Right column - Preview */}
-        <div className="w-full border rounded-md p-2 col-span-3 h-[700px] overflow-y-auto">
+        <div
+          ref={scrollContainerRef}
+          className="w-full border rounded-md p-2 col-span-3 h-[700px] overflow-y-auto"
+        >
           <div className="flex justify-between items-center">
             {getSelectedFolderData()?.type === "SYSTEM" && (
               <div className="p-4">

@@ -523,7 +523,7 @@ export default function MatrixTemplate2() {
         </>
       )}
 
-      <div className="mb-4 mt-6">
+      <div className="mb-4 pt-6">
         <h2 className="text-lg font-calsans">Ma trận đề thi</h2>
         <h3 className="text-base font-questrial text-neutral-500">
           Ma trận phân bổ đề thi dựa trên số lượng câu nhận biết, thông hiểu,

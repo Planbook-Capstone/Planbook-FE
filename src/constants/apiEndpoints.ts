@@ -1,13 +1,14 @@
 const SERVICES = {
   AUTH: "identity-service",
-  MASTER_DATA: "master-data-service-local",
-  LESSON_PLAN: "lesson-plan-service",
+  MASTER_DATA: "master-data-service",
+  LESSON_PLAN: "lesson-plan-template-service",
   ACADEMIC_RESOURCE: "academic-resource-service",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
   SUBSCRIPTION: "purchase-service",
   WORKSPACE: "workspace-service",
   TOOL_LOG: "tool-log-service",
+  EXAM_SERVICE: "exam-service",
 } as const;
 
 const buildEndpoint = (service: string, path: string) =>
@@ -162,6 +163,8 @@ export const EXAM_ENDPOINTS = {
     `/exam-service/api/exam-instances/code/${code}/submit`,
   // Question Banks
   QUESTION_BANKS: `/exam-service/api/v1/question-banks`,
+
+  EXAM_GENERATOR: buildEndpoint(SERVICES.EXAM_SERVICE, "/exam-generator"),
 } as const;
 
 export const LESSON_FRAMEWORK_ENDPOINTS = {

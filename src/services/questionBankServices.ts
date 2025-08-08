@@ -124,3 +124,8 @@ export const useQuestionBanksWithParamsService = createDynamicQueryHook(
   "questionBanks",
   EXAM_ENDPOINTS.QUESTION_BANKS
 );
+
+export const useShuffleExamService = createMutationHook(
+  "questionBanks",
+  EXAM_ENDPOINTS.EXAM_GENERATOR
+);
