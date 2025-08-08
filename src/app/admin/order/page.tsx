@@ -2,12 +2,27 @@
 import OrderTable from "@/components/organisms/table-order-history";
 import { useOrdersWithParamsService } from "@/services/orderServices";
 import { useState } from "react";
+import OrderDetailModal from "@/components/molecules/order-detail-modal";
+import { Order } from "@/types";
 
 function OrderManagementPage() {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleViewDetail = (order: Order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOrder(null);
   };
 
   const { data: ordersData, refetch } = useOrdersWithParamsService(
@@ -25,9 +40,18 @@ function OrderManagementPage() {
     <div>
       <OrderTable
         orders={ordersData?.data?.content || []}
-        onViewDetail={() => {}}
+        onViewDetail={handleViewDetail}
         mode="admin"
       />
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          open={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }
