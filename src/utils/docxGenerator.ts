@@ -15,6 +15,95 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 
+// Helper function to parse HTML and convert to TextRuns
+function parseHtmlToTextRuns(html: string): TextRun[] {
+  const textRuns: TextRun[] = [];
+
+  // Pre-process: Convert markdown to HTML
+  const processedHtml = html
+    .replace(/\*\*\*(.*?)\*\*\*/g, "<strong>$1</strong>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/(\w)(\d+)/g, "$1<sub>$2</sub>");
+
+  // Split by single newlines to handle all line breaks
+  const lines = processedHtml.split(/\n/);
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex].trim();
+
+    // Skip empty lines but still add line break
+    if (!line) {
+      if (lineIndex < lines.length - 1) {
+        textRuns.push(
+          new TextRun({
+            text: "",
+            break: 1,
+            size: 22,
+          })
+        );
+      }
+      continue;
+    }
+
+    // Parse HTML tags
+    const parts = line.split(/(<\/?[^>]+>)/);
+
+    let isBold = false;
+    let isItalic = false;
+    let isUnderline = false;
+    let isSubscript = false;
+
+    for (const part of parts) {
+      if (part.startsWith("<")) {
+        // Handle HTML tags
+        if (part === "<strong>" || part === "<b>") {
+          isBold = true;
+        } else if (part === "</strong>" || part === "</b>") {
+          isBold = false;
+        } else if (part === "<i>" || part === "<em>") {
+          isItalic = true;
+        } else if (part === "</i>" || part === "</em>") {
+          isItalic = false;
+        } else if (part === "<u>") {
+          isUnderline = true;
+        } else if (part === "</u>") {
+          isUnderline = false;
+        } else if (part === "<sub>") {
+          isSubscript = true;
+        } else if (part === "</sub>") {
+          isSubscript = false;
+        }
+      } else if (part.trim()) {
+        // Handle text content
+        textRuns.push(
+          new TextRun({
+            text: part,
+            bold: isBold,
+            italics: isItalic,
+            underline: isUnderline ? {} : undefined,
+            subScript: isSubscript,
+            size: 22,
+          })
+        );
+      }
+    }
+
+    // Add line break after each line except the last one
+    if (lineIndex < lines.length - 1) {
+      textRuns.push(
+        new TextRun({
+          text: "",
+          break: 1,
+          size: 22,
+        })
+      );
+    }
+  }
+
+  return textRuns;
+}
+
 // Helper function to load image via Image element and convert to canvas
 const loadImageViaCanvas = (imageUrl: string): Promise<ArrayBuffer | null> => {
   return new Promise((resolve) => {
@@ -239,83 +328,6 @@ const convertImageToBuffer = async (
   }
 };
 
-// Helper function to parse HTML and create TextRun array with formatting
-const parseHtmlToTextRuns = (html: string): any[] => {
-  if (!html || typeof html !== "string") {
-    return [new TextRun({ text: "", size: 24 })];
-  }
-
-  const textRuns: any[] = [];
-  let currentText = html;
-
-  // Handle <p> tags - convert to line breaks
-  currentText = currentText.replace(/<p[^>]*>/gi, "").replace(/<\/p>/gi, "\n");
-
-  // Handle <br/> tags - convert to line breaks
-  currentText = currentText.replace(/<br\s*\/?>/gi, "\n");
-
-  // Split by line breaks first to handle them properly
-  const lines = currentText.split("\n");
-
-  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-    const line = lines[lineIndex];
-
-    if (line.trim()) {
-      // Split by bold tags and process each part
-      const parts = line.split(/(<\/?(?:strong|b)[^>]*>)/gi);
-      let isBold = false;
-
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-
-        if (part.match(/<(strong|b)[^>]*>/i)) {
-          isBold = true;
-        } else if (part.match(/<\/(strong|b)>/i)) {
-          isBold = false;
-        } else if (part.trim()) {
-          // Clean up remaining HTML tags
-          const cleanText = part.replace(/<[^>]*>/g, "");
-          if (cleanText) {
-            textRuns.push(
-              new TextRun({
-                text: cleanText,
-                bold: isBold,
-                size: 24,
-              })
-            );
-          }
-        }
-      }
-    }
-
-    // Add line break if not the last line
-    if (lineIndex < lines.length - 1) {
-      textRuns.push(
-        new TextRun({
-          text: "",
-          break: 1,
-          size: 24,
-        })
-      );
-    }
-  }
-
-  // If no content was processed, return the plain text
-  if (textRuns.length === 0) {
-    const plainText = currentText.replace(/<[^>]*>/g, "").trim();
-    if (plainText) {
-      textRuns.push(
-        new TextRun({
-          text: plainText,
-          size: 24,
-        })
-      );
-    }
-  }
-
-  return textRuns.length > 0 ? textRuns : [new TextRun({ text: "", size: 24 })];
-};
-
 interface CellContent {
   text?: string;
   image?: {
@@ -336,14 +348,15 @@ interface DemoNode {
   title: string;
   content: string;
   description?: string | null; // New field for image descriptions
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   type:
     | "PARAGRAPH"
     | "LIST_ITEM"
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -546,7 +559,7 @@ export const generateDocx = async (
     // Store original type for title styling
     const originalType = node.type;
 
-    // Check fieldType first for special cases like TABLE
+    // Check fieldType first for special cases like TABLE and QUESTION_BANK
     if (node.fieldType === "TABLE") {
       console.log(
         "🎯 Processing TABLE fieldType node:",
@@ -556,6 +569,9 @@ export const generateDocx = async (
       );
       // Handle TABLE fieldType regardless of node.type - jump to TABLE case
       node = { ...node, type: "TABLE" as any };
+    } else if (node.fieldType === "QUESTION_BANK") {
+      // Handle QUESTION_BANK fieldType regardless of node.type - jump to QUESTION_BANK case
+      node = { ...node, type: "QUESTION_BANK" as any };
     }
 
     switch (node.type) {
@@ -1375,6 +1391,35 @@ export const generateDocx = async (
               })
             );
           }
+        }
+
+        // Process children
+        if (node.children && node.children.length > 0) {
+          for (const child of node.children.sort(
+            (a, b) => a.orderIndex - b.orderIndex
+          )) {
+            const childElements = await processNode(child, depth + 1);
+            elements.push(...childElements);
+          }
+        }
+        break;
+
+      case "QUESTION_BANK":
+        // Add question content with markdown and HTML support
+        if (node.content) {
+          // Always parse content through parseHtmlToTextRuns to handle both markdown and HTML
+          const textRuns = parseHtmlToTextRuns(node.content);
+          elements.push(
+            new Paragraph({
+              children: textRuns,
+              spacing: {
+                after: 120, // 6pt
+              },
+              indent: {
+                left: 360, // 0.25 inch indent
+              },
+            })
+          );
         }
 
         // Process children

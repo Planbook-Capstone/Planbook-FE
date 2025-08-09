@@ -70,6 +70,12 @@ export const useLessonPlanData = () => {
       }
 
       const convertNode = (node: any, index: number = 0): DemoNode => {
+        console.log("🔍 Processing node:", {
+          id: node.id,
+          type: node.type,
+          title: node.title,
+        });
+
         // Determine fieldType based on type
         let fieldType: "INPUT" | "TABLE" | "IMAGE" = "INPUT";
         if (node.fieldType === "TABLE") {
@@ -86,17 +92,21 @@ export const useLessonPlanData = () => {
           "IMAGE",
           "SECTION",
           "SUBSECTION",
+          "QUESTION_BANK",
         ];
         const nodeType = validTypes.includes(node.type)
           ? node.type
           : "PARAGRAPH";
+
+        // Use original content
+        let nodeContent = node.content || "";
 
         return {
           id: node.id?.toString() || uuidv4(),
           lessonPlanId: node.lessonPlanId || 1,
           parentId: node.parentId?.toString() || null,
           title: node.title || `Untitled ${nodeType}`,
-          content: node.content || "",
+          content: nodeContent,
           fieldType: fieldType,
           type: nodeType as any,
           orderIndex: node.orderIndex !== undefined ? node.orderIndex : index,

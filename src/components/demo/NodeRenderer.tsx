@@ -9,6 +9,7 @@ import {
 } from "@/utils/textUtils";
 import { RichTextarea } from "@/components/ui/rich-textarea";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { QuestionBankField } from "@/components/fields/QuestionBankField";
 
 interface CellContent {
   text?: string;
@@ -30,14 +31,15 @@ interface DemoNode {
   title: string;
   content: string;
   description?: string | null; // New field for image descriptions
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   type:
     | "PARAGRAPH"
     | "LIST_ITEM"
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -59,6 +61,7 @@ interface NodeRendererProps {
   selectedNodeIds?: Set<string>;
   onNodeSelect?: (nodeId: string, isCtrlPressed: boolean) => void;
   onPaste?: (targetNodeId: string) => void;
+  questionsData?: any[];
 }
 
 // Auto-resize textarea component
@@ -527,7 +530,10 @@ export default function NodeRenderer({
               <div
                 onDragOver={(e) => {
                   e.preventDefault();
-                  e.currentTarget.classList.add("border-blue-500", "bg-blue-50");
+                  e.currentTarget.classList.add(
+                    "border-blue-500",
+                    "bg-blue-50"
+                  );
                 }}
                 onDragLeave={(e) => {
                   e.currentTarget.classList.remove(
@@ -622,6 +628,41 @@ export default function NodeRenderer({
               )}
             </div>
           );
+
+        case "QUESTION_BANK":
+          return (
+            <div className="question-bank-node">
+              {/* Editing Interface */}
+              <QuestionBankField
+                nodeId={node.id}
+                content={node.content}
+                onUpdateContent={onUpdateNodeContent}
+              />
+
+              {/* Document Content - Only show if content exists and is not placeholder */}
+              {node.content &&
+                node.content !== "Nhập câu hỏi của bạn ở đây..." && (
+                  <div className="mt-4 p-4 border-l-2 border-sky-500">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sky-600 font-medium text-sm">
+                        Câu hỏi đã chọn:
+                      </span>
+                    </div>
+                    <div className="text-gray-800 whitespace-pre-wrap">
+                      <div
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{
+                          __html: node.content
+                            ?.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                            ?.replace(/(\w)(\d+)/g, "$1<sub>$2</sub>"),
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+            </div>
+          );
+
         default:
           return (
             <div className="field-default">
@@ -861,7 +902,7 @@ export default function NodeRenderer({
               snapshot.isDraggingOver && (
                 <div className="flex items-center justify-center text-gray-400 text-sm h-8">
                   <span className="font-medium text-gray-600">
-                    🎯 Thả vào đây để thêm con (Cấp {depth + 1})
+                    Thả vào đây để thêm con (Cấp {depth + 1})
                   </span>
                 </div>
               )

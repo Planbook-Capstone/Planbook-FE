@@ -27,14 +27,15 @@ interface DemoNode {
   title: string;
   content: string;
   description?: string | null; // New field for image descriptions
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   type:
     | "PARAGRAPH"
     | "LIST_ITEM"
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -513,6 +514,49 @@ export default function PreviewModal({
                 <p className="text-gray-500">Chưa có hình ảnh</p>
               </div>
             )}
+            {node.children && node.children.length > 0 && (
+              <div className="ml-4 mt-3">
+                {node.children
+                  .sort((a, b) => a.orderIndex - b.orderIndex)
+                  .map((child) => renderPreviewNode(child, depth + 1))}
+              </div>
+            )}
+          </div>
+        );
+
+      case "QUESTION_BANK":
+        return (
+          <div
+            key={node.id}
+            style={{ marginLeft: `${marginLeft}px` }}
+            className="mb-4"
+          >
+            {node.title && node.title !== "Mới: Question Bank" && (
+              <h3 className="text-lg font-medium text-black mb-2">
+                {node.title}
+              </h3>
+            )}
+            {node.content &&
+              node.content !== "Nhập câu hỏi của bạn ở đây..." && (
+                <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-blue-600 font-medium text-sm">
+                      Câu hỏi:
+                    </span>
+                  </div>
+                  <div className="text-base text-gray-700 leading-relaxed">
+                    <div
+                      className="whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          node.content
+                            ?.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                            ?.replace(/(\w)(\d+)/g, "$1<sub>$2</sub>") || "",
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             {node.children && node.children.length > 0 && (
               <div className="ml-4 mt-3">
                 {node.children

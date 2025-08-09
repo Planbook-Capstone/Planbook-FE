@@ -13,6 +13,7 @@ import {
   useUpdateToolResultService,
   useToolResultByIdService,
 } from "@/services/toolResultService";
+import { useQuestionBanksWithParamsService } from "@/services/questionBankServices";
 
 // Custom hooks
 import { useLessonPlanData } from "./hooks/useLessonPlanData";

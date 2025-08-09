@@ -1,4 +1,12 @@
-import { Heading1, Heading2, Images, List, Table, Type } from "lucide-react";
+import {
+  Heading1,
+  Heading2,
+  Images,
+  List,
+  Table,
+  Type,
+  HelpCircle,
+} from "lucide-react";
 import { ComponentPaletteItem } from "./types";
 
 // Function to create component palette with fresh React elements
@@ -50,6 +58,14 @@ export const getComponentPalette = (): ComponentPaletteItem[] => [
     title: "Image",
     icon: <Images />,
     description: "Thêm hình ảnh",
+  },
+  {
+    id: "question-bank",
+    type: "QUESTION_BANK",
+    fieldType: "QUESTION_BANK",
+    title: "Ngân hàng câu hỏi",
+    icon: <HelpCircle />,
+    description: "Thêm ngân hàng câu hỏi",
   },
 ];
 
@@ -108,8 +124,6 @@ export const DEFAULT_TABLE_DATA = {
   ],
   columns: 2,
 };
-
-
 
 export const LESSON_PLAN_CONFIG = {
   defaultLessonPlanId: "1",
