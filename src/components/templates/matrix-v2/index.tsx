@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Eye, Save, TrashIcon } from "lucide-react";
+import { downloadExamAsDocx } from "@/utils/examDownloadUtils";
 import Image from "next/image";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
@@ -45,6 +46,7 @@ import { Modal } from "@/components/ui/modal";
 import FileIcon from "@/components/ui/FileIcon";
 import { DowloadIcon } from "@/constants/icon";
 import TemplatePreview from "@/components/organisms/template-preview";
+import { generateExamDocx } from "@/utils/docxGeneratorExam";
 
 // Helper functions for difficulty level display
 const getDifficultyColor = (level: string) => {
@@ -138,16 +140,69 @@ export default function MatrixTemplate2() {
     setShowIframe(true);
   };
 
-  const handleDownloadDocument = () => {
-    if (finalData?.online_links?.download) {
-      // Create a temporary link and trigger download
-      const link = document.createElement("a");
-      link.href = finalData.online_links.download;
-      link.download = finalData?.message || "document.docx";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  const handleDownloadDocument = async () => {
+    try {
+      if (finalData?.exam_data) {
+        // Chuyển đổi dữ liệu từ format parts sang format ExamData
+        const convertedData = convertToExamData(finalData.exam_data);
+        // Gọi hàm generator docx để tạo và download file
+        await generateExamDocx(convertedData);
+      } else {
+        toast.error("Không có dữ liệu đề thi để tải xuống");
+      }
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      toast.error("Có lỗi xảy ra khi tải xuống. Vui lòng thử lại.");
     }
+  };
+
+  // Hàm chuyển đổi dữ liệu từ format parts sang ExamData
+  const convertToExamData = (data: any) => {
+    const questions: any[] = [];
+    const yesNoQuestions: any[] = [];
+    const shortQuestions: any[] = [];
+
+    if (data.parts) {
+      data.parts.forEach((part: any) => {
+        if (part.questions) {
+          part.questions.forEach((q: any) => {
+            if (part.title?.includes("trắc nghiệm") || part.title?.includes("nhiều phương án")) {
+              // Câu trắc nghiệm
+              questions.push({
+                question: q.question,
+                options: q.options || {},
+                illustrationImage: q.illustrationImage
+              });
+            } else if (part.title?.includes("Đúng/Sai") || q.statements) {
+              // Câu Đúng/Sai
+              yesNoQuestions.push({
+                question: q.question,
+                statements: q.statements || {},
+                illustrationImage: q.illustrationImage
+              });
+            } else {
+              // Câu tự luận
+              shortQuestions.push({
+                question: q.question,
+                illustrationImage: q.illustrationImage
+              });
+            }
+          });
+        }
+      });
+    }
+
+    return {
+      examTitle: "Đề thi",
+      examSubject: "Hóa học",
+      examTime: "45 phút",
+      examDate: new Date().toLocaleDateString("vi-VN"),
+      examCode: "001",
+      atomic_masses: null,
+      questions,
+      yesNoQuestions,
+      shortQuestions
+    };
   };
 
   const handleSaveResult = (formData: {
@@ -481,8 +536,9 @@ export default function MatrixTemplate2() {
   }, [data, previousQuestionCount, bookType?.data?.code]);
 
   if (
-    data?.status === "processing" &&
-    data?.tool_code === bookType?.data?.code
+    (data?.status === "processing" &&
+      data?.tool_code === bookType?.data?.code) ||
+    resultId
   ) {
     // Extract exam data if available
     const examData = data?.exam_data;
@@ -642,202 +698,242 @@ export default function MatrixTemplate2() {
             </div>
           </div>
 
-          {/* Kết quả đề thi bên phải */}
-          <div className="flex flex-col">
-            <div className="sticky top-0 bg-white z-10 pb-4">
-              <div className="mb-4 pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                      <Image
-                        src="/loading/loading_AI.gif"
-                        alt="AI Robot"
-                        width={64}
-                        height={64}
-                        className="h-44 w-44"
-                        unoptimized
-                      />
-                    </div>
-                    <h2 className="text-lg font-calsans">
-                      Đề thi được tạo tự động
-                    </h2>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-questrial text-green-600">
-                      Đang tạo...
-                    </span>
-                  </div>
-                </div>
-                <p className="text-sm font-questrial text-neutral-500 mt-1">
-                  {data?.message || "Đang tạo câu hỏi vận dụng..."}
-                </p>
-              </div>
-
-              {/* Progress bar */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-questrial text-gray-700">
-                    Tiến độ
-                  </span>
-                  <span className="text-sm font-questrial text-gray-500">
-                    {data?.progress || 0}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-sky-500 h-2 rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${data?.progress || 0}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Questions container */}
-            <div
-              ref={questionsContainerRef}
-              className="flex-1 overflow-y-auto bg-gray-50 rounded-lg border p-4 space-y-4"
-            >
-              {allQuestions.length > 0 ? (
-                allQuestions.map((question: any, index: number) => (
-                  <div
-                    key={index}
-                    className="bg-white rounded-lg border p-4 shadow-sm"
+          {resultId ? (
+            <>
+              {" "}
+              <div className="w-full h-[95vh] overflow-y-auto border">
+                <div className="sticky top-0  z-10 p-4 space-x-5">
+                  <Button onClick={handleDownloadDocument}>
+                    {DowloadIcon} Tải về máy
+                  </Button>
+                  <Button
+                    variant={"outline"}
+                    onClick={() => setShowConfirmSaveResult(true)}
                   >
-                    {/* Question header */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-sky-100 rounded flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 text-sky-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
+                    <Save /> Lưu kết quả
+                  </Button>
+                </div>
+                <TemplatePreview data={finalData?.exam_data} />
+              </div>
+            </>
+          ) : (
+            <>
+              {" "}
+              {/* Kết quả đề thi bên phải */}
+              <div className="flex flex-col">
+                <div className="sticky top-0 bg-white z-10 pb-4">
+                  <div className="mb-4 pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                          <Image
+                            src="/loading/loading_AI.gif"
+                            alt="AI Robot"
+                            width={64}
+                            height={64}
+                            className="h-44 w-44"
+                            unoptimized
+                          />
                         </div>
-                        <span className="text-sm font-medium text-sky-600">
-                          Câu hỏi
-                        </span>
-                        {/* Difficulty Level Badge */}
-                        {question.difficultyLevel && (
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
-                              question.difficultyLevel
-                            )}`}
-                          >
-                            {getDifficultyText(question.difficultyLevel)}
-                          </span>
-                        )}
+                        <h2 className="text-lg font-calsans">
+                          Đề thi được tạo tự động
+                        </h2>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date().toLocaleTimeString("vi-VN")}
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-questrial text-green-600">
+                          Đang tạo...
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm font-questrial text-neutral-500 mt-1">
+                      {data?.message || "Đang tạo câu hỏi vận dụng..."}
+                    </p>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-questrial text-gray-700">
+                        Tiến độ
+                      </span>
+                      <span className="text-sm font-questrial text-gray-500">
+                        {data?.progress || 0}%
                       </span>
                     </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-sky-500 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${data?.progress || 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-                    {/* Question content */}
-                    <div className="space-y-2">
-                      <p className="font-medium text-gray-900">
-                        <span className="font-bold">
-                          Câu {question.questionNumber}:
-                        </span>{" "}
-                        {question.question}
-                      </p>
-
-                      {/* Multiple choice options */}
-                      {question.type === "multiple" && question.options && (
-                        <div className="ml-4 space-y-1">
-                          {Object.entries(question.options).map(
-                            ([key, value]) => (
-                              <p key={key} className="text-sm text-gray-700">
-                                <span className="font-medium">
-                                  {key.toUpperCase()}.
-                                </span>{" "}
-                                {value as string}
-                              </p>
-                            )
-                          )}
-                          {question.answer && (
-                            <div className="mt-2 p-2 bg-emerald-50 border-l-2 border-emerald-400">
-                              <span className="text-sm font-medium text-emerald-700">
-                                Đáp án
+                {/* Questions container */}
+                <div
+                  ref={questionsContainerRef}
+                  className="flex-1 overflow-y-auto bg-gray-50 rounded-lg border p-4 space-y-4"
+                >
+                  {allQuestions.length > 0 ? (
+                    allQuestions.map((question: any, index: number) => (
+                      <div
+                        key={index}
+                        className="bg-white rounded-lg border p-4 shadow-sm"
+                      >
+                        {/* Question header */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-sky-100 rounded flex items-center justify-center">
+                              <svg
+                                className="w-4 h-4 text-sky-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                            </div>
+                            <span className="text-sm font-medium text-sky-600">
+                              Câu hỏi
+                            </span>
+                            {/* Difficulty Level Badge */}
+                            {question.difficultyLevel && (
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
+                                  question.difficultyLevel
+                                )}`}
+                              >
+                                {getDifficultyText(question.difficultyLevel)}
                               </span>
-                              <p className="text-sm text-emerald-600">
-                                {question.answer}
-                              </p>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {new Date().toLocaleTimeString("vi-VN")}
+                          </span>
+                        </div>
+
+                        {/* Question content */}
+                        <div className="space-y-2">
+                          <p className="font-medium text-gray-900">
+                            <span className="font-bold">
+                              Câu {question.questionNumber}:
+                            </span>{" "}
+                            {question.question}
+                          </p>
+
+                          {/* Multiple choice options */}
+                          {question.type === "multiple" && question.options && (
+                            <div className="ml-4 space-y-1">
+                              {Object.entries(question.options).map(
+                                ([key, value]) => (
+                                  <p
+                                    key={key}
+                                    className="text-sm text-gray-700"
+                                  >
+                                    <span className="font-medium">
+                                      {key.toUpperCase()}.
+                                    </span>{" "}
+                                    {value as string}
+                                  </p>
+                                )
+                              )}
+                              {question.answer && (
+                                <div className="mt-2 p-2 bg-emerald-50 border-l-2 border-emerald-400">
+                                  <span className="text-sm font-medium text-emerald-700">
+                                    Đáp án
+                                  </span>
+                                  <p className="text-sm text-emerald-600">
+                                    {question.answer}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* True/False statements */}
+                          {question.type === "yesno" && question.statements && (
+                            <div className="ml-4 space-y-1">
+                              {Object.entries(question.statements).map(
+                                ([key, statement]: [string, any]) => (
+                                  <p
+                                    key={key}
+                                    className="text-sm text-gray-700"
+                                  >
+                                    <span className="font-medium">
+                                      {key.toLowerCase()}.
+                                    </span>{" "}
+                                    {statement.text}
+                                  </p>
+                                )
+                              )}
+                            </div>
+                          )}
+
+                          {/* Short answer */}
+                          {question.type === "short" && (
+                            <div className="ml-4">
+                              <div className="mt-2 p-2 bg-green-50 rounded border-l-4 border-green-400">
+                                <span className="text-sm font-medium text-green-700">
+                                  Đáp án
+                                </span>
+                                <p className="text-sm text-green-600">
+                                  {question.answer}
+                                </p>
+                              </div>
                             </div>
                           )}
                         </div>
-                      )}
-
-                      {/* True/False statements */}
-                      {question.type === "yesno" && question.statements && (
-                        <div className="ml-4 space-y-1">
-                          {Object.entries(question.statements).map(
-                            ([key, statement]: [string, any]) => (
-                              <p key={key} className="text-sm text-gray-700">
-                                <span className="font-medium">
-                                  {key.toLowerCase()}.
-                                </span>{" "}
-                                {statement.text}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      )}
-
-                      {/* Short answer */}
-                      {question.type === "short" && (
-                        <div className="ml-4">
-                          <div className="mt-2 p-2 bg-green-50 rounded border-l-4 border-green-400">
-                            <span className="text-sm font-medium text-green-700">
-                              Đáp án
-                            </span>
-                            <p className="text-sm text-green-600">
-                              {question.answer}
-                            </p>
+                      </div>
+                    ))
+                  ) : (
+                    // Skeleton loading for questions
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="bg-white rounded-lg border p-4 shadow-sm animate-pulse"
+                        >
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded w-20"></div>
+                            <div className="h-3 bg-gray-200 rounded w-16 ml-auto"></div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="h-4 bg-gray-200 rounded w-full"></div>
+                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div className="ml-4 space-y-1">
+                              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                            </div>
                           </div>
                         </div>
-                      )}
+                      ))}
                     </div>
-                  </div>
-                ))
-              ) : (
-                // Skeleton loading for questions
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="bg-white rounded-lg border p-4 shadow-sm animate-pulse"
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 bg-gray-200 rounded"></div>
-                        <div className="h-4 bg-gray-200 rounded w-20"></div>
-                        <div className="h-3 bg-gray-200 rounded w-16 ml-auto"></div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-full"></div>
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="ml-4 space-y-1">
-                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
         </div>
+
+        <ConfirmSaveResult
+          isOpen={showConfirmSaveResult}
+          onClose={() => setShowConfirmSaveResult(false)}
+          onConfirm={handleSaveResult}
+          resultId={resultId || ""}
+          data={mapToBackend()}
+          isLoading={isSavingResult}
+          initialName={currentToolResult?.data?.name || ""}
+          initialDescription={currentToolResult?.data?.description || ""}
+        />
       </div>
     );
   }
@@ -1331,16 +1427,6 @@ export default function MatrixTemplate2() {
       </Modal>
 
       {/* Confirm Save Result Modal */}
-      <ConfirmSaveResult
-        isOpen={showConfirmSaveResult}
-        onClose={() => setShowConfirmSaveResult(false)}
-        onConfirm={handleSaveResult}
-        resultId={resultId || ""}
-        data={mapToBackend()}
-        isLoading={isSavingResult}
-        initialName={currentToolResult?.data?.name || ""}
-        initialDescription={currentToolResult?.data?.description || ""}
-      />
     </div>
   );
 }
