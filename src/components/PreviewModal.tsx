@@ -6,6 +6,7 @@ import { DowloadIcon } from "@/constants/icon";
 import { useUploadDocxToOnlineService } from "@/services/lessonPlanGenerationServices";
 import { useState } from "react";
 import ConfirmSaveResult from "./modals/ConfirmSaveResult";
+import { da } from "date-fns/locale";
 
 interface CellContent {
   text?: string;
@@ -554,7 +555,10 @@ export default function PreviewModal({
                           .replace(/\*\*\*(.*?)\*\*\*/g, "<strong>$1</strong>")
                           .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
                           .replace(/\*(.*?)\*/g, "<em>$1</em>")
-                          .replace(/(\w)(\d+)/g, "$1<sub>$2</sub>")
+                          .replace(
+                            /([A-Za-z])(\d+)(?![0-9\s]*(?:ml|gam|g|kg|l|mol|M|%))/g,
+                            "$1<sub>$2</sub>"
+                          )
                           .replace(/\n/g, "<br/>"),
                       }}
                     />
@@ -581,7 +585,7 @@ export default function PreviewModal({
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h2 className="text-xl font-calsans text-gray-800">
             Xem trước giáo án
           </h2>
           <div className="flex items-center gap-3">

@@ -1,11 +1,21 @@
 import React, { useState } from "react";
-import { X, Copy, Check, ChevronRight, Folder, FileText } from "lucide-react";
+import {
+  X,
+  Copy,
+  Check,
+  ChevronRight,
+  Folder,
+  FileText,
+  ChevronLeft,
+  ChevronDown,
+} from "lucide-react";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { useQuestionBanksWithParamsService } from "@/services/questionBankServices";
+import FolderCard from "../molecules/folder-card";
 
 interface LessonPlanQuestionBankModalProps {
   isOpen: boolean;
@@ -210,6 +220,39 @@ export const LessonPlanQuestionBankModal: React.FC<
     }
   };
 
+  // Check if all questions in the current lesson are selected
+  const areAllQuestionsSelected = () => {
+    const allQuestionsInCurrentLesson = Object.values(groupedQuestions).flat();
+    return (
+      allQuestionsInCurrentLesson.length > 0 &&
+      allQuestionsInCurrentLesson.every((question: any) =>
+        selectedQuestions.some((q) => q.id === question.id)
+      )
+    );
+  };
+
+  // Handle select all/deselect all questions in the current lesson only
+  const handleSelectAllQuestions = () => {
+    const allQuestionsInCurrentLesson = Object.values(groupedQuestions).flat();
+    const allSelected = areAllQuestionsSelected();
+
+    if (allSelected) {
+      // Deselect only questions from current lesson, keep questions from other lessons
+      setSelectedQuestions((prev) =>
+        prev.filter(
+          (selectedQ) =>
+            !allQuestionsInCurrentLesson.some((q: any) => q.id === selectedQ.id)
+        )
+      );
+    } else {
+      // Select all questions in current lesson that aren't already selected
+      const questionsToAdd = allQuestionsInCurrentLesson.filter(
+        (question: any) => !selectedQuestions.some((q) => q.id === question.id)
+      );
+      setSelectedQuestions((prev) => [...prev, ...questionsToAdd]);
+    }
+  };
+
   const handleConfirmSelection = () => {
     if (selectedQuestions.length > 0) {
       // Group selected questions by questionType
@@ -225,78 +268,109 @@ export const LessonPlanQuestionBankModal: React.FC<
         {}
       );
 
-      const formatQuestionForOutput = (
+      // Helper function to get section description
+      const getSectionDescription = (questionType: string) => {
+        switch (questionType) {
+          case "PART_I":
+            return "PHẦN I: TRẮC NGHIỆM KHÁCH QUAN";
+          case "PART_II":
+            return "PHẦN II: TRẮC NGHIỆM ĐÚNG SAI";
+          case "PART_III":
+            return "PHẦN III: TỰ LUẬN";
+          case "PART_IV":
+            return "PHẦN IV";
+          case "PART_V":
+            return "PHẦN V";
+          default:
+            return questionType;
+        }
+      };
+
+      // Format question content without answers
+      const formatQuestionForDisplay = (
         question: any,
-        questionIndex: number,
-        questionType: string
+        questionType: string,
+        globalQuestionNumber: number
       ) => {
         const content = renderQuestionContent(question);
         const options = question.questionContent?.options;
-        const answer = question.questionContent?.answer;
+
+        console.log("🔍 question:", question);
 
         // Metadata
         const metadata = [];
-        if (question.difficultyLevel) {
-          metadata.push(
-            `Độ khó: ${getDifficultyText(question.difficultyLevel)}`
-          );
+        if (question.difficultyLevel || question.difficultyLevelDescription) {
+          const difficultyLevel =
+            question.difficultyLevel || question.difficultyLevelDescription;
+          metadata.push(`Độ khó: ${getDifficultyText(difficultyLevel)}`);
         }
         if (question.referenceSource) {
           metadata.push(`Nguồn: ${question.referenceSource}`);
         }
 
-        let formatted = `**Câu ${questionIndex + 1}**`;
+        let formatted = `**Câu ${globalQuestionNumber}`;
         if (metadata.length > 0) {
           formatted += ` (${metadata.join(" | ")})`;
         }
-        formatted += `\n**${content}**\n`;
+        formatted += `**\n${content}\n`;
 
         // Format based on question type
         if (questionType === "PART_I") {
-          // Multiple choice - options + answer at end
+          // Multiple choice - show options without answers
           if (options) {
             Object.entries(options).forEach(([key, value]: [string, any]) => {
-              formatted += `${key}. ${value}\n`;
+              formatted += `**${key}.** ${value}\n`;
             });
           }
-          if (answer) {
-            formatted += `\n**Đáp án: ${answer}**`;
-          }
         } else if (questionType === "PART_II") {
-          // True/False - statements with answer on each
+          // True/False - show statements without answers
           const statements = question.questionContent?.statements;
           if (statements) {
             Object.entries(statements).forEach(
               ([key, value]: [string, any]) => {
-                formatted += `${key}. ${value.text} ${
-                  value.answer ? "✓" : "✗"
-                }\n`;
+                formatted += `${key}) ${value.text}\n`;
               }
             );
           }
-        } else if (questionType === "PART_III") {
-          // Essay - answer at bottom
-          if (answer) {
-            formatted += `\n**Đáp án: ${answer}**`;
-          }
-        } else {
-          // Default format for other types
-          if (options) {
-            formatted += "\n";
-            Object.entries(options).forEach(([key, value]: [string, any]) => {
-              formatted += `\n${key}. ${value}`;
-            });
-          }
-          if (answer) {
-            formatted += `\n\n**Đáp án: ${answer}**`;
-          }
         }
+        // For PART_III (essay), no additional formatting needed
 
         return formatted;
       };
 
-      // Build output by sections in correct order
+      // Format answers for answer section
+      const formatAnswerForSection = (
+        question: any,
+        questionType: string,
+        globalQuestionNumber: number
+      ) => {
+        const answer = question.questionContent?.answer;
+        const statements = question.questionContent?.statements;
+
+        if (questionType === "PART_I") {
+          return { questionNumber: globalQuestionNumber, answer: answer || "" };
+        } else if (questionType === "PART_II") {
+          const statementAnswers: any = {};
+          if (statements) {
+            Object.entries(statements).forEach(
+              ([key, value]: [string, any]) => {
+                statementAnswers[key] = value.answer ? "Đúng" : "Sai";
+              }
+            );
+          }
+          return {
+            questionNumber: globalQuestionNumber,
+            statements: statementAnswers,
+          };
+        } else if (questionType === "PART_III") {
+          return { questionNumber: globalQuestionNumber, answer: answer || "" };
+        }
+        return { questionNumber: globalQuestionNumber, answer: answer || "" };
+      };
+
+      // Build output
       let combinedContent = "";
+      let globalQuestionCounter = 1;
       const orderedTypes = [
         "PART_I",
         "PART_II",
@@ -304,20 +378,96 @@ export const LessonPlanQuestionBankModal: React.FC<
         "PART_IV",
         "PART_V",
       ];
+      const answerData: any = {};
 
+      // Generate questions section
       orderedTypes.forEach((questionType) => {
         if (groupedSelectedQuestions[questionType]) {
           const questions = groupedSelectedQuestions[questionType];
-          combinedContent += `**${getQuestionTypeText(questionType)}:**\n\n`;
+          combinedContent += `**${getSectionDescription(questionType)}**\n\n`;
 
-          questions.forEach((question: any, index: number) => {
-            combinedContent += formatQuestionForOutput(
+          answerData[questionType] = [];
+
+          questions.forEach((question: any) => {
+            combinedContent += formatQuestionForDisplay(
               question,
-              index,
-              questionType
+              questionType,
+              globalQuestionCounter
             );
-            combinedContent += "\n\n";
+
+            answerData[questionType].push(
+              formatAnswerForSection(
+                question,
+                questionType,
+                globalQuestionCounter
+              )
+            );
+
+            globalQuestionCounter++;
+            combinedContent += "\n";
           });
+
+          combinedContent += "\n";
+        }
+      });
+
+      // Add end marker
+      combinedContent += "----- HẾT -----\n\n";
+
+      // Generate answer section
+      combinedContent += "**ĐÁP ÁN**\n\n";
+
+      orderedTypes.forEach((questionType) => {
+        if (answerData[questionType] && answerData[questionType].length > 0) {
+          combinedContent += `**${getSectionDescription(questionType)}**\n\n`;
+
+          if (questionType === "PART_I" || questionType === "PART_III") {
+            // Horizontal table format for PART_I and PART_III
+            combinedContent += `<table border="1" style="border-collapse: collapse; width: 100%;"><tr><th style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">Câu</th>`;
+
+            // Add question number headers
+            answerData[questionType].forEach((item: any) => {
+              combinedContent += `<th style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">${item.questionNumber}</th>`;
+            });
+
+            combinedContent += `</tr><tr><th style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">${
+              questionType === "PART_I" ? "Chọn" : "Đáp án"
+            }</th>`;
+
+            // Add answers
+            answerData[questionType].forEach((item: any) => {
+              combinedContent += `<td style="border: 1px solid black; padding: 8px; text-align: center;">${item.answer}</td>`;
+            });
+
+            combinedContent += `</tr></table>`;
+          } else if (questionType === "PART_II") {
+            // Horizontal table format for PART_II
+            combinedContent += `<table border="1" style="border-collapse: collapse; width: 100%;"><tr><th style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">Câu</th>`;
+
+            // Add question number headers
+            answerData[questionType].forEach((item: any) => {
+              combinedContent += `<th style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">${item.questionNumber}</th>`;
+            });
+
+            combinedContent += `</tr><tr><th style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">Đáp án</th>`;
+
+            // Add answers for PART_II (statements format)
+            answerData[questionType].forEach((item: any) => {
+              let cellContent = "";
+              if (item.statements) {
+                Object.entries(item.statements).forEach(
+                  ([key, value]: [string, any]) => {
+                    cellContent += `${key}) ${value}<br>`;
+                  }
+                );
+                // Remove last <br>
+                cellContent = cellContent.slice(0, -4);
+              }
+              combinedContent += `<td style="border: 1px solid black; padding: 8px; text-align: center;">${cellContent}</td>`;
+            });
+
+            combinedContent += `</tr></table>`;
+          }
 
           combinedContent += "\n";
         }
@@ -364,14 +514,14 @@ export const LessonPlanQuestionBankModal: React.FC<
               key={key}
               className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
                 key === correctAnswer
-                  ? "bg-green-50 border-green-200"
+                  ? "bg-emerald-50 border-emerald-200"
                   : "bg-gray-50 border-gray-200"
               }`}
             >
               <span
                 className={`font-bold min-w-[24px] h-6 flex items-center justify-center rounded-full text-sm ${
                   key === correctAnswer
-                    ? "bg-green-500 text-white"
+                    ? "bg-emerald-500 text-white"
                     : "bg-gray-400 text-white"
                 }`}
               >
@@ -385,8 +535,9 @@ export const LessonPlanQuestionBankModal: React.FC<
                 {value}
               </span>
               {key === correctAnswer && (
-                <span className="ml-auto text-green-600 text-sm font-medium">
-                  ✓ Đúng
+                <span className="ml-auto text-emerald-600 text-sm font-medium flex items-center gap-1">
+                  <Check size={16} className="text-emerald-600" />
+                  Đúng
                 </span>
               )}
             </div>
@@ -409,14 +560,14 @@ export const LessonPlanQuestionBankModal: React.FC<
               key={key}
               className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
                 value.answer
-                  ? "bg-green-50 border-green-200"
+                  ? "bg-emerald-50 border-emerald-200"
                   : "bg-red-50 border-red-200"
               }`}
             >
               <span
-                className={`font-bold min-w-[24px] h-6 flex items-center justify-center rounded-full text-sm ${
+                className={`font-calsans min-w-[24px] h-6 flex items-center justify-center rounded-full text-sm ${
                   value.answer
-                    ? "bg-green-500 text-white"
+                    ? "bg-emerald-500 text-white"
                     : "bg-red-500 text-white"
                 }`}
               >
@@ -424,11 +575,21 @@ export const LessonPlanQuestionBankModal: React.FC<
               </span>
               <span className="text-gray-800 flex-1">{value.text}</span>
               <span
-                className={`text-sm font-medium ${
-                  value.answer ? "text-green-600" : "text-red-600"
+                className={`text-sm font-medium flex items-center gap-1 ${
+                  value.answer ? "text-emerald-600" : "text-red-600"
                 }`}
               >
-                {value.answer ? "✓ Đúng" : "✗ Sai"}
+                {value.answer ? (
+                  <>
+                    <Check size={16} className="text-emerald-600" />
+                    Đúng
+                  </>
+                ) : (
+                  <>
+                    <X size={16} className="text-red-600" />
+                    Sai
+                  </>
+                )}
               </span>
             </div>
           ))}
@@ -444,18 +605,17 @@ export const LessonPlanQuestionBankModal: React.FC<
     switch (currentView) {
       case "grades":
         return (
-          <div className="space-y-2">
+          <div className="space-y-2 flex gap-6">
             {gradesData?.data?.content &&
             Array.isArray(gradesData.data.content) ? (
-              gradesData.data.content.map((grade: any) => (
-                <div
-                  key={grade.id}
-                  onClick={() => handleGradeSelect(grade)}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg cursor-pointer"
-                >
-                  <Folder size={20} className="text-yellow-600" />
-                  <span className="font-medium">Khối {grade.name}</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
+              gradesData.data.content.map((grade: any, index: number) => (
+                <div key={grade.id} onClick={() => handleGradeSelect(grade)}>
+                  <FolderCard
+                    key={index}
+                    id={"6"}
+                    colorId={"6"}
+                    title={`Khối ${grade.name}`}
+                  />
                 </div>
               ))
             ) : (
@@ -468,26 +628,33 @@ export const LessonPlanQuestionBankModal: React.FC<
 
       case "subjects":
         return (
-          <div className="space-y-2">
+          <div className="space-y-6">
             <button
               onClick={handleBackNavigation}
-              className="flex items-center gap-2 p-2 text-blue-600 hover:bg-blue-50 rounded"
+              className="flex items-center gap-2 p-2 pr-4 text-neutral-600 rounded-full hover:bg-neutral-50 cursor-pointer"
             >
-              ← Quay lại Khối
+              <ChevronLeft /> Quay lại Khối
             </button>
             {subjectsData?.data?.content &&
             Array.isArray(subjectsData.data.content) ? (
-              subjectsData.data.content.map((subject: any) => (
-                <div
-                  key={subject.id}
-                  onClick={() => handleSubjectSelect(subject)}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg cursor-pointer"
-                >
-                  <Folder size={20} className="text-yellow-600" />
-                  <span className="font-medium">{subject.name}</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
-                </div>
-              ))
+              <div className="grid grid-cols-4">
+                {subjectsData.data.content.map(
+                  (subject: any, index: number) => (
+                    <div
+                      key={subject.id}
+                      onClick={() => handleSubjectSelect(subject)}
+                      className="col-span-1"
+                    >
+                      <FolderCard
+                        key={index}
+                        id={"5"}
+                        colorId={"5"}
+                        title={`Môn ${subject.name}`}
+                      />
+                    </div>
+                  )
+                )}
+              </div>
             ) : (
               <div className="text-center text-gray-500 py-8">
                 <p>Đang tải dữ liệu môn học...</p>
@@ -501,23 +668,24 @@ export const LessonPlanQuestionBankModal: React.FC<
           <div className="space-y-2">
             <button
               onClick={handleBackNavigation}
-              className="flex items-center gap-2 p-2 text-blue-600 hover:bg-blue-50 rounded"
+              className="flex items-center gap-2 p-2 pr-4 text-neutral-600 rounded-full hover:bg-neutral-50 cursor-pointer"
             >
-              ← Quay lại Môn học
+              <ChevronLeft /> Quay lại Môn học
             </button>
             {booksData?.data?.content &&
             Array.isArray(booksData.data.content) ? (
-              booksData.data.content.map((book: any) => (
-                <div
-                  key={book.id}
-                  onClick={() => handleBookSelect(book)}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg cursor-pointer"
-                >
-                  <FileText size={20} className="text-blue-600" />
-                  <span className="font-medium">{book.name}</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
-                </div>
-              ))
+              <div className="grid grid-cols-4">
+                {booksData.data.content.map((book: any) => (
+                  <div
+                    key={book.id}
+                    onClick={() => handleBookSelect(book)}
+                    className="flex flex-col items-center gap-3 p-3 rounded-lg cursor-pointer"
+                  >
+                    <img src={"/images/files/BOOK.svg"} />
+                    <span className="truncate w-full">{book.name}</span>
+                  </div>
+                ))}{" "}
+              </div>
             ) : (
               <div className="text-center text-gray-500 py-8">
                 <p>Đang tải dữ liệu sách...</p>
@@ -531,22 +699,23 @@ export const LessonPlanQuestionBankModal: React.FC<
           <div className="space-y-2">
             <button
               onClick={handleBackNavigation}
-              className="flex items-center gap-2 p-2 text-blue-600 hover:bg-blue-50 rounded"
+              className="flex items-center gap-2 p-2 pr-4 text-neutral-600 rounded-full hover:bg-neutral-50 cursor-pointer"
             >
-              ← Quay lại Sách
+              <ChevronLeft /> Quay lại Sách
             </button>
             {lessonsData?.data && Array.isArray(lessonsData.data) ? (
-              lessonsData.data.map((lesson: any) => (
-                <div
-                  key={lesson.id}
-                  onClick={() => handleLessonSelect(lesson)}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg cursor-pointer"
-                >
-                  <FileText size={20} className="text-green-600" />
-                  <span className="font-medium">{lesson.name}</span>
-                  <ChevronRight size={16} className="ml-auto text-gray-400" />
-                </div>
-              ))
+              <div className="grid grid-cols-4">
+                {lessonsData.data.map((lesson: any) => (
+                  <div
+                    key={lesson.id}
+                    onClick={() => handleLessonSelect(lesson)}
+                    className="flex flex-col items-center gap-3 p-3 rounded-lg cursor-pointer"
+                  >
+                    <img src={"/images/files/DOC.svg"} />
+                    <span className="truncate w-full">{lesson.name}</span>
+                  </div>
+                ))}{" "}
+              </div>
             ) : (
               <div className="text-center text-gray-500 py-8">
                 <p>Đang tải dữ liệu bài học...</p>
@@ -558,12 +727,24 @@ export const LessonPlanQuestionBankModal: React.FC<
       case "questions":
         return (
           <div className="space-y-4">
-            <button
-              onClick={handleBackNavigation}
-              className="flex items-center gap-2 p-2 text-blue-600 hover:bg-blue-50 rounded"
-            >
-              ← Quay lại Bài học
-            </button>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={handleBackNavigation}
+                className="flex items-center gap-2 p-2 pr-4 text-neutral-600 rounded-full hover:bg-neutral-50 cursor-pointer"
+              >
+                <ChevronLeft /> Quay lại Bài học
+              </button>
+
+              {/* Select All Questions Button */}
+              <button
+                onClick={handleSelectAllQuestions}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+              >
+                {areAllQuestionsSelected()
+                  ? "Bỏ chọn tất cả"
+                  : "Chọn tất cả câu hỏi"}
+              </button>
+            </div>
             {Object.keys(groupedQuestions).length > 0 ? (
               Object.entries(groupedQuestions).map(
                 ([questionType, questions]: [string, any]) => (
@@ -571,16 +752,20 @@ export const LessonPlanQuestionBankModal: React.FC<
                     {/* Section Header */}
                     <div
                       onClick={() => toggleSection(questionType)}
-                      className="flex items-center gap-3 p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors mb-3"
+                      className="flex items-center gap-3 p-3 bg-sky-50 rounded-sm cursor-pointer hover:bg-sky-100 transition-colors mb-3"
                     >
-                      <h3 className="font-semibold text-gray-800">
+                      <h3 className="font-calsans text-sky-700">
                         {getQuestionTypeText(questionType)}
                       </h3>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-sky-600">
                         ({questions.length} câu)
                       </span>
-                      <span className="ml-auto text-gray-400">
-                        {collapsedSections.has(questionType) ? "▶" : "▼"}
+                      <span className="ml-auto text-sky-700">
+                        {collapsedSections.has(questionType) ? (
+                          <ChevronRight />
+                        ) : (
+                          <ChevronDown />
+                        )}
                       </span>
                     </div>
 
@@ -596,7 +781,7 @@ export const LessonPlanQuestionBankModal: React.FC<
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
-                                  <h4 className="font-semibold text-gray-800">
+                                  <h4 className="font-calsans text-gray-800">
                                     Câu {index + 1}
                                   </h4>
                                   {/* Nguồn */}
@@ -680,8 +865,8 @@ export const LessonPlanQuestionBankModal: React.FC<
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/10 bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg overflow-y-hidden  shadow-xl w-full max-w-7xl h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-calsans text-gray-900">
@@ -700,7 +885,7 @@ export const LessonPlanQuestionBankModal: React.FC<
           {/* Left Panel - Navigation */}
           <div className="w-1/2 h-full flex flex-col border-r border-gray-200">
             <div className="p-4 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-lg font-medium text-gray-800">
+              <h3 className="text-lg font-calsans text-gray-800">
                 {currentView === "grades" && "Chọn Khối"}
                 {currentView === "subjects" && "Chọn Môn học"}
                 {currentView === "books" && "Chọn Sách giáo khoa"}
@@ -771,7 +956,7 @@ export const LessonPlanQuestionBankModal: React.FC<
                                   : "bg-red-100 text-red-700"
                               }`}
                             >
-                              🎯{" "}
+                              {" "}
                               {getDifficultyText(
                                 question.difficultyLevelDescription
                               )}
@@ -779,8 +964,9 @@ export const LessonPlanQuestionBankModal: React.FC<
 
                             {/* Đáp án */}
                             {question.questionContent?.answer && (
-                              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
-                                ✓ {question.questionContent.answer}
+                              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
+                                <Check size={12} className="text-emerald-700" />
+                                {question.questionContent.answer}
                               </span>
                             )}
                           </div>
@@ -818,7 +1004,10 @@ export const LessonPlanQuestionBankModal: React.FC<
                                 <span className="line-clamp-2">{value}</span>
                                 {key === question.questionContent.answer && (
                                   <span className="ml-auto text-green-600">
-                                    ✓
+                                    <Check
+                                      size={14}
+                                      className="text-green-600"
+                                    />
                                   </span>
                                 )}
                               </div>

@@ -24,7 +24,10 @@ function parseHtmlToTextRuns(html: string): TextRun[] {
     .replace(/\*\*\*(.*?)\*\*\*/g, "<strong>$1</strong>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/(\w)(\d+)/g, "$1<sub>$2</sub>");
+    .replace(
+      /([A-Za-z])(\d+)(?![0-9\s]*(?:ml|gam|g|kg|l|mol|M|%))/g,
+      "$1<sub>$2</sub>"
+    );
 
   // Split by single newlines to handle all line breaks
   const lines = processedHtml.split(/\n/);
@@ -102,6 +105,150 @@ function parseHtmlToTextRuns(html: string): TextRun[] {
   }
 
   return textRuns;
+}
+
+// Helper function to parse HTML tables and convert to DOCX Table
+function parseHtmlTable(html: string): Table | null {
+  try {
+    // Check if content contains table
+    if (!html.includes("<table")) {
+      return null;
+    }
+
+    // Extract table content using regex
+    const tableMatch = html.match(/<table[^>]*>(.*?)<\/table>/s);
+    if (!tableMatch) {
+      return null;
+    }
+
+    const tableContent = tableMatch[1];
+
+    // Extract rows
+    const rowMatches = tableContent.match(/<tr[^>]*>(.*?)<\/tr>/gs);
+    if (!rowMatches || rowMatches.length === 0) {
+      return null;
+    }
+
+    const tableRows: TableRow[] = [];
+
+    rowMatches.forEach((rowHtml) => {
+      // Extract cells (both th and td)
+      const cellMatches = rowHtml.match(/<(th|td)[^>]*>(.*?)<\/(th|td)>/gs);
+      if (cellMatches) {
+        const tableCells: TableCell[] = [];
+
+        cellMatches.forEach((cellHtml) => {
+          // Extract cell content and determine if it's a header
+          const cellContentMatch = cellHtml.match(
+            /<(th|td)[^>]*>(.*?)<\/(th|td)>/s
+          );
+          if (cellContentMatch) {
+            const isHeader = cellContentMatch[1] === "th";
+            let cellContent = cellContentMatch[2];
+
+            // Clean up cell content - remove HTML tags but preserve line breaks
+            cellContent = cellContent
+              .replace(/<br\s*\/?>/gi, "\n")
+              .replace(/<[^>]*>/g, "")
+              .replace(/&nbsp;/g, " ")
+              .trim();
+
+            // Create text runs for cell content
+            const textRuns = cellContent
+              .split("\n")
+              .map((line, index, array) => {
+                const runs: TextRun[] = [];
+                runs.push(
+                  new TextRun({
+                    text: line.trim(),
+                    bold: isHeader,
+                    size: 22,
+                  })
+                );
+
+                // Add line break if not the last line
+                if (index < array.length - 1) {
+                  runs.push(
+                    new TextRun({
+                      text: "",
+                      break: 1,
+                      size: 22,
+                    })
+                  );
+                }
+
+                return runs;
+              })
+              .flat();
+
+            tableCells.push(
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children:
+                      textRuns.length > 0
+                        ? textRuns
+                        : [new TextRun({ text: "", size: 22 })],
+                    alignment: AlignmentType.CENTER,
+                  }),
+                ],
+                width: {
+                  size: 2000,
+                  type: WidthType.DXA,
+                },
+              })
+            );
+          }
+        });
+
+        if (tableCells.length > 0) {
+          tableRows.push(
+            new TableRow({
+              children: tableCells,
+            })
+          );
+        }
+      }
+    });
+
+    if (tableRows.length > 0) {
+      return new Table({
+        rows: tableRows,
+        width: {
+          size: 100,
+          type: WidthType.PERCENTAGE,
+        },
+      });
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error parsing HTML table:", error);
+    return null;
+  }
+}
+
+// Helper function to parse all HTML tables in content
+function parseAllHtmlTables(html: string): Table[] {
+  const tables: Table[] = [];
+
+  try {
+    // Find all table matches
+    const tableMatches = html.match(/<table[^>]*>.*?<\/table>/gs);
+
+    if (tableMatches) {
+      tableMatches.forEach((tableHtml) => {
+        const table = parseHtmlTable(tableHtml);
+        if (table) {
+          tables.push(table);
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error parsing all HTML tables:", error);
+  }
+
+  return tables;
 }
 
 // Helper function to load image via Image element and convert to canvas
@@ -540,6 +687,125 @@ const createLessonPlanHeader = (headerInfo: LessonPlanHeader = {}) => {
   ];
 };
 
+/**
+ * Process question bank content with special handling for PART_III separator lines
+ */
+function processQuestionBankContentWithSeparators(
+  content: string
+): Paragraph[] {
+  // Check if content contains PART_III
+  if (content.includes("PHẦN III")) {
+    // Use special processing for PART_III
+    const elements: Paragraph[] = [];
+    const lines = content.split("\n");
+    let isInPart3 = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      // Check for section headers
+      if (line.match(/^\*\*PHẦN [IVX]+:/)) {
+        const sectionTitle = line.replace(/\*\*/g, "");
+        isInPart3 = sectionTitle.includes("PHẦN III");
+
+        // Add section header
+        elements.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: sectionTitle,
+                bold: true,
+                size: 24,
+              }),
+            ],
+            spacing: { before: 240, after: 120 },
+          })
+        );
+        continue;
+      }
+
+      // Check for question headers in PART_III
+      if (isInPart3 && line.match(/^\*\*Câu \d+/)) {
+        // Add question
+        const textRuns = parseHtmlToTextRuns(line);
+        elements.push(
+          new Paragraph({
+            children: textRuns,
+            spacing: { after: 120 },
+          })
+        );
+
+        // Look ahead to add question content
+        let j = i + 1;
+        while (
+          j < lines.length &&
+          !lines[j].match(/^\*\*Câu \d+/) &&
+          !lines[j].match(/^\*\*PHẦN/) &&
+          !lines[j].includes("-----")
+        ) {
+          const contentLine = lines[j].trim();
+          if (contentLine) {
+            const contentRuns = parseHtmlToTextRuns(contentLine);
+            elements.push(
+              new Paragraph({
+                children: contentRuns,
+                spacing: { after: 60 },
+              })
+            );
+          }
+          j++;
+        }
+        i = j - 1; // Skip processed lines
+
+        // Add 5 lines of underscores for student answers
+        for (let k = 0; k < 5; k++) {
+          elements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "_".repeat(82),
+                  size: 22,
+                }),
+              ],
+              spacing: { before: k === 0 ? 120 : 60, after: 60 },
+            })
+          );
+        }
+        continue;
+      }
+
+      // Process regular content
+      if (line && !line.includes("-----")) {
+        const textRuns = parseHtmlToTextRuns(line);
+        if (textRuns.length > 0) {
+          elements.push(
+            new Paragraph({
+              children: textRuns,
+              spacing: { after: 60 },
+            })
+          );
+        }
+      }
+    }
+
+    return elements;
+  } else {
+    // Use original processing for non-PART_III content
+    const questionTextRuns = parseHtmlToTextRuns(content);
+    return [
+      new Paragraph({
+        children: questionTextRuns,
+        spacing: {
+          after: 120, // 6pt
+        },
+        indent: {
+          left: 360, // 0.25 inch indent
+        },
+      }),
+    ];
+  }
+}
+
 export const generateDocx = async (
   data: DemoNode[],
   filename: string = "document.docx",
@@ -975,6 +1241,10 @@ export const generateDocx = async (
                   },
                 })
             ),
+            height: {
+              value: 600, // Increased row height (about 0.42 inches)
+              rule: "atLeast",
+            },
           }),
           // Data rows
           ...(await Promise.all(
@@ -1158,6 +1428,10 @@ export const generateDocx = async (
                       });
                     })
                   ),
+                  height: {
+                    value: 600, // Increased row height (about 0.42 inches)
+                    rule: "atLeast",
+                  },
                 })
             )
           )),
@@ -1407,19 +1681,141 @@ export const generateDocx = async (
       case "QUESTION_BANK":
         // Add question content with markdown and HTML support
         if (node.content) {
-          // Always parse content through parseHtmlToTextRuns to handle both markdown and HTML
-          const textRuns = parseHtmlToTextRuns(node.content);
-          elements.push(
-            new Paragraph({
-              children: textRuns,
-              spacing: {
-                after: 120, // 6pt
-              },
-              indent: {
-                left: 360, // 0.25 inch indent
-              },
-            })
+          console.log("🔍 Full content:", node.content);
+          console.log(
+            "🔍 Content includes ĐÁP ÁN:",
+            node.content.includes("ĐÁP ÁN")
           );
+          console.log(
+            "🔍 Content includes **ĐÁP ÁN**:",
+            node.content.includes("**ĐÁP ÁN**")
+          );
+
+          // Split content into sections: questions and answers
+          const answerSectionMatch = node.content.match(
+            /\*\*ĐÁP ÁN\*\*([\s\S]*)/
+          );
+          console.log("🔍 Answer section match:", !!answerSectionMatch);
+
+          if (answerSectionMatch) {
+            // Process content before answer section (questions part)
+            const questionsContent = node.content.substring(
+              0,
+              node.content.indexOf("**ĐÁP ÁN**")
+            );
+            if (questionsContent.trim()) {
+              // Process questions with special handling for PART_III separator lines
+              const processedContent =
+                processQuestionBankContentWithSeparators(questionsContent);
+              elements.push(...processedContent);
+            }
+
+            // Process answer section
+            const answerContent = answerSectionMatch[1];
+
+            // Add "ĐÁP ÁN" heading
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "ĐÁP ÁN",
+                    bold: true,
+                    size: 28,
+                  }),
+                ],
+                spacing: {
+                  before: 240, // 12pt
+                  after: 120, // 6pt
+                },
+                indent: {
+                  left: 360, // 0.25 inch indent
+                },
+              })
+            );
+
+            // Parse answer section with section headers and tables
+            console.log("🔍 Answer content:", answerContent.substring(0, 500));
+
+            // Split answer content by section headers
+            const sectionParts = answerContent.split(
+              /(\*\*PHẦN [IVX]+:.*?\*\*)/
+            );
+
+            for (let i = 0; i < sectionParts.length; i++) {
+              const part = sectionParts[i].trim();
+              if (!part) continue;
+
+              // Check if this is a section header
+              if (part.match(/^\*\*PHẦN [IVX]+:/)) {
+                // Add section header
+                const sectionTitle = part.replace(/\*\*/g, "");
+                elements.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: sectionTitle,
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                    spacing: { before: 120, after: 60 },
+                    indent: {
+                      left: 360, // 0.25 inch indent
+                    },
+                  })
+                );
+              } else {
+                // This should be content with tables
+                const tables = parseAllHtmlTables(part);
+                if (tables.length > 0) {
+                  tables.forEach((table) => {
+                    elements.push(table);
+                    // Add spacing after each table
+                    elements.push(
+                      new Paragraph({
+                        children: [new TextRun({ text: "", size: 18 })],
+                        spacing: { after: 120 },
+                      })
+                    );
+                  });
+                }
+
+                // Add any remaining non-table content
+                const contentWithoutTables = part
+                  .replace(/<table[^>]*>.*?<\/table>/g, "")
+                  .trim();
+
+                if (contentWithoutTables) {
+                  const textRuns = parseHtmlToTextRuns(contentWithoutTables);
+                  if (textRuns.length > 0) {
+                    elements.push(
+                      new Paragraph({
+                        children: textRuns,
+                        spacing: { after: 60 },
+                        indent: {
+                          left: 360, // 0.25 inch indent
+                        },
+                      })
+                    );
+                  }
+                }
+              }
+            }
+          } else {
+            // No answer section found, process as regular text
+            const textRuns = parseHtmlToTextRuns(node.content);
+            elements.push(
+              new Paragraph({
+                children: textRuns,
+                spacing: {
+                  after: 120, // 6pt
+                },
+                indent: {
+                  left: 360, // 0.25 inch indent
+                },
+              })
+            );
+          }
         }
 
         // Process children

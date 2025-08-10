@@ -644,7 +644,7 @@ export default function NodeRenderer({
                 node.content !== "Nhập câu hỏi của bạn ở đây..." && (
                   <div className="mt-4 p-4 border-l-2 border-sky-500">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sky-600 font-medium text-sm">
+                      <span className="text-sky-600 font-calsans text-sm">
                         Câu hỏi đã chọn:
                       </span>
                     </div>
@@ -653,8 +653,22 @@ export default function NodeRenderer({
                         className="prose prose-sm max-w-none"
                         dangerouslySetInnerHTML={{
                           __html: node.content
-                            ?.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-                            ?.replace(/(\w)(\d+)/g, "$1<sub>$2</sub>"),
+                            ?.replace(
+                              /\*\*(.*?)\*\*/g,
+                              "<strong class='font-calsans font-normal'>$1</strong>"
+                            )
+                            ?.replace(
+                              /([A-Za-z])(\d+)(?![0-9\s]*(?:ml|gam|g|kg|l|mol|M|%))/g,
+                              "$1<sub>$2</sub>"
+                            )
+                            ?.replace(
+                              /✓/g,
+                              `<span class="inline-flex items-center gap-1 text-emerald-600 font-medium"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"></polyline></svg> Đúng</span>`
+                            )
+                            ?.replace(
+                              /✗/g,
+                              `<span class="inline-flex items-center gap-1 text-rose-600 font-medium"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Sai</span>`
+                            ),
                         }}
                       />
                     </div>
@@ -778,7 +792,11 @@ export default function NodeRenderer({
               className="font-calsans  border-none outline-none bg-transparent w-full"
               value={node.title}
               onChange={(e) => onUpdateNodeTitle(node.id, e.target.value)}
-              placeholder="Nhập tiêu đề..."
+              placeholder={
+                node.type === "QUESTION_BANK"
+                  ? "Nhập tiêu đề cho ngân hàng câu hỏi..."
+                  : "Nhập tiêu đề..."
+              }
             />
           </div>
         )}
