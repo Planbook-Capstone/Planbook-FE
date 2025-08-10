@@ -1,9 +1,7 @@
 "use client";
 
-import React from "react";
 import { Button } from "@/components/ui/Button";
-import { X, Share2 } from "lucide-react";
-import { DowloadIcon } from "@/constants/icon";
+import { X } from "lucide-react";
 import { useExamTemplateByIdService } from "@/services/examTemplateServices";
 
 interface TemplatePreviewModalProps {
@@ -27,16 +25,6 @@ export default function TemplatePreviewModal({
 
   const template = templateResponse?.data;
 
-  const handleDownload = async () => {
-    // TODO: Implement download functionality for template
-    console.log("Download template", templateId);
-  };
-
-  const handleShare = () => {
-    // TODO: Implement share functionality for template
-    console.log("Share template", templateId);
-  };
-
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -58,7 +46,9 @@ export default function TemplatePreviewModal({
         <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
           <div className="flex items-center justify-center flex-1">
             <div className="text-center">
-              <p className="text-red-500">Không thể tải template. Vui lòng thử lại!</p>
+              <p className="text-red-500">
+                Không thể tải template. Vui lòng thử lại!
+              </p>
               <Button onClick={onClose} className="mt-4">
                 Đóng
               </Button>
@@ -71,11 +61,17 @@ export default function TemplatePreviewModal({
 
   // Extract questions from template content
   const parts = template.contentJson?.parts || [];
-  const multipleChoiceQuestions = parts.find((p: any) => p.part === "PHẦN I")?.questions || [];
-  const yesNoQuestions = parts.find((p: any) => p.part === "PHẦN II")?.questions || [];
-  const shortQuestions = parts.find((p: any) => p.part === "PHẦN III")?.questions || [];
+  const multipleChoiceQuestions =
+    parts.find((p: any) => p.part === "PHẦN I")?.questions || [];
+  const yesNoQuestions =
+    parts.find((p: any) => p.part === "PHẦN II")?.questions || [];
+  const shortQuestions =
+    parts.find((p: any) => p.part === "PHẦN III")?.questions || [];
 
-  const totalQuestions = multipleChoiceQuestions.length + yesNoQuestions.length + shortQuestions.length;
+  const totalQuestions =
+    multipleChoiceQuestions.length +
+    yesNoQuestions.length +
+    shortQuestions.length;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -86,14 +82,6 @@ export default function TemplatePreviewModal({
             Xem trước đề thi: {template.name}
           </h2>
           <div className="flex items-center gap-3">
-            <Button onClick={handleDownload}>
-              {DowloadIcon}
-              <span>Tải về</span>
-            </Button>
-            <Button onClick={handleShare} variant="outline">
-              <Share2 className="w-4 h-4" />
-              <span>Chia sẻ</span>
-            </Button>
             <Button onClick={onClose} variant="outline">
               <X className="w-4 h-4" />
               <span>Đóng</span>
@@ -109,7 +97,10 @@ export default function TemplatePreviewModal({
               {/* A4 Page Container */}
               <div
                 className="max-w-[210mm] mx-auto bg-white shadow-lg border border-gray-200"
-                style={{ minHeight: "297mm", fontFamily: "Times New Roman, serif" }}
+                style={{
+                  minHeight: "297mm",
+                  fontFamily: "Times New Roman, serif",
+                }}
               >
                 <div
                   className="p-8 text-black"
@@ -120,20 +111,25 @@ export default function TemplatePreviewModal({
                     {/* Top row with ministry and exam info */}
                     <div className="flex justify-between items-start mb-4">
                       <div className="text-center" style={{ width: "30%" }}>
-                        <p className="font-bold text-sm">BỘ GIÁO DỤC VÀ ĐÀO TẠO</p>
+                        <p className="font-bold text-sm">
+                          BỘ GIÁO DỤC VÀ ĐÀO TẠO
+                        </p>
                         <p className="font-bold text-sm text-center mt-1">
                           ĐỀ THI CHÍNH THỨC
                         </p>
                       </div>
                       <div className="text-center flex-1">
                         <p className="font-bold text-lg">
-                          KIỂM TRA CUỐI KỲ I
+                          {template.name.toUpperCase() || "Đề thi ..."}
                         </p>
                         <p className="font-bold text-base mt-1">
-                          Môn: {template.subject} - Lớp {template.grade}
+                          Môn: {template.subject || "...."} - Lớp{" "}
+                          {template.grade || "...."}
                         </p>
                         <p className="text-sm mt-1">
-                          Thời gian làm bài: {template.durationMinutes} phút, không kể thời gian phát đề
+                          Thời gian làm bài:{" "}
+                          {template.durationMinutes || "...."} phút, không kể
+                          thời gian phát đề
                         </p>
                       </div>
                     </div>
@@ -143,10 +139,12 @@ export default function TemplatePreviewModal({
                       <div className="text-sm" style={{ width: "80%" }}>
                         <div className="flex flex-col items-start gap-4 font-bold">
                           <span>
-                            Họ, tên thí sinh: ...................................
+                            Họ, tên thí sinh:
+                            ...................................
                           </span>
                           <span>
-                            Số báo danh: ........................................
+                            Số báo danh:
+                            ........................................
                           </span>
                         </div>
                       </div>
@@ -170,33 +168,46 @@ export default function TemplatePreviewModal({
                     {multipleChoiceQuestions.length > 0 && (
                       <div>
                         <h3 className="font-bold text-base mb-4">
-                          PHẦN I: TRẮC NGHIỆM ({multipleChoiceQuestions.length} câu)
+                          PHẦN I: TRẮC NGHIỆM ({multipleChoiceQuestions.length}{" "}
+                          câu)
                         </h3>
                         <div className="space-y-4">
-                          {multipleChoiceQuestions.map((question: any, index: number) => (
-                            <div key={question.id || index} className="mb-4">
-                              <p className="font-medium text-gray-900 mb-2">
-                                <span className="font-bold">Câu {index + 1}:</span> {question.question}
-                              </p>
-                              {question.illustrationImage && (
-                                <div className="mb-3">
-                                  <img
-                                    src={question.illustrationImage}
-                                    alt="Hình minh họa"
-                                    className="max-w-xs max-h-48 rounded border"
-                                  />
-                                </div>
-                              )}
-                              <div className="grid grid-cols-2 gap-2 ml-4">
-                                {Object.entries(question.options || {}).map(([key, value]) => (
-                                  <div key={key} className="flex items-start">
-                                    <span className="font-medium mr-2">{key.toUpperCase()}.</span>
-                                    <span>{value as string}</span>
+                          {multipleChoiceQuestions.map(
+                            (question: any, index: number) => (
+                              <div key={question.id || index} className="mb-4">
+                                <p className="font-medium text-gray-900 mb-2">
+                                  <span className="font-bold">
+                                    Câu {index + 1}:
+                                  </span>{" "}
+                                  {question.question}
+                                </p>
+                                {question.illustrationImage && (
+                                  <div className="mb-3">
+                                    <img
+                                      src={question.illustrationImage}
+                                      alt="Hình minh họa"
+                                      className="max-w-xs max-h-48 rounded border"
+                                    />
                                   </div>
-                                ))}
+                                )}
+                                <div className="grid grid-cols-2 gap-2 ml-4">
+                                  {Object.entries(question.options || {}).map(
+                                    ([key, value]) => (
+                                      <div
+                                        key={key}
+                                        className="flex items-start"
+                                      >
+                                        <span className="font-medium mr-2">
+                                          {key.toUpperCase()}.
+                                        </span>
+                                        <span>{value as string}</span>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          )}
                         </div>
                       </div>
                     )}
@@ -208,34 +219,45 @@ export default function TemplatePreviewModal({
                           PHẦN II: ĐÚNG/SAI ({yesNoQuestions.length} câu)
                         </h3>
                         <div className="space-y-4">
-                          {yesNoQuestions.map((question: any, index: number) => (
-                            <div key={question.id || index} className="mb-4">
-                              <p className="font-medium text-gray-900 mb-2">
-                                <span className="font-bold">
-                                  Câu {multipleChoiceQuestions.length + index + 1}:
-                                </span>{" "}
-                                {question.question}
-                              </p>
-                              {question.illustrationImage && (
-                                <div className="mb-3">
-                                  <img
-                                    src={question.illustrationImage}
-                                    alt="Hình minh họa"
-                                    className="max-w-xs max-h-48 rounded border"
-                                  />
+                          {yesNoQuestions.map(
+                            (question: any, index: number) => (
+                              <div key={question.id || index} className="mb-4">
+                                <p className="font-medium text-gray-900 mb-2">
+                                  <span className="font-bold">
+                                    Câu{" "}
+                                    {multipleChoiceQuestions.length + index + 1}
+                                    :
+                                  </span>{" "}
+                                  {question.question}
+                                </p>
+                                {question.illustrationImage && (
+                                  <div className="mb-3">
+                                    <img
+                                      src={question.illustrationImage}
+                                      alt="Hình minh họa"
+                                      className="max-w-xs max-h-48 rounded border"
+                                    />
+                                  </div>
+                                )}
+                                <div className="ml-4 space-y-1">
+                                  {question.statements &&
+                                    Object.entries(question.statements).map(
+                                      ([key, statement]: [string, any]) => (
+                                        <div
+                                          key={key}
+                                          className="flex items-start"
+                                        >
+                                          <span className="font-medium mr-2">
+                                            {key.toUpperCase()}.
+                                          </span>
+                                          <span>{statement.text}</span>
+                                        </div>
+                                      )
+                                    )}
                                 </div>
-                              )}
-                              <div className="ml-4 space-y-1">
-                                {question.statements &&
-                                  Object.entries(question.statements).map(([key, statement]: [string, any]) => (
-                                    <div key={key} className="flex items-start">
-                                      <span className="font-medium mr-2">{key.toUpperCase()}.</span>
-                                      <span>{statement.text}</span>
-                                    </div>
-                                  ))}
                               </div>
-                            </div>
-                          ))}
+                            )
+                          )}
                         </div>
                       </div>
                     )}
@@ -247,32 +269,41 @@ export default function TemplatePreviewModal({
                           PHẦN III: TỰ LUẬN ({shortQuestions.length} câu)
                         </h3>
                         <div className="space-y-4">
-                          {shortQuestions.map((question: any, index: number) => (
-                            <div key={question.id || index} className="mb-4">
-                              <p className="font-medium text-gray-900 mb-2">
-                                <span className="font-bold">
-                                  Câu {multipleChoiceQuestions.length + yesNoQuestions.length + index + 1}:
-                                </span>{" "}
-                                {question.question}
-                              </p>
-                              {question.illustrationImage && (
-                                <div className="mb-3">
-                                  <img
-                                    src={question.illustrationImage}
-                                    alt="Hình minh họa"
-                                    className="max-w-xs max-h-48 rounded border"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                          {shortQuestions.map(
+                            (question: any, index: number) => (
+                              <div key={question.id || index} className="mb-4">
+                                <p className="font-medium text-gray-900 mb-2">
+                                  <span className="font-bold">
+                                    Câu{" "}
+                                    {multipleChoiceQuestions.length +
+                                      yesNoQuestions.length +
+                                      index +
+                                      1}
+                                    :
+                                  </span>{" "}
+                                  {question.question}
+                                </p>
+                                {question.illustrationImage && (
+                                  <div className="mb-3">
+                                    <img
+                                      src={question.illustrationImage}
+                                      alt="Hình minh họa"
+                                      className="max-w-xs max-h-48 rounded border"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
                     )}
 
                     {totalQuestions === 0 && (
                       <div className="text-center py-8">
-                        <p className="text-gray-500">Template chưa có câu hỏi nào</p>
+                        <p className="text-gray-500">
+                          Template chưa có câu hỏi nào
+                        </p>
                       </div>
                     )}
                   </div>

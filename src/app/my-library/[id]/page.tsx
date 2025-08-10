@@ -148,7 +148,17 @@ function MyLibraryDetail({ params }: Props) {
               type={data?.type == "SLIDE" ? "PPTX" : "DOCX"}
               name={data?.name}
               description={data?.description}
-              lastModifiedTime={data?.updatedAt}
+              lastModifiedTime={new Date(data?.updatedAt).toLocaleString(
+                "vi-VN",
+                {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                }
+              )}
               onRemove={() => handleRemoveClick(data)}
               onClick={() => handleItemClick(data)}
             />
