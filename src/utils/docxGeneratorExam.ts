@@ -128,16 +128,16 @@ const createExamHeader = (examData: ExamData): (Paragraph | Table)[] => {
                   alignment: AlignmentType.CENTER,
                   spacing: { before: 120 },
                 }),
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: "(Đề thi có 04 trang)",
-                      size: 20,
-                    }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                  spacing: { before: 120 },
-                }),
+                // new Paragraph({
+                //   children: [
+                //     new TextRun({
+                //       text: "(Đề thi có 04 trang)",
+                //       size: 20,
+                //     }),
+                //   ],
+                //   alignment: AlignmentType.CENTER,
+                //   spacing: { before: 120 },
+                // }),
               ],
               width: { size: 30, type: WidthType.PERCENTAGE },
               borders: {
@@ -154,7 +154,7 @@ const createExamHeader = (examData: ExamData): (Paragraph | Table)[] => {
                   children: [
                     new TextRun({
                       text:
-                        examData.examTitle ||
+                        examData.examTitle.toUpperCase() ||
                         "KỲ THI TỐT NGHIỆP TRUNG HỌC PHỔ THÔNG NĂM 2025",
                       bold: true,
                       size: 20,
@@ -165,7 +165,7 @@ const createExamHeader = (examData: ExamData): (Paragraph | Table)[] => {
                 new Paragraph({
                   children: [
                     new TextRun({
-                      text: `Môn thi: ${examData.examSubject}`,
+                      text: `Môn thi: ${examData.examSubject || "......"}`,
                       bold: true,
                       size: 22,
                     }),
@@ -343,8 +343,13 @@ const createMultipleChoiceSection = async (
         new Paragraph({
           children: [
             new TextRun({
-              text: `Câu ${index + 1}: ${question.question}`,
+              text: `Câu ${index + 1}: `,
               bold: true,
+              size: 24,
+            }),
+            new TextRun({
+              text: question.question,
+              bold: false,
               size: 24,
             }),
           ],
@@ -401,7 +406,7 @@ const createMultipleChoiceSection = async (
               children: [
                 new TextRun({
                   text: `${String.fromCharCode(65 + optIndex)}. ${option}`,
-                  size: 22,
+                  size: 24,
                 }),
               ],
             })
@@ -414,7 +419,7 @@ const createMultipleChoiceSection = async (
               children: [
                 new TextRun({
                   text: `${key}. ${value}`,
-                  size: 22,
+                  size: 24,
                 }),
               ],
             })
@@ -460,8 +465,13 @@ const createYesNoSection = async (
         new Paragraph({
           children: [
             new TextRun({
-              text: `Câu ${questionsOffset + index + 1}: ${question.question}`,
+              text: `Câu ${questionsOffset + index + 1}: `,
               bold: true,
+              size: 24,
+            }),
+            new TextRun({
+              text: question.question,
+              bold: false,
               size: 24,
             }),
           ],
@@ -518,7 +528,7 @@ const createYesNoSection = async (
           children: [
             new TextRun({
               text: `a) ${question.statements.a.text}`,
-              size: 22,
+              size: 24,
             }),
           ],
           indent: { left: 720 },
@@ -527,7 +537,7 @@ const createYesNoSection = async (
           children: [
             new TextRun({
               text: `b) ${question.statements.b.text}`,
-              size: 22,
+              size: 24,
             }),
           ],
           indent: { left: 720 },
@@ -536,7 +546,7 @@ const createYesNoSection = async (
           children: [
             new TextRun({
               text: `c) ${question.statements.c.text}`,
-              size: 22,
+              size: 24,
             }),
           ],
           indent: { left: 720 },
@@ -545,7 +555,7 @@ const createYesNoSection = async (
           children: [
             new TextRun({
               text: `d) ${question.statements.d.text}`,
-              size: 22,
+              size: 24,
             }),
           ],
           indent: { left: 720 },
@@ -593,8 +603,13 @@ const createShortAnswerSection = async (
         new Paragraph({
           children: [
             new TextRun({
-              text: `Câu ${questionsOffset + index + 1}: ${question.question}`,
+              text: `Câu ${questionsOffset + index + 1}: `,
               bold: true,
+              size: 24,
+            }),
+            new TextRun({
+              text: question.question,
+              bold: false,
               size: 24,
             }),
           ],

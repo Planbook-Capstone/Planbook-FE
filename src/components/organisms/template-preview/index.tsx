@@ -13,7 +13,6 @@ interface TemplatePreviewProps {
 }
 
 export default function TemplatePreview({ data }: TemplatePreviewProps) {
-  
   const handleDownload = async () => {
     // TODO: Implement download functionality for template
   };
@@ -35,8 +34,6 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
     multipleChoiceQuestions.length +
     yesNoQuestions.length +
     shortQuestions.length;
-
- 
 
   return (
     <div>
@@ -63,13 +60,16 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                       </p>
                     </div>
                     <div className="text-center flex-1">
-                      <p className="font-bold text-lg">{data?.examTitle?.toUpperCase() || "ĐỀ KIỂM TRA LỚP 12"}</p>
+                      <p className="font-bold text-lg">
+                        {data?.examTitle?.toUpperCase() || "ĐỀ KIỂM TRA LỚP 12"}
+                      </p>
                       <p className="font-bold text-base mt-1">
-                        Môn: {data?.subject || "......"}. - Lớp {data?.grade || "....."}
+                        Môn: {data?.subject || "......"}. - Lớp{" "}
+                        {data?.grade || "....."}
                       </p>
                       <p className="text-sm mt-1">
-                        Thời gian làm bài:{data?.duration || "..."} phút, không kể thời gian phát
-                        đề
+                        Thời gian làm bài:{data?.duration || "..."} phút, không
+                        kể thời gian phát đề
                       </p>
                     </div>
                   </div>
@@ -137,7 +137,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                 </span>{" "}
                                 <span
                                   dangerouslySetInnerHTML={{
-                                    __html: question.question || ''
+                                    __html: question.question || "",
                                   }}
                                 />
                               </p>
@@ -159,7 +159,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                       </span>
                                       <span
                                         dangerouslySetInnerHTML={{
-                                          __html: (value as string) || ''
+                                          __html: (value as string) || "",
                                         }}
                                       />
                                     </div>
@@ -168,9 +168,22 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                               </div>
                               {question?.answer && (
                                 <p className="text-teal-600 font-bold">
-                                  Đáp án: <span
+                                  Đáp án:{" "}
+                                  <span
                                     dangerouslySetInnerHTML={{
-                                      __html: question.answer
+                                      __html: question.answer,
+                                    }}
+                                  />
+                                </p>
+                              )}
+                              {question?.explanation && (
+                                <p className="text-purple-700">
+                                  <span className="font-bold">
+                                    Giải thích:{" "}
+                                  </span>
+                                  <span
+                                    dangerouslySetInnerHTML={{
+                                      __html: question.explanation || "",
                                     }}
                                   />
                                 </p>
@@ -235,7 +248,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                       </span>
                                       <span
                                         dangerouslySetInnerHTML={{
-                                          __html: statement.text || ''
+                                          __html: statement.text || "",
                                         }}
                                       />
 
@@ -249,6 +262,17 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   )
                                 )}
                             </div>
+                            {question?.explanation && (
+                              <p className="text-purple-700">
+                                <span className="font-bold">Giải thích: </span>
+                                <br />
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: question.explanation || "",
+                                  }}
+                                />
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -304,9 +328,20 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                             )}
                             {question?.answer && (
                               <p className="text-teal-600 font-bold">
-                                Đáp án: <span
+                                Đáp án:{" "}
+                                <span
                                   dangerouslySetInnerHTML={{
-                                    __html: question.answer
+                                    __html: question.answer,
+                                  }}
+                                />
+                              </p>
+                            )}
+                            {question?.explanation && (
+                              <p className="text-purple-700">
+                                <span className="font-bold">Giải thích: </span>
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: question.explanation || "",
                                   }}
                                 />
                               </p>
