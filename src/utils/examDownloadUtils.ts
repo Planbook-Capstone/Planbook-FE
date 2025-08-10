@@ -12,6 +12,7 @@ import {
   BorderStyle,
   Footer,
   PageNumber,
+  PageOrientation,
 } from "docx";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
@@ -805,6 +806,239 @@ const formatAnswerForDisplay = (question: any, partIndex: number): string => {
       return question.answer || "";
     default:
       return question.answer || "";
+  }
+};
+
+/**
+ * Format answer for table display - simplified format for the table
+ */
+const formatAnswerForTableDisplay = (question: any, partIndex: number): string => {
+  switch (partIndex) {
+    case 0: // PHẦN I - Multiple choice (A, B, C, D)
+      return question.answer || "";
+    case 1: // PHẦN II - True/False (D,S,S,D format)
+      if (question.statements) {
+        return Object.entries(question.statements)
+          .map(([, value]: [string, any]) => value ? "D" : "S")
+          .join(",");
+      }
+      return "";
+    case 2: // PHẦN III - Short answer (số)
+      return question.answer || "";
+    default:
+      return question.answer || "";
+  }
+};
+
+/**
+ * Utility function to download all answer keys as a single table DOCX file (landscape A4)
+ * @param examResults - Array of exam results with answer keys
+ */
+export const downloadAllAnswerKeysAsTableDocx = async (examResults: any[]) => {
+  if (!examResults || examResults.length === 0) {
+    toast.error("Không có đáp án nào để tải xuống");
+    return;
+  }
+
+  try {
+    // Organize questions by parts and question numbers
+    const partQuestions = new Map<number, Map<number, { [examCode: string]: string }>>();
+    const examCodes: string[] = [];
+
+    // Process each exam result
+    examResults.forEach((examResult) => {
+      const answerData = examResult.answerOnly;
+      const examCode = answerData.examCode || "Unknown";
+      if (!examCodes.includes(examCode)) {
+        examCodes.push(examCode);
+      }
+
+      // Process each part
+      answerData.parts?.forEach((part: any, partIndex: number) => {
+        if (!partQuestions.has(partIndex)) {
+          partQuestions.set(partIndex, new Map());
+        }
+
+        const partMap = partQuestions.get(partIndex)!;
+
+        part.questions?.forEach((question: any, questionIndex: number) => {
+          const questionNumber = questionIndex + 1; // Use 1-based indexing within each part
+          if (!partMap.has(questionNumber)) {
+            partMap.set(questionNumber, {});
+          }
+
+          const answerText = formatAnswerForTableDisplay(question, partIndex);
+          partMap.get(questionNumber)![examCode] = answerText;
+        });
+      });
+    });
+
+    // Sort parts and questions
+    const sortedParts = Array.from(partQuestions.entries()).sort(([a], [b]) => a - b);
+
+    // Create document with landscape orientation
+    const doc = new Document({
+      sections: [
+        {
+          properties: {
+            page: {
+              size: {
+                orientation: PageOrientation.LANDSCAPE,
+              },
+              margin: {
+                top: 567, // 1cm
+                right: 567, // 1cm
+                bottom: 567, // 1cm
+                left: 567, // 1cm
+              },
+            },
+          },
+          children: [
+            // Title
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "BẢNG ĐÁP ÁN TẤT CẢ CÁC ĐỀ",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 400 },
+            }),
+
+            // Create tables for each part
+            ...sortedParts.flatMap(([partIndex, questionsMap]) => {
+              const partName = partIndex === 0 ? "PHẦN I" : partIndex === 1 ? "PHẦN II" : "PHẦN III";
+              const sortedQuestions = Array.from(questionsMap.entries()).sort(([a], [b]) => a - b);
+
+              return [
+                // Part title
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: partName,
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                  spacing: { before: 300, after: 200 },
+                }),
+
+                // Part table
+                new Table({
+                  width: {
+                    size: 100,
+                    type: WidthType.PERCENTAGE,
+                  },
+                  borders: {
+                    top: { style: BorderStyle.SINGLE, size: 2 },
+                    bottom: { style: BorderStyle.SINGLE, size: 2 },
+                    left: { style: BorderStyle.SINGLE, size: 2 },
+                    right: { style: BorderStyle.SINGLE, size: 2 },
+                    insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+                    insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+                  },
+                  rows: [
+                    // Header row
+                    new TableRow({
+                      children: [
+                        new TableCell({
+                          children: [
+                            new Paragraph({
+                              alignment: AlignmentType.CENTER,
+                              children: [
+                                new TextRun({
+                                  text: "Câu/Đề",
+                                  size: 20,
+                                  bold: true,
+                                }),
+                              ],
+                            }),
+                          ],
+                          width: { size: 10, type: WidthType.PERCENTAGE },
+                        }),
+                        ...examCodes.map(examCode =>
+                          new TableCell({
+                            children: [
+                              new Paragraph({
+                                alignment: AlignmentType.CENTER,
+                                children: [
+                                  new TextRun({
+                                    text: examCode,
+                                    size: 18,
+                                    bold: true,
+                                  }),
+                                ],
+                              }),
+                            ],
+                            width: { size: 90 / examCodes.length, type: WidthType.PERCENTAGE },
+                          })
+                        ),
+                      ],
+                    }),
+                    // Answer rows for this part
+                    ...sortedQuestions.map(([questionNumber, answers]) =>
+                      new TableRow({
+                        children: [
+                          new TableCell({
+                            children: [
+                              new Paragraph({
+                                alignment: AlignmentType.CENTER,
+                                children: [
+                                  new TextRun({
+                                    text: questionNumber.toString(),
+                                    size: 18,
+                                    bold: true,
+                                  }),
+                                ],
+                              }),
+                            ],
+                          }),
+                          ...examCodes.map(examCode =>
+                            new TableCell({
+                              children: [
+                                new Paragraph({
+                                  alignment: AlignmentType.CENTER,
+                                  children: [
+                                    new TextRun({
+                                      text: answers[examCode] || "",
+                                      size: 16,
+                                    }),
+                                  ],
+                                }),
+                              ],
+                            })
+                          ),
+                        ],
+                      })
+                    ),
+                  ],
+                }),
+
+                // Add spacing after each part table
+                new Paragraph({
+                  text: "",
+                  spacing: { after: 300 },
+                }),
+              ];
+            }),
+          ],
+        },
+      ],
+    });
+
+    // Generate and download the document
+    const blob = await Packer.toBlob(doc);
+    const fileName = `BANG_DAP_AN_TAT_CA_DE.docx`;
+    saveAs(blob, fileName);
+
+    toast.success("Tải xuống bảng đáp án thành công!");
+  } catch (error) {
+    console.error("Error generating answer table DOCX:", error);
+    toast.error("Có lỗi xảy ra khi tạo bảng đáp án");
+    throw error;
   }
 };
 

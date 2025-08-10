@@ -15,7 +15,7 @@ import {
   downloadExamAsDocx,
   downloadAllExamsAsDocx,
   downloadAnswerKeyAsDocx,
-  downloadAllAnswerKeysAsDocx,
+  downloadAllAnswerKeysAsTableDocx,
 } from "@/utils/examDownloadUtils";
 
 interface ExamMatrixData {
@@ -384,7 +384,7 @@ function ShuffleExamPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => downloadAllAnswerKeysAsDocx(examResult)}
+                    onClick={() => downloadAllAnswerKeysAsTableDocx(examResult)}
                   >
                     {DowloadIcon} Tải tất cả đáp án
                   </Button>
