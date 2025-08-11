@@ -713,13 +713,12 @@ export default function MatrixTemplate2() {
                   <div className="mb-4 pt-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                        <div className="w-20 h-20 rounded-lg flex items-center justify-center">
                           <Image
                             src="/loading/loading_AI.gif"
                             alt="AI Robot"
                             width={64}
                             height={64}
-                            className="h-44 w-44"
                             unoptimized
                           />
                         </div>
@@ -1171,8 +1170,14 @@ export default function MatrixTemplate2() {
                               : (e: any) => {
                                   const inputValue = e.target.value;
                                   // Only allow empty string or positive integers
-                                  if (inputValue === "" || /^[0-9]+$/.test(inputValue)) {
-                                    const value = inputValue === "" ? 0 : parseInt(inputValue, 10);
+                                  if (
+                                    inputValue === "" ||
+                                    /^[0-9]+$/.test(inputValue)
+                                  ) {
+                                    const value =
+                                      inputValue === ""
+                                        ? 0
+                                        : parseInt(inputValue, 10);
                                     handleDistributionChange(
                                       rowIdx,
                                       part,
