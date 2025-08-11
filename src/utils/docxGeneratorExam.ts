@@ -313,14 +313,48 @@ const createAtomicMassesSection = (
 };
 
 /**
+ * Hàm logic tính số cột cho đáp án dựa trên trung bình độ dài
+ */
+const getAnswerColumnsCount = (options: string[] | Record<string, string>): number => {
+  let optionValues: string[];
+
+  if (Array.isArray(options)) {
+    optionValues = options;
+  } else if (options && typeof options === "object") {
+    optionValues = Object.values(options);
+  } else {
+    return 2; // Default
+  }
+
+  if (optionValues.length === 0) return 2;
+
+  // Tính trung bình độ dài của các đáp án
+  const totalLength = optionValues.reduce((sum, option) => {
+    // Loại bỏ HTML tags để tính độ dài text thực tế
+    const textOnly = option.replace(/<[^>]*>/g, '').trim();
+    return sum + textOnly.length;
+  }, 0);
+
+  const averageLength = totalLength / optionValues.length;
+
+  if (averageLength < 40) {
+    return 4; // 4 cột cho đáp án ngắn
+  } else if (averageLength >= 40 && averageLength < 70) {
+    return 2; // 2 cột cho đáp án trung bình
+  } else {
+    return 1; // 1 cột cho đáp án dài
+  }
+};
+
+/**
  * Create multiple choice questions section
  */
 const createMultipleChoiceSection = async (
   questions: ExamQuestion[]
-): Promise<Paragraph[]> => {
+): Promise<(Paragraph | Table)[]> => {
   if (questions.length === 0) return [];
 
-  const paragraphs: Paragraph[] = [
+  const paragraphs: (Paragraph | Table)[] = [
     new Paragraph({
       text: "",
       spacing: { after: 240 },
@@ -339,7 +373,7 @@ const createMultipleChoiceSection = async (
 
   const questionParagraphs = await Promise.all(
     questions.map(async (question, index) => {
-      const questionParagraphs: Paragraph[] = [
+      const questionParagraphs: (Paragraph | Table)[] = [
         new Paragraph({
           children: [
             new TextRun({
@@ -398,33 +432,71 @@ const createMultipleChoiceSection = async (
         }
       }
 
-      // Add options
-      if (Array.isArray(question.options)) {
-        question.options.forEach((option: string, optIndex: number) => {
-          questionParagraphs.push(
-            new Paragraph({
+      // Add options with dynamic grid layout
+      if (question.options) {
+        const columnsCount = getAnswerColumnsCount(question.options);
+        let optionEntries: [string, string][] = [];
+
+        if (Array.isArray(question.options)) {
+          optionEntries = question.options.map((option: string, optIndex: number) => [
+            String.fromCharCode(65 + optIndex),
+            option
+          ]);
+        } else if (typeof question.options === "object") {
+          optionEntries = Object.entries(question.options);
+        }
+
+        // Create table rows based on columns count
+        const rows: TableRow[] = [];
+        for (let i = 0; i < optionEntries.length; i += columnsCount) {
+          const rowOptions = optionEntries.slice(i, i + columnsCount);
+
+          // Fill empty cells if needed
+          while (rowOptions.length < columnsCount) {
+            rowOptions.push(["", ""]);
+          }
+
+          const cells = rowOptions.map(([key, value]) =>
+            new TableCell({
               children: [
-                new TextRun({
-                  text: `${String.fromCharCode(65 + optIndex)}. ${option}`,
-                  size: 24,
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: key && value ? `${key.toUpperCase()}. ${value}` : "",
+                      size: 24,
+                    }),
+                  ],
                 }),
               ],
+              width: { size: 100 / columnsCount, type: WidthType.PERCENTAGE },
+              borders: {
+                top: { style: BorderStyle.NIL, size: 0 },
+                bottom: { style: BorderStyle.NIL, size: 0 },
+                left: { style: BorderStyle.NIL, size: 0 },
+                right: { style: BorderStyle.NIL, size: 0 },
+              },
             })
           );
-        });
-      } else if (question.options && typeof question.options === "object") {
-        Object.entries(question.options).forEach(([key, value]) => {
+
+          rows.push(new TableRow({ children: cells }));
+        }
+
+        if (rows.length > 0) {
           questionParagraphs.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `${key}. ${value}`,
-                  size: 24,
-                }),
-              ],
+            new Table({
+              rows,
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              borders: {
+                top: { style: BorderStyle.NIL, size: 0 },
+                bottom: { style: BorderStyle.NIL, size: 0 },
+                left: { style: BorderStyle.NIL, size: 0 },
+                right: { style: BorderStyle.NIL, size: 0 },
+                insideHorizontal: { style: BorderStyle.NIL, size: 0 },
+                insideVertical: { style: BorderStyle.NIL, size: 0 },
+              },
             })
           );
-        });
+        }
       }
 
       questionParagraphs.push(new Paragraph({ text: "" })); // Empty line
