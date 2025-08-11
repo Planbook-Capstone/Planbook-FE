@@ -1,18 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/Button";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/Switch";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-import { Settings, ChevronDown, ChevronRight } from "lucide-react";
+
 import {
   Table,
   TableHeader,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
 import BookSelector from "@/components/molecules/book-selector";
@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Eye, Save, TrashIcon } from "lucide-react";
-import { downloadExamAsDocx } from "@/utils/examDownloadUtils";
 import Image from "next/image";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
@@ -31,7 +30,6 @@ import {
 } from "./validation";
 import LoadingAI from "@/components/molecules/loading";
 import { useTaskStatusService } from "@/services/progressTaskServices";
-import DocumentItem from "@/components/molecules/document-item";
 import { useExecuteToolService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -47,6 +45,7 @@ import FileIcon from "@/components/ui/FileIcon";
 import { DowloadIcon } from "@/constants/icon";
 import TemplatePreview from "@/components/organisms/template-preview";
 import { generateExamDocx } from "@/utils/docxGeneratorExam";
+import { getDifficultyText } from "@/constants";
 
 // Helper functions for difficulty level display
 const getDifficultyColor = (level: string) => {
@@ -61,21 +60,6 @@ const getDifficultyColor = (level: string) => {
       return "bg-red-100 text-red-800";
     default:
       return "bg-gray-100 text-gray-800";
-  }
-};
-
-const getDifficultyText = (level: string) => {
-  switch (level) {
-    case "KNOWLEDGE":
-      return "Nhận Biết";
-    case "COMPREHENSION":
-      return "Thông Hiểu";
-    case "APPLICATION":
-      return "Vận dụng";
-    case "ANALYSIS":
-      return "Vận dụng cao";
-    default:
-      return level;
   }
 };
 
@@ -166,25 +150,28 @@ export default function MatrixTemplate2() {
       data.parts.forEach((part: any) => {
         if (part.questions) {
           part.questions.forEach((q: any) => {
-            if (part.title?.includes("trắc nghiệm") || part.title?.includes("nhiều phương án")) {
+            if (
+              part.title?.includes("trắc nghiệm") ||
+              part.title?.includes("nhiều phương án")
+            ) {
               // Câu trắc nghiệm
               questions.push({
                 question: q.question,
                 options: q.options || {},
-                illustrationImage: q.illustrationImage
+                illustrationImage: q.illustrationImage,
               });
             } else if (part.title?.includes("Đúng/Sai") || q.statements) {
               // Câu Đúng/Sai
               yesNoQuestions.push({
                 question: q.question,
                 statements: q.statements || {},
-                illustrationImage: q.illustrationImage
+                illustrationImage: q.illustrationImage,
               });
             } else {
               // Câu tự luận
               shortQuestions.push({
                 question: q.question,
-                illustrationImage: q.illustrationImage
+                illustrationImage: q.illustrationImage,
               });
             }
           });
@@ -201,7 +188,7 @@ export default function MatrixTemplate2() {
       atomic_masses: null,
       questions,
       yesNoQuestions,
-      shortQuestions
+      shortQuestions,
     };
   };
 
@@ -647,6 +634,7 @@ export default function MatrixTemplate2() {
                               <Input
                                 type="number"
                                 min={0}
+                                step="1"
                                 value={row.distribution[part][level]}
                                 readOnly
                                 placeholder={level.toUpperCase()}
@@ -1175,24 +1163,29 @@ export default function MatrixTemplate2() {
                         <Input
                           type="number"
                           min={0}
+                          step="1"
                           value={row.distribution[part][level]}
                           onChange={
                             resultId
                               ? undefined
                               : (e: any) => {
-                                  const value = Number(e.target.value);
-                                  handleDistributionChange(
-                                    rowIdx,
-                                    part,
-                                    level,
-                                    value
-                                  );
-                                  // Clear error when user enters a non-negative value
-                                  if (errors[fieldKey] && value >= 0) {
-                                    setErrors((prev) => ({
-                                      ...prev,
-                                      [fieldKey]: "",
-                                    }));
+                                  const inputValue = e.target.value;
+                                  // Only allow empty string or positive integers
+                                  if (inputValue === "" || /^[0-9]+$/.test(inputValue)) {
+                                    const value = inputValue === "" ? 0 : parseInt(inputValue, 10);
+                                    handleDistributionChange(
+                                      rowIdx,
+                                      part,
+                                      level,
+                                      value
+                                    );
+                                    // Clear error when user enters a non-negative value
+                                    if (errors[fieldKey] && value >= 0) {
+                                      setErrors((prev) => ({
+                                        ...prev,
+                                        [fieldKey]: "",
+                                      }));
+                                    }
                                   }
                                 }
                           }

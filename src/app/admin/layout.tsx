@@ -8,17 +8,10 @@ import Header from "@/components/organisms/header";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SidebarMenu } from "@/components/molecules/sidebar-menu";
-import Account from "@/components/molecules/account";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut } from "lucide-react";
+
 import AvatarButton from "@/components/organisms/avatar-button";
 interface AdminLayoutProps {
   children: React.ReactNode;

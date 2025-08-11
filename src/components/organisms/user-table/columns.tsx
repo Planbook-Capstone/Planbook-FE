@@ -3,7 +3,7 @@ import { UserWithWalletResponse } from "@/types";
 import { ROLE_LABELS, ROLE_COLORS } from "@/constants";
 import { Button } from "@/components/ui/Button";
 import { Eye, UserCheck, UserX } from "lucide-react";
-import { toast } from "sonner";
+
 
 // Handler function types
 interface UserColumnHandlers {

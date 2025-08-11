@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { FileUp, Plus, FileText, X, ChevronLeft } from "lucide-react";
+import { FileText, X, ChevronLeft } from "lucide-react";
 import ExamFileImport from "../exam-file-import";
 
 interface ExamCreationModalProps {
