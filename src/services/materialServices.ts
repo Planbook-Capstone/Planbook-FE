@@ -5,6 +5,8 @@ import {
   createQueryWithPathParamHook,
   updateMutationUploadFilesHook,
   updateMutationHook,
+  createDynamicQueryHook,
+  deleteMutationHook,
 } from "@/hooks/react-query";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import api from "@/config/axios";
@@ -84,3 +86,12 @@ export const useUpdateMaterialService = updateMutationHook(
 );
 
 // export const useUpdateBookStatus = patchMutationHook("books", API_ENDPOINTS.BOOKS);
+export const useMaterialsWithParamsService = createDynamicQueryHook(
+  "materials",
+  API_ENDPOINTS.ACADEMIC_RESOURSE_INTERNAL
+);
+
+export const useDeleteMaterialService = deleteMutationHook(
+  "materials",
+  API_ENDPOINTS.ACADEMIC_RESOURCE
+);

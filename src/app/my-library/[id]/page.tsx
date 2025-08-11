@@ -4,6 +4,7 @@ import {
   useToolResultsWithParamsService,
   useDeleteToolResultService,
 } from "@/services/toolResultService";
+import { useDeleteMaterialService } from "@/services/materialServices";
 import DocumentItem from "@/components/molecules/document-item";
 import { getLibraryTypeName } from "@/constants";
 import {
@@ -21,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import InternalMaterial from "@/components/templates/internal-material";
 interface Props {
   params: Promise<{
     id: string;
@@ -66,6 +68,8 @@ function MyLibraryDetail({ params }: Props) {
   // Delete service
   const { mutate: deleteToolResult, isPending: isDeleting } =
     useDeleteToolResultService();
+  const { mutate: deleteMaterial, isPending: isDeletingMaterial } =
+    useDeleteMaterialService();
 
   const handlePageChange = (page: number) => {
     // Update current page state - this will trigger refetch automatically
@@ -107,6 +111,21 @@ function MyLibraryDetail({ params }: Props) {
     setItemToDelete(null);
   };
 
+  // Handle material deletion
+  const handleDeleteMaterial = (materialId: string) => {
+    deleteMaterial(materialId, {
+      onSuccess: () => {
+        toast.success("Xóa học liệu thành công!");
+        // Optionally refetch data if needed
+      },
+      onError: (error: any) => {
+        toast.error(
+          error?.response?.data?.message || "Có lỗi xảy ra khi xóa học liệu"
+        );
+      },
+    });
+  };
+
   // Handle click on tool result item
   const handleItemClick = (item: any) => {
     // For other types, you can add different handling here
@@ -124,6 +143,16 @@ function MyLibraryDetail({ params }: Props) {
             />
           ))}
         </div>
+      </>
+    );
+  }
+
+  if (id === "OTHER") {
+    return (
+      <>
+        <InternalMaterial
+          deleteMaterial={handleDeleteMaterial}
+        />
       </>
     );
   }
