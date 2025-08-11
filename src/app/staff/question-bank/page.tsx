@@ -725,8 +725,9 @@ function QuestionBankManagementPage() {
                   )}
               </div>
               {question?.explanation && (
-                <p className="text-purple-700 text-lg">
-                  <span className="font-bold">Giải thích: </span>
+                <p className=" text-lg">
+                  <span className="font-bold text-purple-700">Giải thích: </span>
+                  <br/>
                   <ChemicalFormula formula={question?.explanation || "-"} />
                 </p>
               )}

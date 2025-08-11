@@ -23,9 +23,7 @@ function UserButton() {
     useAuth();
   const router = useRouter();
 
-  const { data: wallet } = useWalletService("");
-
- 
+  const { data: wallet, isLoading } = useWalletService("");
 
   if (!isAuthenticated) {
     return null;
@@ -45,7 +43,10 @@ function UserButton() {
           <SelectItem value="2024">2024-2025</SelectItem>
         </SelectContent>
       </Select>
-      <div className="px-3.5 py-1.5 border flex items-center justify-center font-calsans rounded-full">
+      <div
+        onClick={() => router.push("/pricing")}
+        className="cursor-pointer px-3.5 py-1.5 border flex items-center justify-center font-calsans rounded-full"
+      >
         <Image
           src="/images/power.svg"
           alt="PlanBook Logo"
@@ -53,7 +54,7 @@ function UserButton() {
           height={20}
           className="object-contain"
         />
-        {wallet?.data?.balance}
+        {isLoading ? <>Loading...</> : wallet?.data?.balance}
       </div>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger className="outline-none relative">
