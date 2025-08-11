@@ -423,7 +423,9 @@ function DocumentSourceSelector({
                   onClick={() => handleFileSelect(toolResult.id)}
                   className={`flex items-start justify-between border rounded-md px-4 py-4 relative cursor-pointer hover:shadow-md transition-all ${
                     selectedFileId === toolResult.id
-                      ? "bg-blue-50 border-blue-300 shadow-md"
+                      ? "bg-blue-100 border-blue-300 shadow-md"
+                      : isFileAlreadySelected(toolResult.id)
+                      ? "bg-green-100 border-green-300"
                       : "bg-white border-gray-200"
                   }`}
                 >
@@ -769,8 +771,8 @@ function DocumentSourceSelector({
           </div>
           <div className="h-full">
             {selectedFileId && getSelectedFolderData()?.type === "EXAM" && (
-              <>
-                <div className="flex justify-between items-center">
+              <div>
+                <div className="sticky top-0 flex justify-between items-center">
                   <h3 className="text-md font-semibold mb-4 text-gray-700">
                     Xem trước nội dung
                   </h3>
@@ -806,7 +808,7 @@ function DocumentSourceSelector({
                     )}
                 </div>
                 <TemplatePreview data={fileData?.data?.data} />
-              </>
+              </div>
             )}
           </div>
         </div>

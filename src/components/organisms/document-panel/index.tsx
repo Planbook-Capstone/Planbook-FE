@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Button } from "@/components/ui/Button";
-import { Download } from "lucide-react";
 import { useLessonsByIdsService } from "@/services/lessonServices";
 
 interface DocumentInfo {
