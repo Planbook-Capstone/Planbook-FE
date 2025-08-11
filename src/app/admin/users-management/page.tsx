@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { User, mockUsers } from "@/data/users";
 import { Plus, Search } from "lucide-react";
 import CreateUserModal from "@/components/organisms/create-user-modal";
 import { roleOptions, type CreateUserFormData } from "@/schemas";
@@ -25,8 +24,6 @@ import {
 import { toast } from "sonner";
 import { UserWithWalletResponse } from "@/types";
 import UserDetailModal from "@/components/molecules/user-detail-modal";
-
-const ITEMS_PER_PAGE = 10;
 
 // Filter options for role
 const filterOptions = [

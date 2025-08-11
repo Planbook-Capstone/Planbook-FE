@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSubscriptionsService } from "@/services/subscriptionServices";
 import { useCreateOrderService } from "@/services/orderServices";
 import { toast } from "sonner";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 function PricingPage() {
   const { data: subscriptions, isLoading } = useSubscriptionsService();

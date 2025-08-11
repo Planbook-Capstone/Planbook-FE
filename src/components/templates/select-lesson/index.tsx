@@ -1,17 +1,10 @@
 "use client";
 
 import CurriculumList from "@/components/organisms/curriculum";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
-import { GradeResponse, SubjectResponse, BookResponse } from "@/types";
 import { useState, useEffect } from "react";
 import BookSelector from "@/components/molecules/book-selector";
 import { useHeader } from "@/contexts/HeaderContext";

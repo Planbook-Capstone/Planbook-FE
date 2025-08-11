@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { da } from "date-fns/locale";
 import { useAppStore } from "@/store";
+import Loading from "@/components/ui/loading";
 
 const Callback = () => {
   const router = useRouter();
@@ -25,7 +26,7 @@ const Callback = () => {
       //   console.log(data.session, "session");
       const idToken = data.session.access_token; // token lấy từ Google
 
-      console.log(data.session," session data");
+      console.log(data.session, " session data");
       //   console.log(idToken)
 
       if (!idToken) {
@@ -66,29 +67,16 @@ const Callback = () => {
           },
         }
       ); // truyền giá trị email + password
-
-      // Gửi token về Spring Boot để xác thực
-      //   const res = await fetch("http://localhost:8080/api/auth/google", {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     body: JSON.stringify({ token: idToken }),
-      //   });
-
-      //   const result = await res.json();
-      //   console.log("Phản hồi từ backend:", result);
-
-      //   // ✅ Lưu thông tin hoặc chuyển hướng
-      //   // Ví dụ: Lưu vào localStorage rồi chuyển về trang chính
-      //   localStorage.setItem("accessToken", result.token);
-      //   router.push("/"); // chuyển hướng sau khi đăng nhập xong
     };
 
     handleAuth();
   }, [router]);
 
-  return <p>Đang đăng nhập...</p>;
+  return (
+    <div>
+      <Loading />
+    </div>
+  );
 };
 
 export default Callback;

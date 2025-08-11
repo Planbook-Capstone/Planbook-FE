@@ -3,14 +3,12 @@
 import { useEffect, useState } from "react";
 import { useOrdersFilterService } from "@/services/orderServices";
 import { OrderStatusByPackageChart } from "@/components/charts/OrderStatusByPackageChart";
-import { OrderTrendChart } from "@/components/charts/OrderTrendChart";
 import { OrderStatusPieChart } from "@/components/charts/OrderStatusPieChart";
 import { RevenueByPackageChart } from "@/components/charts/RevenueByPackageChart";
 import { OrderStatsTable } from "@/components/charts/OrderStatsTable";
 import { OrderOverallStats } from "@/components/charts/OrderOverallStats";
 import { useOrderStats, useUserStats } from "@/hooks/useOrderStats";
 import { UserStatsTable } from "@/components/charts/UserStatsTable";
-import { Order } from "@/types/order";
 import Loading from "@/components/ui/loading";
 
 const AdminPage = () => {

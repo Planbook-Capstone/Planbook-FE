@@ -26,7 +26,6 @@ export default function ItemSection({ title, action }: ItemSectionProps) {
           <SelectContent>
             <SelectItem value="light">Mới nhất</SelectItem>
             <SelectItem value="dark">Cũ nhất</SelectItem>
-            <SelectItem value="system">Tùy chỉnh</SelectItem>
           </SelectContent>
         </Select>
 
