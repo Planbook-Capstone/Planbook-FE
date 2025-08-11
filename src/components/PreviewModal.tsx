@@ -6,6 +6,7 @@ import { DowloadIcon } from "@/constants/icon";
 import { useUploadDocxToOnlineService } from "@/services/lessonPlanGenerationServices";
 import { useState } from "react";
 import ConfirmSaveResult from "./modals/ConfirmSaveResult";
+import { da } from "date-fns/locale";
 
 interface CellContent {
   text?: string;
@@ -26,14 +27,16 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+  description?: string | null; // New field for image descriptions
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   type:
     | "PARAGRAPH"
     | "LIST_ITEM"
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -511,6 +514,12 @@ export default function PreviewModal({
                   <div className="text-4xl mb-2">🖼️</div>
                   <p>Không thể tải hình ảnh</p>
                 </div>
+                {/* Display description if exists */}
+                {node.description && (
+                  <div className="text-center text-sm text-gray-600 italic mt-2">
+                    {node.description}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="border border-gray-300 bg-gray-50 p-8 text-center rounded">
@@ -518,6 +527,44 @@ export default function PreviewModal({
                 <p className="text-gray-500">Chưa có hình ảnh</p>
               </div>
             )}
+            {node.children && node.children.length > 0 && (
+              <div className="ml-4 mt-3">
+                {node.children
+                  .sort((a, b) => a.orderIndex - b.orderIndex)
+                  .map((child) => renderPreviewNode(child, depth + 1))}
+              </div>
+            )}
+          </div>
+        );
+
+      case "QUESTION_BANK":
+        return (
+          <div
+            key={node.id}
+            style={{ marginLeft: `${marginLeft}px` }}
+            className="mb-4"
+          >
+            {node.content &&
+              node.content !== "Nhập câu hỏi của bạn ở đây..." && (
+                <div className="pl-4 rounded">
+                  <div className="text-base text-gray-700">
+                    <div
+                      className="prose prose-sm max-w-none whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: node.content
+                          .replace(/\*\*\*(.*?)\*\*\*/g, "<strong>$1</strong>")
+                          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                          .replace(/\*(.*?)\*/g, "<em>$1</em>")
+                          .replace(
+                            /([A-Za-z])(\d+)(?![0-9\s]*(?:ml|gam|g|kg|l|mol|M|%))/g,
+                            "$1<sub>$2</sub>"
+                          )
+                          .replace(/\n/g, "<br/>"),
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             {node.children && node.children.length > 0 && (
               <div className="ml-4 mt-3">
                 {node.children
@@ -538,7 +585,7 @@ export default function PreviewModal({
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h2 className="text-xl font-calsans text-gray-800">
             Xem trước giáo án
           </h2>
           <div className="flex items-center gap-3">

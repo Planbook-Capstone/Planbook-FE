@@ -9,6 +9,7 @@ import {
 } from "@/utils/textUtils";
 import { RichTextarea } from "@/components/ui/rich-textarea";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { QuestionBankField } from "@/components/fields/QuestionBankField";
 
 interface CellContent {
   text?: string;
@@ -29,14 +30,16 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+  description?: string | null; // New field for image descriptions
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   type:
     | "PARAGRAPH"
     | "LIST_ITEM"
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -50,6 +53,7 @@ interface NodeRendererProps {
   onDeleteNode: (nodeId: string) => void;
   onUpdateNodeTitle: (nodeId: string, title: string) => void;
   onUpdateNodeContent: (nodeId: string, content: string) => void;
+  onUpdateNodeDescription?: (nodeId: string, description: string) => void; // New handler for description
   onMoveChildUp?: (nodeId: string) => void;
   onMoveChildDown?: (nodeId: string) => void;
   // Selection props
@@ -57,6 +61,7 @@ interface NodeRendererProps {
   selectedNodeIds?: Set<string>;
   onNodeSelect?: (nodeId: string, isCtrlPressed: boolean) => void;
   onPaste?: (targetNodeId: string) => void;
+  questionsData?: any[];
 }
 
 // Auto-resize textarea component
@@ -125,6 +130,7 @@ export default function NodeRenderer({
   onDeleteNode,
   onUpdateNodeTitle,
   onUpdateNodeContent,
+  onUpdateNodeDescription,
   onMoveChildUp,
   onMoveChildDown,
   isEditMode = false,
@@ -520,63 +526,157 @@ export default function NodeRenderer({
 
         case "IMAGE":
           return (
-            <div
-              className="field-image w-full"
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.currentTarget.classList.add("border-blue-500", "bg-blue-50");
-              }}
-              onDragLeave={(e) => {
-                e.currentTarget.classList.remove(
-                  "border-blue-500",
-                  "bg-blue-50"
-                );
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.currentTarget.classList.remove(
-                  "border-blue-500",
-                  "bg-blue-50"
-                );
+            <div className="field-image w-full">
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.add(
+                    "border-blue-500",
+                    "bg-blue-50"
+                  );
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.classList.remove(
+                    "border-blue-500",
+                    "bg-blue-50"
+                  );
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove(
+                    "border-blue-500",
+                    "bg-blue-50"
+                  );
 
-                const imageUrl = e.dataTransfer.getData("text/plain");
-                if (imageUrl) {
-                  onUpdateNodeContent(node.id, imageUrl);
-                }
-              }}
-            >
-              {node.content ? (
-                <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 text-center bg-white hover:border-gray-400 transition-colors">
-                  <img
-                    src={node.content}
-                    alt="Uploaded image"
-                    className="max-w-full max-h-64 mx-auto rounded-lg shadow-sm"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = "none";
-                      target.nextElementSibling?.classList.remove("hidden");
-                    }}
-                  />
-                  <div className="hidden text-red-500 text-sm mt-2">
-                    Không thể tải hình ảnh
+                  // Try to get JSON data first (new format)
+                  const jsonData = e.dataTransfer.getData("application/json");
+                  if (jsonData) {
+                    try {
+                      const imageData = JSON.parse(jsonData);
+                      if (imageData.url) {
+                        // Update content with URL
+                        onUpdateNodeContent(node.id, imageData.url);
+                        // Always update description (can be null to clear existing description)
+                        if (onUpdateNodeDescription) {
+                          const newDescription = imageData.description || null;
+                          onUpdateNodeDescription(node.id, newDescription);
+                        }
+                      }
+                    } catch (error) {
+                      console.error("Error parsing image data:", error);
+                      // Fallback to text/plain
+                      const imageUrl = e.dataTransfer.getData("text/plain");
+                      if (imageUrl) {
+                        onUpdateNodeContent(node.id, imageUrl);
+                      }
+                    }
+                  } else {
+                    // Fallback to text/plain for backward compatibility
+                    const imageUrl = e.dataTransfer.getData("text/plain");
+                    if (imageUrl) {
+                      onUpdateNodeContent(node.id, imageUrl);
+                    }
+                  }
+                }}
+              >
+                {node.content ? (
+                  <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 text-center bg-white hover:border-gray-400 transition-colors">
+                    <img
+                      src={node.content}
+                      alt="Uploaded image"
+                      className="max-w-full max-h-64 mx-auto rounded-lg shadow-sm"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        target.nextElementSibling?.classList.remove("hidden");
+                      }}
+                    />
+                    <div className="hidden text-red-500 text-sm mt-2">
+                      Không thể tải hình ảnh
+                    </div>
+                    <p className="text-gray-500 text-sm mt-2">
+                      Kéo hình ảnh khác để thay thế
+                    </p>
                   </div>
-                  <p className="text-gray-500 text-sm mt-2">
-                    Kéo hình ảnh khác để thay thế
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors">
-                  <div className="text-4xl mb-2">🖼️</div>
-                  <p className="text-gray-500">
-                    Kéo hình ảnh từ panel bên trái vào đây
-                  </p>
-                  <p className="text-gray-400 text-sm mt-1">
-                    Hoặc click để chọn file
-                  </p>
+                ) : (
+                  <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors">
+                    <div className="text-4xl mb-2">🖼️</div>
+                    <p className="text-gray-500">
+                      Kéo hình ảnh từ panel bên trái vào đây
+                    </p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Hoặc click để chọn file
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Description field - only show for IMAGE type */}
+              {node.type === "IMAGE" && (
+                <div className="mt-2">
+                  <AutoResizeTextarea
+                    value={node.description || ""}
+                    onChange={(value) => {
+                      if (onUpdateNodeDescription) {
+                        onUpdateNodeDescription(node.id, value);
+                      }
+                    }}
+                    placeholder="Nhập mô tả cho hình ảnh..."
+                    className="w-full text-sm text-gray-600 italic border-none bg-transparent resize-none focus:outline-none focus:ring-0 placeholder-gray-400"
+                  />
                 </div>
               )}
             </div>
           );
+
+        case "QUESTION_BANK":
+          return (
+            <div className="question-bank-node">
+              {/* Editing Interface */}
+              <QuestionBankField
+                nodeId={node.id}
+                content={node.content}
+                onUpdateContent={onUpdateNodeContent}
+              />
+
+              {/* Document Content - Only show if content exists and is not placeholder */}
+              {node.content &&
+                node.content !== "Nhập câu hỏi của bạn ở đây..." && (
+                  <div className="mt-4 p-4 border-l-2 border-sky-500">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sky-600 font-calsans text-sm">
+                        Câu hỏi đã chọn:
+                      </span>
+                    </div>
+                    <div className="text-gray-800 whitespace-pre-wrap">
+                      <div
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{
+                          __html: node.content
+                            ?.replace(
+                              /\*\*(.*?)\*\*/g,
+                              "<strong class='font-calsans font-normal'>$1</strong>"
+                            )
+                            ?.replace(
+                              /([A-Za-z])(\d+)(?![0-9\s]*(?:ml|gam|g|kg|l|mol|M|%))/g,
+                              "$1<sub>$2</sub>"
+                            )
+                            ?.replace(
+                              /✓/g,
+                              `<span class="inline-flex items-center gap-1 text-emerald-600 font-medium"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"></polyline></svg> Đúng</span>`
+                            )
+                            ?.replace(
+                              /✗/g,
+                              `<span class="inline-flex items-center gap-1 text-rose-600 font-medium"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Sai</span>`
+                            ),
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+            </div>
+          );
+
         default:
           return (
             <div className="field-default">
@@ -692,7 +792,11 @@ export default function NodeRenderer({
               className="font-calsans  border-none outline-none bg-transparent w-full"
               value={node.title}
               onChange={(e) => onUpdateNodeTitle(node.id, e.target.value)}
-              placeholder="Nhập tiêu đề..."
+              placeholder={
+                node.type === "QUESTION_BANK"
+                  ? "Nhập tiêu đề cho ngân hàng câu hỏi..."
+                  : "Nhập tiêu đề..."
+              }
             />
           </div>
         )}
@@ -799,6 +903,7 @@ export default function NodeRenderer({
                             onDeleteNode={onDeleteNode}
                             onUpdateNodeTitle={onUpdateNodeTitle}
                             onUpdateNodeContent={onUpdateNodeContent}
+                            onUpdateNodeDescription={onUpdateNodeDescription}
                             onMoveChildUp={onMoveChildUp}
                             onMoveChildDown={onMoveChildDown}
                             isEditMode={isEditMode}
@@ -815,7 +920,7 @@ export default function NodeRenderer({
               snapshot.isDraggingOver && (
                 <div className="flex items-center justify-center text-gray-400 text-sm h-8">
                   <span className="font-medium text-gray-600">
-                    🎯 Thả vào đây để thêm con (Cấp {depth + 1})
+                    Thả vào đây để thêm con (Cấp {depth + 1})
                   </span>
                 </div>
               )

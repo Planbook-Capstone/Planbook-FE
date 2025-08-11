@@ -17,14 +17,16 @@ export interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+  description?: string | null; // New field for image descriptions
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   type:
     | "PARAGRAPH"
     | "LIST_ITEM"
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -39,8 +41,9 @@ export interface ComponentPaletteItem {
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   title: string;
   icon: React.ReactNode;
   description: string;

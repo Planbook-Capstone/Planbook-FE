@@ -64,6 +64,30 @@ export const useLessonPlanActions = ({
     [setDemoData, updateFinalData]
   );
 
+  // Handle description changes
+  const handleDescriptionChange = useCallback(
+    (nodeId: string, description: string) => {
+      const updateNodeDescription = (nodeList: DemoNode[]): DemoNode[] => {
+        return nodeList.map((node) => {
+          if (node.id.toString() === nodeId) {
+            return { ...node, description };
+          }
+          if (node.children && node.children.length > 0) {
+            return { ...node, children: updateNodeDescription(node.children) };
+          }
+          return node;
+        });
+      };
+
+      setDemoData((prev) => {
+        const newData = updateNodeDescription(prev);
+        updateFinalData(newData);
+        return newData;
+      });
+    },
+    [setDemoData, updateFinalData]
+  );
+
   // Add child to node with proper orderIndex
   const addChildToNode = useCallback(
     (
@@ -384,6 +408,7 @@ export const useLessonPlanActions = ({
   return {
     handleInputChange,
     handleTitleChange,
+    handleDescriptionChange,
     addChildToNode,
     findNodeById,
     removeNodeById,

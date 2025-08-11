@@ -13,14 +13,16 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+  description?: string | null; // New field for image descriptions
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   type:
     | "PARAGRAPH"
     | "LIST_ITEM"
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -35,8 +37,9 @@ interface ComponentPaletteItem {
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   title: string;
   icon: React.ReactNode;
   description: string;
@@ -157,6 +160,17 @@ export default function Sidebar({
                   className="p-3 border border-gray-200 rounded-lg cursor-move hover:border-gray-300 hover:bg-gray-50 transition-colors"
                   draggable
                   onDragStart={(e) => {
+                    // Pass both URL and description as JSON
+                    const imageData = {
+                      url: image.url,
+                      description: image.description || null,
+                      name: image.name || null,
+                    };
+                    e.dataTransfer.setData(
+                      "application/json",
+                      JSON.stringify(imageData)
+                    );
+                    // Keep backward compatibility with text/plain
                     e.dataTransfer.setData("text/plain", `${image.url}`);
                   }}
                 >

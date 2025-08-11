@@ -15,6 +15,242 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 
+// Helper function to parse HTML and convert to TextRuns
+function parseHtmlToTextRuns(html: string): TextRun[] {
+  const textRuns: TextRun[] = [];
+
+  // Pre-process: Convert markdown to HTML
+  const processedHtml = html
+    .replace(/\*\*\*(.*?)\*\*\*/g, "<strong>$1</strong>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(
+      /([A-Za-z])(\d+)(?![0-9\s]*(?:ml|gam|g|kg|l|mol|M|%))/g,
+      "$1<sub>$2</sub>"
+    );
+
+  // Split by single newlines to handle all line breaks
+  const lines = processedHtml.split(/\n/);
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex].trim();
+
+    // Skip empty lines but still add line break
+    if (!line) {
+      if (lineIndex < lines.length - 1) {
+        textRuns.push(
+          new TextRun({
+            text: "",
+            break: 1,
+            size: 22,
+          })
+        );
+      }
+      continue;
+    }
+
+    // Parse HTML tags
+    const parts = line.split(/(<\/?[^>]+>)/);
+
+    let isBold = false;
+    let isItalic = false;
+    let isUnderline = false;
+    let isSubscript = false;
+
+    for (const part of parts) {
+      if (part.startsWith("<")) {
+        // Handle HTML tags
+        if (part === "<strong>" || part === "<b>") {
+          isBold = true;
+        } else if (part === "</strong>" || part === "</b>") {
+          isBold = false;
+        } else if (part === "<i>" || part === "<em>") {
+          isItalic = true;
+        } else if (part === "</i>" || part === "</em>") {
+          isItalic = false;
+        } else if (part === "<u>") {
+          isUnderline = true;
+        } else if (part === "</u>") {
+          isUnderline = false;
+        } else if (part === "<sub>") {
+          isSubscript = true;
+        } else if (part === "</sub>") {
+          isSubscript = false;
+        }
+      } else if (part.trim()) {
+        // Handle text content
+        textRuns.push(
+          new TextRun({
+            text: part,
+            bold: isBold,
+            italics: isItalic,
+            underline: isUnderline ? {} : undefined,
+            subScript: isSubscript,
+            size: 22,
+          })
+        );
+      }
+    }
+
+    // Add line break after each line except the last one
+    if (lineIndex < lines.length - 1) {
+      textRuns.push(
+        new TextRun({
+          text: "",
+          break: 1,
+          size: 22,
+        })
+      );
+    }
+  }
+
+  return textRuns;
+}
+
+// Helper function to parse HTML tables and convert to DOCX Table
+function parseHtmlTable(html: string): Table | null {
+  try {
+    // Check if content contains table
+    if (!html.includes("<table")) {
+      return null;
+    }
+
+    // Extract table content using regex
+    const tableMatch = html.match(/<table[^>]*>(.*?)<\/table>/s);
+    if (!tableMatch) {
+      return null;
+    }
+
+    const tableContent = tableMatch[1];
+
+    // Extract rows
+    const rowMatches = tableContent.match(/<tr[^>]*>(.*?)<\/tr>/gs);
+    if (!rowMatches || rowMatches.length === 0) {
+      return null;
+    }
+
+    const tableRows: TableRow[] = [];
+
+    rowMatches.forEach((rowHtml) => {
+      // Extract cells (both th and td)
+      const cellMatches = rowHtml.match(/<(th|td)[^>]*>(.*?)<\/(th|td)>/gs);
+      if (cellMatches) {
+        const tableCells: TableCell[] = [];
+
+        cellMatches.forEach((cellHtml) => {
+          // Extract cell content and determine if it's a header
+          const cellContentMatch = cellHtml.match(
+            /<(th|td)[^>]*>(.*?)<\/(th|td)>/s
+          );
+          if (cellContentMatch) {
+            const isHeader = cellContentMatch[1] === "th";
+            let cellContent = cellContentMatch[2];
+
+            // Clean up cell content - remove HTML tags but preserve line breaks
+            cellContent = cellContent
+              .replace(/<br\s*\/?>/gi, "\n")
+              .replace(/<[^>]*>/g, "")
+              .replace(/&nbsp;/g, " ")
+              .trim();
+
+            // Create text runs for cell content
+            const textRuns = cellContent
+              .split("\n")
+              .map((line, index, array) => {
+                const runs: TextRun[] = [];
+                runs.push(
+                  new TextRun({
+                    text: line.trim(),
+                    bold: isHeader,
+                    size: 22,
+                  })
+                );
+
+                // Add line break if not the last line
+                if (index < array.length - 1) {
+                  runs.push(
+                    new TextRun({
+                      text: "",
+                      break: 1,
+                      size: 22,
+                    })
+                  );
+                }
+
+                return runs;
+              })
+              .flat();
+
+            tableCells.push(
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children:
+                      textRuns.length > 0
+                        ? textRuns
+                        : [new TextRun({ text: "", size: 22 })],
+                    alignment: AlignmentType.CENTER,
+                  }),
+                ],
+                width: {
+                  size: 2000,
+                  type: WidthType.DXA,
+                },
+              })
+            );
+          }
+        });
+
+        if (tableCells.length > 0) {
+          tableRows.push(
+            new TableRow({
+              children: tableCells,
+            })
+          );
+        }
+      }
+    });
+
+    if (tableRows.length > 0) {
+      return new Table({
+        rows: tableRows,
+        width: {
+          size: 100,
+          type: WidthType.PERCENTAGE,
+        },
+      });
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error parsing HTML table:", error);
+    return null;
+  }
+}
+
+// Helper function to parse all HTML tables in content
+function parseAllHtmlTables(html: string): Table[] {
+  const tables: Table[] = [];
+
+  try {
+    // Find all table matches
+    const tableMatches = html.match(/<table[^>]*>.*?<\/table>/gs);
+
+    if (tableMatches) {
+      tableMatches.forEach((tableHtml) => {
+        const table = parseHtmlTable(tableHtml);
+        if (table) {
+          tables.push(table);
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error parsing all HTML tables:", error);
+  }
+
+  return tables;
+}
+
 // Helper function to load image via Image element and convert to canvas
 const loadImageViaCanvas = (imageUrl: string): Promise<ArrayBuffer | null> => {
   return new Promise((resolve) => {
@@ -239,83 +475,6 @@ const convertImageToBuffer = async (
   }
 };
 
-// Helper function to parse HTML and create TextRun array with formatting
-const parseHtmlToTextRuns = (html: string): any[] => {
-  if (!html || typeof html !== "string") {
-    return [new TextRun({ text: "", size: 24 })];
-  }
-
-  const textRuns: any[] = [];
-  let currentText = html;
-
-  // Handle <p> tags - convert to line breaks
-  currentText = currentText.replace(/<p[^>]*>/gi, "").replace(/<\/p>/gi, "\n");
-
-  // Handle <br/> tags - convert to line breaks
-  currentText = currentText.replace(/<br\s*\/?>/gi, "\n");
-
-  // Split by line breaks first to handle them properly
-  const lines = currentText.split("\n");
-
-  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-    const line = lines[lineIndex];
-
-    if (line.trim()) {
-      // Split by bold tags and process each part
-      const parts = line.split(/(<\/?(?:strong|b)[^>]*>)/gi);
-      let isBold = false;
-
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-
-        if (part.match(/<(strong|b)[^>]*>/i)) {
-          isBold = true;
-        } else if (part.match(/<\/(strong|b)>/i)) {
-          isBold = false;
-        } else if (part.trim()) {
-          // Clean up remaining HTML tags
-          const cleanText = part.replace(/<[^>]*>/g, "");
-          if (cleanText) {
-            textRuns.push(
-              new TextRun({
-                text: cleanText,
-                bold: isBold,
-                size: 24,
-              })
-            );
-          }
-        }
-      }
-    }
-
-    // Add line break if not the last line
-    if (lineIndex < lines.length - 1) {
-      textRuns.push(
-        new TextRun({
-          text: "",
-          break: 1,
-          size: 24,
-        })
-      );
-    }
-  }
-
-  // If no content was processed, return the plain text
-  if (textRuns.length === 0) {
-    const plainText = currentText.replace(/<[^>]*>/g, "").trim();
-    if (plainText) {
-      textRuns.push(
-        new TextRun({
-          text: plainText,
-          size: 24,
-        })
-      );
-    }
-  }
-
-  return textRuns.length > 0 ? textRuns : [new TextRun({ text: "", size: 24 })];
-};
-
 interface CellContent {
   text?: string;
   image?: {
@@ -335,14 +494,16 @@ interface DemoNode {
   parentId?: string | null;
   title: string;
   content: string;
-  fieldType: "INPUT" | "TABLE" | "IMAGE";
+  description?: string | null; // New field for image descriptions
+  fieldType: "INPUT" | "TABLE" | "IMAGE" | "QUESTION_BANK";
   type:
     | "PARAGRAPH"
     | "LIST_ITEM"
     | "TABLE"
     | "IMAGE"
     | "SECTION"
-    | "SUBSECTION";
+    | "SUBSECTION"
+    | "QUESTION_BANK";
   orderIndex: number;
   metadata?: any;
   status: "ACTIVE" | "DELETED";
@@ -526,6 +687,125 @@ const createLessonPlanHeader = (headerInfo: LessonPlanHeader = {}) => {
   ];
 };
 
+/**
+ * Process question bank content with special handling for PART_III separator lines
+ */
+function processQuestionBankContentWithSeparators(
+  content: string
+): Paragraph[] {
+  // Check if content contains PART_III
+  if (content.includes("PHẦN III")) {
+    // Use special processing for PART_III
+    const elements: Paragraph[] = [];
+    const lines = content.split("\n");
+    let isInPart3 = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      // Check for section headers
+      if (line.match(/^\*\*PHẦN [IVX]+:/)) {
+        const sectionTitle = line.replace(/\*\*/g, "");
+        isInPart3 = sectionTitle.includes("PHẦN III");
+
+        // Add section header
+        elements.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: sectionTitle,
+                bold: true,
+                size: 24,
+              }),
+            ],
+            spacing: { before: 240, after: 120 },
+          })
+        );
+        continue;
+      }
+
+      // Check for question headers in PART_III
+      if (isInPart3 && line.match(/^\*\*Câu \d+/)) {
+        // Add question
+        const textRuns = parseHtmlToTextRuns(line);
+        elements.push(
+          new Paragraph({
+            children: textRuns,
+            spacing: { after: 120 },
+          })
+        );
+
+        // Look ahead to add question content
+        let j = i + 1;
+        while (
+          j < lines.length &&
+          !lines[j].match(/^\*\*Câu \d+/) &&
+          !lines[j].match(/^\*\*PHẦN/) &&
+          !lines[j].includes("-----")
+        ) {
+          const contentLine = lines[j].trim();
+          if (contentLine) {
+            const contentRuns = parseHtmlToTextRuns(contentLine);
+            elements.push(
+              new Paragraph({
+                children: contentRuns,
+                spacing: { after: 60 },
+              })
+            );
+          }
+          j++;
+        }
+        i = j - 1; // Skip processed lines
+
+        // Add 5 lines of underscores for student answers
+        for (let k = 0; k < 5; k++) {
+          elements.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "_".repeat(82),
+                  size: 22,
+                }),
+              ],
+              spacing: { before: k === 0 ? 120 : 60, after: 60 },
+            })
+          );
+        }
+        continue;
+      }
+
+      // Process regular content
+      if (line && !line.includes("-----")) {
+        const textRuns = parseHtmlToTextRuns(line);
+        if (textRuns.length > 0) {
+          elements.push(
+            new Paragraph({
+              children: textRuns,
+              spacing: { after: 60 },
+            })
+          );
+        }
+      }
+    }
+
+    return elements;
+  } else {
+    // Use original processing for non-PART_III content
+    const questionTextRuns = parseHtmlToTextRuns(content);
+    return [
+      new Paragraph({
+        children: questionTextRuns,
+        spacing: {
+          after: 120, // 6pt
+        },
+        indent: {
+          left: 360, // 0.25 inch indent
+        },
+      }),
+    ];
+  }
+}
+
 export const generateDocx = async (
   data: DemoNode[],
   filename: string = "document.docx",
@@ -545,7 +825,7 @@ export const generateDocx = async (
     // Store original type for title styling
     const originalType = node.type;
 
-    // Check fieldType first for special cases like TABLE
+    // Check fieldType first for special cases like TABLE and QUESTION_BANK
     if (node.fieldType === "TABLE") {
       console.log(
         "🎯 Processing TABLE fieldType node:",
@@ -555,6 +835,9 @@ export const generateDocx = async (
       );
       // Handle TABLE fieldType regardless of node.type - jump to TABLE case
       node = { ...node, type: "TABLE" as any };
+    } else if (node.fieldType === "QUESTION_BANK") {
+      // Handle QUESTION_BANK fieldType regardless of node.type - jump to QUESTION_BANK case
+      node = { ...node, type: "QUESTION_BANK" as any };
     }
 
     switch (node.type) {
@@ -958,6 +1241,10 @@ export const generateDocx = async (
                   },
                 })
             ),
+            height: {
+              value: 600, // Increased row height (about 0.42 inches)
+              rule: "atLeast",
+            },
           }),
           // Data rows
           ...(await Promise.all(
@@ -1141,6 +1428,10 @@ export const generateDocx = async (
                       });
                     })
                   ),
+                  height: {
+                    value: 600, // Increased row height (about 0.42 inches)
+                    rule: "atLeast",
+                  },
                 })
             )
           )),
@@ -1215,13 +1506,36 @@ export const generateDocx = async (
                     }),
                   ],
                   spacing: {
-                    after: 120, // 6pt
+                    after: node.description ? 60 : 120, // Less space if description follows
                   },
                   indent: {
                     left: depth * 360,
                   },
                 })
               );
+
+              // Add description if exists
+              if (node.description) {
+                elements.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: node.description,
+                        italics: true,
+                        size: 22, // Slightly smaller than normal text
+                        color: "666666", // Gray color
+                      }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                    spacing: {
+                      after: 120, // 6pt
+                    },
+                    indent: {
+                      left: depth * 360,
+                    },
+                  })
+                );
+              }
             } else {
               // Fallback to placeholder if image loading fails
               elements.push(
@@ -1234,13 +1548,36 @@ export const generateDocx = async (
                     }),
                   ],
                   spacing: {
-                    after: 120, // 6pt
+                    after: node.description ? 60 : 120, // Less space if description follows
                   },
                   indent: {
                     left: depth * 360,
                   },
                 })
               );
+
+              // Add description if exists (even when image fails)
+              if (node.description) {
+                elements.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: node.description,
+                        italics: true,
+                        size: 22, // Slightly smaller than normal text
+                        color: "666666", // Gray color
+                      }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                    spacing: {
+                      after: 120, // 6pt
+                    },
+                    indent: {
+                      left: depth * 360,
+                    },
+                  })
+                );
+              }
             }
           } catch (error) {
             console.error("Error adding image to DOCX:", error);
@@ -1255,13 +1592,36 @@ export const generateDocx = async (
                   }),
                 ],
                 spacing: {
-                  after: 120, // 6pt
+                  after: node.description ? 60 : 120, // Less space if description follows
                 },
                 indent: {
                   left: depth * 360,
                 },
               })
             );
+
+            // Add description if exists (even when error occurs)
+            if (node.description) {
+              elements.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: node.description,
+                      italics: true,
+                      size: 22, // Slightly smaller than normal text
+                      color: "666666", // Gray color
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                  spacing: {
+                    after: 120, // 6pt
+                  },
+                  indent: {
+                    left: depth * 360,
+                  },
+                })
+              );
+            }
           }
         } else {
           // No image content
@@ -1275,13 +1635,187 @@ export const generateDocx = async (
                 }),
               ],
               spacing: {
-                after: 120, // 6pt
+                after: node.description ? 60 : 120, // Less space if description follows
               },
               indent: {
                 left: depth * 360,
               },
             })
           );
+
+          // Add description if exists (even when no image)
+          if (node.description) {
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: node.description,
+                    italics: true,
+                    size: 22, // Slightly smaller than normal text
+                    color: "666666", // Gray color
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  after: 120, // 6pt
+                },
+                indent: {
+                  left: depth * 360,
+                },
+              })
+            );
+          }
+        }
+
+        // Process children
+        if (node.children && node.children.length > 0) {
+          for (const child of node.children.sort(
+            (a, b) => a.orderIndex - b.orderIndex
+          )) {
+            const childElements = await processNode(child, depth + 1);
+            elements.push(...childElements);
+          }
+        }
+        break;
+
+      case "QUESTION_BANK":
+        // Add question content with markdown and HTML support
+        if (node.content) {
+          console.log("🔍 Full content:", node.content);
+          console.log(
+            "🔍 Content includes ĐÁP ÁN:",
+            node.content.includes("ĐÁP ÁN")
+          );
+          console.log(
+            "🔍 Content includes **ĐÁP ÁN**:",
+            node.content.includes("**ĐÁP ÁN**")
+          );
+
+          // Split content into sections: questions and answers
+          const answerSectionMatch = node.content.match(
+            /\*\*ĐÁP ÁN\*\*([\s\S]*)/
+          );
+          console.log("🔍 Answer section match:", !!answerSectionMatch);
+
+          if (answerSectionMatch) {
+            // Process content before answer section (questions part)
+            const questionsContent = node.content.substring(
+              0,
+              node.content.indexOf("**ĐÁP ÁN**")
+            );
+            if (questionsContent.trim()) {
+              // Process questions with special handling for PART_III separator lines
+              const processedContent =
+                processQuestionBankContentWithSeparators(questionsContent);
+              elements.push(...processedContent);
+            }
+
+            // Process answer section
+            const answerContent = answerSectionMatch[1];
+
+            // Add "ĐÁP ÁN" heading
+            elements.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "ĐÁP ÁN",
+                    bold: true,
+                    size: 28,
+                  }),
+                ],
+                spacing: {
+                  before: 240, // 12pt
+                  after: 120, // 6pt
+                },
+                indent: {
+                  left: 360, // 0.25 inch indent
+                },
+              })
+            );
+
+            // Parse answer section with section headers and tables
+            console.log("🔍 Answer content:", answerContent.substring(0, 500));
+
+            // Split answer content by section headers
+            const sectionParts = answerContent.split(
+              /(\*\*PHẦN [IVX]+:.*?\*\*)/
+            );
+
+            for (let i = 0; i < sectionParts.length; i++) {
+              const part = sectionParts[i].trim();
+              if (!part) continue;
+
+              // Check if this is a section header
+              if (part.match(/^\*\*PHẦN [IVX]+:/)) {
+                // Add section header
+                const sectionTitle = part.replace(/\*\*/g, "");
+                elements.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: sectionTitle,
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                    spacing: { before: 120, after: 60 },
+                    indent: {
+                      left: 360, // 0.25 inch indent
+                    },
+                  })
+                );
+              } else {
+                // This should be content with tables
+                const tables = parseAllHtmlTables(part);
+                if (tables.length > 0) {
+                  tables.forEach((table) => {
+                    elements.push(table);
+                    // Add spacing after each table
+                    elements.push(
+                      new Paragraph({
+                        children: [new TextRun({ text: "", size: 18 })],
+                        spacing: { after: 120 },
+                      })
+                    );
+                  });
+                }
+
+                // Add any remaining non-table content
+                const contentWithoutTables = part
+                  .replace(/<table[^>]*>.*?<\/table>/g, "")
+                  .trim();
+
+                if (contentWithoutTables) {
+                  const textRuns = parseHtmlToTextRuns(contentWithoutTables);
+                  if (textRuns.length > 0) {
+                    elements.push(
+                      new Paragraph({
+                        children: textRuns,
+                        spacing: { after: 60 },
+                        indent: {
+                          left: 360, // 0.25 inch indent
+                        },
+                      })
+                    );
+                  }
+                }
+              }
+            }
+          } else {
+            // No answer section found, process as regular text
+            const textRuns = parseHtmlToTextRuns(node.content);
+            elements.push(
+              new Paragraph({
+                children: textRuns,
+                spacing: {
+                  after: 120, // 6pt
+                },
+                indent: {
+                  left: 360, // 0.25 inch indent
+                },
+              })
+            );
+          }
         }
 
         // Process children
