@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Play, X } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
@@ -13,11 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  useMaterialSearchService,
-  useMaterialsWithParamsService,
-} from "@/services/materialServices";
-import { useTagService } from "@/services/tagServices";
+import { useMaterialsWithParamsService } from "@/services/materialServices";
 
 interface InternalMaterialProps {
   deleteMaterial?: (materialId: string) => void;
@@ -34,7 +30,6 @@ export default function InternalMaterial({
   deleteMaterial,
 }: InternalMaterialProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTagId, setActiveTagId] = useState<string>("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -42,7 +37,9 @@ export default function InternalMaterial({
 
   // Delete confirmation modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [materialToDelete, setMaterialToDelete] = useState<MediaItem | null>(null);
+  const [materialToDelete, setMaterialToDelete] = useState<MediaItem | null>(
+    null
+  );
 
   // Use paginated service for internal materials
   const { data: materialInternalData } = useMaterialsWithParamsService(
@@ -79,27 +76,9 @@ export default function InternalMaterial({
     setMaterialToDelete(null);
   };
 
-  // Get all media files from both sources
+  // Get all media files from internal materials
   const allMediaFiles = useMemo(() => {
     const mediaFiles: MediaItem[] = [];
-
-    // Add materials from search service (by tag)
-    materialInternalData?.data?.content?.forEach((item: any, idx: number) => {
-      const ext = item?.url?.split(".").pop()?.toLowerCase();
-      const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
-        ext
-      );
-      const isVideo = ["mp4", "webm", "ogg", "avi", "mov", "wmv"].includes(ext);
-
-      if (isImage || isVideo) {
-        mediaFiles.push({
-          id: `material-${idx}`,
-          url: item.url,
-          name: item.name,
-          type: isVideo ? "video" : "image",
-        });
-      }
-    });
 
     // Add internal materials from paginated service
     materialInternalData?.data?.content?.forEach((item: any, idx: number) => {
@@ -111,7 +90,7 @@ export default function InternalMaterial({
 
       if (isImage || isVideo) {
         mediaFiles.push({
-          id: `internal-${idx}`,
+          id: item?.id || `fallback-${idx}`, // Use real ID or fallback
           url: item.url,
           name: item.name,
           type: isVideo ? "video" : "image",
