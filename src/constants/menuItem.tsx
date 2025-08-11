@@ -207,5 +207,4 @@ export const toolManagerMenuItems: MenuItem[] = toolManagerItems.map((item) =>
 export const userItems = [
   { label: "Trợ lý", href: "/home" },
   { label: "Kho tài liệu", href: "/my-library" },
-  { label: "Tài liệu cộng đồng", href: "/community" },
 ];

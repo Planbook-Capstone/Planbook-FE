@@ -1,7 +1,7 @@
 const SERVICES = {
   AUTH: "identity-service",
   MASTER_DATA: "master-data-service",
-  LESSON_PLAN: "lesson-plan-service",
+  LESSON_PLAN: "lesson-plan-template-service",
   ACADEMIC_RESOURCE: "academic-resource-service",
   EXTERNAL_TOOL: "external-tool-config-service",
   AGGREGATOR: "aggregator",
