@@ -21,7 +21,9 @@ function LoadingAI({ message, progress }: Props) {
       />
       <div className="w-3/4 flex flex-col items-start gap-1">
         <div className="w-full flex items-center justify-between">
-          <TypewriterText texts={[message,"Đang xử lí ...","Vui lòng chờ ..."]}/>
+          <TypewriterText
+            texts={[message, "Đang xử lí ...", "Vui lòng chờ ..."]}
+          />
           <p>{progress}%</p>
         </div>
         <Progress value={progress} className="w-full" />

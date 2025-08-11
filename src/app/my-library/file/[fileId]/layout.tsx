@@ -32,9 +32,29 @@ export default function FileLayout({ children, params }: FileLayoutProps) {
 
     if (data?.data?.type === "SLIDE") {
       buttons.push({
-        label: "Tùy chỉnh mẫu",
+        label: "Chỉnh sửa",
         onClick: () => {
           router.push(`/results/slide/${fileId}`);
+        },
+        variant: "custom",
+        icon: <Settings className="w-4 h-4" />,
+        className: "text-sm py-3",
+      });
+    } else if (data?.data?.type === "LESSON_PLAN") {
+      buttons.push({
+        label: "Chỉnh sửa",
+        onClick: () => {
+          router.push(`/results/lesson-plan/${fileId}`);
+        },
+        variant: "custom",
+        icon: <Settings className="w-4 h-4" />,
+        className: "text-sm py-3",
+      });
+    } else if (data?.data?.type === "EXAM") {
+      buttons.push({
+        label: "Chỉnh sửa",
+        onClick: () => {
+          router.push(`/results/exam/${fileId}`);
         },
         variant: "custom",
         icon: <Settings className="w-4 h-4" />,
