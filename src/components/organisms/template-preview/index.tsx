@@ -1,10 +1,5 @@
 "use client";
 
-import React from "react";
-import { Button } from "@/components/ui/Button";
-import { X, Share2 } from "lucide-react";
-import { DowloadIcon } from "@/constants/icon";
-import { useExamTemplateByIdService } from "@/services/examTemplateServices";
 import { Badge } from "@/components/ui/badge";
 import { getDifficultyText, getsourceTypeText, getVariant } from "@/constants";
 
@@ -13,14 +8,6 @@ interface TemplatePreviewProps {
 }
 
 export default function TemplatePreview({ data }: TemplatePreviewProps) {
-  const handleDownload = async () => {
-    // TODO: Implement download functionality for template
-  };
-
-  const handleShare = () => {
-    // TODO: Implement share functionality for template
-  };
-
   // Extract questions from template content
   const parts = data?.parts || [];
   const multipleChoiceQuestions =
@@ -34,6 +21,31 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
     multipleChoiceQuestions.length +
     yesNoQuestions.length +
     shortQuestions.length;
+
+  // Hàm logic render đáp án dựa trên trung bình độ dài đáp án
+  const getAnswerGridClass = (options: any) => {
+    if (!options || Object.keys(options).length === 0) {
+      return "grid grid-cols-2 gap-2";
+    }
+
+    // Tính trung bình độ dài của các đáp án
+    const optionValues = Object.values(options) as string[];
+    const totalLength = optionValues.reduce((sum, option) => {
+      // Loại bỏ HTML tags để tính độ dài text thực tế
+      const textOnly = option.replace(/<[^>]*>/g, '').trim();
+      return sum + textOnly.length;
+    }, 0);
+
+    const averageLength = totalLength / optionValues.length;
+
+    if (averageLength < 40) {
+      return "grid grid-cols-4 gap-2";
+    } else if (averageLength >= 40 && averageLength < 70) {
+      return "grid grid-cols-2 gap-2";
+    } else {
+      return "grid grid-cols-1 gap-2";
+    }
+  };
 
   return (
     <div>
@@ -150,7 +162,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   />
                                 </div>
                               )}
-                              <div className="grid grid-cols-2 gap-2 ml-4">
+                              <div className={`${getAnswerGridClass(question.options)} ml-4`}>
                                 {Object.entries(question.options || {}).map(
                                   ([key, value]) => (
                                     <div key={key} className="flex items-start">
