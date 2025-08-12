@@ -122,7 +122,7 @@ export const API_ENDPOINTS = {
   ),
 
   // External Tools
-  EXTERNAL_TOOLS: "external-tool-config-service/api/external-tools",
+  EXTERNAL_TOOLS: buildEndpoint(SERVICES.EXTERNAL_TOOL, "/external-tools"),
 
   // Slide Templates
   SLIDE_TEMPLATES: "slide-template-service/api/slide-templates",

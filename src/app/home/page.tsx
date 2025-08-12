@@ -23,11 +23,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useExternalToolsService } from "@/services/externalToolsServices";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
   const { data: bookTypes } = useBookTypesService();
+  const { data: externalTools } = useExternalToolsService();
   const { user } = useAuth();
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -98,6 +100,18 @@ export default function Home() {
 
       <section className="grid grid-cols-1 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2 gap-5">
         {bookTypes?.data?.content
+          ?.sort((a: any, b: any) => a.priority - b.priority)
+          ?.map((feature: any) => (
+            <CardFeature
+              id={feature.id}
+              key={feature.id}
+              icon={feature.icon}
+              title={feature.name}
+              description={feature.description}
+              href={feature.href}
+            />
+          ))}
+        {externalTools?.data?.content
           ?.sort((a: any, b: any) => a.priority - b.priority)
           ?.map((feature: any) => (
             <CardFeature
