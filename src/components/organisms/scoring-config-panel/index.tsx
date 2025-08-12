@@ -227,6 +227,21 @@ export default function ScoringConfigPanel({
                     Câu hỏi tự luận
                   </TableCell>
                 </TableRow>
+                {/* Hàng tổng điểm */}
+                <TableRow className="border-t-2 border-cyan-300 bg-cyan-25">
+                  <TableCell className="text-center font-calsans font-bold text-cyan-700">
+                    Tổng điểm
+                  </TableCell>
+                  <TableCell className="text-center font-questrial">
+                    -
+                  </TableCell>
+                  <TableCell className="text-center font-calsans font-bold text-cyan-700 text-lg">
+                    {calculateTotalScore().toFixed(2)} điểm
+                  </TableCell>
+                  <TableCell className="text-center font-questrial text-gray-500 text-sm">
+                    Tổng điểm cả 3 phần
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </div>
@@ -252,7 +267,7 @@ export default function ScoringConfigPanel({
                   min="0"
                   max="10"
                   value={scoringConfig.part1Score}
-                  onChange={(e) =>
+                  onChange={(e:any) =>
                     handleConfigChange({
                       part1Score: parseFloat(e.target.value) || 0,
                     })
@@ -299,7 +314,7 @@ export default function ScoringConfigPanel({
                     min="0"
                     max="10"
                     value={scoringConfig.part2CustomScore}
-                    onChange={(e) =>
+                    onChange={(e:any) =>
                       handleConfigChange({
                         part2CustomScore: parseFloat(e.target.value) || 0,
                       })
@@ -322,7 +337,7 @@ export default function ScoringConfigPanel({
                         min="0"
                         max="10"
                         value={scoringConfig.part2ManualScores[1]}
-                        onChange={(e) =>
+                        onChange={(e:any) =>
                           handleConfigChange({
                             part2ManualScores: {
                               ...scoringConfig.part2ManualScores,
@@ -364,7 +379,7 @@ export default function ScoringConfigPanel({
                         min="0"
                         max="10"
                         value={scoringConfig.part2ManualScores[3]}
-                        onChange={(e) =>
+                        onChange={(e:any) =>
                           handleConfigChange({
                             part2ManualScores: {
                               ...scoringConfig.part2ManualScores,
@@ -385,7 +400,7 @@ export default function ScoringConfigPanel({
                         min="0"
                         max="10"
                         value={scoringConfig.part2ManualScores[4]}
-                        onChange={(e) =>
+                        onChange={(e:any) =>
                           handleConfigChange({
                             part2ManualScores: {
                               ...scoringConfig.part2ManualScores,
