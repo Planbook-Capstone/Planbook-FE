@@ -10,6 +10,12 @@ import {
 import { RichTextarea } from "@/components/ui/rich-textarea";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { QuestionBankField } from "@/components/fields/QuestionBankField";
+import {
+  SkeletonInput,
+  SkeletonTable,
+  SkeletonImage,
+  SkeletonQuestionBank,
+} from "@/components/ui/skeleton";
 
 interface CellContent {
   text?: string;
@@ -62,6 +68,8 @@ interface NodeRendererProps {
   onNodeSelect?: (nodeId: string, isCtrlPressed: boolean) => void;
   onPaste?: (targetNodeId: string) => void;
   questionsData?: any[];
+  // Loading state
+  isNodeLoading?: (nodeId: string) => boolean;
 }
 
 // Auto-resize textarea component
@@ -137,6 +145,7 @@ export default function NodeRenderer({
   selectedNodeIds = new Set(),
   onNodeSelect,
   onPaste,
+  isNodeLoading,
 }: NodeRendererProps) {
   // Get drop zone colors based on depth level
   const getDropZoneColors = (depth: number) => {
@@ -447,6 +456,63 @@ export default function NodeRenderer({
   // Render field based on fieldType and type
   const renderField = useCallback(
     (node: DemoNode) => {
+      // Show skeleton loading if node has no content (empty or placeholder)
+      const hasContent =
+        node.content &&
+        node.content.trim() !== "" &&
+        node.content !== "Nhập câu hỏi của bạn ở đây..." &&
+        node.content !== "............................................";
+
+      if (
+        !hasContent &&
+        isNodeLoading &&
+        isNodeLoading(node.id) &&
+        node.type !== "SECTION" &&
+        node.type !== "SUBSECTION"
+      ) {
+        console.log(
+          "🔄 Showing skeleton for node:",
+          node.id,
+          "content:",
+          node.content
+        );
+        switch (node.fieldType) {
+          case "TABLE":
+            return <SkeletonTable className="w-full" />;
+          case "IMAGE":
+            return <SkeletonImage className="w-full" />;
+          case "QUESTION_BANK":
+            return <SkeletonQuestionBank className="w-full" />;
+          case "INPUT":
+          default:
+            return <SkeletonInput lines={2} className="w-full" />;
+        }
+      }
+
+      // Log when skeleton is skipped for SECTION/SUBSECTION
+      if (
+        !hasContent &&
+        isNodeLoading &&
+        isNodeLoading(node.id) &&
+        (node.type === "SECTION" || node.type === "SUBSECTION")
+      ) {
+        console.log(
+          "🚫 Skipping skeleton for SECTION/SUBSECTION content:",
+          node.id,
+          node.type
+        );
+      }
+
+      // Log when node has content and skeleton is hidden
+      if (hasContent && isNodeLoading && isNodeLoading(node.id)) {
+        console.log(
+          "✅ Node has content, hiding skeleton:",
+          node.id,
+          "content preview:",
+          node.content.substring(0, 50) + "..."
+        );
+      }
+
       // Check fieldType first for special cases like TABLE
       if (node.fieldType === "TABLE") {
         // Handle TABLE fieldType regardless of node.type
@@ -688,6 +754,7 @@ export default function NodeRenderer({
       }
     },
     [
+      isNodeLoading,
       onUpdateNodeContent,
       onUpdateNodeTitle,
       renderTableField,
@@ -910,6 +977,7 @@ export default function NodeRenderer({
                             selectedNodeIds={selectedNodeIds}
                             onNodeSelect={onNodeSelect}
                             onPaste={onPaste}
+                            isNodeLoading={isNodeLoading}
                           />
                         </div>
                       )}

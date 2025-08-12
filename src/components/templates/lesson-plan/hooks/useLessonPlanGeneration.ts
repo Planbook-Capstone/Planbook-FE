@@ -74,24 +74,37 @@ export const useLessonPlanGeneration = ({
       setResultId(data.result_id);
     }
 
-    if (
-      data?.children &&
-      data.children.length > 0 &&
-      data?.tool_code === bookType?.data?.code
-    ) {
-      console.log("📊 Processing children data:", data.children);
+    // Check for children data in multiple possible locations
+    let childrenData = null;
 
+    // Check direct children property
+    if (data?.children && data.children.length > 0) {
+      childrenData = data.children;
+      console.log("📊 Found children data in data.children:", childrenData);
+    }
+    // Check partial_result.output.children
+    else if (
+      data?.partial_result?.output?.children &&
+      data.partial_result.output.children.length > 0
+    ) {
+      childrenData = data.partial_result.output.children;
+      console.log(
+        "📊 Found children data in data.partial_result.output.children:",
+        childrenData
+      );
+    }
+
+    if (childrenData && data?.tool_code === bookType?.data?.code) {
       // Create a unique key for this data to prevent duplicate processing
-      const dataKey = JSON.stringify(data.children);
+      const dataKey = JSON.stringify(childrenData);
 
       // Only process if this is new data
       if (processedDataRef.current !== dataKey) {
         console.log("✨ New data detected, processing...");
         processedDataRef.current = dataKey;
 
-        const convertedData = convertLessonPlanToDemoNodeRef.current(
-          data.children
-        );
+        const convertedData =
+          convertLessonPlanToDemoNodeRef.current(childrenData);
         console.log("🔄 Converted data:", convertedData);
 
         if (convertedData.length > 0) {
@@ -107,6 +120,17 @@ export const useLessonPlanGeneration = ({
       }
     } else {
       console.log("❌ No children data found in WebSocket response");
+      console.log("🔍 Data structure:", {
+        hasChildren: !!data?.children,
+        childrenLength: data?.children?.length || 0,
+        hasPartialResult: !!data?.partial_result,
+        hasOutput: !!data?.partial_result?.output,
+        hasPartialChildren: !!data?.partial_result?.output?.children,
+        partialChildrenLength:
+          data?.partial_result?.output?.children?.length || 0,
+        toolCode: data?.tool_code,
+        expectedToolCode: bookType?.data?.code,
+      });
     }
   }, [data, resultId]); // Add resultId to dependencies
 

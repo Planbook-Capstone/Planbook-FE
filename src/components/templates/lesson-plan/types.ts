@@ -65,4 +65,6 @@ export interface WebSocketData {
   message?: string;
   progress?: number;
   children?: any[];
+  tool_code?: string;
+  result_id?: string;
 }
