@@ -16,7 +16,7 @@ export const useExternalToolsService = createQueryHook(
 );
 
 // GET /api/external-tools/{id} - Lấy chi tiết cấu hình công cụ theo ID
-export const useExternalToolByIdService = createQueryWithPathParamHook(
+export const useExternalToolWithParmsService = createQueryWithPathParamHook(
   "external-tool",
   API_ENDPOINTS.EXTERNAL_TOOLS
 );

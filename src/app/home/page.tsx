@@ -29,7 +29,22 @@ export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
   const { data: bookTypes } = useBookTypesService();
-  const { data: externalTools } = useExternalToolsService();
+  const {
+    data: externalTools,
+    isLoading: isLoadingTools,
+    error: apiError,
+  } = useExternalToolsService(
+    {
+      retry: 1,
+      staleTime: 0,
+    },
+    {
+      offset: 1,
+      pageSize: 10,
+      sortBy: "createdAt",
+      sortDirection: "desc",
+    }
+  );
   const { user } = useAuth();
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
