@@ -52,6 +52,8 @@ interface CanvasProps {
   selectedNodeIds?: Set<string>;
   onNodeSelect?: (nodeId: string, isCtrlPressed: boolean) => void;
   onPaste?: (targetNodeId: string) => void;
+  // Loading state
+  isNodeLoading?: (nodeId: string) => boolean;
 }
 
 export default function Canvas({
@@ -67,6 +69,7 @@ export default function Canvas({
   selectedNodeIds = new Set(),
   onNodeSelect,
   onPaste,
+  isNodeLoading,
 }: CanvasProps) {
   return (
     <div className="flex-1 p-1 overflow-y-auto">
@@ -122,6 +125,7 @@ export default function Canvas({
                             selectedNodeIds={selectedNodeIds}
                             onNodeSelect={onNodeSelect}
                             onPaste={onPaste}
+                            isNodeLoading={isNodeLoading}
                           />
                         </div>
                       )}

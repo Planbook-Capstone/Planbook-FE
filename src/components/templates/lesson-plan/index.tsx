@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import PreviewModal from "@/components/PreviewModal";
 import Sidebar from "@/components/demo/Sidebar";
@@ -28,6 +28,11 @@ import { getComponentPalette } from "./constants";
 import { DemoNode } from "./types";
 
 function LessonPlanTemplate() {
+  // Loading state
+  const [isLoading, setIsLoading] = useState(false);
+  // Track which nodes are loading (Set of node IDs)
+  const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
+
   // Get component palette (creates fresh React elements each time)
   const componentPalette = getComponentPalette();
 
@@ -175,6 +180,14 @@ function LessonPlanTemplate() {
     return demoData;
   }, [finalData, demoData, items, currentStep]);
 
+  // Function to check if a node is loading
+  const isNodeLoading = useCallback(
+    (nodeId: string) => {
+      return loadingNodes.has(nodeId);
+    },
+    [loadingNodes]
+  );
+
   // Merge AI data into finalData
   const mergeAIDataToFinalData = useCallback(
     (aiData: DemoNode[]) => {
@@ -207,6 +220,9 @@ function LessonPlanTemplate() {
           console.log("➕ Adding new node:", aiNode.id);
           mergedData.push(aiNode);
         }
+
+        // Note: No need to manually remove from loading set
+        // The render logic will check if node has content and hide skeleton automatically
       });
 
       console.log("✅ Final merged data:", mergedData);
@@ -241,6 +257,74 @@ function LessonPlanTemplate() {
     convertLessonPlanToDemoNode,
     mergeAIDataToFinalData,
   });
+
+  // Track loading state based on data processing status
+  useEffect(() => {
+    const isProcessing =
+      data?.status === "processing" && data?.tool_code === bookType?.code;
+
+    console.log("🔍 Loading state check:", {
+      dataStatus: data?.status,
+      dataToolCode: data?.tool_code,
+      bookTypeCode: bookType?.code,
+      isProcessing,
+      currentIsLoading: isLoading,
+    });
+
+    if (isProcessing && !isLoading) {
+      // Start loading
+      setIsLoading(true);
+      setAllNodesLoading(); // Set all current nodes as loading
+      console.log("🔄 Loading started - isLoading:", true);
+    } else if (!isProcessing && isLoading) {
+      // Stop loading
+      setIsLoading(false);
+      setLoadingNodes(new Set()); // Clear all loading nodes
+      console.log("✅ Loading finished - isLoading:", false);
+    }
+
+    // Force reset loading if data status is not processing
+    if (data && data.status !== "processing" && isLoading) {
+      setIsLoading(false);
+      setLoadingNodes(new Set()); // Clear all loading nodes
+      console.log("🔄 Force reset loading - isLoading:", false);
+    }
+  }, [data?.status, data?.tool_code, bookType?.code, isLoading]);
+
+  // Log initial loading state
+  useEffect(() => {
+    console.log("🚀 Initial isLoading state:", isLoading);
+  }, []);
+
+  // Log every time isLoading changes
+  useEffect(() => {
+    console.log("📊 isLoading state changed to:", isLoading);
+  }, [isLoading]);
+
+  // Manual reset loading function for testing
+  const resetLoading = () => {
+    setIsLoading(false);
+    setLoadingNodes(new Set());
+    console.log("🔄 Manual reset loading - isLoading:", false);
+  };
+
+  // Function to set all current nodes as loading
+  const setAllNodesLoading = useCallback(() => {
+    const allNodeIds = new Set<string>();
+
+    const collectNodeIds = (nodes: DemoNode[]) => {
+      nodes.forEach((node) => {
+        allNodeIds.add(node.id);
+        if (node.children && node.children.length > 0) {
+          collectNodeIds(node.children);
+        }
+      });
+    };
+
+    collectNodeIds(demoData);
+    setLoadingNodes(allNodeIds);
+    console.log("🔄 Set all nodes loading:", Array.from(allNodeIds));
+  }, [demoData]);
 
   // Use tool result service for saving results
   const { mutate: updateToolResult, isPending: isSavingResult } =
@@ -287,16 +371,16 @@ function LessonPlanTemplate() {
     [resultId, getAllFinalData, lessonId, lessonById?.data, updateToolResult]
   );
 
-  if (data?.status === "processing" && data?.tool_code === bookType?.code) {
-    return (
-      <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
-        <LoadingAI
-          message={data?.message || ""}
-          progress={data?.progress || 0}
-        />
-      </div>
-    );
-  }
+  // if (data?.status === "processing" && data?.tool_code === bookType?.code) {
+  //   return (
+  //     <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
+  //       <LoadingAI
+  //         message={data?.message || ""}
+  //         progress={data?.progress || 0}
+  //       />
+  //     </div>
+  //   );
+  // }
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
@@ -347,9 +431,7 @@ function LessonPlanTemplate() {
               initialPosition={{ x: 500, y: 100 }}
             />
             {/* Canvas */}
-            <h1 className="font-calsans my-1 px-5 text-xl">
-              {items?.length > 0 && items[currentStep]?.title}
-            </h1>
+
             <Canvas
               demoData={demoData}
               showDeleteButtons={showDeleteButtons}
@@ -363,6 +445,7 @@ function LessonPlanTemplate() {
               selectedNodeIds={selectedNodeIds}
               onNodeSelect={handleNodeSelect}
               onPaste={handlePaste}
+              isNodeLoading={isNodeLoading}
             />
           </>
         </div>
