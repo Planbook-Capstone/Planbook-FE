@@ -8,14 +8,16 @@ import Header from "@/components/organisms/header";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SidebarMenu } from "@/components/molecules/sidebar-menu";
-import Account from "@/components/molecules/account";
 import { usePathname } from "next/navigation";
+import AvatarButton from "@/components/organisms/avatar-button";
 
 interface ToolManagerLayoutProps {
   children: React.ReactNode;
 }
 
-export default function ToolManagerLayout({ children }: ToolManagerLayoutProps) {
+export default function ToolManagerLayout({
+  children,
+}: ToolManagerLayoutProps) {
   const pathname = usePathname();
   const title =
     getLabel(pathname.replace("/tool-manager/", ""), "tool-manager") ||
@@ -24,7 +26,7 @@ export default function ToolManagerLayout({ children }: ToolManagerLayoutProps) 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  
+
   return (
     <Layout className="min-h-screen h-screen !bg-white pr-3">
       <Sider
@@ -38,10 +40,10 @@ export default function ToolManagerLayout({ children }: ToolManagerLayoutProps) 
         }}
       >
         <div className="flex py-5 flex-col items-center justify-between h-full border-r-[0.5px] border-r-[#DFDFDF]">
-          <SidebarMenu 
-            menuItems={toolManagerItems} 
-            defaultActiveKey="dashboard" 
-            basePath="/tool-manager" 
+          <SidebarMenu
+            menuItems={toolManagerItems}
+            defaultActiveKey="dashboard"
+            basePath="/tool-manager"
           />
 
           <div className="flex flex-col justify-center items-center w-full gap-3">
@@ -53,7 +55,7 @@ export default function ToolManagerLayout({ children }: ToolManagerLayoutProps) 
                 height="35"
               />
             </Button>
-            <Account src={"/images/avatarLogo.png"} />
+            <AvatarButton />
           </div>
         </div>
       </Sider>

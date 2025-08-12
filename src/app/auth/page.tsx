@@ -43,6 +43,8 @@ const LoginPage = () => {
           router.push("/admin");
         } else if (data.data.data.role === "STAFF") {
           router.push("/staff");
+        } else if (data.data.data.role === "PARTNER") {
+          router.push("/tool-manager/dashboard");
         } else {
           router.push("/home");
         }
