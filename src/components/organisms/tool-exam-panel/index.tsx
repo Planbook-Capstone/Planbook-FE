@@ -5,13 +5,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { toast } from "sonner";
 import {
   Image,
-  Upload,
   CloudUpload,
-  Route,
-  X,
-  PanelRightClose,
-  PanelRightOpen,
-  List,
   CircleArrowOutDownLeft,
   CircleArrowOutUpRight,
   Database,
@@ -21,7 +15,6 @@ import {
   useMaterialInternalService,
   useMaterialSearchService,
 } from "@/services/materialServices";
-import StepNavigation from "@/components/organisms/step-navigation";
 import { UploadCloudIcon } from "@/constants/icon";
 import { QuestionBankModal } from "@/components/modals/QuestionBankModal";
 import { QuestionBankItem } from "@/services/questionBankServices";
@@ -68,7 +61,7 @@ function DraggableAsset({ asset }: DraggableAssetProps) {
           <img
             src={asset.content}
             alt={asset.preview}
-            className="w-full h-auto object-cover"
+            className="w-full h-auto object-contain"
             onError={(e) => {
               // Fallback to icon if image fails to load
               e.currentTarget.style.display = "none";
@@ -89,10 +82,10 @@ function DraggableAsset({ asset }: DraggableAssetProps) {
   );
 }
 
-export default function AssetsPanel() {
+export default function ToolExamPanel() {
   const [activeTab, setActiveTab] = useState<
-    "images" | "upload" | "steps" | "questionBank"
-  >("steps");
+    "images" | "upload" | "questionBank"
+  >("images");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<AssetItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -168,8 +161,7 @@ export default function AssetsPanel() {
   };
 
   const tabs = [
-    // { id: "images", label: "Hình ảnh", icon: Image },
-    { id: "steps", label: "Các bước", icon: Route },
+    { id: "images", label: "Hình ảnh", icon: Image },
     { id: "upload", label: "Tải lên", icon: CloudUpload },
     { id: "questionBank", label: "Ngân hàng đề", icon: Database },
   ] as const;
@@ -183,7 +175,7 @@ export default function AssetsPanel() {
 
   return (
     <div
-      className={`h-full flex flex-col font-questrial transition-all duration-200 ease-in-out ${
+      className={`sticky top-0 border-r max-h-screen flex flex-col font-questrial transition-all duration-200 ease-in-out ${
         isCollapsed ? "w-12" : "w-80"
       }`}
     >
@@ -217,7 +209,7 @@ export default function AssetsPanel() {
                   if (tab.id === "questionBank") {
                     handleQuestionBankClick();
                   } else {
-                    setActiveTab(tab.id);
+                    setActiveTab(tab?.id);
                   }
                 }}
                 className={`
@@ -241,13 +233,24 @@ export default function AssetsPanel() {
       {/* Assets Grid */}
       {!isCollapsed && (
         <div className="flex-1 p-2 sm:p-4 overflow-y-auto w-full">
-          {activeTab === "steps" ? (
+          {activeTab === "images" ? (
             <div className="space-y-4">
-              <StepNavigation
-                layout="vertical"
-                showDescription={true}
-                className="w-full"
-              />
+              {/* Images from materials service */}
+              <div className="columns-2 gap-3 space-y-3">
+                {materials?.data?.content?.map((asset: any) => {
+                  const assetItem: AssetItem = {
+                    id: asset?.id,
+                    type: "image",
+                    content: asset?.url,
+                    preview: asset?.name,
+                  };
+                  return (
+                    <div key={asset?.id} className="break-inside-avoid mb-3">
+                      <DraggableAsset asset={assetItem} />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : activeTab === "upload" ? (
             <div className="space-y-4">

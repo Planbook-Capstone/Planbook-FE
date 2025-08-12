@@ -1,5 +1,6 @@
 "use client";
 
+import ExamResultEditorTemplate from "@/components/templates/exam-result-editor/ExamResultEditor";
 import { useToolResultByIdService } from "@/services/toolResultService";
 import { use } from "react";
 
@@ -16,8 +17,12 @@ function ExamResultPage({ params }: ExamResultPageProps) {
     isLoading,
     error,
   } = useToolResultByIdService(id);
-  console.log("Exam result ID:", examResultResponse?.data);
-  return <div>ExamResultPage {id}</div>;
+  console.log(examResultResponse?.data?.data);
+  return (
+    <div>
+      <ExamResultEditorTemplate examResult={examResultResponse?.data?.data} />
+    </div>
+  );
 }
 
 export default ExamResultPage;
