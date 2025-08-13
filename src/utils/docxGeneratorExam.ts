@@ -15,6 +15,74 @@ import {
   BorderStyle,
 } from "docx";
 
+/**
+ * Utility function to parse HTML-like text and convert to TextRun array
+ * @param text - Text with HTML tags like <sub>, <sup>, <b>, etc.
+ * @param fontSize - Base font size
+ * @returns Array of TextRun objects
+ */
+const parseHtmlText = (text: string, fontSize: number): TextRun[] => {
+  if (!text) return [];
+
+  // First, remove <p> tags and replace with line breaks
+  let processedText = text
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/\n+/g, '\n')
+    .trim();
+
+  const runs: TextRun[] = [];
+  const regex = /<(sub|sup|b|strong)(?:\s+[^>]*)?>([^<]*)<\/\1>|([^<]+)/gi;
+  let match;
+
+  while ((match = regex.exec(processedText)) !== null) {
+    if (match[1] && match[2]) {
+      // HTML tag found
+      const tag = match[1].toLowerCase();
+      const content = match[2];
+
+      if (tag === "sub") {
+        runs.push(
+          new TextRun({
+            text: content,
+            size: fontSize,
+            subScript: true,
+          })
+        );
+      } else if (tag === "sup") {
+        runs.push(
+          new TextRun({
+            text: content,
+            size: fontSize,
+            superScript: true,
+          })
+        );
+      } else if (tag === "b" || tag === "strong") {
+        runs.push(
+          new TextRun({
+            text: content,
+            size: fontSize,
+            bold: true,
+          })
+        );
+      }
+    } else if (match[3]) {
+      // Regular text
+      const textContent = match[3].trim();
+      if (textContent) {
+        runs.push(
+          new TextRun({
+            text: textContent,
+            size: fontSize,
+          })
+        );
+      }
+    }
+  }
+
+  return runs.length > 0 ? runs : [new TextRun({ text: processedText, size: fontSize })];
+};
+
 export interface ExamQuestion {
   question: string;
   options: string[] | Record<string, string>;
@@ -373,22 +441,23 @@ const createMultipleChoiceSection = async (
 
   const questionParagraphs = await Promise.all(
     questions.map(async (question, index) => {
-      const questionParagraphs: (Paragraph | Table)[] = [
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Câu ${index + 1}: `,
-              bold: true,
-              size: 24,
-            }),
-            new TextRun({
-              text: question.question,
-              bold: false,
-              size: 24,
-            }),
-          ],
+      const questionParagraphs: (Paragraph | Table)[] = [];
+
+      // Parse question text with HTML support
+      const questionTextRuns = [
+        new TextRun({
+          text: `Câu ${index + 1}: `,
+          bold: true,
+          size: 24,
         }),
+        ...parseHtmlText(question.question, 24)
       ];
+
+      questionParagraphs.push(
+        new Paragraph({
+          children: questionTextRuns,
+        })
+      );
 
       // Add image if exists
       if (question.illustrationImage) {
@@ -456,16 +525,33 @@ const createMultipleChoiceSection = async (
             rowOptions.push(["", ""]);
           }
 
-          const cells = rowOptions.map(([key, value]) =>
-            new TableCell({
+          const cells = rowOptions.map(([key, value]) => {
+            if (!key || !value) {
+              return new TableCell({
+                children: [new Paragraph({ children: [] })],
+                width: { size: 100 / columnsCount, type: WidthType.PERCENTAGE },
+                borders: {
+                  top: { style: BorderStyle.NIL, size: 0 },
+                  bottom: { style: BorderStyle.NIL, size: 0 },
+                  left: { style: BorderStyle.NIL, size: 0 },
+                  right: { style: BorderStyle.NIL, size: 0 },
+                },
+              });
+            }
+
+            // Parse option text with HTML support
+            const optionTextRuns = [
+              new TextRun({
+                text: `${key.toUpperCase()}. `,
+                size: 24,
+              }),
+              ...parseHtmlText(value, 24)
+            ];
+
+            return new TableCell({
               children: [
                 new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: key && value ? `${key.toUpperCase()}. ${value}` : "",
-                      size: 24,
-                    }),
-                  ],
+                  children: optionTextRuns,
                 }),
               ],
               width: { size: 100 / columnsCount, type: WidthType.PERCENTAGE },
@@ -475,8 +561,8 @@ const createMultipleChoiceSection = async (
                 left: { style: BorderStyle.NIL, size: 0 },
                 right: { style: BorderStyle.NIL, size: 0 },
               },
-            })
-          );
+            });
+          });
 
           rows.push(new TableRow({ children: cells }));
         }
@@ -534,23 +620,24 @@ const createYesNoSection = async (
 
   const questionParagraphs = await Promise.all(
     yesNoQuestions.map(async (question, index) => {
-      const questionParagraphs: Paragraph[] = [
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Câu ${questionsOffset + index + 1}: `,
-              bold: true,
-              size: 24,
-            }),
-            new TextRun({
-              text: question.question,
-              bold: false,
-              size: 24,
-            }),
-          ],
-          spacing: { after: 120 },
+      const questionParagraphs: Paragraph[] = [];
+
+      // Parse question text with HTML support
+      const questionTextRuns = [
+        new TextRun({
+          text: `Câu ${questionsOffset + index + 1}: `,
+          bold: true,
+          size: 24,
         }),
+        ...parseHtmlText(question.question, 24)
       ];
+
+      questionParagraphs.push(
+        new Paragraph({
+          children: questionTextRuns,
+          spacing: { after: 120 },
+        })
+      );
 
       // Add image if exists
       if (question.illustrationImage) {
@@ -595,41 +682,45 @@ const createYesNoSection = async (
         }
       }
 
-      // Add statements with proper indentation
+      // Add statements with proper indentation and HTML parsing
       questionParagraphs.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: `a) ${question.statements.a.text}`,
+              text: "a) ",
               size: 24,
             }),
+            ...parseHtmlText(question.statements.a.text, 24)
           ],
           indent: { left: 720 },
         }),
         new Paragraph({
           children: [
             new TextRun({
-              text: `b) ${question.statements.b.text}`,
+              text: "b) ",
               size: 24,
             }),
+            ...parseHtmlText(question.statements.b.text, 24)
           ],
           indent: { left: 720 },
         }),
         new Paragraph({
           children: [
             new TextRun({
-              text: `c) ${question.statements.c.text}`,
+              text: "c) ",
               size: 24,
             }),
+            ...parseHtmlText(question.statements.c.text, 24)
           ],
           indent: { left: 720 },
         }),
         new Paragraph({
           children: [
             new TextRun({
-              text: `d) ${question.statements.d.text}`,
+              text: "d) ",
               size: 24,
             }),
+            ...parseHtmlText(question.statements.d.text, 24)
           ],
           indent: { left: 720 },
         }),
@@ -673,23 +764,24 @@ const createShortAnswerSection = async (
 
   const questionParagraphs = await Promise.all(
     shortQuestions.map(async (question, index) => {
-      const questionParagraphs: Paragraph[] = [
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Câu ${questionsOffset + index + 1}: `,
-              bold: true,
-              size: 24,
-            }),
-            new TextRun({
-              text: question.question,
-              bold: false,
-              size: 24,
-            }),
-          ],
-          spacing: { after: 120 },
+      const questionParagraphs: Paragraph[] = [];
+
+      // Parse question text with HTML support
+      const questionTextRuns = [
+        new TextRun({
+          text: `Câu ${questionsOffset + index + 1}: `,
+          bold: true,
+          size: 24,
         }),
+        ...parseHtmlText(question.question, 24)
       ];
+
+      questionParagraphs.push(
+        new Paragraph({
+          children: questionTextRuns,
+          spacing: { after: 120 },
+        })
+      );
 
       // Add image if exists
       if (question.illustrationImage) {

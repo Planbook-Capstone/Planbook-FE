@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import {
   Select,
   SelectContent,
@@ -298,7 +299,12 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                         control={control}
                         rules={{ required: "Vui lòng nhập lựa chọn A" }}
                         render={({ field }) => (
-                          <Input {...field} placeholder="Nhập lựa chọn A" />
+                          <AdvancedTextEditor
+                            content={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Nhập lựa chọn A"
+                            className="border border-gray-300 rounded-md p-2 min-h-[40px]"
+                          />
                         )}
                       />
                       {errors.optionA && (
@@ -320,7 +326,12 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                         control={control}
                         rules={{ required: "Vui lòng nhập lựa chọn B" }}
                         render={({ field }) => (
-                          <Input {...field} placeholder="Nhập lựa chọn B" />
+                          <AdvancedTextEditor
+                            content={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Nhập lựa chọn B"
+                            className="border border-gray-300 rounded-md p-2 min-h-[40px]"
+                          />
                         )}
                       />
                       {errors.optionB && (
@@ -344,7 +355,12 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                         control={control}
                         rules={{ required: "Vui lòng nhập lựa chọn C" }}
                         render={({ field }) => (
-                          <Input {...field} placeholder="Nhập lựa chọn C" />
+                          <AdvancedTextEditor
+                            content={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Nhập lựa chọn C"
+                            className="border border-gray-300 rounded-md p-2 min-h-[40px]"
+                          />
                         )}
                       />
                       {errors.optionC && (
@@ -366,7 +382,12 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                         control={control}
                         rules={{ required: "Vui lòng nhập lựa chọn D" }}
                         render={({ field }) => (
-                          <Input {...field} placeholder="Nhập lựa chọn D" />
+                          <AdvancedTextEditor
+                            content={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Nhập lựa chọn D"
+                            className="border border-gray-300 rounded-md p-2 min-h-[40px]"
+                          />
                         )}
                       />
                       {errors.optionD && (
@@ -399,10 +420,11 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                   control={control}
                   rules={{ required: "Vui lòng nhập phát biểu a" }}
                   render={({ field }) => (
-                    <Textarea
-                      {...field}
+                    <AdvancedTextEditor
+                      content={field.value || ""}
+                      onChange={field.onChange}
                       placeholder="Nhập phát biểu a"
-                      rows={2}
+                      className="border border-gray-300 rounded-md p-2 min-h-[60px]"
                     />
                   )}
                 />
@@ -448,10 +470,11 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                   control={control}
                   rules={{ required: "Vui lòng nhập phát biểu b" }}
                   render={({ field }) => (
-                    <Textarea
-                      {...field}
+                    <AdvancedTextEditor
+                      content={field.value || ""}
+                      onChange={field.onChange}
                       placeholder="Nhập phát biểu b"
-                      rows={2}
+                      className="border border-gray-300 rounded-md p-2 min-h-[60px]"
                     />
                   )}
                 />
@@ -496,10 +519,11 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                   name="statementC"
                   control={control}
                   render={({ field }) => (
-                    <Textarea
-                      {...field}
+                    <AdvancedTextEditor
+                      content={field.value || ""}
+                      onChange={field.onChange}
                       placeholder="Nhập phát biểu c"
-                      rows={2}
+                      className="border border-gray-300 rounded-md p-2 min-h-[60px]"
                     />
                   )}
                 />
@@ -539,10 +563,11 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                   name="statementD"
                   control={control}
                   render={({ field }) => (
-                    <Textarea
-                      {...field}
+                    <AdvancedTextEditor
+                      content={field.value || ""}
+                      onChange={field.onChange}
                       placeholder="Nhập phát biểu d"
-                      rows={2}
+                      className="border border-gray-300 rounded-md p-2 min-h-[60px]"
                     />
                   )}
                 />
@@ -585,7 +610,12 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
               control={control}
               rules={{ required: "Vui lòng nhập đáp án" }}
               render={({ field }) => (
-                <Input {...field} placeholder="Nhập đáp án (số hoặc chuỗi)" />
+                <AdvancedTextEditor
+                  content={field.value || ""}
+                  onChange={field.onChange}
+                  placeholder="Nhập đáp án (số hoặc chuỗi)"
+                  className="border border-gray-300 rounded-md p-2 min-h-[60px]"
+                />
               )}
             />
             {errors.shortAnswer && (
@@ -715,11 +745,11 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
           control={control}
           rules={{ required: "Vui lòng nhập câu hỏi" }}
           render={({ field }) => (
-            <Textarea
-              {...field}
+            <AdvancedTextEditor
+              content={field.value || ""}
+              onChange={field.onChange}
               placeholder="Nhập nội dung câu hỏi"
-              rows={4}
-              className="resize-none"
+              className="border border-gray-300 rounded-md p-3 min-h-[100px]"
             />
           )}
         />
