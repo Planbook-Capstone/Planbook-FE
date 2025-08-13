@@ -79,10 +79,7 @@ export default function ExamPreviewModal({
               {DowloadIcon}
               <span>Tải về</span>
             </Button>
-            <Button onClick={handleShare} variant="outline">
-              <Share2 className="w-4 h-4" />
-              <span>Chia sẻ</span>
-            </Button>
+       
             <Button onClick={onClose} variant="outline">
               <X className="w-4 h-4" />
               <span>Đóng</span>

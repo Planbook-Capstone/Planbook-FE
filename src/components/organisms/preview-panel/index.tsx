@@ -2,8 +2,8 @@
 
 import React from "react";
 import { CanvasElement } from "@/components/templates/canva-layout";
-import ExamPreview from '@/components/organisms/exam-preview';
-import { useExamContext } from '@/contexts/ExamContext';
+import ExamPreview from "@/components/organisms/exam-preview";
+import { useExamContext } from "@/contexts/ExamContext";
 import { Button } from "@/components/ui/Button";
 import { X, Download, Share2 } from "lucide-react";
 
@@ -13,19 +13,19 @@ interface ExamPreviewModalProps {
   elements: CanvasElement[];
 }
 
-export default function ExamPreviewModal({ isOpen, onClose, elements }: ExamPreviewModalProps) {
-  const { examQuestions, examYesNoQuestions, examShortQuestions } = useExamContext();
+export default function ExamPreviewModal({
+  isOpen,
+  onClose,
+  elements,
+}: ExamPreviewModalProps) {
+  const { examQuestions, examYesNoQuestions, examShortQuestions } =
+    useExamContext();
 
   if (!isOpen) return null;
 
   const handleDownload = () => {
     // TODO: Implement download functionality
     console.log("Download exam");
-  };
-
-  const handleShare = () => {
-    // TODO: Implement share functionality
-    console.log("Share exam");
   };
 
   return (
@@ -41,10 +41,7 @@ export default function ExamPreviewModal({ isOpen, onClose, elements }: ExamPrev
               <Download className="w-4 h-4" />
               <span>Tải về</span>
             </Button>
-            <Button onClick={handleShare} variant="outline">
-              <Share2 className="w-4 h-4" />
-              <span>Chia sẻ</span>
-            </Button>
+
             <Button onClick={onClose} variant="outline">
               <X className="w-4 h-4" />
               <span>Đóng</span>

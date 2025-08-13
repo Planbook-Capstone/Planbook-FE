@@ -38,13 +38,27 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
 
     const averageLength = totalLength / optionValues.length;
 
-    if (averageLength < 40) {
-      return "grid grid-cols-4 gap-2";
-    } else if (averageLength >= 40 && averageLength < 70) {
-      return "grid grid-cols-2 gap-2";
+    // Debug log để kiểm tra
+    console.log('=== GRID CLASS DEBUG ===');
+    console.log('Options:', options);
+    console.log('Option values:', optionValues);
+    console.log('Individual lengths:', optionValues.map(opt => opt.replace(/<[^>]*>/g, "").trim().length));
+    console.log('Total length:', totalLength);
+    console.log('Average length:', averageLength);
+
+    let gridClass;
+    if (averageLength < 30) {
+      gridClass = "grid grid-cols-4 gap-2";
+    } else if (averageLength >= 30 && averageLength < 50) {
+      gridClass = "grid grid-cols-2 gap-2";
     } else {
-      return "grid grid-cols-1 gap-2";
+      gridClass = "grid grid-cols-1 gap-2";
     }
+
+    console.log('Grid class:', gridClass);
+    console.log('========================');
+
+    return gridClass;
   };
 
   return (
@@ -73,7 +87,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                     </div>
                     <div className="text-center flex-1">
                       <p className="font-bold text-lg">
-                        {data?.examTitle?.toUpperCase() || "ĐỀ KIỂM TRA LỚP 12"}
+                        {data?.examTitle?.toUpperCase() || "ĐỀ KIỂM TRA ......"}
                       </p>
                       <p className="font-bold text-base mt-1">
                         Môn: {data?.subject || "......"}. - Lớp{" "}

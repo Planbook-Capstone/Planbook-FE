@@ -110,7 +110,7 @@ const createExamHeader = (examData: ExamData): (Paragraph | Table)[] => {
                 new Paragraph({
                   children: [
                     new TextRun({
-                      text: "BỘ GIÁO DỤC VÀ ĐÀO TẠO",
+                      text: "SỞ GIÁO DỤC VÀ ĐÀO TẠO",
                       bold: true,
                       size: 20,
                     }),
@@ -337,9 +337,9 @@ const getAnswerColumnsCount = (options: string[] | Record<string, string>): numb
 
   const averageLength = totalLength / optionValues.length;
 
-  if (averageLength < 40) {
+  if (averageLength < 30) {
     return 4; // 4 cột cho đáp án ngắn
-  } else if (averageLength >= 40 && averageLength < 70) {
+  } else if (averageLength >= 30 && averageLength < 50) {
     return 2; // 2 cột cho đáp án trung bình
   } else {
     return 1; // 1 cột cho đáp án dài

@@ -25,6 +25,15 @@ import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuestionBanksWithParamsService } from "@/services/questionBankServices";
 import QuestionRenderer from "@/components/molecules/question-render/QuestionRenderer";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Folder {
   name: string;
@@ -288,6 +297,12 @@ function DocumentSourceSelector({
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(13);
 
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedFileId(null); // Reset selected file when changing page
+  };
+
   const {
     data: toolResults,
     refetch,
@@ -298,7 +313,7 @@ function DocumentSourceSelector({
     {
       userId: user?.id,
       page: currentPage + 1,
-      size: pageSize,
+      size: 10,
       sort: "createdAt,desc",
       type: "EXAM",
       status: "ARCHIVED",
@@ -451,6 +466,141 @@ function DocumentSourceSelector({
                 </div>
               ))}
           </div>
+
+          {/* Pagination for EXAM files */}
+          {getSelectedFolderData()?.type === "EXAM" &&
+           toolResults?.data?.totalPages > 1 && (
+            <div className="mt-4 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  {/* Previous Button */}
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 0) {
+                          handlePageChange(currentPage - 1);
+                        }
+                      }}
+                      className={
+                        currentPage === 0 ? "pointer-events-none opacity-50" : ""
+                      }
+                    />
+                  </PaginationItem>
+
+                  {/* Page Numbers */}
+                  {(() => {
+                    const totalPages = toolResults.data.totalPages;
+                    const pages = [];
+
+                    // Show first page
+                    if (totalPages > 0) {
+                      pages.push(
+                        <PaginationItem key={0}>
+                          <PaginationLink
+                            href="#"
+                            isActive={currentPage === 0}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage !== 0) {
+                                handlePageChange(0);
+                              }
+                            }}
+                          >
+                            1
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+
+                    // Show ellipsis if needed
+                    if (currentPage > 2) {
+                      pages.push(
+                        <PaginationItem key="ellipsis-start">
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+
+                    // Show pages around current page
+                    const start = Math.max(1, currentPage - 1);
+                    const end = Math.min(totalPages - 1, currentPage + 1);
+
+                    for (let i = start; i <= end; i++) {
+                      if (i !== 0 && i !== totalPages - 1) {
+                        pages.push(
+                          <PaginationItem key={i}>
+                            <PaginationLink
+                              href="#"
+                              isActive={currentPage === i}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage !== i) {
+                                  handlePageChange(i);
+                                }
+                              }}
+                            >
+                              {i + 1}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      }
+                    }
+
+                    // Show ellipsis if needed
+                    if (currentPage < totalPages - 3) {
+                      pages.push(
+                        <PaginationItem key="ellipsis-end">
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+
+                    // Show last page (if different from first)
+                    if (totalPages > 1) {
+                      pages.push(
+                        <PaginationItem key={totalPages - 1}>
+                          <PaginationLink
+                            href="#"
+                            isActive={currentPage === totalPages - 1}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage !== totalPages - 1) {
+                                handlePageChange(totalPages - 1);
+                              }
+                            }}
+                          >
+                            {totalPages}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+
+                    return pages;
+                  })()}
+
+                  {/* Next Button */}
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < toolResults.data.totalPages - 1) {
+                          handlePageChange(currentPage + 1);
+                        }
+                      }}
+                      className={
+                        currentPage >= toolResults.data.totalPages - 1
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
 
           {getSelectedFolderData()?.type === "SYSTEM" && (
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
@@ -683,7 +833,7 @@ function DocumentSourceSelector({
         {/* Right column - Preview */}
         <div
           ref={scrollContainerRef}
-          className="w-full border rounded-md p-2 col-span-3 h-[700px] overflow-y-auto"
+          className="w-full border rounded-md p-2 col-span-3 h-[850px] overflow-y-auto"
         >
           <div className="flex justify-between items-center">
             {getSelectedFolderData()?.type === "SYSTEM" && (
