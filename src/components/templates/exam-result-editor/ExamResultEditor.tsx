@@ -217,12 +217,20 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     if (examResult?.data?.parts) {
       const newCorrectAnswers: Record<string, string> = {};
       const newTrueFalseAnswers: Record<string, Record<string, boolean>> = {};
+      const newImageUploadStates: Record<string, boolean> = {};
+      const newQuestionImages: Record<string, string> = {};
 
       examResult.data.parts.forEach((part: any, partIndex: number) => {
         part.questions?.forEach((question: any, questionIndex: number) => {
           const questionKey = `part${partIndex + 1}-${
             question?.questionNumber || questionIndex
           }`;
+
+          // Initialize image states if question has image
+          if (question?.image) {
+            newImageUploadStates[questionKey] = true;
+            newQuestionImages[questionKey] = question.image;
+          }
 
           if (partIndex === 0 && question?.answer) {
             // Part 1 - Multiple choice
@@ -242,6 +250,8 @@ function ExamResultEditorTemplate({ examResult }: Props) {
 
       setCorrectAnswers(newCorrectAnswers);
       setTrueFalseAnswers(newTrueFalseAnswers);
+      setImageUploadStates(newImageUploadStates);
+      setQuestionImages(newQuestionImages);
     }
   }, [examResult]);
 
@@ -560,6 +570,15 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                             placeholder="Nhập nội dung câu hỏi..."
                             className="mb-4"
                           />
+                          {question.image && (
+                            <div className="mb-3 flex justify-center">
+                              <img
+                                src={question.image}
+                                alt="Hình minh họa"
+                                className="max-w-xs max-h-48 rounded border"
+                              />
+                            </div>
+                          )}
                         </div>
                         <div className="pl-6">
                           {/* Display each option on a separate row with checkbox and input */}
@@ -722,6 +741,15 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                             placeholder="Nhập nội dung câu hỏi..."
                             className="mb-4"
                           />
+                          {question.image && (
+                            <div className="mb-3 flex justify-center">
+                              <img
+                                src={question.image}
+                                alt="Hình minh họa"
+                                className="max-w-xs max-h-48 rounded border"
+                              />
+                            </div>
+                          )}
                         </div>
                         <div className="pl-6">
                           {question?.statements &&
@@ -965,6 +993,15 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                             placeholder="Nhập nội dung câu hỏi..."
                             className="mb-4"
                           />
+                          {question.image && (
+                            <div className="mb-3 flex justify-center">
+                              <img
+                                src={question.image}
+                                alt="Hình minh họa"
+                                className="max-w-xs max-h-48 rounded border"
+                              />
+                            </div>
+                          )}
                         </div>
                         <div className="pl-6">
                           <div className="flex justify-start items-center w-full">

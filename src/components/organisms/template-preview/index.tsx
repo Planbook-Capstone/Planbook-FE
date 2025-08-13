@@ -32,7 +32,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
     const optionValues = Object.values(options) as string[];
     const totalLength = optionValues.reduce((sum, option) => {
       // Loại bỏ HTML tags để tính độ dài text thực tế
-      const textOnly = option.replace(/<[^>]*>/g, '').trim();
+      const textOnly = option.replace(/<[^>]*>/g, "").trim();
       return sum + textOnly.length;
     }, 0);
 
@@ -162,7 +162,20 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   />
                                 </div>
                               )}
-                              <div className={`${getAnswerGridClass(question.options)} ml-4`}>
+                              {question.image && (
+                                <div className="mb-3 flex justify-center">
+                                  <img
+                                    src={question.image}
+                                    alt="Hình minh họa"
+                                    className="max-w-xs max-h-48 rounded border"
+                                  />
+                                </div>
+                              )}
+                              <div
+                                className={`${getAnswerGridClass(
+                                  question.options
+                                )} ml-4`}
+                              >
                                 {Object.entries(question.options || {}).map(
                                   ([key, value]) => (
                                     <div key={key} className="flex items-start">
@@ -188,18 +201,6 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   />
                                 </p>
                               )}
-                              {question?.explanation && (
-                                <p className="text-purple-700">
-                                  <span className="font-bold">
-                                    Giải thích:{" "}
-                                  </span>
-                                  <span
-                                    dangerouslySetInnerHTML={{
-                                      __html: question.explanation || "",
-                                    }}
-                                  />
-                                </p>
-                              )}
                             </div>
                           )
                         )}
@@ -216,7 +217,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                       <div className="space-y-4">
                         {yesNoQuestions.map((question: any, index: number) => (
                           <div key={question.id || index} className="mb-4">
-                            <p className="font-medium text-gray-900 mb-2">
+                            <div className="font-medium text-gray-900 mb-2">
                               <span className="font-bold">
                                 Câu {multipleChoiceQuestions.length + index + 1}
                                 :{" "}
@@ -239,8 +240,12 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   </Badge>
                                 </span>
                               </span>{" "}
-                              {question.question}
-                            </p>
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: question.question || "",
+                                }}
+                              />
+                            </div>
                             {question.illustrationImage && (
                               <div className="mb-3">
                                 <img
@@ -274,17 +279,6 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   )
                                 )}
                             </div>
-                            {question?.explanation && (
-                              <p className="text-purple-700">
-                                <span className="font-bold">Giải thích: </span>
-                                <br />
-                                <span
-                                  dangerouslySetInnerHTML={{
-                                    __html: question.explanation || "",
-                                  }}
-                                />
-                              </p>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -300,7 +294,7 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                       <div className="space-y-4">
                         {shortQuestions.map((question: any, index: number) => (
                           <div key={question.id || index} className="mb-4">
-                            <p className="font-medium text-gray-900 mb-2">
+                            <div className="font-medium text-gray-900 mb-2">
                               <span className="font-bold">
                                 Câu{" "}
                                 {multipleChoiceQuestions.length +
@@ -327,8 +321,12 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                   </Badge>
                                 </span>
                               </span>{" "}
-                              {question.question}
-                            </p>
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: question.question || "",
+                                }}
+                              />
+                            </div>
                             {question.illustrationImage && (
                               <div className="mb-3">
                                 <img
@@ -344,16 +342,6 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                 <span
                                   dangerouslySetInnerHTML={{
                                     __html: question.answer,
-                                  }}
-                                />
-                              </p>
-                            )}
-                            {question?.explanation && (
-                              <p className="text-purple-700">
-                                <span className="font-bold">Giải thích: </span>
-                                <span
-                                  dangerouslySetInnerHTML={{
-                                    __html: question.explanation || "",
                                   }}
                                 />
                               </p>
