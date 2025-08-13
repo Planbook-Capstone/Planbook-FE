@@ -1,0 +1,108 @@
+/* Advanced Text Editor Styles */
+.advanced-text-editor .ProseMirror,
+.advanced-text-editor-content {
+  outline: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 1.5rem !important;
+  line-height: 1.6 !important;
+  font-size: 1rem !important;
+  resize: none !important;
+  overflow: hidden !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  width: 100% !important;
+  display: block !important;
+  background: transparent !important;
+}
+
+.advanced-text-editor .ProseMirror p {
+  margin: 0 !important;
+  line-height: 1.6 !important;
+}
+
+/* Bold styling */
+.advanced-text-editor .ProseMirror strong,
+.advanced-text-editor .ProseMirror .font-bold {
+  font-weight: bold !important;
+}
+
+/* Italic styling */
+.advanced-text-editor .ProseMirror em,
+.advanced-text-editor .ProseMirror .italic {
+  font-style: italic !important;
+}
+
+/* Underline styling */
+.advanced-text-editor .ProseMirror u,
+.advanced-text-editor .ProseMirror .underline {
+  text-decoration: underline !important;
+}
+
+.advanced-text-editor .ProseMirror sup,
+.advanced-text-editor .superscript {
+  font-size: 0.75em !important;
+  line-height: 0 !important;
+  position: relative !important;
+  vertical-align: baseline !important;
+  top: -0.5em !important;
+}
+
+.advanced-text-editor .ProseMirror sub,
+.advanced-text-editor .subscript {
+  font-size: 0.75em !important;
+  line-height: 0 !important;
+  position: relative !important;
+  vertical-align: baseline !important;
+  bottom: -0.25em !important;
+}
+
+.advanced-text-editor .ProseMirror:empty:before,
+.advanced-text-editor-content:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+  float: left;
+  height: 0;
+  font-style: italic;
+}
+
+.advanced-text-editor .ProseMirror:focus,
+.advanced-text-editor-content:focus {
+  outline: none !important;
+}
+
+/* Remove any default browser styling */
+.advanced-text-editor .ProseMirror * {
+  box-sizing: border-box;
+}
+
+/* Ensure the editor takes full width */
+.advanced-text-editor {
+  width: 100%;
+  display: block;
+}
+
+.advanced-text-editor .ProseMirror {
+  width: 100%;
+  display: block;
+}
+
+/* Performance optimizations */
+.advanced-text-editor .ProseMirror {
+  will-change: auto;
+  transform: translateZ(0);
+}
+
+/* Smooth transitions for height changes */
+.advanced-text-editor .ProseMirror {
+  transition: height 0.1s ease-out;
+}
+
+/* Ensure proper text rendering */
+.advanced-text-editor .ProseMirror {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
