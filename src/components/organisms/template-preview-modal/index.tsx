@@ -112,7 +112,7 @@ export default function TemplatePreviewModal({
                     <div className="flex justify-between items-start mb-4">
                       <div className="text-center" style={{ width: "30%" }}>
                         <p className="font-bold text-sm">
-                          BỘ GIÁO DỤC VÀ ĐÀO TẠO
+                          SỞ GIÁO DỤC VÀ ĐÀO TẠO
                         </p>
                         <p className="font-bold text-sm text-center mt-1">
                           ĐỀ THI CHÍNH THỨC

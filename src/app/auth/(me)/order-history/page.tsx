@@ -74,7 +74,7 @@ function OrderHistoryPage() {
       },
       {
         onSuccess: (res) => {
-          console.log(res, "cancel");
+      
           toast.success("Đã hủy đơn hàng thành công");
           setOpen(false);
         },

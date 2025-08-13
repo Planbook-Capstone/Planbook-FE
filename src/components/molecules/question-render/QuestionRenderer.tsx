@@ -5,7 +5,7 @@ import Image from "next/image";
 import { QuestionBankItem } from "@/services/questionBankServices";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import ChemicalFormula from "@/components/ChemicalFormula";
+
 import { getDifficultyText, getVariant } from "@/constants";
 
 interface QuestionRendererProps {
@@ -37,13 +37,18 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     return (
       <div className="pl-12 grid grid-cols-1 space-y-2 mt-2 text-lg">
         {Object.entries(questionContent.options).map(([key, value]) => (
-          <p key={key}>
-            {key}. <ChemicalFormula formula={String(value)} />
-          </p>
+          <div key={key} className="flex items-start">
+            <span className="font-medium mr-2">{key}.</span>
+            <span
+              dangerouslySetInnerHTML={{
+                __html: String(value) || "",
+              }}
+            />
+          </div>
         ))}
         {showAnswer && questionContent.answer && (
           <p className="text-green-700 font-[600]">
-            Đáp án: <ChemicalFormula formula={String(questionContent.answer)} />
+            Đáp án: {questionContent.answer}
           </p>
         )}
       </div>
@@ -58,14 +63,19 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         {Object.entries(questionContent.statements).map(([key, statement]) => {
           const statementValue = statement as { text: string; answer: boolean };
           return (
-            <p key={key}>
-              {key}. <ChemicalFormula formula={statementValue.text} />{" "}
+            <div key={key} className="flex items-start">
+              <span className="font-medium mr-2">{key}.</span>
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: statementValue.text || "",
+                }}
+              />
               {showAnswer && (
-                <span className="text-green-700 font-bold">
+                <span className="text-green-700 font-bold ml-2">
                   {statementValue.answer ? "Đúng" : "Sai"}
                 </span>
               )}
-            </p>
+            </div>
           );
         })}
       </div>
@@ -76,9 +86,14 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     return (
       <div className="pl-12 grid grid-cols-1 space-y-2 mt-2 text-lg">
         {showAnswer && questionContent.answer && (
-          <p className="text-green-700 font-[600]">
-            Đáp án: <ChemicalFormula formula={String(questionContent.answer)} />
-          </p>
+          <div className="text-green-700 font-[600]">
+            <span>Đáp án: </span>
+            <span
+              dangerouslySetInnerHTML={{
+                __html: String(questionContent.answer) || "",
+              }}
+            />
+          </div>
         )}
       </div>
     );
@@ -127,9 +142,12 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               </Badge>
             </div>
           </div>
-          <p className="text-lg">
-            <ChemicalFormula formula={questionContent.question} />
-          </p>
+          <div
+            className="text-lg"
+            dangerouslySetInnerHTML={{
+              __html: questionContent.question || "",
+            }}
+          />
           {questionContent.image && (
             <div className="max-w-full max-h-[250px] overflow-auto">
               <Image
@@ -145,10 +163,14 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         </div>
         {renderQuestionContent()}
         {showExplanation && explanation && (
-          <p className="text-purple-700 text-lg">
-            <span className="font-bold">Giải thích: </span>
-            <ChemicalFormula formula={explanation} />
-          </p>
+          <div className=" text-lg">
+            <span className="text-purple-700 font-bold">Giải thích: </span>
+            <span
+              dangerouslySetInnerHTML={{
+                __html: explanation || "",
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

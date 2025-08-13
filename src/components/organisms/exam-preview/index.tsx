@@ -30,8 +30,33 @@ export default function ExamPreview({
   // Get basic exam info from context if not provided via props
   const { basicExamInfo } = useExamContext();
 
+  // Hàm logic render đáp án dựa trên trung bình độ dài đáp án
+  const getAnswerGridClass = (options: any) => {
+    if (!options || Object.keys(options).length === 0) {
+      return "grid grid-cols-2 gap-2";
+    }
+
+    // Tính trung bình độ dài của các đáp án
+    const optionValues = Object.values(options) as string[];
+    const totalLength = optionValues.reduce((sum, option) => {
+      // Loại bỏ HTML tags để tính độ dài text thực tế
+      const textOnly = option.replace(/<[^>]*>/g, "").trim();
+      return sum + textOnly.length;
+    }, 0);
+
+    const averageLength = totalLength / optionValues.length;
+
+    if (averageLength < 30) {
+      return "grid grid-cols-4 gap-2";
+    } else if (averageLength >= 30 && averageLength < 50) {
+      return "grid grid-cols-2 gap-2";
+    } else {
+      return "grid grid-cols-1 gap-2";
+    }
+  };
+
   // Use context values as fallback
-  const finalExamTitle = examTitle || "ĐỀ KIỂM TRA LỚP 12";
+  const finalExamTitle = examTitle || "ĐỀ KIỂM TRA .........";
   const finalExamSubject = examSubject || basicExamInfo.subject;
   const finalExamTime =
     examTime ||
@@ -85,18 +110,18 @@ export default function ExamPreview({
               {/* Top row with ministry and exam info */}
               <div className="flex justify-between items-start mb-4">
                 <div className="text-center" style={{ width: "30%" }}>
-                  <p className="font-bold text-sm ">BỘ GIÁO DỤC VÀ ĐÀO TẠO</p>
+                  <p className="font-bold text-sm ">SỞ GIÁO DỤC VÀ ĐÀO TẠO</p>
                   <p className="font-bold text-sm text-center mt-1 ">
                     ĐỀ THI CHÍNH THỨC
                   </p>
-                  <p className="text-xs mt-1 text-center">
+                  {/* <p className="text-xs mt-1 text-center">
                     (Đề thi có 04 trang)
-                  </p>
+                  </p> */}
                 </div>
                 <div className="text-center" style={{ width: "70%" }}>
                   <p className="font-bold text-sm">{finalExamTitle}</p>
                   <p className="font-bold text-sm mt-2">
-                    Môn: {finalExamSubject}
+                    Môn: {finalExamSubject || "....."}
                   </p>
                   <p className="text-xs mt-2">
                     Thời gian làm bài: {finalExamTime}
@@ -182,9 +207,14 @@ export default function ExamPreview({
                       <div className="mb-6">
                         {question.type === "multiple" && (
                           <div>
-                            <p className="font-medium text-gray-900 mb-2">
-                              <span className="font-bold">Câu {question.index}:</span> {question.question}
-                            </p>
+                            <div className="font-medium text-gray-900 mb-2">
+                              <span className="font-bold">Câu {question.index}: </span>
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: question.question || "",
+                                }}
+                              />
+                            </div>
                             {question.illustrationImage && (
                               <div className="mb-3">
                                 <img
@@ -208,24 +238,28 @@ export default function ExamPreview({
                                 />
                               </div>
                             )}
-                            <div className="grid grid-cols-1 gap-1 ml-4">
+                            <div className={`${getAnswerGridClass(question.options)} ml-4`}>
                               {Array.isArray(question.options)
                                 ? question.options.map(
                                     (option: string, optIndex: number) => (
-                                      <p
+                                      <div
                                         key={optIndex}
                                         className="text-gray-700"
-                                      >
-                                        {String.fromCharCode(65 + optIndex)}.{" "}
-                                        {option}
-                                      </p>
+                                        dangerouslySetInnerHTML={{
+                                          __html: `${String.fromCharCode(65 + optIndex)}. ${option}`,
+                                        }}
+                                      />
                                     )
                                   )
                                 : Object.entries(question.options).map(
                                     ([key, value]) => (
-                                      <p key={key} className="text-gray-700">
-                                        {key}. {String(value)}
-                                      </p>
+                                      <div
+                                        key={key}
+                                        className="text-gray-700"
+                                        dangerouslySetInnerHTML={{
+                                          __html: `${key}. ${String(value)}`,
+                                        }}
+                                      />
                                     )
                                   )}
                             </div>
@@ -234,9 +268,14 @@ export default function ExamPreview({
 
                         {question.type === "yesno" && (
                           <div>
-                            <p className="font-medium text-gray-900 mb-2">
-                              <span className="font-bold">Câu {question.index}:</span> {question.question}
-                            </p>
+                            <div className="font-medium text-gray-900 mb-2">
+                              <span className="font-bold">Câu {question.index}: </span>
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: question.question || "",
+                                }}
+                              />
+                            </div>
                             {question.illustrationImage && (
                               <div className="mb-3">
                                 <img
@@ -261,27 +300,44 @@ export default function ExamPreview({
                               </div>
                             )}
                             <div className="grid grid-cols-1 gap-1 ml-4">
-                              <p className="text-gray-700">
-                                a) {question.statements.a.text}
-                              </p>
-                              <p className="text-gray-700">
-                                b) {question.statements.b.text}
-                              </p>
-                              <p className="text-gray-700">
-                                c) {question.statements.c.text}
-                              </p>
-                              <p className="text-gray-700">
-                                d) {question.statements.d.text}
-                              </p>
+                              <div
+                                className="text-gray-700"
+                                dangerouslySetInnerHTML={{
+                                  __html: `a) ${question.statements.a.text}`,
+                                }}
+                              />
+                              <div
+                                className="text-gray-700"
+                                dangerouslySetInnerHTML={{
+                                  __html: `b) ${question.statements.b.text}`,
+                                }}
+                              />
+                              <div
+                                className="text-gray-700"
+                                dangerouslySetInnerHTML={{
+                                  __html: `c) ${question.statements.c.text}`,
+                                }}
+                              />
+                              <div
+                                className="text-gray-700"
+                                dangerouslySetInnerHTML={{
+                                  __html: `d) ${question.statements.d.text}`,
+                                }}
+                              />
                             </div>
                           </div>
                         )}
 
                         {question.type === "short" && (
                           <div>
-                            <p className="font-medium text-gray-900 mb-3">
-                               <span className="font-bold">Câu {question.index}:</span> {question.question}
-                            </p>
+                            <div className="font-medium text-gray-900 mb-3">
+                              <span className="font-bold">Câu {question.index}: </span>
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: question.question || "",
+                                }}
+                              />
+                            </div>
                             {question.illustrationImage && (
                               <div className="mb-3">
                                 <img

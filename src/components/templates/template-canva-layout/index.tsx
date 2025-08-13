@@ -357,7 +357,7 @@ export function TemplateCanvaLayoutContent() {
           <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
             <div>
               <div className="flex items-center gap-2">
-                <div onClick={() => router.back()} className="cursor-pointer">
+                <div onClick={() => router.back()} className="font-questrial cursor-pointer">
                   Quay lại |
                 </div>
                 <h2 className="font-calsans text-base">
