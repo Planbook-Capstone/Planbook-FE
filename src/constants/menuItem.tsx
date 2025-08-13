@@ -114,6 +114,13 @@ export const staffItems = [
     active: "/icons/folder-active.svg",
   },
   {
+    label: "Sách",
+    key: "textbook",
+    icon: <HomeOutlined />,
+    image: "/icons/book.svg",
+    active: "/icons/book-active.svg",
+  },
+  {
     label: "Kho đề",
     key: "question-bank",
     icon: <HomeOutlined />,
@@ -131,8 +138,8 @@ export const staffItems = [
     label: "Giáo án",
     key: "lesson-plan",
     icon: <HomeOutlined />,
-    image: "/icons/book.svg",
-    active: "/icons/book-active.svg",
+    image: "/icons/lesson-plan.svg",
+    active: "/icons/lesson-plan-active.svg",
   },
   {
     label: "Cấu hình",
