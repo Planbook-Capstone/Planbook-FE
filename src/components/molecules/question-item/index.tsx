@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import AnswerOption from "@/components/ui/AnswerOption";
 
 interface QuestionItemProps {
@@ -24,6 +25,7 @@ export default function QuestionItem({
 }: QuestionItemProps) {
   const [selected, setSelected] = useState(correctIndex ?? -1);
   const [note, setNote] = useState(explanation ?? "");
+  const [questionContent, setQuestionContent] = useState(question || "");
 
   return (
     <div className="space-y-3 border rounded-md p-4">
@@ -38,25 +40,61 @@ export default function QuestionItem({
           </Button>
         </div>
       </div>
-      <input
-        type="text"
-        defaultValue={question}
+      <AdvancedTextEditor
+        content={questionContent}
+        onChange={(content) => {
+          setQuestionContent(content);
+          // Call onChange if provided
+          if (onChange) {
+            onChange({
+              index,
+              question: content,
+              options,
+              correctIndex: selected,
+              explanation: note,
+            });
+          }
+        }}
         placeholder="Nhập nội dung câu hỏi"
-        className="w-full px-3 py-2 border rounded-md text-sm"
+        className="w-full px-3 py-2 border rounded-md text-sm min-h-[40px]"
       />
       <div className="grid grid-cols-2 gap-2">
-        {options.map((opt, i) => (
+        {options.map((_, i) => (
           <AnswerOption
             key={i}
             label={String.fromCharCode(65 + i)}
             checked={selected === i}
-            onChange={() => setSelected(i)}
+            onChange={() => {
+              setSelected(i);
+              // Call onChange if provided
+              if (onChange) {
+                onChange({
+                  index,
+                  question: questionContent,
+                  options,
+                  correctIndex: i,
+                  explanation: note,
+                });
+              }
+            }}
           />
         ))}
       </div>
       <textarea
         value={note}
-        onChange={(e) => setNote(e.target.value)}
+        onChange={(e) => {
+          setNote(e.target.value);
+          // Call onChange if provided
+          if (onChange) {
+            onChange({
+              index,
+              question: questionContent,
+              options,
+              correctIndex: selected,
+              explanation: e.target.value,
+            });
+          }
+        }}
         placeholder="Giải thích đáp án..."
         className="w-full border rounded-md text-sm px-3 py-2"
       />

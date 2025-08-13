@@ -175,12 +175,16 @@ export default function TemplatePreviewModal({
                           {multipleChoiceQuestions.map(
                             (question: any, index: number) => (
                               <div key={question.id || index} className="mb-4">
-                                <p className="font-medium text-gray-900 mb-2">
+                                <div className="font-medium text-gray-900 mb-2 flex gap-1">
                                   <span className="font-bold">
                                     Câu {index + 1}:
                                   </span>{" "}
-                                  {question.question}
-                                </p>
+                                  <p
+                                    dangerouslySetInnerHTML={{
+                                      __html: question.question || "",
+                                    }}
+                                  />
+                                </div>
                                 {question.illustrationImage && (
                                   <div className="mb-3">
                                     <img
@@ -222,14 +226,16 @@ export default function TemplatePreviewModal({
                           {yesNoQuestions.map(
                             (question: any, index: number) => (
                               <div key={question.id || index} className="mb-4">
-                                <p className="font-medium text-gray-900 mb-2">
+                                <div className="font-medium text-gray-900 mb-2 flex gap-1">
                                   <span className="font-bold">
-                                    Câu{" "}
-                                    {multipleChoiceQuestions.length + index + 1}
-                                    :
+                                    Câu {index + 1}:
                                   </span>{" "}
-                                  {question.question}
-                                </p>
+                                  <p
+                                    dangerouslySetInnerHTML={{
+                                      __html: question.question || "",
+                                    }}
+                                  />
+                                </div>
                                 {question.illustrationImage && (
                                   <div className="mb-3">
                                     <img
@@ -272,17 +278,16 @@ export default function TemplatePreviewModal({
                           {shortQuestions.map(
                             (question: any, index: number) => (
                               <div key={question.id || index} className="mb-4">
-                                <p className="font-medium text-gray-900 mb-2">
+                                <div className="font-medium text-gray-900 mb-2 flex gap-1">
                                   <span className="font-bold">
-                                    Câu{" "}
-                                    {multipleChoiceQuestions.length +
-                                      yesNoQuestions.length +
-                                      index +
-                                      1}
-                                    :
+                                    Câu {index + 1}:
                                   </span>{" "}
-                                  {question.question}
-                                </p>
+                                  <p
+                                    dangerouslySetInnerHTML={{
+                                      __html: question.question || "",
+                                    }}
+                                  />
+                                </div>
                                 {question.illustrationImage && (
                                   <div className="mb-3">
                                     <img

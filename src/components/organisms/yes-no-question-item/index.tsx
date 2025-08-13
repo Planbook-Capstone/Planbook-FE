@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
 import { YesNoQuestion, YesNoQuestionItemProps, YesNoOption } from "./types";
+import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import { useDroppable } from "@dnd-kit/core";
 import {
   convertBrTagsToLineBreaks,
@@ -18,7 +19,6 @@ export default function YesNoQuestionItem({
   onDelete,
 }: YesNoQuestionItemProps) {
   const [showImageDropZone, setShowImageDropZone] = useState<boolean>(false);
-  const mainTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Drop zone for illustration image
   const { isOver, setNodeRef } = useDroppable({
@@ -81,21 +81,9 @@ export default function YesNoQuestionItem({
 
   const displayOptions = getOptionsFromStatements();
 
-  // Get statement letter labels
-  const getStatementLabel = (index: number) => {
-    const labels = ["a)", "b)", "c)", "d)"];
-    return labels[index] || `${index + 1})`;
-  };
 
-  const handleQuestionTextChange = (text: string) => {
-    // Convert line breaks back to <br/> tags when saving
-    const textWithBrTags = convertLineBreaksToBrTags(text);
-    if (question.question !== undefined) {
-      onUpdate({ ...question, question: textWithBrTags });
-    } else {
-      onUpdate({ ...question, text: textWithBrTags });
-    }
-  };
+
+
 
   const handleOptionTextChange = (optionId: string, text: string) => {
     // Convert line breaks back to <br/> tags when saving
@@ -176,34 +164,7 @@ export default function YesNoQuestionItem({
     setShowImageDropZone(!showImageDropZone);
   };
 
-  const resizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = "auto";
-    textarea.style.height = textarea.scrollHeight + "px";
-  };
 
-  const handleQuestionTextChangeWithResize = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    const textarea = e.target;
-    resizeTextarea(textarea);
-    handleQuestionTextChange(textarea.value);
-  };
-
-  const handleOptionTextChangeWithResize = (
-    optionId: string,
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    const textarea = e.target;
-    resizeTextarea(textarea);
-    handleOptionTextChange(optionId, textarea.value);
-  };
-
-  // Auto-resize when data loads from API
-  useEffect(() => {
-    if (mainTextareaRef.current && getQuestionText()) {
-      resizeTextarea(mainTextareaRef.current);
-    }
-  }, [getQuestionText()]);
 
   return (
     <div className="flex space-y-4 w-full gap-1">
@@ -215,14 +176,18 @@ export default function YesNoQuestionItem({
           </div>
 
           <div className="w-full">
-            <textarea
-              ref={mainTextareaRef}
-              className="w-full font-calsans border-none resize-none text-base bg-transparent p-2 rounded-md overflow-hidden"
-              value={getQuestionText()}
-              onChange={handleQuestionTextChangeWithResize}
+            <AdvancedTextEditor
+              content={getQuestionText()}
+              onChange={(content) => {
+                const textWithBrTags = convertLineBreaksToBrTags(content);
+                if (question.question !== undefined) {
+                  onUpdate({ ...question, question: textWithBrTags });
+                } else {
+                  onUpdate({ ...question, text: textWithBrTags });
+                }
+              }}
               placeholder="Nhập câu hỏi đúng/sai..."
-              rows={1}
-              style={{ minHeight: "40px" }}
+              className="w-full font-calsans text-base bg-transparent p-2 rounded-md min-h-[40px]"
             />
           </div>
         </div>
@@ -236,17 +201,16 @@ export default function YesNoQuestionItem({
                 <div className="font-medium text-sm text-gray-700 mt-2">
                   {String.fromCharCode(97 + optionIndex)})
                 </div>
-                <textarea
-                  className="flex-1 border-none outline-none text-sm text-black bg-transparent py-2 resize-none overflow-hidden"
-                  value={option.text}
-                  onChange={(e) =>
-                    handleOptionTextChangeWithResize(option.id, e)
-                  }
+                <AdvancedTextEditor
+                  content={option.text}
+                  onChange={(content) => {
+                    const textWithBrTags = convertLineBreaksToBrTags(content);
+                    handleOptionTextChange(option.id, textWithBrTags);
+                  }}
                   placeholder={`Phát biểu ${String.fromCharCode(
                     97 + optionIndex
                   )}`}
-                  rows={1}
-                  style={{ minHeight: "32px" }}
+                  className="flex-1 text-sm text-black bg-transparent py-2 min-h-[32px]"
                 />
                 {displayOptions.length > 1 && !question.statements && (
                   <Button

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
 import { Question, QuestionItemProps } from "./types";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import { useDroppable } from "@dnd-kit/core";
 
 export default function QuestionItem({
@@ -31,7 +32,6 @@ export default function QuestionItem({
     question.correctAnswer
   );
   const [showImageDropZone, setShowImageDropZone] = useState<boolean>(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Drop zone for illustration image
   const { isOver, setNodeRef } = useDroppable({
@@ -88,23 +88,9 @@ export default function QuestionItem({
     setShowImageDropZone(!showImageDropZone);
   };
 
-  const resizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = "auto";
-    textarea.style.height = textarea.scrollHeight + "px";
+  const handleQuestionChange = (content: string) => {
+    onUpdate({ ...question, question: content });
   };
-
-  const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const textarea = e.target;
-    resizeTextarea(textarea);
-    onUpdate({ ...question, question: textarea.value });
-  };
-
-  // Auto-resize when data loads from API
-  useEffect(() => {
-    if (textareaRef.current && question?.question) {
-      resizeTextarea(textareaRef.current);
-    }
-  }, [question?.question]);
 
   // Sync selectedAnswer when correctAnswer changes from external source
   useEffect(() => {
@@ -127,14 +113,11 @@ export default function QuestionItem({
           </div>
           {/* Question Text */}
           <div className="w-full">
-            <textarea
-              ref={textareaRef}
-              className="w-full border-none font-calsans text-base border resize-none bg-transparent p-2 rounded-md overflow-hidden"
-              value={question?.question}
+            <AdvancedTextEditor
+              content={question?.question || ""}
               onChange={handleQuestionChange}
               placeholder="Nhập câu hỏi..."
-              rows={1}
-              style={{ minHeight: "40px" }}
+              className="w-full border-none font-calsans text-base bg-transparent p-2 rounded-md min-h-[40px]"
             />
           </div>
         </div>

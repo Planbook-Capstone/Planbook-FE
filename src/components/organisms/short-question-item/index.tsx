@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
 import { ShortQuestion, ShortQuestionItemProps } from "./types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import { useDroppable } from "@dnd-kit/core";
 import {
   convertBrTagsToLineBreaks,
@@ -20,7 +21,6 @@ export default function ShortQuestionItem({
   onDelete,
 }: ShortQuestionItemProps) {
   const [showImageDropZone, setShowImageDropZone] = useState<boolean>(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Drop zone for illustration image
   const { isOver, setNodeRef } = useDroppable({
@@ -39,16 +39,6 @@ export default function ShortQuestionItem({
     return convertBrTagsToLineBreaks(text);
   };
 
-  const handleQuestionTextChange = (text: string) => {
-    // Convert line breaks back to <br/> tags when saving
-    const textWithBrTags = convertLineBreaksToBrTags(text);
-    if (question.question !== undefined) {
-      onUpdate({ ...question, question: textWithBrTags });
-    } else {
-      onUpdate({ ...question, text: textWithBrTags });
-    }
-  };
-
   const handleAnswerChange = (answer: string) => {
     onUpdate({ ...question, answer });
   };
@@ -61,26 +51,6 @@ export default function ShortQuestionItem({
     setShowImageDropZone(!showImageDropZone);
   };
 
-  const resizeTextarea = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = "auto";
-    textarea.style.height = textarea.scrollHeight + "px";
-  };
-
-  const handleQuestionTextChangeWithResize = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    const textarea = e.target;
-    resizeTextarea(textarea);
-    handleQuestionTextChange(textarea.value);
-  };
-
-  // Auto-resize when data loads from API
-  useEffect(() => {
-    if (textareaRef.current && getQuestionText()) {
-      resizeTextarea(textareaRef.current);
-    }
-  }, [getQuestionText()]);
-
   return (
     <div className="flex space-y-4 gap-1 w-full pb-2">
       <div className="w-full">
@@ -91,28 +61,31 @@ export default function ShortQuestionItem({
           </div>
           {/* Question Text */}
           <div className="w-full">
-            <textarea
-              ref={textareaRef}
-              className="w-full font-calsans  border-none resize-none text-base bg-transparent p-2 rounded-md overflow-hidden"
-              value={getQuestionText()}
-              onChange={handleQuestionTextChangeWithResize}
+            <AdvancedTextEditor
+              content={getQuestionText()}
+              onChange={(content) => {
+                const textWithBrTags = convertLineBreaksToBrTags(content);
+                if (question.question !== undefined) {
+                  onUpdate({ ...question, question: textWithBrTags });
+                } else {
+                  onUpdate({ ...question, text: textWithBrTags });
+                }
+              }}
               placeholder="Nhập câu hỏi tự luận..."
-              rows={1}
-              style={{ minHeight: "40px" }}
+              className="w-full font-calsans text-base bg-transparent p-2 rounded-md min-h-[40px]"
             />
           </div>
         </div>
 
         {/* Answer Input */}
-        <div className="ml-6 flex gap-1 items-center font-questrial">
-          <p className="text-sm font-bold text-nowrap">Đáp án:</p>
+        <div className="ml-6 flex gap-1 items-start font-questrial">
+          <p className="text-sm font-bold text-nowrap mt-2">Đáp án:</p>
 
-          <Input
-            className="border text-sky-700"
-            type="text"
-            value={question.answer}
-            onChange={(e: any) => handleAnswerChange(e.target.value)}
+          <AdvancedTextEditor
+            content={question.answer || ""}
+            onChange={(content) => handleAnswerChange(content)}
             placeholder="Nhập đáp án mẫu cho câu hỏi tự luận..."
+            className="flex-1 border border-gray-300 rounded-md p-2 text-sky-700 min-h-[40px]"
           />
         </div>
 
