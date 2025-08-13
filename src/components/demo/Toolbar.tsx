@@ -16,6 +16,8 @@ interface ToolbarProps {
   canRedo?: boolean;
   onUndo?: () => void;
   onRedo?: () => void;
+  // Hide AI button in edit mode
+  hideAIButton?: boolean;
 }
 
 export default function Toolbar({
@@ -29,6 +31,7 @@ export default function Toolbar({
   canRedo = false,
   onUndo,
   onRedo,
+  hideAIButton = false,
 }: ToolbarProps) {
   return (
     <div className=" p-4">
@@ -75,18 +78,20 @@ export default function Toolbar({
             </div>
           )}
 
-          <Button
-            onClick={onExportJSON}
-            className=" flex items-center justify-center bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
-          >
-            <Image
-              src="/images/illustration/robot-head.svg"
-              width={25}
-              height={25}
-              alt="AI"
-            />
-            <p>Tạo nhanh cùng AI</p>
-          </Button>
+          {!hideAIButton && (
+            <Button
+              onClick={onExportJSON}
+              className=" flex items-center justify-center bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
+            >
+              <Image
+                src="/images/illustration/robot-head.svg"
+                width={25}
+                height={25}
+                alt="AI"
+              />
+              <p>Tạo nhanh cùng AI</p>
+            </Button>
+          )}
 
           <Button
             onClick={onToggleDeleteButtons}

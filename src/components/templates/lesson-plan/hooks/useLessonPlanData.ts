@@ -9,7 +9,15 @@ import { useLessonByIdService } from "@/services/lessonServices";
 import { DemoNode, LessonPlanState } from "../types";
 import { LESSON_PLAN_CONFIG } from "../constants";
 
-export const useLessonPlanData = () => {
+interface UseLessonPlanDataProps {
+  mode?: "create" | "edit";
+  existingData?: any;
+}
+
+export const useLessonPlanData = ({
+  mode = "create",
+  existingData,
+}: UseLessonPlanDataProps = {}) => {
   const [demoData, setDemoData] = useState<DemoNode[]>([]);
   const [trashData, setTrashData] = useState<DemoNode[]>([]);
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
@@ -24,17 +32,71 @@ export const useLessonPlanData = () => {
   const searchParams = useSearchParams();
   const lessonId = searchParams.get("lessonId");
 
+  // Helper function to convert existing data to DemoNode format
+  const convertExistingDataToDemoNode = useCallback(
+    (data: any[]): DemoNode[] => {
+      if (!data || !Array.isArray(data)) return [];
+
+      return data.map((item: any) => ({
+        id: item.id || uuidv4(),
+        lessonPlanId: item.lessonPlanId,
+        parentId: item.parentId,
+        title: item.title || "",
+        content: item.content || "",
+        description: item.description,
+        fieldType: item.fieldType || "INPUT",
+        type: item.type || "PARAGRAPH",
+        orderIndex: item.orderIndex || 0,
+        metadata: item.metadata,
+        status: item.status || "ACTIVE",
+        children: item.children
+          ? convertExistingDataToDemoNode(item.children)
+          : [],
+      }));
+    },
+    []
+  );
+
   // API hooks
   const { data: treeData } = useLessonPlanNodeTreeService(
     LESSON_PLAN_CONFIG.defaultLessonPlanId
   )();
   const { data: lessonById } = useLessonByIdService(lessonId || "");
 
-  const items = treeData?.data?.map((item: any) => ({
-    id: item?.id,
-    title: item?.title,
-    description: item?.content || "",
-  }));
+  // Debug raw treeData first
+  console.log("🔍 Raw treeData:", treeData);
+  console.log("🔍 Raw treeData.data:", treeData?.data);
+
+  const items = treeData?.data?.map((item: any) => {
+    console.log("🔍 Mapping item:", item);
+    return {
+      id: item?.id,
+      title: item?.title,
+      description: item?.content || item?.description || "",
+    };
+  });
+
+  // Debug final items
+  console.log("🔍 Final items:", items);
+
+  // Load existing data when in edit mode
+  useEffect(() => {
+    if (mode === "edit" && existingData?.data) {
+      console.log("🔄 Loading existing data for edit mode:", existingData.data);
+
+      // Convert existing data to DemoNode format
+      const convertedData = convertExistingDataToDemoNode(existingData.data);
+      console.log("✅ Converted existing data:", convertedData);
+
+      // Set the data
+      setDemoData(convertedData);
+
+      // Also set to finalData with a default step
+      setFinalData({
+        existing: convertedData,
+      });
+    }
+  }, [mode, existingData, convertExistingDataToDemoNode]);
 
   const childrenQuery = useLessonPlanNodeChildrenService(
     items && items.length > currentStep ? items[currentStep].id.toString() : ""
@@ -152,6 +214,9 @@ export const useLessonPlanData = () => {
 
   // Initialize demo data from API when it loads
   useEffect(() => {
+    // Skip this effect when in edit mode and existing data is already loaded
+    if (mode === "edit" && demoData.length > 0) return;
+
     if (items && items.length > currentStep) {
       const currentStepId = items[currentStep].id.toString();
 
@@ -192,7 +257,7 @@ export const useLessonPlanData = () => {
         setDemoData([]);
       }
     }
-  }, [apiData, currentStep, items, finalData]);
+  }, [apiData, currentStep, items, finalData, mode, demoData.length]);
 
   return {
     // State
