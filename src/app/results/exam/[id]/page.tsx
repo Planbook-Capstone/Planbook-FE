@@ -17,10 +17,10 @@ function ExamResultPage({ params }: ExamResultPageProps) {
     isLoading,
     error,
   } = useToolResultByIdService(id);
-  console.log(examResultResponse?.data?.data);
+  console.log(examResultResponse?.data,"ngoc");
   return (
     <div>
-      <ExamResultEditorTemplate examResult={examResultResponse?.data?.data} />
+      <ExamResultEditorTemplate examResult={examResultResponse?.data} />
     </div>
   );
 }
