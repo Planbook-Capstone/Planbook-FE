@@ -9,6 +9,9 @@ import Canvas from "@/components/demo/Canvas";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 import LoadingAI from "@/components/molecules/loading";
 import { toast } from "sonner";
+import { Eye, Save, ArrowLeft, Edit3, Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 import {
   useUpdateToolResultService,
   useToolResultByIdService,
@@ -27,11 +30,27 @@ import { useLessonPlanUndoRedo } from "./hooks/useLessonPlanUndoRedo";
 import { getComponentPalette } from "./constants";
 import { DemoNode } from "./types";
 
-function LessonPlanTemplate() {
+interface LessonPlanTemplateProps {
+  mode?: "create" | "edit";
+  existingData?: any;
+  editResultId?: string; // Result ID when in edit mode
+}
+
+function LessonPlanTemplate({
+  mode = "create",
+  existingData,
+  editResultId,
+}: LessonPlanTemplateProps = {}) {
+  const router = useRouter();
+
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
   // Track which nodes are loading (Set of node IDs)
   const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
+
+  // Edit name state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(existingData?.name || "");
 
   // Get component palette (creates fresh React elements each time)
   const componentPalette = getComponentPalette();
@@ -59,7 +78,7 @@ function LessonPlanTemplate() {
     lessonId,
     updateFinalData,
     convertLessonPlanToDemoNode,
-  } = useLessonPlanData();
+  } = useLessonPlanData({ mode, existingData });
 
   // Use custom hooks for actions
   const {
@@ -247,7 +266,7 @@ function LessonPlanTemplate() {
     bookType,
     handleGenerationLessonPlan,
     handleDownloadDocx,
-    resultId,
+    resultId: generationResultId,
   } = useLessonPlanGeneration({
     demoData,
 
@@ -257,6 +276,9 @@ function LessonPlanTemplate() {
     convertLessonPlanToDemoNode,
     mergeAIDataToFinalData,
   });
+
+  // Use editResultId when in edit mode, otherwise use generationResultId
+  const resultId = mode === "edit" ? editResultId : generationResultId;
 
   // Track loading state based on data processing status
   useEffect(() => {
@@ -382,72 +404,229 @@ function LessonPlanTemplate() {
   //   );
   // }
 
-  return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex h-screen bg-gray-50">
-        {/* Sidebar */}
-        <div
-          className={`transition-all duration-300 ${
-            sidebarCollapsed ? "w-0" : "w-80"
-          } overflow-hidden`}
+  // Header component for edit mode
+  const renderEditHeader = () => (
+    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          onClick={() => router.back()}
+          className="flex items-center gap-2"
         >
-          <Sidebar
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            trashData={trashData}
-            onRestoreNode={handleRestoreNode}
-            componentPalette={componentPalette}
-          />
+          <ArrowLeft className="w-4 h-4" />
+          Quay lại
+        </Button>
+        <div className="flex items-center gap-2">
+          {isEditingName ? (
+            <input
+              type="text"
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              onBlur={() => setIsEditingName(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setIsEditingName(false);
+                }
+              }}
+              className="text-xl font-semibold text-gray-800 bg-transparent border-b-2 border-blue-500 outline-none"
+              autoFocus
+            />
+          ) : (
+            <h1 className="text-xl font-semibold text-gray-800">
+              {editedName || existingData?.name || "Chỉnh sửa giáo án"}
+            </h1>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditingName(!isEditingName)}
+            className="p-1 h-auto"
+          >
+            <Edit3 className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+          </Button>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        {/* Undo/Redo buttons */}
+        <div className="flex items-center gap-1 mr-2">
+          <Button
+            onClick={undo}
+            disabled={!canUndo}
+            variant="outline"
+            size="sm"
+            className="px-2"
+            title={`Undo (${
+              navigator.platform.includes("Mac") ? "⌘" : "Ctrl"
+            }+Z)`}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+              />
+            </svg>
+          </Button>
+          <Button
+            onClick={redo}
+            disabled={!canRedo}
+            variant="outline"
+            size="sm"
+            className="px-2"
+            title={`Redo (${
+              navigator.platform.includes("Mac") ? "⌘⇧" : "Ctrl+Shift"
+            }+Z)`}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 10H11a8 8 0 00-8 8v2m18-10l-6-6m6 6l-6 6"
+              />
+            </svg>
+          </Button>
         </div>
 
-        {/* Main Canvas Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Toolbar */}
-          <div className="absolute right-0 -top-16">
-            <Toolbar
-              showDeleteButtons={showDeleteButtons}
-              onToggleDeleteButtons={() =>
-                setShowDeleteButtons(!showDeleteButtons)
-              }
-              onShowPreview={() => setShowPreview(true)}
-              onExportJSON={handleGenerationLessonPlan}
-              sidebarCollapsed={sidebarCollapsed}
-              onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onUndo={undo}
-              onRedo={redo}
+        <Button
+          onClick={() => setShowDeleteButtons(!showDeleteButtons)}
+          variant={showDeleteButtons ? "default" : "outline"}
+        >
+          {showDeleteButtons ? "Hoàn thành" : "Chỉnh sửa"}
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={() => setShowPreview(true)}
+          className="flex items-center gap-2"
+        >
+          <Eye className="w-4 h-4" />
+          Xem trước
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div
+        className={`${
+          mode === "edit" ? "flex flex-col" : "flex"
+        } h-screen bg-gray-50`}
+      >
+        {/* Header for edit mode */}
+        {mode === "edit" && renderEditHeader()}
+
+        <div className="flex-1 flex min-h-0">
+          {/* Sidebar */}
+          <div
+            className={`transition-all duration-300 ${
+              sidebarCollapsed ? "w-0" : "w-80"
+            } overflow-hidden bg-white border-r border-gray-200`}
+          >
+            <Sidebar
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              trashData={trashData}
+              onRestoreNode={handleRestoreNode}
+              componentPalette={componentPalette}
             />
           </div>
 
-          <>
-            <StepFloatingPanel
-              items={items}
-              current={currentStep}
-              layout="horizontal"
-              visible={true}
-              onStepChange={handleChangeStep}
-              style={{ width: 300 }}
-              initialPosition={{ x: 500, y: 100 }}
-            />
-            {/* Canvas */}
+          {/* Main Canvas Area */}
+          <div className="flex-1 flex flex-col min-h-0 relative">
+            {/* Toolbar */}
+            <div
+              className={`absolute ${
+                mode === "edit" ? "right-4 top-4" : "right-0 -top-16"
+              } z-10`}
+            >
+              <Toolbar
+                showDeleteButtons={showDeleteButtons}
+                onToggleDeleteButtons={() =>
+                  setShowDeleteButtons(!showDeleteButtons)
+                }
+                onShowPreview={() => setShowPreview(true)}
+                onExportJSON={handleGenerationLessonPlan}
+                sidebarCollapsed={sidebarCollapsed}
+                onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+                canUndo={canUndo}
+                canRedo={canRedo}
+                onUndo={undo}
+                onRedo={redo}
+                hideAIButton={mode === "edit"}
+              />
+            </div>
 
-            <Canvas
-              demoData={demoData}
-              showDeleteButtons={showDeleteButtons}
-              onDeleteNode={handleDeleteNode}
-              onUpdateNodeTitle={handleTitleChange}
-              onUpdateNodeContent={handleInputChange}
-              onUpdateNodeDescription={handleDescriptionChange}
-              onMoveChildUp={moveChildUp}
-              onMoveChildDown={moveChildDown}
-              isEditMode={showDeleteButtons}
-              selectedNodeIds={selectedNodeIds}
-              onNodeSelect={handleNodeSelect}
-              onPaste={handlePaste}
-              isNodeLoading={isNodeLoading}
-            />
-          </>
+            <div className="flex-1 overflow-auto">
+              {/* Debug StepFloatingPanel */}
+              {console.log("🔍 StepFloatingPanel Debug:", {
+                mode,
+                modeNotEdit: mode !== "edit",
+                items,
+                itemsLength: items?.length || 0,
+                shouldShow: mode !== "edit" && items && items.length > 0,
+              })}
+
+              {/* Step Title - only show in create mode */}
+              {mode !== "edit" &&
+                items &&
+                items.length > 0 &&
+                items[currentStep] && (
+                  <div className="bg-white border-b border-gray-200 px-6 py-4">
+                    <h1 className="text-lg font-calsans text-gray-800">
+                      {items[currentStep].title}
+                    </h1>
+                    {items[currentStep].description && (
+                      <p className="text-gray-600 mt-2">
+                        {items[currentStep].description}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+              {/* Only show StepFloatingPanel when NOT in edit mode */}
+              {mode !== "edit" && items && items.length > 0 && (
+                <StepFloatingPanel
+                  items={items}
+                  current={currentStep}
+                  layout="horizontal"
+                  visible={true}
+                  onStepChange={handleChangeStep}
+                  style={{ width: 300 }}
+                  initialPosition={{ x: 500, y: 100 }}
+                />
+              )}
+              {/* Canvas */}
+
+              <Canvas
+                demoData={demoData}
+                showDeleteButtons={showDeleteButtons}
+                onDeleteNode={handleDeleteNode}
+                onUpdateNodeTitle={handleTitleChange}
+                onUpdateNodeContent={handleInputChange}
+                onUpdateNodeDescription={handleDescriptionChange}
+                onMoveChildUp={moveChildUp}
+                onMoveChildDown={moveChildDown}
+                isEditMode={showDeleteButtons}
+                selectedNodeIds={selectedNodeIds}
+                onNodeSelect={handleNodeSelect}
+                onPaste={handlePaste}
+                isNodeLoading={isNodeLoading}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Preview Modal */}
@@ -466,3 +645,4 @@ function LessonPlanTemplate() {
 }
 
 export default LessonPlanTemplate;
+export { LessonPlanTemplate };
