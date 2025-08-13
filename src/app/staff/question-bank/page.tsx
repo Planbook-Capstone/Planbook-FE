@@ -28,7 +28,7 @@ import { getDifficultyText, getVariant } from "@/constants";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import Image from "next/image";
-import ChemicalFormula from "@/components/ChemicalFormula";
+
 import {
   Select,
   SelectContent,
@@ -674,11 +674,12 @@ function QuestionBankManagementPage() {
                     </Button>
                   </div>
                 </div>
-                <p className="text-lg">
-                  <ChemicalFormula
-                    formula={question.questionContent.question}
-                  />
-                </p>
+                <div
+                  className="text-lg"
+                  dangerouslySetInnerHTML={{
+                    __html: question.questionContent.question || "",
+                  }}
+                />
                 {question.questionContent.image && (
                   <div className="max-w-full max-h-[250px] overflow-auto">
                     <Image
@@ -696,9 +697,14 @@ function QuestionBankManagementPage() {
                 {question.questionContent.options &&
                   Object.entries(question.questionContent.options)?.map(
                     ([key, value]) => (
-                      <p key={key}>
-                        {key}. <ChemicalFormula formula={String(value)} />
-                      </p>
+                      <div key={key} className="flex items-start">
+                        <span className="font-medium mr-2">{key}.</span>
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: String(value) || "",
+                          }}
+                        />
+                      </div>
                     )
                   )}
                 {question?.questionContent?.answer && (
@@ -714,22 +720,31 @@ function QuestionBankManagementPage() {
                         answer: boolean;
                       };
                       return (
-                        <p key={key}>
-                          {key}. {statement.text}{" "}
-                          <span className="text-green-700 font-bold">
+                        <div key={key} className="flex items-start">
+                          <span className="font-medium mr-2">{key}.</span>
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: statement.text || "",
+                            }}
+                          />
+                          <span className="text-green-700 font-bold ml-2">
                             {statement.answer ? "Đúng" : "Sai"}
                           </span>
-                        </p>
+                        </div>
                       );
                     }
                   )}
               </div>
               {question?.explanation && (
-                <p className=" text-lg">
+                <div className="text-lg">
                   <span className="font-bold text-purple-700">Giải thích: </span>
                   <br/>
-                  <ChemicalFormula formula={question?.explanation || "-"} />
-                </p>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: question?.explanation || "-",
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
