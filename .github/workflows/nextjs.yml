@@ -43,10 +43,26 @@ jobs:
             docker compose -f docker-compose.yml up -d
 
             echo "⏳ Waiting for container to initialize..."
-            sleep 20
+            sleep 120
 
-            echo "🩺 Performing health check..."
-            if curl -fs http://localhost:3000/health || curl -fs http://localhost:3000; then
+            echo "🩺 Performing health check with retry..."
+            # Retry health check multiple times with longer timeout
+            for i in {1..10}; do
+              echo "Health check attempt $i/10..."
+              if timeout 30 curl -fs http://localhost:3000 || timeout 30 curl -fs http://localhost:3000/api/health; then
+                echo "✅ Health check passed on attempt $i"
+                break
+              fi
+              if [ $i -eq 10 ]; then
+                echo "❌ Health check failed after 10 attempts"
+                docker logs planbook-app --tail 50
+                exit 1
+              fi
+              echo "Waiting 15 seconds before next attempt..."
+              sleep 15
+            done
+
+            if true; then
               echo "✅ Deployment successful!"
               docker image prune -f
             else
