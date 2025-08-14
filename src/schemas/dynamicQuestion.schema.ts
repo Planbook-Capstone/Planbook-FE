@@ -15,7 +15,7 @@ export const dynamicQuestionSchema = z.object({
   // Optional fields
   lessonIds: z.array(z.number()).nullable().optional(),
   referenceSource: z.string().optional(),
-  difficultyLevel: z.enum(["KNOWLEDGE", "COMPREHENSION", "APPLICATION"]).optional(),
+  difficultyLevel: z.enum(["KNOWLEDGE", "COMPREHENSION", "APPLICATION", "ANALYSIS"]).optional(),
   explanation: z.string().optional(),
   hasImage: z.boolean().default(false),
   image: z.instanceof(File).optional(),

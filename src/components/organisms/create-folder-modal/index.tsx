@@ -3,8 +3,10 @@ import FolderCard from "@/components/molecules/folder-card";
 import { Button } from "@/components/ui/Button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
