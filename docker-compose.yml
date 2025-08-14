@@ -10,10 +10,10 @@ services:
       - "3000:3000" # Port 3000 của host map đến port 3000 của container
     volumes:
       - ./public:/app/public
-      - ./.env:/app/.env # Mount file .env từ host vào container
     networks:
       - planbook-network
-
+    env_file:
+      - .env
   # Portainer - Quản lý Docker containers
   portainer:
     image: portainer/portainer-ce:latest
