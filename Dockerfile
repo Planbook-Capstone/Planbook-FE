@@ -11,9 +11,6 @@ RUN npm install
 # Sao chép toàn bộ source code
 COPY . .
 
-# Sao chép .env.production thành .env.local để sử dụng trong quá trình build
-COPY .env.production .env.local
-
 # Build ứng dụng
 RUN npm run build
 
@@ -31,9 +28,6 @@ RUN npm install --production
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.* ./
-
-# Sao chép .env.production thành .env.local để sử dụng trong production
-COPY .env.production .env.local
 
 # Expose port
 EXPOSE 3000
