@@ -22,9 +22,9 @@ RUN npx prisma generate
 # Sao chép source code (chỉ những gì cần thiết)
 COPY src ./src
 COPY public ./public
-COPY next.config.ts ./
-COPY tailwind.config.ts ./
-COPY postcss.config.js ./
+COPY next.config.* ./
+COPY tailwind.config.* ./
+COPY postcss.config.* ./
 COPY tsconfig.json ./
 COPY components.json ./
 
