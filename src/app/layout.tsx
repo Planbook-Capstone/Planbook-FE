@@ -30,9 +30,6 @@ const questrial = Questrial({
 export const metadata: Metadata = {
   title: "PlanBook - Plan Your Journey",
   description: "PlanBook helps you plan and organize your trips efficiently",
-  icons: {
-    icon: "/images/logoPlanbook.png",
-  },
 };
 
 export default function RootLayout({
@@ -43,8 +40,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/images/logoPlanbook.png" type="image/png" />
-
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
