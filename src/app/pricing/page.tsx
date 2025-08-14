@@ -24,6 +24,7 @@ function PricingPage() {
 
           // Redirect to payment page with order data
           if (res?.data?.data?.id) {
+            // router.push(`/payment/${res?.data?.data?.id}`);
             router.push(`${res?.data?.data?.checkoutUrl}`);
           }
         },

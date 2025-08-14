@@ -2,9 +2,10 @@
 import React from "react";
 import { theme } from "antd";
 import { DetailHeader } from "@/components/organisms/header/DetailHeader";
-import { ChevronLeft, Settings } from "lucide-react";
+import { Download, Share2, ChevronLeft, Settings } from "lucide-react";
 import { getLibraryTypeName } from "@/constants";
 import { useToolResultByIdService } from "@/services/toolResultService";
+import { DowloadIcon } from "@/constants/icon";
 import DocumentInfoPanel, {
   CustomButton,
 } from "@/components/organisms/document-panel";

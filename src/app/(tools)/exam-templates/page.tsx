@@ -332,7 +332,7 @@ function ExamTemplatesPageContent() {
       <Modal
         isOpen={showCreateInstanceModal}
         onClose={handleCancelCreateInstance}
-        title="Tạo phiên kiểm tra"
+        title="Tạo phiếm kiểm tra"
         size="lg"
       >
         {selectedTemplateForInstance && (
