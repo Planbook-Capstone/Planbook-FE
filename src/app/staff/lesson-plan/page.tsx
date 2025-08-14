@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -179,7 +179,6 @@ export default function LessonPlanPage() {
   const handleEditTemplate = () => {
     // setCurrentTemplate(template);
     setShowBuilder(true);
-    
   };
 
   const handleDeleteTemplate = (templateId: string) => {

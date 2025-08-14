@@ -115,7 +115,7 @@ export default function ExamInstancesPage() {
   const handleCreateInstance = (data: CreateExamInstanceData) => {
     createInstance(data, {
       onSuccess: (response) => {
-        toast.success("Tạo instance thành công!");
+        toast.success("Tạo phiên kiểm tra thành công!");
         setShowCreateModal(false);
         setStep("select-template");
         setSelectedTemplate(null);
@@ -123,7 +123,7 @@ export default function ExamInstancesPage() {
       },
       onError: (error: any) => {
         toast.error(
-          error?.response?.data?.message || "Có lỗi xảy ra khi tạo instance"
+          error?.response?.data?.message || "Có lỗi xảy ra khi tạo phiên kiểm tra"
         );
       },
     });
