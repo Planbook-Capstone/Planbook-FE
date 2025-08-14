@@ -1,3 +1,4 @@
+"use client";
 import { UserWithWalletResponse } from "@/types";
 import { DataTable } from "../data-table";
 import { createUserColumns } from "./columns";
