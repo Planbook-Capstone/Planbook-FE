@@ -30,10 +30,17 @@ jobs:
             git reset --hard
             git pull origin master || git pull origin main
 
+            echo "🧹 Cleaning up old Docker resources..."
+            docker system prune -f --volumes || true
+            docker image prune -a -f || true
+
+            echo "💾 Checking disk space..."
+            df -h
+
             echo "🏗️ Building Docker image with extended timeout..."
             # Tăng timeout cho Docker build và sử dụng build args để tối ưu
-            if ! timeout 1800 docker compose -f docker-compose.yml build --no-cache --build-arg BUILDKIT_INLINE_CACHE=1; then
-              echo "❌ Build failed or timed out after 30 minutes. Container still running. Abort."
+            if ! timeout 2400 docker compose -f docker-compose.yml build --no-cache; then
+              echo "❌ Build failed or timed out after 40 minutes. Container still running. Abort."
               exit 1
             fi
 
