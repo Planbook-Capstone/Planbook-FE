@@ -59,10 +59,10 @@ function UserDetailModal({ user, open, onClose }: UserDetailModalProps) {
                 </label>
                 <p
                   className={`font-questrial ${
-                    user.status ? "text-red-600" : "text-green-600"
+                    !user.status ? "text-red-600" : "text-green-600"
                   }`}
                 >
-                  {user.status ? "Đã vô hiệu hóa" : "Hoạt động"}
+                  {!user.status ? "Đã vô hiệu hóa" : "Hoạt động"}
                 </p>
               </div>
             </div>

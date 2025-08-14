@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { LessonPlanTemplateBuilder } from "@/components/organisms/lesson-plan-template-builder";
+import { useState, useRef } from "react";
 import { LessonPlanTemplate } from "@/types";
 import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { Button } from "@/components/ui/Button";
@@ -242,7 +241,7 @@ export default function LessonPlanTemplatePage() {
         <PreviewModal
           isOpen={showPreview}
           onClose={() => setShowPreview(false)}
-          data={allNode?.data }
+          data={allNode?.data}
           onDownload={() => {}}
           lesson={lessonPlanById?.data}
           mode={false}

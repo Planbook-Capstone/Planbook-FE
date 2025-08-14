@@ -6,7 +6,6 @@ import {
 } from "@/services/toolResultService";
 import { useDeleteMaterialService } from "@/services/materialServices";
 import DocumentItem from "@/components/molecules/document-item";
-import { getLibraryTypeName } from "@/constants";
 import {
   Pagination,
   PaginationContent,
