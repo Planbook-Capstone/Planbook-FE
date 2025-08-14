@@ -22,7 +22,7 @@ jobs:
           port: 22
           script: |
             echo "📁 Moving to project folder"
-            cd /***/fe/Planbook-FE || exit 1
+            cd Planbook-FE || exit 1
 
             echo "🔄 Resetting and pulling latest code"
             git reset --hard
