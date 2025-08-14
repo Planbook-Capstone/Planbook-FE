@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60 # Tăng timeout lên 60 phút
 
     steps:
       - name: Checkout code
@@ -21,7 +21,9 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           port: 22
-          timeout: 30m
+          timeout: 60m # Tăng timeout SSH lên 60 phút
+          command_timeout: 60m # Timeout cho từng command
+          script_stop: true # Dừng khi có lỗi
           script: |
             echo "📁 Moving to project folder"
             cd Planbook-FE || exit 1
@@ -30,18 +32,28 @@ jobs:
             git reset --hard
             git pull origin master || git pull origin main
 
-            echo "🧹 Cleaning up old Docker resources..."
-            docker system prune -f --volumes || true
-            docker image prune -a -f || true
+            echo "🧹 Cleaning up old Docker resources (selective)..."
+            # Chỉ xóa containers và images không sử dụng, giữ lại cache
+            docker container prune -f || true
+            docker image prune -f || true
+            # Không xóa volumes và build cache để tăng tốc build
 
             echo "💾 Checking disk space..."
             df -h
 
-            echo "🏗️ Building Docker image with extended timeout..."
-            # Tăng timeout cho Docker build và sử dụng build args để tối ưu
-            if ! timeout 2400 docker compose -f docker-compose.yml build --no-cache; then
-              echo "❌ Build failed or timed out after 40 minutes. Container still running. Abort."
-              exit 1
+            echo "🏗️ Building Docker image with optimized settings..."
+            # Tăng timeout cho Docker daemon và tối ưu build
+            export DOCKER_BUILDKIT=1
+            export COMPOSE_DOCKER_CLI_BUILD=1
+
+            # Build với timeout dài hơn và progress output
+            if ! timeout 3600 docker compose -f docker-compose.yml build --progress=plain; then
+              echo "❌ Build failed or timed out after 60 minutes. Trying cleanup and rebuild..."
+              docker system prune -f
+              if ! timeout 2400 docker compose -f docker-compose.yml build --no-cache --progress=plain; then
+                echo "❌ Build failed completely. Abort."
+                exit 1
+              fi
             fi
 
             echo "🧼 Build succeeded. Stopping old container..."

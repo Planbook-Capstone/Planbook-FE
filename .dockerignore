@@ -103,3 +103,15 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Large files and directories to reduce build context
+figma_images/
+public/videos/
+mysql/
+nginx/
+bun.lock
+deploy.sh
+test-build.sh
+
+# Docker compose files
+docker-compose*.yml
