@@ -2,11 +2,12 @@
 // pages/auth/callback.tsx
 import { useEffect } from "react";
 
-import { supabase } from "@/config/supabaseClient";
+// Force dynamic rendering để tránh prerender trong build
+export const dynamic = "force-dynamic";
+
 import { useLoginGoogleService } from "@/services/userService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { da } from "date-fns/locale";
 import { useAppStore } from "@/store";
 import Loading from "@/components/ui/loading";
 
@@ -17,6 +18,18 @@ const Callback = () => {
 
   useEffect(() => {
     const handleAuth = async () => {
+      // Dynamic import để tránh lỗi build
+      const { supabase } = await import("@/config/supabaseClient");
+
+      // Kiểm tra nếu không có env vars thì redirect về trang chính
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        console.warn(
+          "Supabase không được cấu hình, chuyển hướng về trang chính"
+        );
+        router.push("/");
+        return;
+      }
+
       const { data, error } = await supabase.auth.getSession();
 
       if (error || !data.session) {

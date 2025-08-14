@@ -5,11 +5,13 @@ import React from "react";
 import Image from "next/image";
 import { useRegisterService, useUserServices } from "@/services/userService";
 import { toast } from "sonner";
-import { supabase } from "@/config/supabaseClient";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/store";
+
+// Force dynamic rendering để tránh prerender trong build
+export const dynamic = "force-dynamic";
 
 const LoginPage = () => {
   const { mutate } = useUserServices();
@@ -102,6 +104,15 @@ const LoginPage = () => {
   };
 
   const loginGG = async () => {
+    // Dynamic import để tránh lỗi build
+    const { supabase } = await import("@/config/supabaseClient");
+
+    // Kiểm tra nếu không có env vars
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      toast.error("Chức năng đăng nhập Google chưa được cấu hình");
+      return;
+    }
+
     await supabase?.auth.signInWithOAuth({
       provider: "google",
       options: {
