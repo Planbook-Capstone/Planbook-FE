@@ -63,10 +63,10 @@ export default function Sidebar({
   const { data: materials } = useMaterialSearchService("1");
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-screen ">
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-screen">
       {/* Sidebar Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-calsans py-1.5 ">Thành phần</h2>
+      <div className="p-2 border-b border-gray-200 flex-shrink-0">
+        <h2 className="text-lg font-calsans py-1.5">Thành phần</h2>
       </div>
 
       {/* Tabs */}
@@ -75,30 +75,32 @@ export default function Sidebar({
         onValueChange={(value) =>
           setActiveTab(value as "components" | "images" | "trash")
         }
-        className="w-full flex flex-col flex-1 p-2"
+        className="flex flex-col flex-1 min-h-0 pb-20"
       >
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="components" className="text-xs">
-            Thành phần
-          </TabsTrigger>
-          <TabsTrigger value="images" className="text-xs">
-            <div className="flex items-center gap-1">
-              <Image size={14} />
-              <span className="text-nowrap">Hình ảnh</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger value="trash" className="text-xs">
-            <Badge count={trashData.length} size="small">
-              <Trash size={14} />
-            </Badge>
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex-shrink-0 p-2">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="components" className="text-xs">
+              Thành phần
+            </TabsTrigger>
+            <TabsTrigger value="images" className="text-xs">
+              <div className="flex items-center gap-1">
+                <Image size={14} />
+                <span className="text-nowrap">Hình ảnh</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="trash" className="text-xs">
+              <Badge count={trashData.length} size="small">
+                <Trash size={14} />
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent
           value="components"
-          className="flex-1 p-4 overflow-y-auto mt-0"
+          className="flex-1 min-h-0 overflow-y-auto"
         >
-          <div>
+          <div className="px-4 pb-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Kéo thả để thêm thành phần mới
             </h3>
@@ -148,8 +150,8 @@ export default function Sidebar({
           </div>
         </TabsContent>
 
-        <TabsContent value="images" className="flex-1 p-4 overflow-y-auto mt-0">
-          <div>
+        <TabsContent value="images" className="flex-1 min-h-0 overflow-y-auto">
+          <div className="px-4 pb-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Thư viện hình ảnh
             </h3>
@@ -196,8 +198,8 @@ export default function Sidebar({
           </div>
         </TabsContent>
 
-        <TabsContent value="trash" className="flex-1 p-4 overflow-y-auto mt-0">
-          <div>
+        <TabsContent value="trash" className="flex-1 min-h-0 overflow-y-auto">
+          <div className="px-4 pb-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">
               Thùng rác ({trashData.length} items)
             </h3>
