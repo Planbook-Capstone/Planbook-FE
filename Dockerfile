@@ -16,11 +16,8 @@ RUN npm ci --timeout=600000 --maxsockets=3 --prefer-offline \
 # Copy source code và config files
 COPY src ./src
 COPY public ./public
-COPY next.config.* ./
-COPY tailwind.config.* ./
-COPY postcss.config.* ./
+COPY *.config.* ./
 COPY tsconfig.json ./
-COPY components.json ./
 
 # Build ứng dụng với Prisma
 ENV NODE_ENV=production
@@ -42,7 +39,7 @@ ENV NEXT_PUBLIC_REDIRECT_URL=$NEXT_PUBLIC_REDIRECT_URL
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-RUN npm run build:build:no-prisma
+RUN npm run build:no-prisma
 
 # Stage 2: Production
 FROM node:20-alpine AS runner
@@ -82,10 +79,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
 
 # Start application (standalone không cần npm)
 CMD ["node", "server.js"]
-
-
-
-
 
 
 
