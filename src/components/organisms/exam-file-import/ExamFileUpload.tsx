@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { Upload, X, FileText, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import Image from "next/image";
 import DocumentItem from "@/components/molecules/document-item";
 import { UploadIcon } from "@/constants/icon";
 

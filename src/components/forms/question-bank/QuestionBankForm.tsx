@@ -727,6 +727,7 @@ export const QuestionBankForm: React.FC<QuestionBankFormProps> = ({
                   <SelectItem value="KNOWLEDGE">Biết</SelectItem>
                   <SelectItem value="COMPREHENSION">Hiểu</SelectItem>
                   <SelectItem value="APPLICATION">Vận dụng</SelectItem>
+                  <SelectItem value="ANALYSIS">Phân tích</SelectItem>
                 </SelectContent>
               </Select>
             )}

@@ -35,7 +35,7 @@ import { useLessonsByIdsService } from "@/services/lessonServices";
 interface QuestionFormData {
   lessonIds?: number[];
   questionType: "PART_I" | "PART_II" | "PART_III";
-  difficultyLevel: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION";
+  difficultyLevel: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION" | "ANALYSIS";
   questionContent: QuestionContent;
   explanation?: string;
   referenceSource?: string;
@@ -46,7 +46,7 @@ const questionFormSchema = z.object({
   question: z.string().min(1, "Vui lòng nhập câu hỏi"),
   questionType: z.enum(["PART_I", "PART_II", "PART_III"]),
   lessonIds: z.array(z.number()).optional(),
-  difficultyLevel: z.enum(["KNOWLEDGE", "COMPREHENSION", "APPLICATION"]),
+  difficultyLevel: z.enum(["KNOWLEDGE", "COMPREHENSION", "APPLICATION", "ANALYSIS"]),
   explanation: z.string().optional(),
   referenceSource: z.string().optional(),
   hasImage: z.boolean().default(false),
@@ -238,9 +238,9 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
       };
 
       onSubmit(transformedData);
-      toast.success("Câu hỏi đã cập nhật thành công!");
+      toast.success("Câu hỏi đã được tạo thành công!");
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi cập nhật câu hỏi");
+      toast.error("Có lỗi xảy ra khi tạo câu hỏi");
     }
   };
 
@@ -253,6 +253,8 @@ export const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
         return "bg-amber-100 text-yellow-700 border-amber-200";
       case "KNOWLEDGE":
         return "bg-blue-100 text-blue-700 border-blue-200";
+      case "ANALYSIS":
+        return "bg-purple-100 text-purple-700 border-purple-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
     }

@@ -1,4 +1,5 @@
 import SpotlightCard from "@/components/ui/SpotlightCard";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getRandomSpotlightColor } from "@/constants/spotlightColors";
 import { useMemo } from "react";
