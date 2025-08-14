@@ -301,10 +301,11 @@ function QuestionBankManagementPage() {
           id: editingQuestion.id.toString(),
           data: values,
         });
-        message.success("Cập nhật câu hỏi thành công!");
+        toast.success("Cập nhật câu hỏi thành công!");
+        // message.success("Cập nhật câu hỏi thành công!");
       } else {
         await createMutation.mutateAsync(values);
-        message.success("Thêm câu hỏi thành công!");
+        message.success("Lỗi khi cập nhật câu hỏi!");
       }
 
       setIsModalOpen(false);

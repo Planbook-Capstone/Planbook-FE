@@ -149,8 +149,6 @@ function CreateBookTypeForm({
       code: data.code,
     };
 
-    console.log("Payload gửi lên API:", payload);
-
     try {
       if (initialValues?.id) {
         // Edit mode

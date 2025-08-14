@@ -29,13 +29,12 @@ function OrderManagementPage() {
     [currentPage, pageSize], // dependencies for query key
     { retry: 1, staleTime: 0 }, // options
     {
-      offset: currentPage +1,
+      offset: currentPage + 1,
       pageSize: pageSize,
       sort: "createdAt,desc",
     } // pagination params
   );
 
-  console.log(ordersData);
   return (
     <div>
       <OrderTable

@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -199,7 +198,7 @@ export function CreateInstanceForm({
                       <div className="p-3 border-t">
                         <Input
                           type="time"
-                          onChange={(e) => {
+                          onChange={(e:any) => {
                             if (field.value && e.target.value) {
                               const [hours, minutes] =
                                 e.target.value.split(":");
@@ -262,7 +261,7 @@ export function CreateInstanceForm({
                       <div className="p-3 border-t">
                         <Input
                           type="time"
-                          onChange={(e) => {
+                          onChange={(e:any) => {
                             if (field.value && e.target.value) {
                               const [hours, minutes] =
                                 e.target.value.split(":");

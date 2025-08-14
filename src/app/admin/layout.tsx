@@ -8,7 +8,7 @@ import Header from "@/components/organisms/header";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { SidebarMenu } from "@/components/molecules/sidebar-menu";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -20,7 +20,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, logout, displayName, avatarUrl, initials, isAuthenticated } =
     useAuth();
-  const router = useRouter();
+
   const [currentItem, setCurrentItem] = useState(adminMenuItems[0]);
   const pathname = usePathname();
   const title =
