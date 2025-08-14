@@ -1,6 +1,4 @@
 "use client";
-import Tag from "@/components/ui/Tag";
-
 export interface Message {
   from: string;
   content: string;

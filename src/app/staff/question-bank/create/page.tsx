@@ -2,7 +2,10 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { MultipleDynamicQuestionForm } from "@/components/forms/dynamic-question/MultipleDynamicQuestionForm";
-import { DynamicQuestionFormData, MultipleDynamicQuestionFormData } from "@/schemas/dynamicQuestion.schema";
+import {
+  DynamicQuestionFormData,
+  MultipleDynamicQuestionFormData,
+} from "@/schemas/dynamicQuestion.schema";
 import { toast } from "sonner";
 import { useCreateMaterialService } from "@/services/materialServices";
 import {
@@ -16,7 +19,7 @@ import { useExamImportService } from "@/services/examImportServices";
 interface QuestionFormData {
   lessonIds?: number[];
   questionType: "PART_I" | "PART_II" | "PART_III";
-  difficultyLevel: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION" | "ANALYSIS";
+  difficultyLevel: "KNOWLEDGE" | "COMPREHENSION" | "APPLICATION";
   questionContent: QuestionContent;
   explanation?: string;
   referenceSource?: string;
@@ -28,8 +31,9 @@ function CreateQuestionBankPage() {
   const { mutate: importExam, isPending: isImporting } = useExamImportService();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [importedQuestions, setImportedQuestions] = useState<MultipleDynamicQuestionFormData | null>(null);
-  const [formKey, setFormKey] = useState<string>('default');
+  const [importedQuestions, setImportedQuestions] =
+    useState<MultipleDynamicQuestionFormData | null>(null);
+  const [formKey, setFormKey] = useState<string>("default");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Debug: Log when importedQuestions changes
@@ -64,68 +68,89 @@ function CreateQuestionBankPage() {
 
       // Save the selected file
       setSelectedFile(file);
-      console.log("Selected file:", file);
 
       // Don't clear previously imported questions - we'll append new ones
     }
   };
 
   // Map imported question data to form format
-  const mapImportedDataToFormData = (importedData: any[]): MultipleDynamicQuestionFormData => {
-    const mappedQuestions: DynamicQuestionFormData[] = importedData.map((item) => {
-      const baseQuestion: DynamicQuestionFormData = {
-        question: item.questionContent.question || "",
-        questionType: item.questionType || "PART_I",
-        difficultyLevel: item.difficultyLevel || "KNOWLEDGE",
-        explanation: item.explanation || "",
-        referenceSource: item.referenceSource || "",
-        hasImage: false,
-        lessonIds: item.lessonId ? [item.lessonId] : null,
-        // Initialize all fields
-        optionA: "",
-        optionB: "",
-        optionC: "",
-        optionD: "",
-        correctAnswers: [false, false, false, false],
-        statementA: "",
-        answerA: false,
-        statementB: "",
-        answerB: false,
-        statementC: "",
-        answerC: false,
-        statementD: "",
-        answerD: false,
-        essayAnswer: "",
-      };
+  const mapImportedDataToFormData = (
+    importedData: any[]
+  ): MultipleDynamicQuestionFormData => {
+    const mappedQuestions: DynamicQuestionFormData[] = importedData.map(
+      (item) => {
+        const baseQuestion: DynamicQuestionFormData = {
+          question: item.questionContent.question || "",
+          questionType: item.questionType || "PART_I",
+          difficultyLevel: item.difficultyLevel || "KNOWLEDGE",
+          explanation: item.explanation || "",
+          referenceSource: item.referenceSource || "",
+          hasImage: false,
+          lessonIds: item.lessonId ? [item.lessonId] : null,
+          // Initialize all fields
+          optionA: "",
+          optionB: "",
+          optionC: "",
+          optionD: "",
+          correctAnswers: [false, false, false, false],
+          statementA: "",
+          answerA: false,
+          statementB: "",
+          answerB: false,
+          statementC: "",
+          answerC: false,
+          statementD: "",
+          answerD: false,
+          essayAnswer: "",
+        };
 
-      // Map specific question type data
-      if (item.questionType === "PART_I" && item.questionContent.options) {
-        baseQuestion.optionA = item.questionContent.options.A || "";
-        baseQuestion.optionB = item.questionContent.options.B || "";
-        baseQuestion.optionC = item.questionContent.options.C || "";
-        baseQuestion.optionD = item.questionContent.options.D || "";
+        // Map specific question type data
+        if (item.questionType === "PART_I" && item.questionContent.options) {
+          baseQuestion.optionA = item.questionContent.options.A || "";
+          baseQuestion.optionB = item.questionContent.options.B || "";
+          baseQuestion.optionC = item.questionContent.options.C || "";
+          baseQuestion.optionD = item.questionContent.options.D || "";
 
-        // Set correct answer
-        const correctAnswer = item.questionContent.answer;
-        if (correctAnswer === "A") baseQuestion.correctAnswers = [true, false, false, false];
-        else if (correctAnswer === "B") baseQuestion.correctAnswers = [false, true, false, false];
-        else if (correctAnswer === "C") baseQuestion.correctAnswers = [false, false, true, false];
-        else if (correctAnswer === "D") baseQuestion.correctAnswers = [false, false, false, true];
-      } else if (item.questionType === "PART_II" && item.questionContent.statements) {
-        baseQuestion.statementA = item.questionContent.statements.a?.text || "";
-        baseQuestion.answerA = item.questionContent.statements.a?.answer || false;
-        baseQuestion.statementB = item.questionContent.statements.b?.text || "";
-        baseQuestion.answerB = item.questionContent.statements.b?.answer || false;
-        baseQuestion.statementC = item.questionContent.statements.c?.text || "";
-        baseQuestion.answerC = item.questionContent.statements.c?.answer || false;
-        baseQuestion.statementD = item.questionContent.statements.d?.text || "";
-        baseQuestion.answerD = item.questionContent.statements.d?.answer || false;
-      } else if (item.questionType === "PART_III" && item.questionContent.answer) {
-        baseQuestion.essayAnswer = item.questionContent.answer || "";
+          // Set correct answer
+          const correctAnswer = item.questionContent.answer;
+          if (correctAnswer === "A")
+            baseQuestion.correctAnswers = [true, false, false, false];
+          else if (correctAnswer === "B")
+            baseQuestion.correctAnswers = [false, true, false, false];
+          else if (correctAnswer === "C")
+            baseQuestion.correctAnswers = [false, false, true, false];
+          else if (correctAnswer === "D")
+            baseQuestion.correctAnswers = [false, false, false, true];
+        } else if (
+          item.questionType === "PART_II" &&
+          item.questionContent.statements
+        ) {
+          baseQuestion.statementA =
+            item.questionContent.statements.a?.text || "";
+          baseQuestion.answerA =
+            item.questionContent.statements.a?.answer || false;
+          baseQuestion.statementB =
+            item.questionContent.statements.b?.text || "";
+          baseQuestion.answerB =
+            item.questionContent.statements.b?.answer || false;
+          baseQuestion.statementC =
+            item.questionContent.statements.c?.text || "";
+          baseQuestion.answerC =
+            item.questionContent.statements.c?.answer || false;
+          baseQuestion.statementD =
+            item.questionContent.statements.d?.text || "";
+          baseQuestion.answerD =
+            item.questionContent.statements.d?.answer || false;
+        } else if (
+          item.questionType === "PART_III" &&
+          item.questionContent.answer
+        ) {
+          baseQuestion.essayAnswer = item.questionContent.answer || "";
+        }
+
+        return baseQuestion;
       }
-
-      return baseQuestion;
-    });
+    );
 
     return { questions: mappedQuestions };
   };
@@ -137,15 +162,12 @@ function CreateQuestionBankPage() {
       return;
     }
 
-    console.log("=== FILE SUBMIT HANDLER ===");
-    console.log("Processing file:", selectedFile);
-
     // Create FormData for file upload
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append("file", selectedFile);
 
     // Add staff_import field
-    formData.append('staff_import', 'true');
+    formData.append("staff_import", "true");
 
     // Call the exam import service
     importExam(formData, {
@@ -157,22 +179,29 @@ function CreateQuestionBankPage() {
         if (response?.data?.data && Array.isArray(response?.data?.data)) {
           const newMappedData = mapImportedDataToFormData(response?.data?.data);
           const isFirstImport = !importedQuestions;
-          const currentQuestionsCount = importedQuestions?.questions.length || 0;
+          const currentQuestionsCount =
+            importedQuestions?.questions.length || 0;
           const newQuestionsCount = newMappedData.questions.length;
           const totalAfterImport = currentQuestionsCount + newQuestionsCount;
 
           // Append to existing questions instead of replacing
-          setImportedQuestions(prevQuestions => {
+          setImportedQuestions((prevQuestions) => {
             if (prevQuestions) {
               // Merge with existing questions
               const combinedQuestions = {
-                questions: [...prevQuestions.questions, ...newMappedData.questions]
+                questions: [
+                  ...prevQuestions.questions,
+                  ...newMappedData.questions,
+                ],
               };
-              console.log("Appended questions. Total:", combinedQuestions.questions.length);
+
               return combinedQuestions;
             } else {
               // First import
-              console.log("First import. Questions:", newMappedData.questions.length);
+              console.log(
+                "First import. Questions:",
+                newMappedData.questions.length
+              );
               return newMappedData;
             }
           });
@@ -180,16 +209,13 @@ function CreateQuestionBankPage() {
           // Update form key to force re-render
           setFormKey(`imported-${Date.now()}`);
 
-          console.log("New mapped questions:", newMappedData);
-          console.log("Current questions count:", currentQuestionsCount);
-          console.log("New questions count:", newQuestionsCount);
-          console.log("Total after import:", totalAfterImport);
-
           // Show different message based on whether this is first import or additional
           if (isFirstImport) {
             toast.success(`Đã import thành công ${newQuestionsCount} câu hỏi!`);
           } else {
-            toast.success(`Đã import thêm ${newQuestionsCount} câu hỏi! Tổng cộng: ${totalAfterImport} câu hỏi.`);
+            toast.success(
+              `Đã import thêm ${newQuestionsCount} câu hỏi! Tổng cộng: ${totalAfterImport} câu hỏi.`
+            );
           }
         } else {
           console.error("Invalid response data format:", response);
@@ -375,8 +401,6 @@ function CreateQuestionBankPage() {
           />
         </div>
       </div>
-
-
 
       <MultipleDynamicQuestionForm
         key={formKey}

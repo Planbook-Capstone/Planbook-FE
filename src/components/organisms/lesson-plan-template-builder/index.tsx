@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/input";
 import { StepSection } from "@/components/organisms/step-section";
 import { LessonPlanTemplate, LessonPlanStep } from "@/types";
-import { Plus, Save, ArrowLeft, Download, Edit3 } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 
 interface LessonPlanTemplateBuilderProps {
   initialTemplate?: LessonPlanTemplate;

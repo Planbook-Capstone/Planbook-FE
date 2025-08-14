@@ -100,8 +100,6 @@ export function SingleQuestionForm({
         return "bg-amber-100 text-yellow-700 border-amber-200";
       case "KNOWLEDGE":
         return "bg-blue-100 text-blue-700 border-blue-200";
-      case "ANALYSIS":
-        return "bg-purple-100 text-purple-700 border-purple-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
     }
@@ -381,12 +379,7 @@ export function SingleQuestionForm({
                     >
                       Nhận biết
                     </SelectItem>
-                    <SelectItem
-                      value="ANALYSIS"
-                      className="rounded-full mx-1 my-0.5 bg-purple-100 text-purple-700"
-                    >
-                      Phân tích
-                    </SelectItem>
+
                   </SelectContent>
                 </Select>
               </FormItem>

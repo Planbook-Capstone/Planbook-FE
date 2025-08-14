@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { SlideEditorLayout } from "@/components/ui/slide-editor";
 import { convertGoogleSlideJsonToEditor } from "@/utils/googleSlidesConverter";
 import sampleData from "@/data/sample-presentation.json";
-import { Upload, FileText, Loader2 } from "lucide-react";
 import {
   useSlideTemplateByIdService,
   useProcessJsonTemplateService,

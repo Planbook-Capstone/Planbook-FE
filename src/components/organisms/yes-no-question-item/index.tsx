@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
-import { YesNoQuestion, YesNoQuestionItemProps, YesNoOption } from "./types";
+import { YesNoQuestionItemProps, YesNoOption } from "./types";
 import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -80,10 +80,6 @@ export default function YesNoQuestionItem({
   };
 
   const displayOptions = getOptionsFromStatements();
-
-
-
-
 
   const handleOptionTextChange = (optionId: string, text: string) => {
     // Convert line breaks back to <br/> tags when saving
@@ -163,8 +159,6 @@ export default function YesNoQuestionItem({
   const handleEditClick = () => {
     setShowImageDropZone(!showImageDropZone);
   };
-
-
 
   return (
     <div className="flex space-y-4 w-full gap-1">

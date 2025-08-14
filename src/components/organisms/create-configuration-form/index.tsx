@@ -2,14 +2,6 @@
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { FileText, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -21,9 +13,6 @@ import {
   ConfigurationFormData,
   getConfigurationFileIcon,
   formatFileSize,
-  getFileExtension,
-  isValidConfigurationFile,
-  CONFIGURATION_VALIDATION_MESSAGES,
 } from "@/schemas/configuration.schema";
 
 interface CreateConfigurationFormProps {
