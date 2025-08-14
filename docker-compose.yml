@@ -1,14 +1,48 @@
 services:
+  # Ứng dụng Next.js chính
   nextjs-app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: planbook-app
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000" # Port 3000 của host map đến port 3000 của container
     volumes:
       - ./public:/app/public
+      - ./.env:/app/.env # Mount file .env từ host vào container
+    networks:
+      - planbook-network
+
+  # Portainer - Quản lý Docker containers
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+    networks:
+      - planbook-network
+
+  # Dozzle - Xem logs real-time
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - planbook-network
 
 volumes:
   db-data:
+  portainer_data:
+
+networks:
+  planbook-network:
+    driver: bridge
