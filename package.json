@@ -5,7 +5,8 @@
     "scripts": {
         "prisma:generate": "prisma generate",
         "dev": "next dev --turbopack",
-        "build": "npx prisma generate --schema=src/prisma/schema.prisma && next build",
+        "build": "next build",
+        "build:no-prisma": "SKIP_PRISMA=true next build",
         "start": "next start",
         "lint": "next lint"
     },
