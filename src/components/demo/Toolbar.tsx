@@ -100,7 +100,7 @@ export default function Toolbar({
             {showDeleteButtons ? "Hoàn thành" : "Chỉnh sửa"}
           </Button>
           <Button onClick={onShowPreview}>
-            <FileText /> Preview
+            <FileText /> Xem trước
           </Button>
         </div>
       </div>

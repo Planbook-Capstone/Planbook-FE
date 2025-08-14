@@ -10,6 +10,13 @@ import {
 import { useLessonsService } from "@/services/lessonServices";
 import { useExamContext } from "@/contexts/ExamContext";
 import { toast } from "sonner";
+
+// Helper function to strip HTML tags for toast display
+const stripHtmlTags = (html: string): string => {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
+};
 import { QuestionHeader } from "@/components/ui/QuestionHeader";
 import { FilterSidebar } from "@/components/ui/FilterSidebar";
 import { QuestionContent } from "@/components/ui/QuestionContent";
@@ -135,7 +142,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
       );
       toast.info("Đã bỏ chọn câu hỏi", {
         description:
-          questionToRemove.questionContent.question.substring(0, 50) + "...",
+          stripHtmlTags(questionToRemove.questionContent.question).substring(0, 50) + "...",
         duration: 2000,
       });
     }
@@ -167,7 +174,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
       setSelectedQuestionsData((prev) => [...prev, question]);
 
       toast.success("Đã chọn câu hỏi", {
-        description: question.questionContent.question.substring(0, 50) + "...",
+        description: stripHtmlTags(question.questionContent.question).substring(0, 50) + "...",
         duration: 2000,
       });
     }
@@ -200,7 +207,7 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
     // Show toast notification
     const sectionName = getSectionName(questionType);
     toast.success(`Đã thêm câu hỏi vào ${sectionName}`, {
-      description: questionContent.question.substring(0, 80) + "...",
+      description: stripHtmlTags(questionContent.question).substring(0, 80) + "...",
       duration: 3000,
     });
 
