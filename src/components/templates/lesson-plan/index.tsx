@@ -393,17 +393,6 @@ function LessonPlanTemplate({
     [resultId, getAllFinalData, lessonId, lessonById?.data, updateToolResult]
   );
 
-  // if (data?.status === "processing" && data?.tool_code === bookType?.code) {
-  //   return (
-  //     <div className="w-full px-10 flex flex-col items-center h-50 space-y-4">
-  //       <LoadingAI
-  //         message={data?.message || ""}
-  //         progress={data?.progress || 0}
-  //       />
-  //     </div>
-  //   );
-  // }
-
   // Header component for edit mode
   const renderEditHeader = () => (
     <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
@@ -547,27 +536,33 @@ function LessonPlanTemplate({
           {/* Main Canvas Area */}
           <div className="flex-1 flex flex-col min-h-0 relative">
             {/* Toolbar */}
-            <div
-              className={`absolute ${
-                mode === "edit" ? "right-4 top-4" : "right-0 -top-16"
-              } z-10`}
-            >
-              <Toolbar
-                showDeleteButtons={showDeleteButtons}
-                onToggleDeleteButtons={() =>
-                  setShowDeleteButtons(!showDeleteButtons)
-                }
-                onShowPreview={() => setShowPreview(true)}
-                onExportJSON={handleGenerationLessonPlan}
-                sidebarCollapsed={sidebarCollapsed}
-                onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-                canUndo={canUndo}
-                canRedo={canRedo}
-                onUndo={undo}
-                onRedo={redo}
-                hideAIButton={mode === "edit"}
-              />
-            </div>
+            {mode === "edit" || (
+              <>
+                <div
+                  className={`absolute ${
+                    mode === "edit" ? "right-4 top-4" : "right-0 -top-16"
+                  } z-10`}
+                >
+                  <Toolbar
+                    showDeleteButtons={showDeleteButtons}
+                    onToggleDeleteButtons={() =>
+                      setShowDeleteButtons(!showDeleteButtons)
+                    }
+                    onShowPreview={() => setShowPreview(true)}
+                    onExportJSON={handleGenerationLessonPlan}
+                    sidebarCollapsed={sidebarCollapsed}
+                    onToggleSidebar={() =>
+                      setSidebarCollapsed(!sidebarCollapsed)
+                    }
+                    canUndo={canUndo}
+                    canRedo={canRedo}
+                    onUndo={undo}
+                    onRedo={redo}
+                    hideAIButton={mode === "edit"}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="flex-1 overflow-auto">
               {/* Debug StepFloatingPanel */}

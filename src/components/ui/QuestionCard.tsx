@@ -47,7 +47,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium">
               {key.toUpperCase()}
             </span>
-            <span className="text-sm text-gray-700 flex-1">{value}</span>
+            <span
+              className="text-sm text-gray-700 flex-1"
+              dangerouslySetInnerHTML={{ __html: value }}
+            />
             {question.questionContent.answer === key && (
               <CheckCircle className="w-4 h-4 text-green-600" />
             )}
@@ -88,9 +91,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 {key.toUpperCase()}
               </span>
               <div className="flex-1">
-                <span className="text-sm text-gray-700 block">
-                  {statementData.text}
-                </span>
+                <span
+                  className="text-sm text-gray-700 block"
+                  dangerouslySetInnerHTML={{ __html: statementData.text }}
+                />
                 <span
                   className={`text-xs font-medium ${
                     isCorrect ? "text-green-600" : "text-red-600"
@@ -114,9 +118,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     return (
       <div className="p-2 bg-blue-50 rounded border border-blue-200">
         <span className="text-sm font-medium text-blue-800">Đáp án: </span>
-        <span className="text-sm text-blue-700">
-          {question.questionContent.answer}
-        </span>
+        <span
+          className="text-sm text-blue-700"
+          dangerouslySetInnerHTML={{ __html: question.questionContent.answer }}
+        />
       </div>
     );
   };
@@ -169,7 +174,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       {/* Question Content */}
       <div className="p-4">
         <div className="text-gray-800 font-medium mb-3">
-          Câu {question.id}: {question.questionContent.question}
+          <span>Câu {question.id}: </span>
+          <span dangerouslySetInnerHTML={{ __html: question.questionContent.question }} />
         </div>
 
         {/* Question Image */}
@@ -196,7 +202,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded">
             <div className="text-sm">
               <span className="font-medium text-amber-800">Giải thích: </span>
-              <span className="text-amber-700">{question.explanation}</span>
+              <span
+                className="text-amber-700"
+                dangerouslySetInnerHTML={{ __html: question.explanation }}
+              />
             </div>
           </div>
         )}

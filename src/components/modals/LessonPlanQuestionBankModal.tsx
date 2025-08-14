@@ -531,9 +531,8 @@ export const LessonPlanQuestionBankModal: React.FC<
                 className={`text-gray-800 ${
                   key === correctAnswer ? "font-medium" : ""
                 }`}
-              >
-                {value}
-              </span>
+                dangerouslySetInnerHTML={{ __html: value }}
+              />
               {key === correctAnswer && (
                 <span className="ml-auto text-emerald-600 text-sm font-medium flex items-center gap-1">
                   <Check size={16} className="text-emerald-600" />
@@ -573,7 +572,10 @@ export const LessonPlanQuestionBankModal: React.FC<
               >
                 {key}
               </span>
-              <span className="text-gray-800 flex-1">{value.text}</span>
+              <span
+                className="text-gray-800 flex-1"
+                dangerouslySetInnerHTML={{ __html: value.text }}
+              />
               <span
                 className={`text-sm font-medium flex items-center gap-1 ${
                   value.answer ? "text-emerald-600" : "text-red-600"
@@ -839,9 +841,10 @@ export const LessonPlanQuestionBankModal: React.FC<
 
                             {/* Nội dung câu hỏi */}
                             <div className="mb-4">
-                              <p className="text-gray-900 font-medium mb-3">
-                                {renderQuestionContent(question)}
-                              </p>
+                              <p
+                                className="text-gray-900 font-medium mb-3"
+                                dangerouslySetInnerHTML={{ __html: renderQuestionContent(question) }}
+                              />
                               {renderQuestionOptions(question)}
                             </div>
                           </div>
@@ -966,7 +969,7 @@ export const LessonPlanQuestionBankModal: React.FC<
                             {question.questionContent?.answer && (
                               <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
                                 <Check size={12} className="text-emerald-700" />
-                                {question.questionContent.answer}
+                                <span dangerouslySetInnerHTML={{ __html: question.questionContent.answer }} />
                               </span>
                             )}
                           </div>
@@ -982,9 +985,10 @@ export const LessonPlanQuestionBankModal: React.FC<
 
                       {/* Nội dung câu hỏi - compact */}
                       <div className="mb-3">
-                        <p className="text-gray-900 text-sm font-medium mb-2">
-                          {renderQuestionContent(question)}
-                        </p>
+                        <p
+                          className="text-gray-900 text-sm font-medium mb-2"
+                          dangerouslySetInnerHTML={{ __html: renderQuestionContent(question) }}
+                        />
 
                         {/* Options compact */}
                         {question.questionContent?.options && (
@@ -1001,7 +1005,10 @@ export const LessonPlanQuestionBankModal: React.FC<
                                 }`}
                               >
                                 <span className="font-bold">{key}.</span>
-                                <span className="line-clamp-2">{value}</span>
+                                <span
+                                  className="line-clamp-2"
+                                  dangerouslySetInnerHTML={{ __html: value }}
+                                />
                                 {key === question.questionContent.answer && (
                                   <span className="ml-auto text-green-600">
                                     <Check
