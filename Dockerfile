@@ -22,10 +22,10 @@ COPY postcss.config.* ./
 COPY tsconfig.json ./
 COPY components.json ./
 
-# Build ứng dụng (skip Prisma để tăng tốc)
+# Build ứng dụng với Prisma
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build:no-prisma:no-prisma
+RUN npm run build:docker
 
 # Stage 2: Production
 FROM node:20-alpine AS runner
@@ -39,18 +39,12 @@ RUN addgroup --system --gid 1001 nodejs \
 # Cài đặt runtime dependencies
 RUN apk add --no-cache libc6-compat curl
 
-# Copy package.json và cài đặt production dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --only=production --timeout=300000 --prefer-offline \
-    && npm cache clean --force
+# Không cần cài đặt dependencies nữa vì dùng standalone
 
-# Copy build artifacts và Prisma schema
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+# Copy standalone build (không cần node_modules)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/next.config.* ./
-COPY --chown=nextjs:nodejs src/prisma ./src/prisma
-
-# Generate Prisma client cho production
 
 
 # Switch to non-root user
@@ -69,8 +63,8 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:3000 || exit 1
 
-# Start application
-CMD ["npm", "run", "start"]
+# Start application (standalone không cần npm)
+CMD ["node", "server.js"]
 
 
 
