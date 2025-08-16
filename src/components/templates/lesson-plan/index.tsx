@@ -52,6 +52,13 @@ function LessonPlanTemplate({
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(existingData?.name || "");
 
+  // Update editedName when existingData changes
+  useEffect(() => {
+    if (existingData?.name) {
+      setEditedName(existingData.name);
+    }
+  }, [existingData?.name]);
+
   // Get component palette (creates fresh React elements each time)
   const componentPalette = getComponentPalette();
 
@@ -323,6 +330,16 @@ function LessonPlanTemplate({
     console.log("📊 isLoading state changed to:", isLoading);
   }, [isLoading]);
 
+  // Log toolbar visibility state
+  useEffect(() => {
+    const shouldShowToolbar = !isLoading && loadingNodes.size === 0;
+    console.log("🔧 Toolbar visibility:", {
+      isLoading,
+      loadingNodesCount: loadingNodes.size,
+      shouldShowToolbar,
+    });
+  }, [isLoading, loadingNodes]);
+
   // Manual reset loading function for testing
   const resetLoading = () => {
     setIsLoading(false);
@@ -355,6 +372,9 @@ function LessonPlanTemplate({
   // Fetch current tool result data to get existing name and description
   const { data: currentToolResult } = useToolResultByIdService(resultId || "", {
     enabled: !!resultId, // Only fetch when resultId exists
+    staleTime: 0, // Always refetch when component mounts
+    refetchOnMount: true, // Force refetch on mount
+    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary calls
   });
 
   // Handle save result function
@@ -406,33 +426,9 @@ function LessonPlanTemplate({
           Quay lại
         </Button>
         <div className="flex items-center gap-2">
-          {isEditingName ? (
-            <input
-              type="text"
-              value={editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-              onBlur={() => setIsEditingName(false)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setIsEditingName(false);
-                }
-              }}
-              className="text-xl font-semibold text-gray-800 bg-transparent border-b-2 border-blue-500 outline-none"
-              autoFocus
-            />
-          ) : (
-            <h1 className="text-xl font-semibold text-gray-800">
-              {editedName || existingData?.name || "Chỉnh sửa giáo án"}
-            </h1>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsEditingName(!isEditingName)}
-            className="p-1 h-auto"
-          >
-            <Edit3 className="w-4 h-4 text-gray-500 hover:text-gray-700" />
-          </Button>
+          <h1 className="text-xl font-semibold text-gray-800">
+            {editedName || existingData?.name || "Chỉnh sửa giáo án"}
+          </h1>
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -488,7 +484,7 @@ function LessonPlanTemplate({
           </Button>
         </div>
 
-        <Button
+        {/* <Button
           onClick={() => setShowDeleteButtons(!showDeleteButtons)}
           variant={showDeleteButtons ? "default" : "outline"}
         >
@@ -502,7 +498,7 @@ function LessonPlanTemplate({
         >
           <Eye className="w-4 h-4" />
           Xem trước
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
@@ -535,33 +531,31 @@ function LessonPlanTemplate({
 
           {/* Main Canvas Area */}
           <div className="flex-1 flex flex-col min-h-0 relative">
-            {/* Toolbar */}
-            {mode === "edit" || (
-              <>
-                <div
-                  className={`absolute ${
-                    mode === "edit" ? "right-4 top-4" : "right-0 -top-16"
-                  } z-10`}
-                >
-                  <Toolbar
-                    showDeleteButtons={showDeleteButtons}
-                    onToggleDeleteButtons={() =>
-                      setShowDeleteButtons(!showDeleteButtons)
-                    }
-                    onShowPreview={() => setShowPreview(true)}
-                    onExportJSON={handleGenerationLessonPlan}
-                    sidebarCollapsed={sidebarCollapsed}
-                    onToggleSidebar={() =>
-                      setSidebarCollapsed(!sidebarCollapsed)
-                    }
-                    canUndo={canUndo}
-                    canRedo={canRedo}
-                    onUndo={undo}
-                    onRedo={redo}
-                    hideAIButton={mode === "edit"}
-                  />
-                </div>
-              </>
+            {/* Toolbar - Hide when nodes are loading (both create and edit mode) */}
+            {!isLoading && loadingNodes.size === 0 && (
+              <div
+                className={`absolute ${
+                  mode === "edit" ? "right-2 -top-17" : "right-0 -top-16"
+                } z-10`}
+              >
+                <Toolbar
+                  showDeleteButtons={showDeleteButtons}
+                  onToggleDeleteButtons={() =>
+                    setShowDeleteButtons(!showDeleteButtons)
+                  }
+                  onShowPreview={() => setShowPreview(true)}
+                  onExportJSON={handleGenerationLessonPlan}
+                  sidebarCollapsed={sidebarCollapsed}
+                  onToggleSidebar={() =>
+                    setSidebarCollapsed(!sidebarCollapsed)
+                  }
+                  canUndo={canUndo}
+                  canRedo={canRedo}
+                  onUndo={undo}
+                  onRedo={redo}
+                  hideAIButton={mode === "edit"}
+                />
+              </div>
             )}
 
             <div className="flex-1 overflow-auto">

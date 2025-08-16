@@ -96,7 +96,16 @@ export const useLessonPlanData = ({
         existing: convertedData,
       });
     }
-  }, [mode, existingData, convertExistingDataToDemoNode]);
+  }, [mode, existingData?.data]); // ✅ Watch for changes in existingData.data specifically
+
+  // Clear data when switching from edit to create mode or when existingData is removed
+  useEffect(() => {
+    if (mode === "create" || (mode === "edit" && !existingData?.data)) {
+      console.log("🔄 Clearing data for create mode or missing existingData");
+      setDemoData([]);
+      setFinalData({});
+    }
+  }, [mode, existingData?.data]);
 
   const childrenQuery = useLessonPlanNodeChildrenService(
     items && items.length > currentStep ? items[currentStep].id.toString() : ""
@@ -215,7 +224,10 @@ export const useLessonPlanData = ({
   // Initialize demo data from API when it loads
   useEffect(() => {
     // Skip this effect when in edit mode and existing data is already loaded
-    if (mode === "edit" && demoData.length > 0) return;
+    if (mode === "edit" && existingData?.data) {
+      console.log("🔄 Skipping API data load in edit mode - using existing data");
+      return;
+    }
 
     if (items && items.length > currentStep) {
       const currentStepId = items[currentStep].id.toString();
@@ -257,7 +269,7 @@ export const useLessonPlanData = ({
         setDemoData([]);
       }
     }
-  }, [apiData, currentStep, items, finalData, mode, demoData.length]);
+  }, [apiData, currentStep, items, finalData, mode, existingData?.data]);
 
   return {
     // State
