@@ -44,6 +44,51 @@ const Callback = () => {
         if (!data.session) {
           console.log("Không có session, đang xử lý callback...");
 
+          // Kiểm tra authorization code trong query parameters (PKCE flow)
+          const searchParams = new URLSearchParams(window.location.search);
+          const code = searchParams.get("code");
+
+          if (code) {
+            console.log("Tìm thấy authorization code, đang xử lý PKCE flow...");
+
+            try {
+              // Exchange code for session
+              const { data: sessionData, error: sessionError } =
+                await supabase.auth.exchangeCodeForSession(code);
+
+              if (sessionError || !sessionData.session) {
+                console.error("Lỗi exchange code:", sessionError);
+                toast.error("Lỗi xác thực. Vui lòng thử lại.");
+                router.push("/auth");
+                return;
+              }
+
+              console.log("PKCE session data:", sessionData.session);
+
+              // Process the login with access token
+              mutate(
+                { token: sessionData.session.access_token },
+                {
+                  onSuccess: (res) => {
+                    console.log(res.data, "Google login response");
+                    handleLoginSuccess(res);
+                  },
+                  onError: (error) => {
+                    console.error("Login error:", error);
+                    toast.error("Đăng nhập thất bại. Vui lòng thử lại.");
+                    router.push("/auth");
+                  },
+                }
+              );
+              return;
+            } catch (error) {
+              console.error("PKCE flow error:", error);
+              toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+              router.push("/auth");
+              return;
+            }
+          }
+
           // Kiểm tra URL fragments (implicit flow)
           const hashParams = new URLSearchParams(
             window.location.hash.substring(1)
@@ -71,7 +116,7 @@ const Callback = () => {
           }
 
           // Nếu không có access token trong fragment, redirect về login
-          console.log("Không tìm thấy session hoặc access token");
+          console.log("Không tìm thấy session, code hoặc access token");
           router.push("/auth");
           return;
         }
