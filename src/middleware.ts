@@ -1,13 +1,29 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // Get the pathname of the request
   const path = request.nextUrl.pathname;
 
+  // Handle auth callback
+  if (path === "/auth/callback") {
+    try {
+      // For auth callback, just continue to the page
+      // The actual auth handling will be done in the callback page component
+      return NextResponse.next();
+    } catch (error) {
+      console.error("Auth callback middleware error:", error);
+      return NextResponse.redirect(new URL("/auth", request.url));
+    }
+  }
+
   // Define public paths that don't require authentication
   const isPublicPath =
-    path === "/login" || path === "/register" || path === "/forgot-password";
+    path === "/login" ||
+    path === "/register" ||
+    path === "/forgot-password" ||
+    path === "/auth" ||
+    path === "/";
 
   // Get the token from the cookies
   const token = request.cookies.get("auth_token")?.value || "";
@@ -18,7 +34,7 @@ export function middleware(request: NextRequest) {
   //   return NextResponse.redirect(new URL("/login", request.url));
   // }
 
-  if (isPublicPath && token) {
+  if ((path === "/login" || path === "/register") && token) {
     // Redirect to home if trying to access login/register with a token
     return NextResponse.redirect(new URL("/", request.url));
   }

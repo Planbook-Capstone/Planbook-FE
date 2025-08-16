@@ -117,6 +117,10 @@ const LoginPage = () => {
       provider: "google",
       options: {
         redirectTo: process.env.NEXT_PUBLIC_REDIRECT_URL,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
       },
     });
   };
