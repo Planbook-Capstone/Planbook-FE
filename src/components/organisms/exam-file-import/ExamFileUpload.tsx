@@ -109,8 +109,6 @@ export default function ExamFileUpload({
     }
   };
 
-  console.log(selectedFiles);
-
   return (
     <div className="space-y-4">
       {/* Upload Area */}
@@ -127,26 +125,12 @@ export default function ExamFileUpload({
         onClick={() => fileInputRef.current?.click()}
       >
         <div className="flex flex-col justify-center items-center gap-2">
-          {/* <Image
-            src="/images/illustration/packing.svg"
-            width="100"
-            height="100"
-            alt="Upload"
-          /> */}
           <div className="w-32 h-32">{UploadIcon}</div>
           <p className="text-base font-medium font-questrial text-gray-900 mb-2">
             Kéo thả file DOCX vào đây
           </p>
         </div>
 
-        {/* <p className="text-gray-500 mb-4">hoặc</p> */}
-        {/* <Button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="bg-blue-500 hover:bg-blue-600 text-white"
-        >
-          Chọn file từ máy tính
-        </Button> */}
         <input
           ref={fileInputRef}
           type="file"

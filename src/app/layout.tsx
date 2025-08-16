@@ -56,7 +56,7 @@ export default function RootLayout({
       >
         <ReactQueryProvider>
           <Suspense fallback={<Loading />}>
-            <Toaster position="top-right" />
+            <Toaster position="top-right" richColor />
             <AppProvider>{children}</AppProvider>
           </Suspense>
         </ReactQueryProvider>

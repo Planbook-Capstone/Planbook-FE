@@ -206,9 +206,6 @@ function ExamTemplatesPageContent() {
   };
 
   const handleFileSubmit = (files: File[]) => {
-    console.log("=== FILE SUBMIT HANDLER ===");
-    console.log("Number of files:", files.length);
-
     // Create FormData for file upload
     const formData = new FormData();
     files.forEach((file) => {
@@ -216,13 +213,19 @@ function ExamTemplatesPageContent() {
     });
 
     // Add staff_import field
-       formData.append('staff_import', 'false');
+    formData.append("staff_import", "false");
 
     // Call the exam import service
     importExam(formData, {
       onSuccess: (response) => {
-        console.log("Exam import successful:", response);
-        toast.success("Import đề thi thành công!");
+        console.log("Exam import successful:", response?.data?.warnings);
+        toast.error(response?.data?.warnings, {
+          style: {
+            background: "#fca5a5", // đỏ Tailwind red-600
+            color: "black",
+            border: "1px solid #b91c1c",
+          },
+        });
 
         // Store imported data in context
         setExamFromApiResponse(response);

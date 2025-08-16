@@ -47,9 +47,9 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
     console.log('Average length:', averageLength);
 
     let gridClass;
-    if (averageLength < 30) {
+    if (averageLength < 20) {
       gridClass = "grid grid-cols-4 gap-2";
-    } else if (averageLength >= 30 && averageLength < 50) {
+    } else if (averageLength >= 20 && averageLength < 40) {
       gridClass = "grid grid-cols-2 gap-2";
     } else {
       gridClass = "grid grid-cols-1 gap-2";

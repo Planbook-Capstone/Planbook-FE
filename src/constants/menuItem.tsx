@@ -128,11 +128,18 @@ export const staffItems = [
     active: "/icons/exam-active.svg",
   },
   {
-    label: "Mẫu Slide",
-    key: "slide-templates",
+    label: "Mẫu Ma Trận",
+    key: "matrix-templates",
     icon: <HomeOutlined />,
     image: "/icons/cube.svg",
     active: "/icons/cube-active.svg",
+  },
+  {
+    label: "Mẫu Slide",
+    key: "slide-templates",
+    icon: <HomeOutlined />,
+    image: "/icons/slide.svg",
+    active: "/icons/slide-active.svg",
   },
   {
     label: "Giáo án",
