@@ -166,6 +166,13 @@ function LessonPlanTemplate({
 
   // Get all final data with proper parent-child structure
   const getAllFinalData = useCallback(() => {
+    // In edit mode, return demoData directly to avoid duplication
+    if (mode === "edit") {
+      console.log("🔄 Edit mode: Returning demoData directly:", demoData);
+      return demoData;
+    }
+
+    // In create mode, use the original logic
     // Save current demoData to finalData first
     if (items && items.length > currentStep) {
       const currentStepId = items[currentStep].id.toString();
@@ -204,7 +211,7 @@ function LessonPlanTemplate({
       return allData;
     }
     return demoData;
-  }, [finalData, demoData, items, currentStep]);
+  }, [mode, finalData, demoData, items, currentStep]);
 
   // Function to check if a node is loading
   const isNodeLoading = useCallback(
