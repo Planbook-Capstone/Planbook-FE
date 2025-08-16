@@ -17,6 +17,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Handle OAuth callback on home page (when code is in query params)
+  if (path === "/" && request.nextUrl.searchParams.get("code")) {
+    // Let the home page handle the OAuth callback
+    return NextResponse.next();
+  }
+
   // Define public paths that don't require authentication
   const isPublicPath =
     path === "/login" ||
