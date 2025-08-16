@@ -16,7 +16,11 @@ function LessonPlanResultPage({ params }: LessonPlanResultPageProps) {
     data: lessonPlanResultResponse,
     isLoading,
     error,
-  } = useToolResultByIdService(id);
+  } = useToolResultByIdService(id, {
+    staleTime: 0, // Always refetch when component mounts
+    refetchOnMount: true, // Force refetch on mount
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+  });
 
   if (isLoading) {
     return (
