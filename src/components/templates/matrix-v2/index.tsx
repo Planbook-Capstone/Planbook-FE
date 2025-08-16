@@ -15,7 +15,10 @@ import { Eye, Save, TrashIcon } from "lucide-react";
 import Image from "next/image";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
-import { useBooksBySubjectService } from "@/services/bookServices";
+import {
+  useBookActiveBySubjectService,
+  useBooksBySubjectService,
+} from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { FormField } from "@/components/ui/FormField";
@@ -216,7 +219,9 @@ export default function MatrixTemplate2() {
       {
         onSuccess: () => {
           toast.success("Lưu kết quả thành công!");
+
           setShowConfirmSaveResult(false);
+          router.push("/my-library/EXAM");
         },
         onError: (error: any) => {
           console.error("Error saving result:", error);
@@ -236,9 +241,14 @@ export default function MatrixTemplate2() {
   const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
     enabled: !!selectedGrade,
   });
-  const { data: books } = useBooksBySubjectService(selectedSubject, {
-    enabled: !!selectedSubject,
-  });
+
+  const { data: books } = useBookActiveBySubjectService(
+    selectedSubject,
+    "ACTIVE",
+    {
+      enabled: !!selectedSubject, // Only call when subject is selected
+    }
+  );
 
   // Get chapters by selected book
   const { data: chaptersResponse } = useChaptersByBookService(selectedBook, {

@@ -16,7 +16,7 @@ import {
   DragStartEvent,
   useDroppable,
 } from "@dnd-kit/core";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Plus } from "lucide-react";
 import { ExamProvider } from "@/contexts/ExamContext";
 import { UploadCloudIcon } from "@/constants/icon";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/Button";
 import { useUpdateToolResultService } from "@/services/toolResultService";
 import { toast } from "sonner";
 import ConfirmSaveResult from "@/components/modals/ConfirmSaveResult";
+import { useRouter } from "next/navigation";
 
 interface Props {
   examResult: any;
@@ -179,6 +180,7 @@ function ImageUploadZone({
 }
 
 function ExamResultEditorTemplate({ examResult }: Props) {
+  const router = useRouter();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [imageUploadStates, setImageUploadStates] = useState<
     Record<string, boolean>
@@ -206,7 +208,8 @@ function ExamResultEditorTemplate({ examResult }: Props) {
   // State for tracking current active part (default: part 1)
   const [activePart, setActivePart] = useState<number>(1);
   // State for confirmation modal
-  const [showConfirmSaveResult, setShowConfirmSaveResult] = useState<boolean>(false);
+  const [showConfirmSaveResult, setShowConfirmSaveResult] =
+    useState<boolean>(false);
 
   // Tool result services for saving
   const { mutate: updateToolResult, isPending: isSavingResult } =
@@ -307,6 +310,61 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     }
   };
 
+  const handleAddQuestion = (partIndex: number) => {
+    if (examResult?.data?.parts[partIndex]) {
+      const currentQuestions = examResult.data.parts[partIndex].questions || [];
+      const newQuestionNumber = currentQuestions.length + 1;
+
+      let newQuestion: any = {
+        questionNumber: newQuestionNumber,
+        question: "",
+        difficultyLevel: "KNOWLEDGE",
+      };
+
+      // Create question based on part type
+      if (partIndex === 0) {
+        // Part 1 - Multiple Choice
+        newQuestion = {
+          ...newQuestion,
+          options: {
+            A: "",
+            B: "",
+            C: "",
+            D: "",
+          },
+          answer: "A",
+        };
+      } else if (partIndex === 1) {
+        // Part 2 - True/False
+        newQuestion = {
+          ...newQuestion,
+          statements: {
+            a: { text: "", answer: true },
+            b: { text: "", answer: false },
+            c: { text: "", answer: true },
+            d: { text: "", answer: false },
+          },
+        };
+      } else if (partIndex === 2) {
+        // Part 3 - Essay
+        newQuestion = {
+          ...newQuestion,
+          answer: "",
+        };
+      }
+
+      // Add the new question to the array
+      examResult.data.parts[partIndex].questions.push(newQuestion);
+
+      console.log(
+        `➕ Added new question ${newQuestionNumber} to part ${partIndex + 1}`
+      );
+
+      // Force re-render by updating a state
+      setQuestionContents((prev) => ({ ...prev }));
+    }
+  };
+
   const updateQuestionImage = (questionId: string, imageUrl: string | null) => {
     // Parse questionId to get part and question number
     const [part, questionNumber] = questionId.split("-");
@@ -344,7 +402,10 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     setShowConfirmSaveResult(true);
   };
 
-  const handleConfirmSave = (formData: { name: string; description?: string }) => {
+  const handleConfirmSave = (formData: {
+    name: string;
+    description?: string;
+  }) => {
     if (!examResult?.id) {
       toast.error("Không tìm thấy ID để lưu kết quả");
       return;
@@ -357,7 +418,9 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     if (updatedExamResult?.data?.parts) {
       updatedExamResult.data.parts.forEach((part: any, partIndex: number) => {
         part.questions?.forEach((question: any, questionIndex: number) => {
-          const questionKey = `part${partIndex + 1}-${question?.questionNumber || questionIndex}`;
+          const questionKey = `part${partIndex + 1}-${
+            question?.questionNumber || questionIndex
+          }`;
 
           // Update question content
           const questionContentKey = `${questionKey}-question`;
@@ -383,7 +446,8 @@ function ExamResultEditorTemplate({ examResult }: Props) {
               Object.keys(question.options).forEach((optionKey) => {
                 const optionContentKey = `${questionKey}-option-${optionKey}`;
                 if (answerContents[optionContentKey]) {
-                  question.options[optionKey] = answerContents[optionContentKey];
+                  question.options[optionKey] =
+                    answerContents[optionContentKey];
                 }
               });
             }
@@ -394,12 +458,17 @@ function ExamResultEditorTemplate({ examResult }: Props) {
               Object.keys(question.statements).forEach((statementKey) => {
                 const statementContentKey = `${questionKey}-statement-${statementKey}`;
                 if (answerContents[statementContentKey]) {
-                  question.statements[statementKey].text = answerContents[statementContentKey];
+                  question.statements[statementKey].text =
+                    answerContents[statementContentKey];
                 }
 
                 // Update true/false answers
-                if (trueFalseAnswers[questionKey] && trueFalseAnswers[questionKey][statementKey] !== undefined) {
-                  question.statements[statementKey].answer = trueFalseAnswers[questionKey][statementKey];
+                if (
+                  trueFalseAnswers[questionKey] &&
+                  trueFalseAnswers[questionKey][statementKey] !== undefined
+                ) {
+                  question.statements[statementKey].answer =
+                    trueFalseAnswers[questionKey][statementKey];
                 }
               });
             }
@@ -485,7 +554,15 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div>
         <div className="min-h-14 p-2 border-b-2 flex justify-between items-center">
-          <p className="font-calsans text-lg">{examResult?.name}</p>
+          <div className="flex justify-center items-center gap-2">
+            <p
+              onClick={() => router.back()}
+              className="border-r-2 pr-1 cursor-pointer"
+            >
+              Quay lại
+            </p>
+            <p className="font-calsans text-lg">{examResult?.name}</p>
+          </div>
           <Button onClick={handleSaveExam} disabled={isSavingResult}>
             {isSavingResult ? "Đang lưu..." : "Lưu"}
           </Button>
@@ -510,12 +587,23 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             {/* Part 1 - Multiple Choice */}
             {activePart === 1 && examResult?.data?.parts[0] && (
               <>
-                {examResult?.data?.parts[0]?.title && (
-                  <h2 className="text-xl font-calsans text-blue-700">
-                    <span>{examResult?.data?.parts[0]?.part}: </span>
-                    {examResult?.data?.parts[0]?.title}
-                  </h2>
-                )}
+                <div className="flex justify-between items-center mb-4">
+                  {examResult?.data?.parts[0]?.title && (
+                    <h2 className="text-xl font-calsans text-blue-700">
+                      <span>{examResult?.data?.parts[0]?.part}: </span>
+                      {examResult?.data?.parts[0]?.title}
+                    </h2>
+                  )}
+                  <Button
+                    onClick={() => handleAddQuestion(0)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Thêm câu hỏi
+                  </Button>
+                </div>
                 {examResult?.data?.parts[0]?.questions?.map(
                   (question: any, idx: number) => (
                     <div key={idx}>
@@ -600,28 +688,33 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                                           `part1-${
                                             question?.questionNumber || idx
                                           }`
-                                        ] === key || question?.answer === key
+                                        ] === key ||
+                                        (correctAnswers[
+                                          `part1-${
+                                            question?.questionNumber || idx
+                                          }`
+                                        ] === undefined &&
+                                          question?.answer === key)
                                       }
                                       onCheckedChange={(checked) => {
+                                        const questionKey = `part1-${
+                                          question?.questionNumber || idx
+                                        }`;
+
                                         if (checked) {
-                                          // Chỉ cho phép chọn 1 đáp án duy nhất
+                                          // Chỉ cho phép chọn 1 đáp án duy nhất - thay thế đáp án cũ
                                           setCorrectAnswers((prev) => ({
                                             ...prev,
-                                            [`part1-${
-                                              question?.questionNumber || idx
-                                            }`]: key,
+                                            [questionKey]: key,
                                           }));
                                         } else {
-                                          // Bỏ chọn đáp án hiện tại
-                                          setCorrectAnswers((prev) => {
-                                            const newAnswers = { ...prev };
-                                            delete newAnswers[
-                                              `part1-${
-                                                question?.questionNumber || idx
-                                              }`
-                                            ];
-                                            return newAnswers;
-                                          });
+                                          // Không cho phép bỏ chọn tất cả - phải có ít nhất 1 đáp án được chọn
+                                          // Nếu muốn cho phép bỏ chọn hoàn toàn, uncomment dòng dưới:
+                                          // setCorrectAnswers((prev) => {
+                                          //   const newAnswers = { ...prev };
+                                          //   delete newAnswers[questionKey];
+                                          //   return newAnswers;
+                                          // });
                                         }
                                       }}
                                     />
@@ -681,12 +774,23 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             {/* Part 2 - True/False */}
             {activePart === 2 && examResult?.data?.parts[1] && (
               <>
-                {examResult?.data?.parts[1]?.title && (
-                  <h2 className="text-xl font-calsans text-blue-700">
-                    <span>{examResult?.data?.parts[1]?.part}: </span>
-                    {examResult?.data?.parts[1]?.title}
-                  </h2>
-                )}
+                <div className="flex justify-between items-center mb-4">
+                  {examResult?.data?.parts[1]?.title && (
+                    <h2 className="text-xl font-calsans text-blue-700">
+                      <span>{examResult?.data?.parts[1]?.part}: </span>
+                      {examResult?.data?.parts[1]?.title}
+                    </h2>
+                  )}
+                  <Button
+                    onClick={() => handleAddQuestion(1)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Thêm câu hỏi
+                  </Button>
+                </div>
                 {examResult?.data?.parts[1]?.questions?.map(
                   (question: any, idx: number) => (
                     <div key={idx}>
@@ -799,43 +903,29 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                                               question?.questionNumber || idx
                                             }`
                                           ]?.[key] === true ||
-                                          value?.answer === true
+                                          (trueFalseAnswers[
+                                            `part2-${
+                                              question?.questionNumber || idx
+                                            }`
+                                          ]?.[key] === undefined &&
+                                            value?.answer === true)
                                         }
                                         onCheckedChange={(checked) => {
+                                          const questionKey = `part2-${
+                                            question?.questionNumber || idx
+                                          }`;
+
                                           if (checked) {
-                                            // Chọn "Đúng" - chỉ cho phép chọn 1 trong 2 (Đúng/Sai)
+                                            // Chọn "Đúng" - tự động set thành true
                                             setTrueFalseAnswers((prev) => ({
                                               ...prev,
-                                              [`part2-${
-                                                question?.questionNumber || idx
-                                              }`]: {
-                                                ...prev[
-                                                  `part2-${
-                                                    question?.questionNumber ||
-                                                    idx
-                                                  }`
-                                                ],
+                                              [questionKey]: {
+                                                ...prev[questionKey],
                                                 [key]: true,
                                               },
                                             }));
-                                          } else {
-                                            // Bỏ chọn "Đúng"
-                                            setTrueFalseAnswers((prev) => {
-                                              const newAnswers = { ...prev };
-                                              const questionKey = `part2-${
-                                                question?.questionNumber || idx
-                                              }`;
-                                              if (newAnswers[questionKey]) {
-                                                const newQuestionAnswers = {
-                                                  ...newAnswers[questionKey],
-                                                };
-                                                delete newQuestionAnswers[key];
-                                                newAnswers[questionKey] =
-                                                  newQuestionAnswers;
-                                              }
-                                              return newAnswers;
-                                            });
                                           }
+                                          // Không cho phép bỏ chọn - phải chọn Đúng hoặc Sai
                                         }}
                                       />
                                       <Label
@@ -859,43 +949,29 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                                               question?.questionNumber || idx
                                             }`
                                           ]?.[key] === false ||
-                                          value?.answer === false
+                                          (trueFalseAnswers[
+                                            `part2-${
+                                              question?.questionNumber || idx
+                                            }`
+                                          ]?.[key] === undefined &&
+                                            value?.answer === false)
                                         }
                                         onCheckedChange={(checked) => {
+                                          const questionKey = `part2-${
+                                            question?.questionNumber || idx
+                                          }`;
+
                                           if (checked) {
-                                            // Chọn "Sai" - chỉ cho phép chọn 1 trong 2 (Đúng/Sai)
+                                            // Chọn "Sai" - tự động set thành false
                                             setTrueFalseAnswers((prev) => ({
                                               ...prev,
-                                              [`part2-${
-                                                question?.questionNumber || idx
-                                              }`]: {
-                                                ...prev[
-                                                  `part2-${
-                                                    question?.questionNumber ||
-                                                    idx
-                                                  }`
-                                                ],
+                                              [questionKey]: {
+                                                ...prev[questionKey],
                                                 [key]: false,
                                               },
                                             }));
-                                          } else {
-                                            // Bỏ chọn "Sai"
-                                            setTrueFalseAnswers((prev) => {
-                                              const newAnswers = { ...prev };
-                                              const questionKey = `part2-${
-                                                question?.questionNumber || idx
-                                              }`;
-                                              if (newAnswers[questionKey]) {
-                                                const newQuestionAnswers = {
-                                                  ...newAnswers[questionKey],
-                                                };
-                                                delete newQuestionAnswers[key];
-                                                newAnswers[questionKey] =
-                                                  newQuestionAnswers;
-                                              }
-                                              return newAnswers;
-                                            });
                                           }
+                                          // Không cho phép bỏ chọn - phải chọn Đúng hoặc Sai
                                         }}
                                       />
                                       <Label
@@ -933,12 +1009,23 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             {/* Part 3 - Essay Questions */}
             {activePart === 3 && examResult?.data?.parts[2] && (
               <>
-                {examResult?.data?.parts[2]?.title && (
-                  <h2 className="text-xl font-calsans text-blue-700">
-                    <span>{examResult?.data?.parts[2]?.part}: </span>
-                    {examResult?.data?.parts[2]?.title}
-                  </h2>
-                )}
+                <div className="flex justify-between items-center mb-4">
+                  {examResult?.data?.parts[2]?.title && (
+                    <h2 className="text-xl font-calsans text-blue-700">
+                      <span>{examResult?.data?.parts[2]?.part}: </span>
+                      {examResult?.data?.parts[2]?.title}
+                    </h2>
+                  )}
+                  <Button
+                    onClick={() => handleAddQuestion(2)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Thêm câu hỏi
+                  </Button>
+                </div>
                 {examResult?.data?.parts[2]?.questions?.map(
                   (question: any, idx: number) => (
                     <div key={idx}>
