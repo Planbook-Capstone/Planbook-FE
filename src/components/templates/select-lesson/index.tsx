@@ -4,7 +4,7 @@ import CurriculumList from "@/components/organisms/curriculum";
 
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
-import { useBooksBySubjectService } from "@/services/bookServices";
+import { useBookActiveBySubjectService } from "@/services/bookServices";
 import { useState, useEffect } from "react";
 import BookSelector from "@/components/molecules/book-selector";
 import { useHeader } from "@/contexts/HeaderContext";
@@ -37,13 +37,16 @@ function SelectLesson({
   const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
     enabled: !!selectedGrade, // Only call when grade is selected
   });
-  const { data: books } = useBooksBySubjectService(selectedSubject, {
-    enabled: !!selectedSubject, // Only call when subject is selected
-  });
+  const { data: books } = useBookActiveBySubjectService(
+    selectedSubject,
+    "ACTIVE",
+    {
+      enabled: !!selectedSubject, // Only call when subject is selected
+    }
+  );
 
   // Handle grade selection
   const handleGradeChange = (value: string) => {
-    console.log("Selected grade:", value);
     setSelectedGrade(value);
     // Reset dependent selections
     setSelectedSubject("");
@@ -52,7 +55,6 @@ function SelectLesson({
 
   // Handle subject selection
   const handleSubjectChange = (value: string) => {
-    console.log("Selected subject:", value);
     setSelectedSubject(value);
     // Reset dependent selections
     setSelectedBook("");
@@ -60,13 +62,11 @@ function SelectLesson({
 
   // Handle book selection
   const handleBookChange = (value: string) => {
-    console.log("Selected book:", value);
     setSelectedBook(value);
   };
 
   // Handle lesson selection
   const handleLessonSelectInternal = (lessonId: string) => {
-    console.log("Selected lesson:", lessonId);
     onLessonSelect(lessonId);
   };
 

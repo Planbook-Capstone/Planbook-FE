@@ -26,11 +26,30 @@ import { toast } from "sonner";
 const parseHtmlText = (text: string, fontSize: number): TextRun[] => {
   if (!text) return [];
 
+  // First, clean up malformed HTML tags
+  let cleanText = text
+    // Fix malformed sub tags with class attributes
+    .replace(/<sub\s+class="[^"]*">/g, '<sub>')
+    .replace(/<\/sub>/g, '</sub>')
+    // Fix malformed sup tags with class attributes
+    .replace(/<sup\s+class="[^"]*">/g, '<sup>')
+    .replace(/<\/sup>/g, '</sup>')
+    // Fix malformed p tags
+    .replace(/<p>/g, '')
+    .replace(/<\/p>/g, '')
+    // Fix any other malformed tags with attributes
+    .replace(/<(sub|sup|b|strong)\s+[^>]*>/g, '<$1>')
+    // Remove any remaining HTML tags that we don't support
+    .replace(/<[^>]+>/g, '');
+
+  console.log("🔧 Original text:", text);
+  console.log("🔧 Cleaned text:", cleanText);
+
   const runs: TextRun[] = [];
   const regex = /<(sub|sup|b|strong)>(.*?)<\/\1>|([^<]+)/g;
   let match;
 
-  while ((match = regex.exec(text)) !== null) {
+  while ((match = regex.exec(cleanText)) !== null) {
     if (match[1] && match[2]) {
       // HTML tag found
       const tag = match[1];
@@ -72,7 +91,7 @@ const parseHtmlText = (text: string, fontSize: number): TextRun[] => {
     }
   }
 
-  return runs.length > 0 ? runs : [new TextRun({ text, size: fontSize })];
+  return runs.length > 0 ? runs : [new TextRun({ text: cleanText, size: fontSize })];
 };
 
 /**
