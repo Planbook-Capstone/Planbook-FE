@@ -91,10 +91,10 @@ export const useLessonPlanData = ({
       // Set the data
       setDemoData(convertedData);
 
-      // Also set to finalData with a default step
-      setFinalData({
-        existing: convertedData,
-      });
+      // In edit mode, don't set finalData to avoid conflicts with getAllFinalData
+      // The getAllFinalData function will use demoData directly
+      console.log("🔄 Edit mode: Using demoData directly, not setting finalData");
+      console.log("🔍 Edit mode demoData count:", convertedData.length);
     }
   }, [mode, existingData?.data]); // ✅ Watch for changes in existingData.data specifically
 
