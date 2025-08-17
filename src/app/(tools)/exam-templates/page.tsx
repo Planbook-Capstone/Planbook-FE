@@ -95,17 +95,6 @@ function ExamTemplatesPageContent() {
       return matchesSearch && matchesSubject;
     }) || [];
 
-  // Get unique subjects for filter dropdown
-  const uniqueSubjects: string[] = templates?.data
-    ? Array.from(
-        new Set(
-          templates.data.map(
-            (template: ExamTemplate) => template.subject as string
-          )
-        )
-      ).sort()
-    : [];
-
   const handleCreateTemplate = () => {
     setShowCreationModal(true);
   };
@@ -283,7 +272,7 @@ function ExamTemplatesPageContent() {
             />
           </div>
 
-          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+          {/* <Select value={selectedSubject} onValueChange={setSelectedSubject}>
             <SelectTrigger className="w-[200px] rounded-full">
               <SelectValue placeholder="Tất cả môn học" />
             </SelectTrigger>
@@ -295,7 +284,7 @@ function ExamTemplatesPageContent() {
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>
+          </Select> */}
         </div>
         <Button onClick={handleCreateTemplate} className="bg-neutral-900">
           <Plus className="h-4 w-4 mr-2" />
@@ -333,7 +322,7 @@ function ExamTemplatesPageContent() {
         isOpen={showDeleteDialog}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Xác nhận xóa template"
+        title="Xác nhận xóa mẫu đề "
         itemName={
           templateToDelete
             ? templates?.data?.find(

@@ -5,6 +5,10 @@ import {
   useDeleteToolResultService,
 } from "@/services/toolResultService";
 import { useDeleteMaterialService } from "@/services/materialServices";
+import {
+  useExamTemplatesService,
+  useDeleteExamTemplateService,
+} from "@/services/examTemplateServices";
 import DocumentItem from "@/components/molecules/document-item";
 import { getLibraryTypeName } from "@/constants";
 import {
@@ -37,7 +41,7 @@ function MyLibraryDetail({ params }: Props) {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(13);
+  const [pageSize] = useState(15);
 
   // Modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -48,13 +52,14 @@ function MyLibraryDetail({ params }: Props) {
     setCurrentPage(0);
   }, [id]);
 
+  // Conditionally use different services based on id
   const {
     data: toolResults,
     refetch,
     isLoading,
   } = useToolResultsWithParamsService(
     [id, currentPage, pageSize], // dependencies for query key
-    { retry: 1, staleTime: 0 }, // options
+    { retry: 1, staleTime: 0, enabled: id !== "QUIZ" }, // options - disable for QUIZ
     {
       userId: user?.id,
       page: currentPage + 1,
@@ -65,11 +70,20 @@ function MyLibraryDetail({ params }: Props) {
     }
   );
 
-  // Delete service
+  // Use exam templates service for QUIZ
+  const {
+    data: templates,
+    isLoading: isLoadingTemplates,
+    refetch: refetchTemplates,
+  } = useExamTemplatesService();
+
+  // Delete services
   const { mutate: deleteToolResult, isPending: isDeleting } =
     useDeleteToolResultService();
   const { mutate: deleteMaterial, isPending: isDeletingMaterial } =
     useDeleteMaterialService();
+  const { mutate: deleteExamTemplate, isPending: isDeletingTemplate } =
+    useDeleteExamTemplateService();
 
   const handlePageChange = (page: number) => {
     // Update current page state - this will trigger refetch automatically
@@ -85,23 +99,45 @@ function MyLibraryDetail({ params }: Props) {
   // Handle confirm delete
   const handleConfirmDelete = () => {
     if (itemToDelete?.id) {
-      deleteToolResult(itemToDelete.id, {
-        onSuccess: () => {
-          // Close modal and reset state
-          setShowConfirmModal(false);
-          setItemToDelete(null);
+      if (id === "QUIZ") {
+        // Delete exam template
+        deleteExamTemplate(itemToDelete.id, {
+          onSuccess: () => {
+            // Close modal and reset state
+            setShowConfirmModal(false);
+            setItemToDelete(null);
 
-          // Refetch data to update the list
-          refetch();
+            // Refetch data to update the list
+            currentRefetch();
 
-          // Show success message
-          toast.success("Xóa tài liệu thành công!");
-        },
-        onError: (error) => {
-          console.error("Error deleting item:", error);
-          toast.error("Có lỗi xảy ra khi xóa tài liệu");
-        },
-      });
+            // Show success message
+            toast.success("Xóa template thành công!");
+          },
+          onError: (error) => {
+            console.error("Error deleting template:", error);
+            toast.error("Có lỗi xảy ra khi xóa template");
+          },
+        });
+      } else {
+        // Delete tool result
+        deleteToolResult(itemToDelete.id, {
+          onSuccess: () => {
+            // Close modal and reset state
+            setShowConfirmModal(false);
+            setItemToDelete(null);
+
+            // Refetch data to update the list
+            currentRefetch();
+
+            // Show success message
+            toast.success("Xóa tài liệu thành công!");
+          },
+          onError: (error) => {
+            console.error("Error deleting item:", error);
+            toast.error("Có lỗi xảy ra khi xóa tài liệu");
+          },
+        });
+      }
     }
   };
 
@@ -128,11 +164,20 @@ function MyLibraryDetail({ params }: Props) {
 
   // Handle click on tool result item
   const handleItemClick = (item: any) => {
-    // For other types, you can add different handling here
-    router.push(`/my-library/file/${item.id}`);
+    if (id === "QUIZ") {
+      // For QUIZ items (exam templates), navigate to exam template editor
+      router.push(`/exam-templates/${item.id}`);
+    } else {
+      // For other types, navigate to the file viewer
+      router.push(`/my-library/file/${item.id}`);
+    }
   };
 
-  if (isLoading) {
+  // Determine which loading state and refetch function to use
+  const currentIsLoading = id === "QUIZ" ? isLoadingTemplates : isLoading;
+  const currentRefetch = id === "QUIZ" ? refetchTemplates : refetch;
+
+  if (currentIsLoading) {
     return (
       <>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
@@ -150,16 +195,18 @@ function MyLibraryDetail({ params }: Props) {
   if (id === "OTHER") {
     return (
       <>
-        <InternalMaterial
-          deleteMaterial={handleDeleteMaterial}
-        />
+        <InternalMaterial deleteMaterial={handleDeleteMaterial} />
       </>
     );
   }
 
   return (
     <div>
-      {toolResults?.data?.content?.length === 0 && (
+      {/* Handle empty state for both data sources */}
+      {((id === "QUIZ" && (!templates?.data || templates.data.length === 0)) ||
+        (id !== "QUIZ" &&
+          (!toolResults?.data?.content ||
+            toolResults.data.content.length === 0))) && (
         <div className="text-center py-12">
           <div className="w-56 h-56 mx-auto mb-4">{NoneExamIcon}</div>
           <h3 className="text-2xl font-calsans text-gray-900 mb-2">
@@ -171,168 +218,193 @@ function MyLibraryDetail({ params }: Props) {
         </div>
       )}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        {toolResults?.data?.content?.map((data: any, index: number) => (
-          <div key={index} className="col-span-1 cursor-pointer">
-            <DocumentItem
-              type={data?.type == "SLIDE" ? "PPTX" : "DOCX"}
-              name={data?.name}
-              description={data?.description}
-              lastModifiedTime={new Date(data?.updatedAt).toLocaleString(
-                "vi-VN",
-                {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                }
-              )}
-              onRemove={() => handleRemoveClick(data)}
-              onClick={() => handleItemClick(data)}
-            />
-          </div>
-        ))}
-      </div>
-      {/* Pagination using shadcn/ui */}
-      {toolResults?.data && toolResults.data.totalPages > 1 && (
-        <div className="float-end space-y-4">
-          {/* Pagination */}
-          <Pagination className="!text-black">
-            <PaginationContent className="!text-black">
-              {/* Previous Button */}
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage > 0) {
-                      handlePageChange(currentPage - 1);
-                    }
-                  }}
-                  className={
-                    currentPage === 0
-                      ? "!text-black pointer-events-none opacity-50"
-                      : "!text-black hover:!text-black"
-                  }
+        {/* Render data based on the type */}
+        {id === "QUIZ"
+          ? templates?.data?.map((data: any, index: number) => (
+              <div key={index} className="col-span-1 cursor-pointer">
+                <DocumentItem
+                  type="DOCX"
+                  name={data?.name}
+                  description={data?.subject || data?.description}
+                  lastModifiedTime={new Date(
+                    data?.updatedAt || data?.createdAt
+                  ).toLocaleString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
+                  onRemove={() => handleRemoveClick(data)}
+                  onClick={() => handleItemClick(data)}
                 />
-              </PaginationItem>
+              </div>
+            ))
+          : toolResults?.data?.content?.map((data: any, index: number) => (
+              <div key={index} className="col-span-1 cursor-pointer">
+                <DocumentItem
+                  type={data?.type == "SLIDE" ? "PPTX" : "DOCX"}
+                  name={data?.name}
+                  description={data?.description}
+                  lastModifiedTime={new Date(data?.updatedAt).toLocaleString(
+                    "vi-VN",
+                    {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    }
+                  )}
+                  onRemove={() => handleRemoveClick(data)}
+                  onClick={() => handleItemClick(data)}
+                />
+              </div>
+            ))}
+      </div>
+      {/* Pagination using shadcn/ui - only show for toolResults, not for templates */}
+      {id !== "QUIZ" &&
+        toolResults?.data &&
+        toolResults.data.totalPages > 1 && (
+          <div className="float-end space-y-4">
+            {/* Pagination */}
+            <Pagination className="!text-black">
+              <PaginationContent className="!text-black">
+                {/* Previous Button */}
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 0) {
+                        handlePageChange(currentPage - 1);
+                      }
+                    }}
+                    className={
+                      currentPage === 0
+                        ? "!text-black pointer-events-none opacity-50"
+                        : "!text-black hover:!text-black"
+                    }
+                  />
+                </PaginationItem>
 
-              {/* Page Numbers */}
-              {(() => {
-                const totalPages = toolResults.data.totalPages;
-                const pages = [];
+                {/* Page Numbers */}
+                {(() => {
+                  const totalPages = toolResults.data.totalPages;
+                  const pages = [];
 
-                // Show first page
-                if (totalPages > 0) {
-                  pages.push(
-                    <PaginationItem key={0}>
-                      <PaginationLink
-                        href="#"
-                        isActive={currentPage === 0}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage !== 0) {
-                            handlePageChange(0);
-                          }
-                        }}
-                        className="!text-black hover:text-black"
-                      >
-                        1
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                }
-
-                // Show ellipsis if needed
-                if (currentPage > 2) {
-                  pages.push(
-                    <PaginationItem key="ellipsis-start">
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  );
-                }
-
-                // Show pages around current page
-                const start = Math.max(1, currentPage - 1);
-                const end = Math.min(totalPages - 1, currentPage + 1);
-
-                for (let i = start; i <= end; i++) {
-                  if (i !== 0 && i !== totalPages - 1) {
+                  // Show first page
+                  if (totalPages > 0) {
                     pages.push(
-                      <PaginationItem key={i}>
+                      <PaginationItem key={0}>
                         <PaginationLink
                           href="#"
-                          isActive={currentPage === i}
+                          isActive={currentPage === 0}
                           onClick={(e) => {
                             e.preventDefault();
-                            if (currentPage !== i) {
-                              handlePageChange(i);
+                            if (currentPage !== 0) {
+                              handlePageChange(0);
                             }
                           }}
                           className="!text-black hover:text-black"
                         >
-                          {i + 1}
+                          1
                         </PaginationLink>
                       </PaginationItem>
                     );
                   }
-                }
 
-                // Show ellipsis if needed
-                if (currentPage < totalPages - 3) {
-                  pages.push(
-                    <PaginationItem key="ellipsis-end">
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  );
-                }
-
-                // Show last page (if different from first)
-                if (totalPages > 1) {
-                  pages.push(
-                    <PaginationItem key={totalPages - 1}>
-                      <PaginationLink
-                        href="#"
-                        isActive={currentPage === totalPages - 1}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage !== totalPages - 1) {
-                            handlePageChange(totalPages - 1);
-                          }
-                        }}
-                        className="!text-black hover:text-black"
-                      >
-                        {totalPages}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                }
-
-                return pages;
-              })()}
-
-              {/* Next Button */}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage < toolResults.data.totalPages - 1) {
-                      handlePageChange(currentPage + 1);
-                    }
-                  }}
-                  className={
-                    currentPage >= toolResults.data.totalPages - 1
-                      ? "!text-black pointer-events-none opacity-50"
-                      : "!text-black hover:!text-black"
+                  // Show ellipsis if needed
+                  if (currentPage > 2) {
+                    pages.push(
+                      <PaginationItem key="ellipsis-start">
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
                   }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      )}
+
+                  // Show pages around current page
+                  const start = Math.max(1, currentPage - 1);
+                  const end = Math.min(totalPages - 1, currentPage + 1);
+
+                  for (let i = start; i <= end; i++) {
+                    if (i !== 0 && i !== totalPages - 1) {
+                      pages.push(
+                        <PaginationItem key={i}>
+                          <PaginationLink
+                            href="#"
+                            isActive={currentPage === i}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage !== i) {
+                                handlePageChange(i);
+                              }
+                            }}
+                            className="!text-black hover:text-black"
+                          >
+                            {i + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+                  }
+
+                  // Show ellipsis if needed
+                  if (currentPage < totalPages - 3) {
+                    pages.push(
+                      <PaginationItem key="ellipsis-end">
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+
+                  // Show last page (if different from first)
+                  if (totalPages > 1) {
+                    pages.push(
+                      <PaginationItem key={totalPages - 1}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === totalPages - 1}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage !== totalPages - 1) {
+                              handlePageChange(totalPages - 1);
+                            }
+                          }}
+                          className="!text-black hover:text-black"
+                        >
+                          {totalPages}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+
+                  return pages;
+                })()}
+
+                {/* Next Button */}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < toolResults.data.totalPages - 1) {
+                        handlePageChange(currentPage + 1);
+                      }
+                    }}
+                    className={
+                      currentPage >= toolResults.data.totalPages - 1
+                        ? "!text-black pointer-events-none opacity-50"
+                        : "!text-black hover:!text-black"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmDialog
@@ -341,7 +413,7 @@ function MyLibraryDetail({ params }: Props) {
         onConfirm={handleConfirmDelete}
         title="Xác nhận xóa tài liệu"
         itemName={itemToDelete?.name}
-        isLoading={isDeleting}
+        isLoading={id === "QUIZ" ? isDeletingTemplate : isDeleting}
       />
     </div>
   );
