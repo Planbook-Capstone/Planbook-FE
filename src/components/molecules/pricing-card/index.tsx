@@ -1,5 +1,7 @@
+"use client"
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 export type PricingCardProps = {
   id: string;
@@ -33,6 +35,7 @@ export const PricingCard = ({
     // Glass effect for badges too
     return "bg-white/20 backdrop-blur-sm text-white border border-white/30";
   };
+  const router = useRouter();
 
   return (
     <div
@@ -69,7 +72,7 @@ export const PricingCard = ({
       <div className="mt-12">
         {/* Title */}
         <h3 className="text-4xl md:text-5xl font-calsans mb-6 leading-tight">
-          {name}
+          {name.toUpperCase()}
         </h3>
 
         {/* Description */}
@@ -108,7 +111,10 @@ export const PricingCard = ({
         <p className="text-sm opacity-80 leading-relaxed">{buttonSubtext}</p>
 
         {/* Button */}
-        <Button className="w-full h-12 text-base rounded-full font-medium transition-all bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm">
+        <Button
+          onClick={() => router.push("/pricing")}
+          className="w-full h-12 text-base rounded-full font-medium transition-all bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
+        >
           {buttonText}
         </Button>
       </div>
