@@ -3,8 +3,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { TemplateSelector } from "@/components/organisms/template-selector";
 import { CreateInstanceForm } from "@/components/organisms/create-instance-form";
@@ -21,9 +19,7 @@ import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/config/axios";
 import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
-import {
-  NoneExamIcon,
-} from "@/constants/icon";
+import { NoneExamIcon } from "@/constants/icon";
 import ExamInstanceTable from "@/components/organisms/table-exam-instance";
 
 interface TemplateInfo {
@@ -62,7 +58,8 @@ export default function ExamInstancesPage() {
   const [step, setStep] = useState<"select-template" | "create-form">(
     "select-template"
   );
-  const [statusChangeConfirm, setStatusChangeConfirm] = useState<StatusChangeConfirm | null>(null);
+  const [statusChangeConfirm, setStatusChangeConfirm] =
+    useState<StatusChangeConfirm | null>(null);
 
   // API hooks
   const {
@@ -351,7 +348,9 @@ export default function ExamInstancesPage() {
                 disabled={changingStatus === statusChangeConfirm.instance.id}
                 className="bg-orange-600 hover:bg-orange-700"
               >
-                {changingStatus === statusChangeConfirm.instance.id ? "Đang xử lý..." : "Xác nhận"}
+                {changingStatus === statusChangeConfirm.instance.id
+                  ? "Đang xử lý..."
+                  : "Xác nhận"}
               </Button>
             </div>
           </div>

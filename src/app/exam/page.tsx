@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FileText, ArrowRight, HelpCircle, Clock, Users } from "lucide-react";
+import Squares from "@/components/ui/Squares";
 
 export default function ExamEntryPage() {
   const router = useRouter();
@@ -37,38 +38,26 @@ export default function ExamEntryPage() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Video Background - Cloudinary với URL đúng */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        className="absolute inset-0 w-full h-full object-cover z-0"
-        style={{ pointerEvents: "none" }}
-      >
-        <source
-          src="https://res.cloudinary.com/dpo0ad3aq/video/upload/Typography_02_zq3bam.mp4"
-          type="video/mp4"
+      {/* Squares Background */}
+      <div className="absolute inset-0 z-0">
+        <Squares
+          direction="diagonal"
+          speed={0.5}
+          borderColor="grey"
+          squareSize={100}
+          hoverFillColor="rgba(200, 200, 200, 0.5)"
         />
-        <source
-          src="https://res.cloudinary.com/dpo0ad3aq/video/upload/f_webm,q_auto/Typography_02_zq3bam.webm"
-          type="video/webm"
-        />
-      </video>
+      </div>
 
       {/* Overlay để làm mờ video */}
       <div className="absolute inset-0 bg-black/20 z-10"></div>
 
       {/* Content wrapper */}
-      <div className="relative z-20 w-full">
+      <div className="relative z-50 w-full">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto space-y-8">
             {/* Header */}
             <div className="text-center space-y-4">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                <FileText className="w-10 h-10 text-blue-600" />
-              </div>
               <h1 className="text-4xl font-bold text-white">Thi trực tuyến</h1>
               <p className="text-xl text-white/80">
                 Nhập mã đề thi để bắt đầu làm bài
@@ -76,20 +65,20 @@ export default function ExamEntryPage() {
             </div>
 
             {/* Main Form */}
-            <Card className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
+            <Card className="bg-white backdrop-blur-md border border-white/20 shadow-xl">
               <CardHeader>
-                <CardTitle className="text-2xl text-center text-white">
+                <CardTitle className="text-2xl text-center tex">
                   Nhập mã đề thi
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-base font-medium text-white">
+                    <label className="text-base font-medium tex">
                       Mã đề thi *
                     </label>
                     <Input
-                      className="text-lg h-14 text-center font-mono tracking-wider bg-white/20 border-white/30 text-white placeholder:text-white/60"
+                      className="font-questrial text-lg h-14 text-center tracking-wider bg-white/20 border-black  placeholder:tex/60"
                       style={{ textTransform: "uppercase" }}
                       placeholder="Nhập mã đề thi (VD: ABC123)"
                       value={examCode}
@@ -113,9 +102,9 @@ export default function ExamEntryPage() {
             </Card>
 
             {/* Instructions */}
-            <Card className="bg-blue-100/20 backdrop-blur-md border border-blue-300/30 shadow-xl">
+            <Card className=" bg-blue-100/20 backdrop-blur-md border border-blue-300/30 shadow-xl">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2 text-white">
+                <CardTitle className="text-lg flex items-center gap-2 tex">
                   <HelpCircle className="w-5 h-5 text-white" />
                   Hướng dẫn sử dụng
                 </CardTitle>
