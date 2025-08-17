@@ -87,7 +87,7 @@ export default function ExamCreationModal({
                 để tạo các đề thi khác nhau.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Import từ DOCX */}
                 <div
                   className="overflow-hidden relative rounded-lg p-10 group hover:shadow-md transition-all cursor-pointer flex flex-col items-start justify-end text-center aspect-[4/3] w-full"

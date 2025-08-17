@@ -24,7 +24,7 @@ export const trashsColumns = (
       accessorKey: "type",
       header: "Loại tài liệu ",
       cell: ({ row }) => {
-        const fileType = row.original.type === "SLIDE_GENERATOR" ? "PPTX" : "DOCX";
+        const fileType = row.original.type === "SLIDE" ? "PPTX" : "DOCX";
         return (
           <div className="font-medium text-gray-900 font-questrial">
             <FileIcon type={fileType} size={"default"} />

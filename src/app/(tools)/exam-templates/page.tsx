@@ -219,13 +219,17 @@ function ExamTemplatesPageContent() {
     importExam(formData, {
       onSuccess: (response) => {
         console.log("Exam import successful:", response?.data?.warnings);
-        toast.error(response?.data?.warnings, {
-          style: {
-            background: "#fca5a5", // đỏ Tailwind red-600
-            color: "black",
-            border: "1px solid #b91c1c",
-          },
-        });
+        if (response?.data?.warnings.length > 0) {
+          toast.error(response?.data?.warnings, {
+            style: {
+              background: "#fca5a5", // đỏ Tailwind red-600
+              color: "black",
+              border: "1px solid #b91c1c",
+            },
+          });
+        } else {
+          toast.success("Import đề thi thành công!");
+        }
 
         // Store imported data in context
         setExamFromApiResponse(response);
