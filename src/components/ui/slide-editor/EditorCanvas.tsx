@@ -6,6 +6,7 @@ import TextElement from "./TextElement";
 import ImageElement from "./ImageElement";
 import VideoElement from "./VideoElement";
 import ShapeElement from "./ShapeElement";
+import { TableEditor } from "./TableEditor";
 import AlignmentGuides from "./AlignmentGuides";
 import AlignmentToolbar from "./AlignmentToolbar";
 import ContextMenu from "./ContextMenu";
@@ -412,6 +413,17 @@ export default function EditorCanvas({
             otherElements={elements.filter((el) => el.id !== element.id)}
             onSnapUpdate={setAlignmentGuides}
             onContextMenu={handleContextMenu}
+          />
+        );
+      case "table":
+        return (
+          <TableEditor
+            key={element.id}
+            element={element as any}
+            isSelected={selectedElementId === element.id}
+            onSelect={() => handleSelectElement(element.id)}
+            onUpdate={(updates) => onUpdateElement(element.id, updates)}
+            onDelete={() => onDeleteElement(element.id)}
           />
         );
       default:

@@ -456,6 +456,151 @@ export default function SlidePresentation({
       }
     }
 
+    if (element.type === "table") {
+      const tableElement = element as any;
+      const {
+        headers,
+        rows,
+        columnWidths = [],
+        rowHeights = [],
+        style: tableStyle = {},
+        cellStyles = {},
+        rowStyles = {},
+      } = tableElement;
+
+      const {
+        borderColor = "#000000",
+        borderWidth = 1,
+        headerBackgroundColor = "#f3f4f6",
+        cellBackgroundColor = "#ffffff",
+        textColor = "#000000",
+        fontSize = 14,
+        fontFamily = "Arial, sans-serif",
+        textAlign = "center",
+      } = tableStyle;
+
+      // Calculate column widths
+      const defaultColumnWidth = element.width / headers.length;
+      const actualColumnWidths = headers.map(
+        (_: any, index: number) => columnWidths[index] || defaultColumnWidth
+      );
+
+      // Calculate row heights
+      const defaultRowHeight = 40;
+      const actualRowHeights = [
+        defaultRowHeight,
+        ...rows.map(
+          (_: any, index: number) => rowHeights[index] || defaultRowHeight
+        ),
+      ];
+
+      // Get cell style function
+      const getCellStyle = (rowIndex: number, colIndex: number) => {
+        const cellKey = `${rowIndex}-${colIndex}`;
+        const cellStyle = cellStyles[cellKey] || {};
+        const rowStyle = rowStyles[rowIndex] || {};
+
+        return {
+          backgroundColor:
+            cellStyle.backgroundColor ||
+            rowStyle.backgroundColor ||
+            cellBackgroundColor,
+          color: cellStyle.textColor || rowStyle.textColor || textColor,
+          fontSize: `${
+            (cellStyle.fontSize || rowStyle.fontSize || fontSize) *
+            getScaleFactor()
+          }px`,
+          fontWeight: cellStyle.fontWeight || rowStyle.fontWeight || "normal",
+          textAlign: cellStyle.textAlign || textAlign,
+        };
+      };
+
+      return (
+        <div
+          key={element.id}
+          style={{
+            ...style,
+            fontSize: `${fontSize * getScaleFactor()}px`,
+            fontFamily,
+            color: textColor,
+            overflow: "hidden", // Prevent table overflow
+          }}
+        >
+          <table
+            style={{
+              width: "100%",
+              height: "100%",
+              borderCollapse: "collapse",
+              borderColor,
+              borderWidth,
+              tableLayout: "fixed", // Fixed layout for better control
+              fontSize: `${fontSize * getScaleFactor() * 0.8}px`, // Smaller font
+            }}
+          >
+            {/* Table Header */}
+            {headers.length > 0 && (
+              <thead>
+                <tr style={{ height: actualRowHeights[0] * getScaleFactor() }}>
+                  {headers.map((header: string, index: number) => (
+                    <th
+                      key={index}
+                      style={{
+                        border: `${borderWidth}px solid ${borderColor}`,
+                        backgroundColor: headerBackgroundColor,
+                        textAlign,
+                        padding: `${4 * getScaleFactor()}px ${
+                          2 * getScaleFactor()
+                        }px`,
+                        fontWeight: "bold",
+                        width: actualColumnWidths[index] * getScaleFactor(),
+                        fontSize: `${fontSize * getScaleFactor() * 0.7}px`,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+
+            {/* Table Body */}
+            <tbody>
+              {rows.map((row: string[], rowIndex: number) => (
+                <tr
+                  key={rowIndex}
+                  style={{
+                    height: actualRowHeights[rowIndex + 1] * getScaleFactor(),
+                  }}
+                >
+                  {row.map((cell: string, cellIndex: number) => (
+                    <td
+                      key={cellIndex}
+                      style={{
+                        border: `${borderWidth}px solid ${borderColor}`,
+                        padding: `${4 * getScaleFactor()}px ${
+                          2 * getScaleFactor()
+                        }px`,
+                        width: actualColumnWidths[cellIndex] * getScaleFactor(),
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        ...getCellStyle(rowIndex, cellIndex),
+                      }}
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
     return null;
   };
 
