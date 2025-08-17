@@ -175,16 +175,6 @@ function OrderDetailModal({ order, open, onClose }: OrderDetailModalProps) {
           <Button variant="dash" onClick={onClose}>
             Đóng
           </Button>
-          {order.status === "PENDING" && (
-            <>
-              <Button variant="outline" onClick={onClose}>
-                Thanh toán lại
-              </Button>
-              <Button variant="destructive" onClick={onClose}>
-                Hủy đơn hàng
-              </Button>
-            </>
-          )}
         </div>
       </SheetContent>
     </Sheet>
