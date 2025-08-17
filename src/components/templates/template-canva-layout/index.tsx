@@ -45,6 +45,7 @@ export function TemplateCanvaLayoutContent() {
   const [canvasElements, setCanvasElements] = useState<CanvasElement[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isScoreConfirmModalOpen, setIsScoreConfirmModalOpen] = useState(false);
 
   const pathname = usePathname();
 
@@ -140,6 +141,45 @@ export function TemplateCanvaLayoutContent() {
     setIsPreviewModalOpen(false);
   };
 
+  // Function to calculate total score
+  const calculateTotalScore = () => {
+    const scoringConfig = templateMetadata?.scoringConfig;
+
+    if (scoringConfig && !scoringConfig.useStandardScoring) {
+      // Tùy chỉnh
+      const part1Score = examQuestions.length * scoringConfig.part1Score;
+      const part2Score =
+        examYesNoQuestions.length *
+        (scoringConfig.part2ScoringType === "standard"
+          ? 1.0
+          : scoringConfig.part2ScoringType === "auto"
+          ? scoringConfig.part2CustomScore
+          : scoringConfig.part2ManualScores[4]);
+      const part3Score = examShortQuestions.length * scoringConfig.part3Score;
+      return part1Score + part2Score + part3Score;
+    } else {
+      // Chuẩn: Phần 1 = 0.25, Phần 2 = 1.0, Phần 3 = 0.25
+      return (
+        examQuestions.length * 0.25 +
+        examYesNoQuestions.length * 1.0 +
+        examShortQuestions.length * 0.25
+      );
+    }
+  };
+
+  const handleOpenScoreConfirmModal = () => {
+    setIsScoreConfirmModalOpen(true);
+  };
+
+  const handleCloseScoreConfirmModal = () => {
+    setIsScoreConfirmModalOpen(false);
+  };
+
+  const handleConfirmSaveWithLowScore = () => {
+    setIsScoreConfirmModalOpen(false);
+    performSaveTemplate();
+  };
+
   const handleResetData = () => {
     const confirmed = window.confirm(
       "Bạn có chắc chắn muốn xóa tất cả dữ liệu? Hành động này không thể hoàn tác."
@@ -153,6 +193,23 @@ export function TemplateCanvaLayoutContent() {
   };
 
   const handleSaveTemplate = () => {
+    if (!templateMetadata) {
+      toast.error("Thông tin template chưa được thiết lập!");
+      return;
+    }
+
+    // Check total score before saving
+    const totalScore = calculateTotalScore();
+    if (totalScore < 10) {
+      handleOpenScoreConfirmModal();
+      return;
+    }
+
+    // If score is sufficient, save directly
+    performSaveTemplate();
+  };
+
+  const performSaveTemplate = () => {
     if (!templateMetadata) {
       toast.error("Thông tin template chưa được thiết lập!");
       return;
@@ -324,6 +381,7 @@ export function TemplateCanvaLayoutContent() {
           onSuccess: () => {
             toast.success("Đề thi đã được cập nhật thành công!");
             markAsSaved();
+            router.push("/exam-templates");
           },
           onError: (error) => {
             toast.error(
@@ -357,7 +415,10 @@ export function TemplateCanvaLayoutContent() {
           <div className="bg-white border-b border-gray-200 p-3 flex justify-between items-center">
             <div>
               <div className="flex items-center gap-2">
-                <div onClick={() => router.back()} className="font-questrial cursor-pointer">
+                <div
+                  onClick={() => router.back()}
+                  className="font-questrial cursor-pointer"
+                >
                   Quay lại |
                 </div>
                 <h2 className="font-calsans text-base">
@@ -406,8 +467,8 @@ export function TemplateCanvaLayoutContent() {
                     ? "Đang cập nhật..."
                     : "Đang tạo..."
                   : !isCreateMode
-                  ? "Cập nhật template"
-                  : "Tạo template"}
+                  ? "Cập nhật đề thi"
+                  : "Tạo đề thi"}
               </Button>
             </div>
           </div>
@@ -433,6 +494,54 @@ export function TemplateCanvaLayoutContent() {
             onClose={handleClosePreviewModal}
             elements={canvasElements}
           />
+
+          {/* Score Confirmation Modal */}
+          {isScoreConfirmModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              {/* Backdrop */}
+              <div
+                className="absolute inset-0 bg-black/50"
+                onClick={handleCloseScoreConfirmModal}
+              />
+
+              {/* Modal Content */}
+              <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6">
+                <h3 className="text-lg font-calsans text-gray-900 mb-4">
+                  Xác nhận tạo đề thi
+                </h3>
+
+                <div className="mb-6">
+                  <p className="text-gray-700 font-questrial mb-3">
+                    Tổng điểm hiện tại của đề thi là{" "}
+                    <span className="font-semibold text-xl text-orange-600">
+                      {calculateTotalScore().toFixed(2)} điểm
+                    </span>
+                    , chưa đạt mức tối thiểu 10 điểm.
+                  </p>
+                  <p className="text-gray-600 font-questrial text-sm">
+                    Bạn có muốn:
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={handleCloseScoreConfirmModal}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-questrial rounded-lg"
+                  >
+                    Tiếp tục tạo câu hỏi để đủ 10 điểm
+                  </Button>
+
+                  <Button
+                    onClick={handleConfirmSaveWithLowScore}
+                    variant="outline"
+                    className="w-full py-3 border-gray-300 text-gray-700 hover:bg-gray-50 font-questrial rounded-lg"
+                  >
+                    Vẫn tạo/chỉnh sửa mẫu với điểm hiện tại
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </DndContext>
     </StepProvider>

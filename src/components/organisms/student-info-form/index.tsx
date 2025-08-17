@@ -93,7 +93,7 @@ export function StudentInfoForm({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-black">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="flex items-center gap-3 p-3 rounded-lg">
               <div>
                 <p className="text-sm text-black/60">Môn học</p>
@@ -141,7 +141,7 @@ export function StudentInfoForm({
                 <div >
                   <div>
                     <p className="text-sm text-gray-500">Tổng điểm</p>
-                    <p className="font-medium">{examInfo.totalScore} điểm</p>
+                    <p className="font-medium text-orange-600">{examInfo.totalScore} điểm</p>
                   </div>
                 </div>
               )}

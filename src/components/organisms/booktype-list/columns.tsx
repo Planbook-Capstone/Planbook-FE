@@ -1,6 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MoreVertical } from "lucide-react";
 import { BookTypeResponse } from "@/types";
 import { translateStatus } from "@/utils/translateEnum";
 import { Badge } from "@/components/ui/badge";
