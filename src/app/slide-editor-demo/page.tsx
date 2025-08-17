@@ -153,41 +153,12 @@ export default function SlideEditorDemo() {
     if (newSlides && newSlides.length > 0) {
       // Normalize text in all slides before setting
       const normalizedSlides = newSlides.map((slide: any, index: number) => {
-        console.log("🔍 Processing slide:", {
-          id: slide.id,
-          hasElements: !!slide.elements,
-          hasSlideData: !!slide.slideData,
-          slideDataElements: slide.slideData?.elements?.length || 0,
-        });
-
-        // Debug slide background
-        console.log("🎨 Slide background data:", {
-          slideId: slide.id,
-          slideBackground: slide.background,
-          slideDataBackground: slide.slideData?.background,
-          hasSlideData: !!slide.slideData,
-        });
-
         // Process elements in slideData.elements (the actual elements)
         const normalizedSlideDataElements =
           slide.slideData?.elements?.map((element: any) => {
-            console.log("🔍 Processing slideData element:", {
-              id: element.id,
-              type: element.type,
-              originalText: element.text,
-              textType: typeof element.text,
-              isObject: typeof element.text === "object",
-            });
-
             const normalizedText = element.text
               ? normalizeTextFromAPI(element.text)
               : element.text;
-
-            console.log("✅ Normalized text:", {
-              original: element.text,
-              normalized: normalizedText,
-              normalizedType: typeof normalizedText,
-            });
 
             return {
               ...element,
@@ -481,19 +452,6 @@ export default function SlideEditorDemo() {
     description: string,
     slidesToSave?: any[]
   ) => {
-    console.log("🔍 handleSaveLessonPlan called:", {
-      name,
-      description,
-      slidesToSave: slidesToSave?.length,
-    });
-    console.log("🔍 Current validation state:", {
-      userId: user?.id,
-      selectedTemplateId,
-      selectedLessonId,
-      completedResultId,
-      currentSlidesForSave: currentSlidesForSave.length,
-    });
-
     if (!user?.id) {
       toast.error("Không tìm thấy thông tin người dùng!");
       return;
@@ -605,16 +563,6 @@ export default function SlideEditorDemo() {
             generationProgress={generationProgress}
             totalSlides={websocketData?.partial_result?.total_slides || 0}
             onSave={(currentSlides, textBlocks) => {
-              console.log("🔍 onSave triggered:", {
-                currentSlides,
-                textBlocks,
-              });
-              console.log("🔍 Current state:", {
-                selectedTemplateId,
-                selectedLessonId,
-                completedResultId,
-                userId: user?.id,
-              });
               // Lưu slides hiện tại vào state để sử dụng khi lưu
               setCurrentSlidesForSave(currentSlides);
               setShowSaveModal(true);
