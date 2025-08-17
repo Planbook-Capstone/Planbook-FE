@@ -10,7 +10,10 @@ interface ExamFileImportProps {
   isLoading?: boolean;
 }
 
-export default function ExamFileImport({ onSubmit, isLoading }: ExamFileImportProps) {
+export default function ExamFileImport({
+  onSubmit,
+  isLoading,
+}: ExamFileImportProps) {
   const [testFiles, setTestFiles] = useState<File[]>([]);
   const [error, setError] = useState<string>("");
 
@@ -24,15 +27,6 @@ export default function ExamFileImport({ onSubmit, isLoading }: ExamFileImportPr
       setError("Vui lòng chọn ít nhất một file");
       return;
     }
-
-    console.log("=== EXAM IMPORT SUBMISSION ===");
-    console.log("Submitted files:", testFiles);
-    console.log("File details:", testFiles.map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified: new Date(file.lastModified)
-    })));
 
     // Clear any previous errors
     setError("");
@@ -54,10 +48,7 @@ export default function ExamFileImport({ onSubmit, isLoading }: ExamFileImportPr
         </div>
       )}
 
-      <ExamFileUpload
-        onFilesChange={handleFilesChange}
-        onError={setError}
-      />
+      <ExamFileUpload onFilesChange={handleFilesChange} onError={setError} />
 
       <div className="float-end mt-5">
         <Button

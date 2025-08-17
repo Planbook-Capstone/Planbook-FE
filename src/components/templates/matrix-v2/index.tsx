@@ -370,6 +370,7 @@ export default function MatrixTemplate2() {
   // Map ra JSON đúng format
   function mapToBackend() {
     return {
+      totalCount: calculateColumnTotals(matrix).grandTotal,
       school: school || "Trường THPT Nguyễn Huệ",
       // grade: selectedGrade ? parseInt(selectedGrade) : null,
       grade: 12,
@@ -454,6 +455,7 @@ export default function MatrixTemplate2() {
       input: examData,
       academicYearId: 1,
     };
+
     executeTool(payload, {
       onSuccess: (e: any) => {
         toast.success("Gửi dữ liệu thành công!");
