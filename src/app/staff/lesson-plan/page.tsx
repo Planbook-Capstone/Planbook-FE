@@ -24,6 +24,7 @@ import {
   useCreateLessonPlanNodeService,
   useLessonPlanAllNodeService,
 } from "@/services/lessonPlanNodeServices";
+import { useRouter } from "next/navigation";
 
 // Interface for uploaded files
 interface UploadedFile {
@@ -47,8 +48,7 @@ export default function LessonPlanPage() {
   const { data: lessonPlanById } = useLessonPlanByIdService(selected?.id || "");
   const { data: allNode } = useLessonPlanAllNodeService(selected?.id || "")();
 
-  console.log(lessonPlanById?.data, "tran");
-  console.log(allNode?.data, "thy");
+  const router = useRouter();
 
   const [templates, setTemplates] = useState<LessonPlanTemplate[]>([
     { ...getDefaultTemplate(), isActive: true },
@@ -179,7 +179,6 @@ export default function LessonPlanPage() {
   const handleEditTemplate = () => {
     // setCurrentTemplate(template);
     setShowBuilder(true);
-    
   };
 
   const handleDeleteTemplate = (templateId: string) => {
@@ -428,10 +427,9 @@ export default function LessonPlanPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => {
-                          setSelected(template);
-                          handleEditTemplate();
-                        }}
+                        onClick={() =>
+                          router.push(`/staff/lesson-plan/edit/${template.id}`)
+                        }
                       >
                         <Edit className="w-4 h-4 mr-2" />
                         Chỉnh sửa

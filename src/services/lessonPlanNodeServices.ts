@@ -1,4 +1,4 @@
-import { createMutationHook, createQueryHook } from "@/hooks/react-query";
+import { createMutationHook, createQueryHook, updateMutationHook } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 export const useCreateLessonPlanNodeService = createMutationHook(
@@ -22,3 +22,8 @@ export const useLessonPlanAllNodeService = (id: string) =>
     `lesson-plan-node-tree-${id}`,
     API_ENDPOINTS.LESSON_PLANS.ALL_NODES(id)
   );
+
+export const useUpdateLessonPlanNodeService = updateMutationHook(
+  "lesson-plan-node",
+  API_ENDPOINTS.LESSON_PLANS.NODES
+);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { LessonPlanTemplateBuilder } from "@/components/organisms/lesson-plan-template-builder";
 import { LessonPlanTemplate } from "@/types";
 import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { Button } from "@/components/ui/Button";
@@ -80,65 +79,9 @@ export default function LessonPlanTemplatePage() {
       template.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleCreateTemplate = () => {
-    const newTemplate = getDefaultTemplate();
-    newTemplate.id = `template-${Date.now()}`;
-    newTemplate.name = "Template Mới";
-    newTemplate.description = "Mô tả template mới";
-    setCurrentTemplate(newTemplate);
-    setSelectedTemplate(undefined);
-    setIsEditing(true);
-    setShowBuilder(true);
-  };
-
   const handleEditTemplate = (template: LessonPlanTemplate) => {
     console.log(template, "tran");
     setShowPreview(true);
-    // setCurrentTemplate(template);
-    // setSelectedTemplate(template);
-    // setIsEditing(true);
-    // setShowBuilder(true);
-  };
-
-  const handleDeleteTemplate = (templateId: string) => {
-    if (templates.length <= 1) {
-      toast.error("Không thể xóa template cuối cùng!");
-      return;
-    }
-
-    setTemplates((prev) => prev.filter((t) => t.id !== templateId));
-    toast.success("Đã xóa template!");
-  };
-
-  const handleSave = (template: LessonPlanTemplate) => {
-    // TODO: Integrate with API
-    console.log("Saving template:", template);
-
-    if (selectedTemplate) {
-      // Update existing template
-      setTemplates((prev) =>
-        prev.map((t) => (t.id === template.id ? template : t))
-      );
-    } else {
-      // Add new template
-      setTemplates((prev) => [...prev, template]);
-    }
-
-    toast.success("Template đã được lưu thành công!");
-    setShowBuilder(false);
-    setIsEditing(false);
-  };
-
-  const handleSaveDraft = (template: LessonPlanTemplate) => {
-    // TODO: Integrate with API
-    console.log("Saving draft:", template);
-    toast.success("Nháp đã được lưu!");
-
-    // Save to localStorage for now
-    localStorage.setItem(
-      `lesson-plan-draft-${template.id}`,
-      JSON.stringify(template)
-    );
   };
 
   // File management functions
@@ -206,34 +149,6 @@ export default function LessonPlanTemplatePage() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  const handleDownloadFile = (file: UploadedFile) => {
-    const url = URL.createObjectURL(file.file);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = file.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success(`Đã tải xuống ${file.name}!`);
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
-  const getFileIcon = (type: string) => {
-    if (type === "application/pdf") {
-      return "📄";
-    } else if (type.includes("word")) {
-      return "📝";
-    }
-    return "📄";
-  };
   const [showPreview, setShowPreview] = useState(false);
 
   if (showPreview && allNode?.data) {
@@ -242,7 +157,7 @@ export default function LessonPlanTemplatePage() {
         <PreviewModal
           isOpen={showPreview}
           onClose={() => setShowPreview(false)}
-          data={allNode?.data }
+          data={allNode?.data}
           onDownload={() => {}}
           lesson={lessonPlanById?.data}
           mode={false}

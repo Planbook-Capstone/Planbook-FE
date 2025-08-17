@@ -23,10 +23,48 @@ export const LessonPlanNodeTypeLabel: Record<LESSON_PLAN_TYPE, string> = {
   [LESSON_PLAN_TYPE.SECTION]: "Phần chính",
 };
 
+
 export const LessonPlanFieldTypeLabel: Record<LESSON_PLAN_FIELDTYPE, string> = {
   [LESSON_PLAN_FIELDTYPE.INPUT]: "Ô nhập liệu",
   [LESSON_PLAN_FIELDTYPE.TABLE]: "Bảng",
   [LESSON_PLAN_FIELDTYPE.REFERENCES]: "Tài liệu tham khảo",
+};
+
+// Hàm convert node type từ tiếng Anh sang tiếng Việt
+export const convertNodeTypeToVietnamese = (type: string): string => {
+  const typeMap: Record<string, string> = {
+    SECTION: "Phần chính",
+    SUBSECTION: "Phần phụ",
+    LIST_ITEM: "Danh sách nội dung",
+    PARAGRAPH: "Nội dung",
+    TABLE: "Bảng",
+    INPUT: "Ô nhập liệu",
+    REFERENCES: "Tài liệu tham khảo"
+  };
+
+  return typeMap[type] || type;
+};
+
+// Hàm convert field type từ tiếng Anh sang tiếng Việt
+export const convertFieldTypeToVietnamese = (fieldType: string): string => {
+  const fieldTypeMap: Record<string, string> = {
+    INPUT: "Ô nhập liệu",
+    TABLE: "Bảng",
+    REFERENCES: "Tài liệu tham khảo"
+  };
+
+  return fieldTypeMap[fieldType] || fieldType;
+};
+
+// Hàm convert tổng hợp cho cả node type và field type
+export const convertToVietnamese = (
+  type?: string,
+  fieldType?: string
+): { nodeType: string; fieldType: string } => {
+  return {
+    nodeType: type ? convertNodeTypeToVietnamese(type) : "",
+    fieldType: fieldType ? convertFieldTypeToVietnamese(fieldType) : ""
+  };
 };
 
 export enum ORDER_STATUS {
