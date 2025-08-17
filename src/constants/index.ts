@@ -157,7 +157,7 @@ export const getVariant = (status: string) => {
     case "APPLICATION":
       return "warning";
     default:
-      return "outline";
+      return "info";
   }
 };
 

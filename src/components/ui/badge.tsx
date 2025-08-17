@@ -22,6 +22,7 @@ const badgeVariants = cva(
         warning:
           "border border-2 border-amber-200 bg-amber-100 text-yellow-700",
         success: " bg-emerald-500 text-white",
+        info: "bg-violet-200 border border-violet-300 text-violet-700",
       },
     },
     defaultVariants: {
