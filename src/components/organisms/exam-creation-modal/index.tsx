@@ -4,12 +4,25 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FileText, X, ChevronLeft } from "lucide-react";
 import ExamFileImport from "../exam-file-import";
+import { useToolResultsWithParamsService } from "@/services/toolResultService";
+import { useAuth } from "@/hooks/useAuth";
+import DocumentItem from "@/components/molecules/document-item";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ExamCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImportFile: (files: File[]) => void;
   onCreateManually: () => void;
+  onSelectFromLibrary?: (examData: any) => void;
   isImporting?: boolean;
 }
 
@@ -18,14 +31,51 @@ export default function ExamCreationModal({
   onClose,
   onImportFile,
   onCreateManually,
+  onSelectFromLibrary,
   isImporting = false,
 }: ExamCreationModalProps) {
+  const { user } = useAuth();
   const [selectedMode, setSelectedMode] = useState<
-    "none" | "import" | "manual"
+    "none" | "import" | "manual" | "mylibrary"
   >("none");
 
-  const handleModeSelect = (mode: "import" | "manual") => {
+  // Pagination state for library
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(9);
+
+  // Fetch tool results for library mode
+  const {
+    data: toolResults,
+    isLoading: isLoadingLibrary,
+  } = useToolResultsWithParamsService(
+    [currentPage, pageSize], // dependencies for query key
+    { retry: 1, staleTime: 0, enabled: selectedMode === "mylibrary" }, // options
+    {
+      userId: user?.id,
+      page: currentPage + 1,
+      size: pageSize,
+      sort: "createdAt,desc",
+      type: "EXAM",
+      status: "ARCHIVED",
+    }
+  );
+
+  const handleModeSelect = (mode: "import" | "manual" | "mylibrary") => {
     setSelectedMode(mode);
+    if (mode === "mylibrary") {
+      setCurrentPage(0); // Reset pagination when entering library mode
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleLibraryItemSelect = (item: any) => {
+    if (onSelectFromLibrary) {
+      onSelectFromLibrary(item);
+    }
+    handleClose();
   };
 
   const handleFileSubmit = (files: File[]) => {
@@ -34,10 +84,12 @@ export default function ExamCreationModal({
 
   const handleBackToSelection = () => {
     setSelectedMode("none");
+    setCurrentPage(0); // Reset pagination when going back
   };
 
   const handleClose = () => {
     setSelectedMode("none");
+    setCurrentPage(0); // Reset pagination when closing
     onClose();
   };
 
@@ -49,7 +101,7 @@ export default function ExamCreationModal({
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <div className="flex items-center">
-            {(selectedMode === "import" || selectedMode === "manual") && (
+            {(selectedMode === "import" || selectedMode === "manual" || selectedMode === "mylibrary") && (
               <div className="flex items-center">
                 <Button
                   variant="ghost"
@@ -130,6 +182,22 @@ export default function ExamCreationModal({
                     className="absolute inset-0 w-full h-full object-cover z-0"
                   />
                 </div>
+
+                {/* Đề kiểm tra từ kho tài liệu */}
+                <div
+                  className="overflow-hidden relative rounded-lg p-10 group hover:shadow-md transition-all cursor-pointer flex flex-col items-center justify-center aspect-[4/3] w-full border-2 border-dashed border-gray-300 hover:border-blue-400"
+                  onClick={() => handleModeSelect("mylibrary")}
+                >
+                  <h2 className="text-4xl mb-2 z-10 text-gray-700 text-center font-calsans">
+                    Đề kiểm tra từ <br />
+                    <span className="font-calsans text-blue-600 underline bg-clip-text leading-tight">
+                      kho tài liệu
+                    </span>
+                  </h2>
+                  <p className="text-gray-500 text-sm text-center mt-2">
+                    Chọn từ các đề thi đã lưu
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -182,6 +250,144 @@ export default function ExamCreationModal({
                   Tiếp tục
                 </Button>
               </div>
+            </div>
+          )}
+
+          {/* Show library interface when mylibrary mode is selected */}
+          {selectedMode === "mylibrary" && (
+            <div>
+              <div className="mb-6 mx-3">
+                <h3 className="text-xl font-calsans mb-2 text-gray-900">
+                  Chọn đề kiểm tra từ kho tài liệu
+                </h3>
+                <p className="text-gray-600 font-questrial">
+                  Chọn một đề kiểm tra đã lưu từ thư viện của bạn
+                </p>
+              </div>
+
+              {/* Loading state */}
+              {isLoadingLibrary && (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <Skeleton key={index} className="h-32 w-full rounded-lg" />
+                  ))}
+                </div>
+              )}
+
+              {/* Tool results grid */}
+              {!isLoadingLibrary && toolResults?.data?.content && (
+                <>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    {toolResults.data.content.map((item: any, index: number) => (
+                      <div key={index} className="cursor-pointer">
+                        <DocumentItem
+                          type="DOCX"
+                          name={item.name}
+                          description={item.description}
+                          lastModifiedTime={new Date(item.updatedAt).toLocaleString(
+                            "vi-VN",
+                            {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            }
+                          )}
+                          onClick={() => handleLibraryItemSelect(item)}
+                          onRemove={undefined} // No remove button in selection mode
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {toolResults.data.totalPages > 1 && (
+                    <div className="flex justify-center">
+                      <Pagination className="!text-black">
+                        <PaginationContent className="!text-black">
+                          {/* Previous Button */}
+                          <PaginationItem>
+                            <PaginationPrevious
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage > 0) {
+                                  handlePageChange(currentPage - 1);
+                                }
+                              }}
+                              className={
+                                currentPage === 0
+                                  ? "!text-black pointer-events-none opacity-50"
+                                  : "!text-black hover:!text-black"
+                              }
+                            />
+                          </PaginationItem>
+
+                          {/* Page Numbers */}
+                          {Array.from({ length: Math.min(5, toolResults.data.totalPages) }, (_, i) => {
+                            const pageNumber = currentPage < 3
+                              ? i
+                              : currentPage > toolResults.data.totalPages - 3
+                              ? toolResults.data.totalPages - 5 + i
+                              : currentPage - 2 + i;
+
+                            if (pageNumber < 0 || pageNumber >= toolResults.data.totalPages) return null;
+
+                            return (
+                              <PaginationItem key={pageNumber}>
+                                <PaginationLink
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handlePageChange(pageNumber);
+                                  }}
+                                  isActive={currentPage === pageNumber}
+                                  className="!text-black hover:!text-black"
+                                >
+                                  {pageNumber + 1}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          })}
+
+                          {/* Next Button */}
+                          <PaginationItem>
+                            <PaginationNext
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage < toolResults.data.totalPages - 1) {
+                                  handlePageChange(currentPage + 1);
+                                }
+                              }}
+                              className={
+                                currentPage === toolResults.data.totalPages - 1
+                                  ? "!text-black pointer-events-none opacity-50"
+                                  : "!text-black hover:!text-black"
+                              }
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Empty state */}
+              {!isLoadingLibrary && (!toolResults?.data?.content || toolResults.data.content.length === 0) && (
+                <div className="text-center p-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                  <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-calsans mb-2 text-gray-900">
+                    Chưa có đề kiểm tra nào
+                  </h4>
+                  <p className="text-gray-600 font-questrial mb-6 max-w-md mx-auto">
+                    Bạn chưa có đề kiểm tra nào trong thư viện. Hãy tạo đề kiểm tra mới trước.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

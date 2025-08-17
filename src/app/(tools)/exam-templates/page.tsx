@@ -251,6 +251,14 @@ function ExamTemplatesPageContent() {
     router.push("/exam-templates/create");
   };
 
+  const handleSelectFromLibrary = (examData: any) => {
+    setShowCreationModal(false);
+    // Set the selected exam data in context
+    setExamFromApiResponse(examData);
+    // Navigate to exam-creation with the selected exam data
+    router.push("/exam-templates/create");
+  };
+
   const handleModalClose = () => {
     setShowCreationModal(false);
   };
@@ -316,6 +324,7 @@ function ExamTemplatesPageContent() {
         onClose={handleModalClose}
         onImportFile={handleFileSubmit}
         onCreateManually={handleCreateManually}
+        onSelectFromLibrary={handleSelectFromLibrary}
         isImporting={isImporting}
       />
 
