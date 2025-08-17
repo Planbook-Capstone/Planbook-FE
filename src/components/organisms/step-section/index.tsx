@@ -7,18 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { KeywordManager } from "@/components/organisms/keyword-manager";
 import { LessonPlanStep, LessonPlanKeyword } from "@/types";
 import {
-  GripVertical,
-  Trash2,
   Plus,
   ChevronDown,
   ChevronRight,
