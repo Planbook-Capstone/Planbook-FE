@@ -484,11 +484,56 @@ export interface ShapeElement {
   rotation?: number; // in degrees
 }
 
+export interface TableElement {
+  id: string;
+  type: "table";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  headers: string[];
+  rows: string[][];
+  columnWidths?: number[]; // Width for each column
+  rowHeights?: number[]; // Height for each row
+  style?: {
+    borderColor?: string;
+    borderWidth?: number;
+    headerBackgroundColor?: string;
+    cellBackgroundColor?: string;
+    textColor?: string;
+    fontSize?: number;
+    fontFamily?: string;
+    textAlign?: "left" | "center" | "right";
+  };
+  cellStyles?: {
+    // Individual cell styling
+    [key: string]: {
+      // key format: "row-col" e.g., "0-1"
+      backgroundColor?: string;
+      textColor?: string;
+      fontSize?: number;
+      fontWeight?: "normal" | "bold";
+      textAlign?: "left" | "center" | "right";
+    };
+  };
+  rowStyles?: {
+    // Individual row styling
+    [key: number]: {
+      backgroundColor?: string;
+      textColor?: string;
+      fontSize?: number;
+      fontWeight?: "normal" | "bold";
+    };
+  };
+  zIndex?: number;
+}
+
 export type SlideElement =
   | TextElement
   | ImageElement
   | VideoElement
-  | ShapeElement;
+  | ShapeElement
+  | TableElement;
 
 export interface SlideData {
   id: string;

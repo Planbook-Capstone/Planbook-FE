@@ -152,7 +152,7 @@ export default function SlideEditorDemo() {
     const newSlides = websocketData?.partial_result?.processed_template?.slides;
     if (newSlides && newSlides.length > 0) {
       // Normalize text in all slides before setting
-      const normalizedSlides = newSlides.map((slide: any) => {
+      const normalizedSlides = newSlides.map((slide: any, index: number) => {
         console.log("🔍 Processing slide:", {
           id: slide.id,
           hasElements: !!slide.elements,
@@ -197,11 +197,15 @@ export default function SlideEditorDemo() {
 
         return {
           ...slide,
+          // Update title theo thứ tự
+          title: `Slide ${index + 1}`,
           // Keep original elements array (might be empty)
           elements: slide.elements || [],
           // Update slideData.elements with normalized text
           slideData: {
             ...slide.slideData,
+            // Cập nhật title trong slideData cũng theo thứ tự
+            title: `Slide ${index + 1}`,
             elements: normalizedSlideDataElements,
           },
         };
@@ -449,24 +453,47 @@ export default function SlideEditorDemo() {
   const { user, setUser } = useAppStore();
 
   // Function to export current slides as JSON data
-  const exportSlidesAsJson = () => {
-    if (!slides || slides.length === 0) {
+  const exportSlidesAsJson = (currentSlides?: any[]) => {
+    // Sử dụng currentSlides từ callback nếu có, nếu không thì dùng state slides
+    const slidesToExport = currentSlides || slides;
+
+    if (!slidesToExport || slidesToExport.length === 0) {
       return null;
     }
 
     return {
-      slides: slides.map((slide) => ({
+      slides: slidesToExport.map((slide) => ({
         id: slide.id,
-        elements: slide.slideData?.elements || slide.elements || [],
-        background: slide.slideData?.background || slide.background || null,
+        elements: slide.elements || [],
+        background: slide.background || "#ffffff",
       })),
-      totalSlides: slides.length,
+      totalSlides: slidesToExport.length,
       createdAt: new Date().toISOString(),
     };
   };
 
+  // State để lưu slides hiện tại từ callback
+  const [currentSlidesForSave, setCurrentSlidesForSave] = useState<any[]>([]);
+
   // Function to handle save lesson plan
-  const handleSaveLessonPlan = (name: string, description: string) => {
+  const handleSaveLessonPlan = (
+    name: string,
+    description: string,
+    slidesToSave?: any[]
+  ) => {
+    console.log("🔍 handleSaveLessonPlan called:", {
+      name,
+      description,
+      slidesToSave: slidesToSave?.length,
+    });
+    console.log("🔍 Current validation state:", {
+      userId: user?.id,
+      selectedTemplateId,
+      selectedLessonId,
+      completedResultId,
+      currentSlidesForSave: currentSlidesForSave.length,
+    });
+
     if (!user?.id) {
       toast.error("Không tìm thấy thông tin người dùng!");
       return;
@@ -482,15 +509,21 @@ export default function SlideEditorDemo() {
       return;
     }
 
-    if (!completedResultId) {
-      toast.error("Không tìm thấy result ID!");
-      return;
-    }
+    // Sử dụng slides được truyền vào hoặc fallback về currentSlidesForSave
+    const finalSlidesToSave = slidesToSave || currentSlidesForSave;
+    console.log("🔍 Final slides to save:", finalSlidesToSave);
 
-    const exportedData = exportSlidesAsJson();
+    const exportedData = exportSlidesAsJson(finalSlidesToSave);
     if (!exportedData) {
       toast.error("Không có dữ liệu slide để lưu!");
       return;
+    }
+
+    // Tạo resultId nếu chưa có (cho trường hợp thêm bài tập thủ công)
+    let resultId = completedResultId;
+    if (!resultId) {
+      resultId = `manual_result_${Date.now()}`;
+      setCompletedResultId(resultId);
     }
 
     const payload = {
@@ -507,7 +540,7 @@ export default function SlideEditorDemo() {
     };
 
     updateToolResult(
-      { id: completedResultId || "", data: payload },
+      { id: resultId, data: payload },
       {
         onSuccess: () => {
           toast.success("Lưu thành công!");
@@ -571,7 +604,21 @@ export default function SlideEditorDemo() {
             isGenerating={isGenerating}
             generationProgress={generationProgress}
             totalSlides={websocketData?.partial_result?.total_slides || 0}
-            onSave={(slides, textBlocks) => setShowSaveModal(true)}
+            onSave={(currentSlides, textBlocks) => {
+              console.log("🔍 onSave triggered:", {
+                currentSlides,
+                textBlocks,
+              });
+              console.log("🔍 Current state:", {
+                selectedTemplateId,
+                selectedLessonId,
+                completedResultId,
+                userId: user?.id,
+              });
+              // Lưu slides hiện tại vào state để sử dụng khi lưu
+              setCurrentSlidesForSave(currentSlides);
+              setShowSaveModal(true);
+            }}
           />
         </div>
       )}
@@ -600,7 +647,9 @@ export default function SlideEditorDemo() {
       <SaveToolResultModal
         isOpen={showSaveModal}
         onClose={() => setShowSaveModal(false)}
-        onSave={handleSaveLessonPlan}
+        onSave={(name, description) =>
+          handleSaveLessonPlan(name, description, currentSlidesForSave)
+        }
         isLoading={isSaving}
         initialData={null}
       />

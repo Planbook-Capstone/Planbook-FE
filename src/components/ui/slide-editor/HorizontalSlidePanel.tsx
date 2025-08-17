@@ -209,6 +209,98 @@ const SlidePreview = ({
             );
           }
 
+          if (element.type === "table") {
+            const tableElement = element as any;
+            const { headers, rows, style: tableStyle = {} } = tableElement;
+            const {
+              borderColor = "#000000",
+              borderWidth = 1,
+              headerBackgroundColor = "#f3f4f6",
+              cellBackgroundColor = "#ffffff",
+              fontSize = 14,
+              fontFamily = "Arial, sans-serif",
+            } = tableStyle;
+
+            return (
+              <div
+                key={element.id}
+                className="absolute"
+                style={{
+                  left: element.x * scale,
+                  top: element.y * scale,
+                  width: element.width * scale,
+                  height: element.height * scale,
+                }}
+              >
+                <table
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: Math.max(3, fontSize * scale * 0.5), // Much smaller font for thumbnail
+                    fontFamily,
+                    tableLayout: "fixed", // Fixed layout for better control
+                  }}
+                >
+                  {/* Table Header */}
+                  {headers.length > 0 && (
+                    <thead>
+                      <tr>
+                        {headers.map((header: string, index: number) => (
+                          <th
+                            key={index}
+                            style={{
+                              border: `${Math.max(
+                                0.5,
+                                borderWidth * scale * 0.5
+                              )}px solid ${borderColor}`,
+                              backgroundColor: headerBackgroundColor,
+                              padding: `${Math.max(0.5, 1 * scale)}px`,
+                              fontSize: Math.max(2, fontSize * scale * 0.3),
+                              fontWeight: "bold",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                  )}
+
+                  {/* Table Body */}
+                  <tbody>
+                    {rows.map((row: string[], rowIndex: number) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell: string, cellIndex: number) => (
+                          <td
+                            key={cellIndex}
+                            style={{
+                              border: `${Math.max(
+                                0.5,
+                                borderWidth * scale * 0.5
+                              )}px solid ${borderColor}`,
+                              backgroundColor: cellBackgroundColor,
+                              padding: `${Math.max(0.5, 1 * scale)}px`,
+                              fontSize: Math.max(2, fontSize * scale * 0.3),
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
+
           return null;
         })
       )}
