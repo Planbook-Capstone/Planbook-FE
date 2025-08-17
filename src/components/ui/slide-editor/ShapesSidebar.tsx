@@ -53,7 +53,7 @@ export default function ShapesSidebar({ onAddShape }: ShapesSidebarProps) {
   return (
     <div className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Hình dạng</h3>
+        <h3 className="text-lg font-calsans text-gray-800 mb-4">Hình dạng</h3>
         <p className="text-sm text-gray-600 mb-4">
           Chọn hình dạng để thêm vào slide
         </p>

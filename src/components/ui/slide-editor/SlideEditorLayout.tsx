@@ -17,6 +17,8 @@ import MaterialsLibrarySidebar from "./MaterialsLibrarySidebar";
 import ShapesSidebar from "./ShapesSidebar";
 import ShapeToolbar from "./ShapeToolbar";
 import SlidePresentation from "./SlidePresentation";
+import ExerciseSidebar from "./ExerciseSidebar";
+import { TablePropertiesPanel } from "./TablePropertiesPanel";
 
 import { ImageElement, VideoElement, ShapeElement } from "@/types";
 import { TextColorProvider } from "./TextColorContext";
@@ -698,6 +700,412 @@ export default function SlideEditorLayout({
     [handleAddElement, getCenterPosition]
   );
 
+  // Handle adding exercise slides from questions
+  const handleAddExerciseSlides = useCallback(
+    (questions: any[]) => {
+      if (questions.length === 0) return;
+
+      // Group questions by questionType
+      const groupedQuestions = questions.reduce(
+        (groups: any, question: any) => {
+          const type = question.questionType || "Khác";
+          if (!groups[type]) {
+            groups[type] = [];
+          }
+          groups[type].push(question);
+          return groups;
+        },
+        {}
+      );
+
+      const newSlides: Slide[] = [];
+      let globalQuestionCounter = 1;
+      const orderedTypes = [
+        "PART_I",
+        "PART_II",
+        "PART_III",
+        "PART_IV",
+        "PART_V",
+      ];
+      const answerData: any = {};
+
+      // Helper function to get section description
+      const getSectionDescription = (questionType: string) => {
+        switch (questionType) {
+          case "PART_I":
+            return "PHẦN I: TRẮC NGHIỆM KHÁCH QUAN";
+          case "PART_II":
+            return "PHẦN II: TRẮC NGHIỆM ĐÚNG SAI";
+          case "PART_III":
+            return "PHẦN III: TỰ LUẬN";
+          case "PART_IV":
+            return "PHẦN IV";
+          case "PART_V":
+            return "PHẦN V";
+          default:
+            return questionType;
+        }
+      };
+
+      // Helper function to render question content
+      const renderQuestionContent = (question: any) => {
+        const content = question.questionContent;
+        if (!content) return "Không có nội dung";
+
+        if (typeof content === "string") {
+          return content;
+        }
+
+        if (content.question) {
+          return content.question;
+        }
+
+        return "Không có nội dung";
+      };
+
+      // Helper function for difficulty text
+      const getDifficultyText = (level: string) => {
+        switch (level) {
+          case "KNOWLEDGE":
+            return "Nhận biết";
+          case "COMPREHENSION":
+            return "Thông hiểu";
+          case "APPLICATION":
+            return "Vận dụng";
+          case "ANALYSIS":
+            return "Phân tích";
+          default:
+            return "Chưa xác định";
+        }
+      };
+
+      // Process each question type
+      orderedTypes.forEach((questionType) => {
+        if (groupedQuestions[questionType]) {
+          const questionsInType = groupedQuestions[questionType];
+          answerData[questionType] = [];
+
+          // Create slides with 2 questions each
+          for (let i = 0; i < questionsInType.length; i += 2) {
+            const questionsInSlide = questionsInType.slice(i, i + 2);
+
+            // Create slide content
+            let slideContent = `${getSectionDescription(questionType)}\n\n`;
+
+            questionsInSlide.forEach((question: any) => {
+              const content = renderQuestionContent(question);
+              const options = question.questionContent?.options;
+
+              // Metadata
+              const metadata = [];
+              if (
+                question.difficultyLevel ||
+                question.difficultyLevelDescription
+              ) {
+                const difficultyLevel =
+                  question.difficultyLevel ||
+                  question.difficultyLevelDescription;
+                metadata.push(`Độ khó: ${getDifficultyText(difficultyLevel)}`);
+              }
+              if (question.referenceSource) {
+                metadata.push(`Nguồn: ${question.referenceSource}`);
+              }
+
+              slideContent += `Câu ${globalQuestionCounter}`;
+              if (metadata.length > 0) {
+                slideContent += ` (${metadata.join(" | ")})`;
+              }
+              slideContent += `\n${content}\n`;
+
+              // Format based on question type
+              if (questionType === "PART_I") {
+                // Multiple choice - show options without answers
+                if (options) {
+                  Object.entries(options).forEach(
+                    ([key, value]: [string, any]) => {
+                      slideContent += `${key}. ${value}\n`;
+                    }
+                  );
+                }
+              } else if (questionType === "PART_II") {
+                // True/False - show statements without answers
+                const statements = question.questionContent?.statements;
+                if (statements) {
+                  Object.entries(statements).forEach(
+                    ([key, value]: [string, any]) => {
+                      slideContent += `${key}) ${value.text}\n`;
+                    }
+                  );
+                }
+              }
+
+              // Store answer data
+              const answer = question.questionContent?.answer;
+              const statements = question.questionContent?.statements;
+
+              if (questionType === "PART_I") {
+                answerData[questionType].push({
+                  questionNumber: globalQuestionCounter,
+                  answer: answer || "",
+                });
+              } else if (questionType === "PART_II") {
+                const statementAnswers: any = {};
+                if (statements) {
+                  Object.entries(statements).forEach(
+                    ([key, value]: [string, any]) => {
+                      statementAnswers[key] = value.answer ? "Đúng" : "Sai";
+                    }
+                  );
+                }
+                answerData[questionType].push({
+                  questionNumber: globalQuestionCounter,
+                  statements: statementAnswers,
+                });
+              } else if (questionType === "PART_III") {
+                answerData[questionType].push({
+                  questionNumber: globalQuestionCounter,
+                  answer: answer || "",
+                });
+              }
+
+              globalQuestionCounter++;
+              slideContent += "\n";
+            });
+
+            // Create slide
+            const newSlide: Slide = {
+              id: `slide-${Date.now()}-${newSlides.length}`,
+              title: `${getSectionDescription(questionType)} - Slide ${
+                Math.floor(i / 2) + 1
+              }`,
+              elements: [
+                {
+                  id: `text-${Date.now()}-${newSlides.length}`,
+                  type: "text",
+                  x: 50,
+                  y: 50,
+                  width: 860,
+                  height: 440,
+                  text: slideContent.trim(),
+                  style: {
+                    fontSize: 16,
+                    fontFamily: "Arial, sans-serif",
+                    bold: false,
+                    italic: false,
+                    underline: false,
+                    color: "#000000",
+                    textAlign: "left",
+                    verticalAlign: "top",
+                  },
+                } as TextElementType,
+              ],
+              isVisible: true,
+              background: "#ffffff",
+            };
+
+            newSlides.push(newSlide);
+          }
+        }
+      });
+
+      // Create separate answer slides for each part
+      orderedTypes.forEach((questionType) => {
+        if (answerData[questionType] && answerData[questionType].length > 0) {
+          const answerSlideElements: SlideElement[] = [];
+          let currentY = 50;
+
+          // Add title
+          answerSlideElements.push({
+            id: `text-title-${questionType}-${Date.now()}`,
+            type: "text",
+            x: 50,
+            y: currentY,
+            width: 860,
+            height: 60,
+            text: `ĐÁP ÁN - ${getSectionDescription(questionType)}`,
+            style: {
+              fontSize: 24,
+              fontFamily: "Arial, sans-serif",
+              bold: true,
+              italic: false,
+              underline: false,
+              color: "#000000",
+              textAlign: "center",
+              verticalAlign: "top",
+            },
+          } as TextElementType);
+
+          currentY += 80;
+
+          if (questionType === "PART_I") {
+            // PART I: Multiple choice - table format
+            const answers = answerData[questionType];
+            const maxPerRow = 10; // Maximum 10 questions per row
+
+            for (let i = 0; i < answers.length; i += maxPerRow) {
+              const rowAnswers = answers.slice(i, i + maxPerRow);
+
+              // Prepare table data
+              const headers = rowAnswers.map(
+                (item: any) => `Câu ${item.questionNumber}`
+              );
+              const answerRow = rowAnswers.map((item: any) => {
+                return item.answer.toString();
+              });
+
+              // Create table element
+              answerSlideElements.push({
+                id: `table-${questionType}-${i}-${Date.now()}`,
+                type: "table",
+                x: 50,
+                y: currentY,
+                width: 860,
+                height: 80,
+                headers: headers,
+                rows: [answerRow],
+                columnWidths: headers.map(() => 860 / headers.length),
+                rowHeights: [40], // One row for answers
+                style: {
+                  borderColor: "#000000",
+                  borderWidth: 1,
+                  headerBackgroundColor: "#e5e7eb",
+                  cellBackgroundColor: "#ffffff",
+                  textColor: "#000000",
+                  fontSize: 16,
+                  fontFamily: "Arial, sans-serif",
+                  textAlign: "center",
+                },
+              } as any);
+
+              currentY += 100;
+            }
+          } else if (questionType === "PART_II") {
+            // PART II: True/False - table format
+            const answers = answerData[questionType];
+            const maxPerRow = 5; // Maximum 5 questions per row
+
+            for (let i = 0; i < answers.length; i += maxPerRow) {
+              const rowAnswers = answers.slice(i, i + maxPerRow);
+
+              // Prepare table data
+              const headers = rowAnswers.map(
+                (item: any) => `Câu ${item.questionNumber}`
+              );
+
+              // Create answer row with combined statements
+              const answerRow = rowAnswers.map((item: any) => {
+                if (item.statements) {
+                  const statementAnswers = Object.entries(item.statements)
+                    .map(([, value]: [string, any]) =>
+                      value === "Đúng" ? "Đ" : "S"
+                    )
+                    .join(", ");
+                  return statementAnswers;
+                }
+                return "";
+              });
+
+              // Create table element
+              answerSlideElements.push({
+                id: `table-part2-${i}-${Date.now()}`,
+                type: "table",
+                x: 50,
+                y: currentY,
+                width: 860,
+                height: 80,
+                headers: headers,
+                rows: [answerRow],
+                columnWidths: headers.map(() => 860 / headers.length),
+                rowHeights: [40], // One row for answers
+                style: {
+                  borderColor: "#000000",
+                  borderWidth: 1,
+                  headerBackgroundColor: "#e5e7eb",
+                  cellBackgroundColor: "#ffffff",
+                  textColor: "#000000",
+                  fontSize: 16,
+                  fontFamily: "Arial, sans-serif",
+                  textAlign: "center",
+                },
+              } as any);
+
+              currentY += 100;
+            }
+          } else if (questionType === "PART_III") {
+            // PART III: Essay - table format
+            const answers = answerData[questionType];
+            const maxPerRow = 3; // Maximum 3 questions per row for essay (wider content)
+
+            for (let i = 0; i < answers.length; i += maxPerRow) {
+              const rowAnswers = answers.slice(i, i + maxPerRow);
+
+              // Prepare table data
+              const headers = rowAnswers.map(
+                (item: any) => `Câu ${item.questionNumber}`
+              );
+
+              // Create answer row with essay answers
+              const answerRow = rowAnswers.map((item: any) => {
+                let answer = item.answer.toString();
+                // Truncate long answers for table display
+                if (answer.length > 100) {
+                  answer = answer.substring(0, 100) + "...";
+                }
+                return answer;
+              });
+
+              // Create table element
+              answerSlideElements.push({
+                id: `table-part3-${i}-${Date.now()}`,
+                type: "table",
+                x: 50,
+                y: currentY,
+                width: 860,
+                height: 120, // Taller for essay content
+                headers: headers,
+                rows: [answerRow],
+                columnWidths: headers.map(() => 860 / headers.length),
+                rowHeights: [80], // Taller row for essay content
+                style: {
+                  borderColor: "#000000",
+                  borderWidth: 1,
+                  headerBackgroundColor: "#e5e7eb",
+                  cellBackgroundColor: "#ffffff",
+                  textColor: "#000000",
+                  fontSize: 14,
+                  fontFamily: "Arial, sans-serif",
+                  textAlign: "left", // Left align for essay content
+                },
+              } as any);
+
+              currentY += 140;
+            }
+          }
+
+          // Create answer slide for this part
+          const answerSlide: Slide = {
+            id: `slide-answer-${questionType}-${Date.now()}`,
+            title: `Đáp án ${getSectionDescription(questionType)}`,
+            elements: answerSlideElements,
+            isVisible: true,
+            background: "#ffffff",
+          };
+
+          newSlides.push(answerSlide);
+        }
+      });
+
+      // Add all new slides to the end
+      updateSlides((prev) => [...prev, ...newSlides]);
+
+      // Navigate to the first new slide
+      if (newSlides.length > 0) {
+        setCurrentSlideId(newSlides[0].id);
+      }
+    },
+    [updateSlides, getCenterPosition]
+  );
+
   // Handle tab change
   const handleTabChange = useCallback((tabKey: string) => {
     setActiveTab(tabKey);
@@ -1024,6 +1432,13 @@ export default function SlideEditorLayout({
           strokeWidth: (element as any).strokeWidth,
           opacity: (element as any).opacity,
           rotation: (element as any).rotation,
+          // Table properties
+          headers: (element as any).headers,
+          rows: (element as any).rows,
+          columnWidths: (element as any).columnWidths,
+          rowHeights: (element as any).rowHeights,
+          cellStyles: (element as any).cellStyles,
+          rowStyles: (element as any).rowStyles,
         })),
         isVisible: slide.isVisible,
         background: slide.background, // Include background for export
@@ -1335,6 +1750,12 @@ export default function SlideEditorLayout({
       active: "/icons/folder-active.svg",
     },
     {
+      label: "Bài tập",
+      key: "exercises",
+      image: "/icons/exam.svg",
+      active: "/icons/exam-active.svg",
+    },
+    {
       label: "Nền",
       key: "background",
       image: "/icons/diamond.svg",
@@ -1409,6 +1830,10 @@ export default function SlideEditorLayout({
             />
           )}
 
+          {activeTab === "exercises" && (
+            <ExerciseSidebar onAddExerciseSlides={handleAddExerciseSlides} />
+          )}
+
           {activeTab === "background" && (
             <BackgroundSidebar
               currentBackground={currentSlide?.background || "#ffffff"}
@@ -1434,6 +1859,18 @@ export default function SlideEditorLayout({
                 <ShapeToolbar
                   selectedElement={selectedElement as ShapeElement}
                   onUpdateStyle={handleUpdateShapeStyle}
+                />
+              </div>
+            )}
+
+            {/* Table Properties Panel */}
+            {selectedElement && selectedElement.type === "table" && (
+              <div className="absolute top-0 right-0 z-50">
+                <TablePropertiesPanel
+                  element={selectedElement as any}
+                  onUpdate={(updates) =>
+                    handleUpdateElement(selectedElement.id, updates)
+                  }
                 />
               </div>
             )}

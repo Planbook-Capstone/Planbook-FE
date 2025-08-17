@@ -657,6 +657,154 @@ function addShapeElement(slide: any, element: ElementData) {
 }
 
 /**
+ * Add table element to PowerPoint slide
+ */
+function addTableElement(slide: any, element: ElementData) {
+  if (element.type !== "table") return;
+
+  try {
+    const coords = convertCoordinates(
+      element.x,
+      element.y,
+      element.width,
+      element.height
+    );
+
+    // Get table data
+    const tableElement = element as any;
+    const {
+      headers = [],
+      rows = [],
+      style = {},
+      columnWidths = [],
+      rowHeights = [],
+      cellStyles = {},
+      rowStyles = {},
+    } = tableElement;
+
+    const {
+      borderColor = "#000000",
+      borderWidth = 1,
+      headerBackgroundColor = "#f3f4f6",
+      cellBackgroundColor = "#ffffff",
+      textColor = "#000000",
+      fontSize = 14,
+      fontFamily = "Arial",
+      textAlign = "center",
+    } = style;
+
+    // Prepare table data for PowerPoint
+    const tableData = [];
+
+    // Add header row if exists
+    if (headers.length > 0) {
+      tableData.push(
+        headers.map((header: string) => ({
+          text: header,
+          options: {
+            fontSize: fontSize,
+            fontFace: fontFamily,
+            color: textColor,
+            fill: { color: headerBackgroundColor },
+            bold: true,
+            align: textAlign,
+            valign: "middle",
+            border: [
+              { pt: borderWidth, color: borderColor },
+              { pt: borderWidth, color: borderColor },
+              { pt: borderWidth, color: borderColor },
+              { pt: borderWidth, color: borderColor },
+            ],
+          },
+        }))
+      );
+    }
+
+    // Add data rows
+    rows.forEach((row: string[], rowIndex: number) => {
+      const rowData = row.map((cell: string, colIndex: number) => {
+        // Get cell-specific styles
+        const cellKey = `${rowIndex}-${colIndex}`;
+        const cellStyle = cellStyles[cellKey] || {};
+        const rowStyle = rowStyles[rowIndex] || {};
+
+        return {
+          text: cell,
+          options: {
+            fontSize: cellStyle.fontSize || rowStyle.fontSize || fontSize,
+            fontFace: fontFamily,
+            color: cellStyle.textColor || rowStyle.textColor || textColor,
+            fill: {
+              color:
+                cellStyle.backgroundColor ||
+                rowStyle.backgroundColor ||
+                cellBackgroundColor,
+            },
+            bold:
+              cellStyle.fontWeight === "bold" || rowStyle.fontWeight === "bold",
+            align: cellStyle.textAlign || textAlign,
+            valign: "middle",
+            border: [
+              { pt: borderWidth, color: borderColor },
+              { pt: borderWidth, color: borderColor },
+              { pt: borderWidth, color: borderColor },
+              { pt: borderWidth, color: borderColor },
+            ],
+          },
+        };
+      });
+      tableData.push(rowData);
+    });
+
+    // Calculate column widths
+    const totalCols = headers.length || rows[0]?.length || 1;
+    const defaultColWidth = coords.w / totalCols;
+    const colWidths = Array.from({ length: totalCols }, (_, index) => {
+      if (columnWidths[index]) {
+        return (columnWidths[index] / element.width) * coords.w;
+      }
+      return defaultColWidth;
+    });
+
+    // Add table to slide
+    slide.addTable(tableData, {
+      x: coords.x,
+      y: coords.y,
+      w: coords.w,
+      h: coords.h,
+      colW: colWidths,
+      border: { pt: borderWidth, color: borderColor },
+      margin: 0.1,
+    });
+
+    console.log(
+      `✅ Table added: ${headers.length} headers, ${rows.length} rows at (${coords.x}, ${coords.y})`
+    );
+  } catch (error) {
+    console.error("Error adding table to slide:", error);
+    // Add a placeholder text if table fails
+    const coords = convertCoordinates(
+      element.x,
+      element.y,
+      element.width,
+      element.height
+    );
+    const textOptions = {
+      x: coords.x,
+      y: coords.y,
+      w: coords.w,
+      h: coords.h,
+      fontSize: 12,
+      fontFace: "Arial",
+      color: "666666",
+      align: "center",
+      valign: "middle",
+    };
+    slide.addText("[Table Element]", textOptions);
+  }
+}
+
+/**
  * Create PowerPoint presentation from slide data
  */
 export async function exportToPPTX(
@@ -703,6 +851,9 @@ export async function exportToPPTX(
             break;
           case "shape":
             addShapeElement(slide, element);
+            break;
+          case "table":
+            addTableElement(slide, element);
             break;
           default:
             console.warn(`Unsupported element type: ${element.type}`);
