@@ -44,21 +44,19 @@ export default function ExamCreationModal({
   const [pageSize] = useState(9);
 
   // Fetch tool results for library mode
-  const {
-    data: toolResults,
-    isLoading: isLoadingLibrary,
-  } = useToolResultsWithParamsService(
-    [currentPage, pageSize], // dependencies for query key
-    { retry: 1, staleTime: 0, enabled: selectedMode === "mylibrary" }, // options
-    {
-      userId: user?.id,
-      page: currentPage + 1,
-      size: pageSize,
-      sort: "createdAt,desc",
-      type: "EXAM",
-      status: "ARCHIVED",
-    }
-  );
+  const { data: toolResults, isLoading: isLoadingLibrary } =
+    useToolResultsWithParamsService(
+      [currentPage, pageSize], // dependencies for query key
+      { retry: 1, staleTime: 0, enabled: selectedMode === "mylibrary" }, // options
+      {
+        userId: user?.id,
+        page: currentPage + 1,
+        size: pageSize,
+        sort: "createdAt,desc",
+        type: "EXAM",
+        status: "ARCHIVED",
+      }
+    );
 
   const handleModeSelect = (mode: "import" | "manual" | "mylibrary") => {
     setSelectedMode(mode);
@@ -101,7 +99,9 @@ export default function ExamCreationModal({
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <div className="flex items-center">
-            {(selectedMode === "import" || selectedMode === "manual" || selectedMode === "mylibrary") && (
+            {(selectedMode === "import" ||
+              selectedMode === "manual" ||
+              selectedMode === "mylibrary") && (
               <div className="flex items-center">
                 <Button
                   variant="ghost"
@@ -164,6 +164,26 @@ export default function ExamCreationModal({
                 {/* Tạo thủ công */}
                 <div
                   className="overflow-hidden relative rounded-lg p-10 group hover:shadow-md transition-all cursor-pointer flex flex-col items-end justify-start aspect-[4/3] w-full"
+                  onClick={() => handleModeSelect("mylibrary")}
+                >
+                  <h2 className="text-5xl mb-3 z-10 text-white text-end">
+                    Đề từ <br />
+                    <span className="font-calsans bg-clip-text leading-tight">
+                      kho tài liệu
+                    </span>
+                  </h2>
+                  <img
+                    src={"/images/illustration/document.svg"}
+                    className="absolute group-hover:scale-110 h-[70%] left-0 bottom-0 transition-all object-cover z-10"
+                  />
+                  <img
+                    src={"/images/background/library.svg"}
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                  />
+                </div>
+
+                <div
+                  className="overflow-hidden relative rounded-lg p-10 group hover:shadow-md transition-all cursor-pointer flex flex-col items-end justify-start aspect-[4/3] w-full"
                   // onClick={() => handleModeSelect("manual")}
                   onClick={onCreateManually}
                 >
@@ -181,22 +201,6 @@ export default function ExamCreationModal({
                     src={"/images/background/manual.svg"}
                     className="absolute inset-0 w-full h-full object-cover z-0"
                   />
-                </div>
-
-                {/* Đề kiểm tra từ kho tài liệu */}
-                <div
-                  className="overflow-hidden relative rounded-lg p-10 group hover:shadow-md transition-all cursor-pointer flex flex-col items-center justify-center aspect-[4/3] w-full border-2 border-dashed border-gray-300 hover:border-blue-400"
-                  onClick={() => handleModeSelect("mylibrary")}
-                >
-                  <h2 className="text-4xl mb-2 z-10 text-gray-700 text-center font-calsans">
-                    Đề kiểm tra từ <br />
-                    <span className="font-calsans text-blue-600 underline bg-clip-text leading-tight">
-                      kho tài liệu
-                    </span>
-                  </h2>
-                  <p className="text-gray-500 text-sm text-center mt-2">
-                    Chọn từ các đề thi đã lưu
-                  </p>
                 </div>
               </div>
             </div>
@@ -278,28 +282,29 @@ export default function ExamCreationModal({
               {!isLoadingLibrary && toolResults?.data?.content && (
                 <>
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    {toolResults.data.content.map((item: any, index: number) => (
-                      <div key={index} className="cursor-pointer">
-                        <DocumentItem
-                          type="DOCX"
-                          name={item.name}
-                          description={item.description}
-                          lastModifiedTime={new Date(item.updatedAt).toLocaleString(
-                            "vi-VN",
-                            {
+                    {toolResults.data.content.map(
+                      (item: any, index: number) => (
+                        <div key={index} className="cursor-pointer">
+                          <DocumentItem
+                            type="DOCX"
+                            name={item.name}
+                            description={item.description}
+                            lastModifiedTime={new Date(
+                              item.updatedAt
+                            ).toLocaleString("vi-VN", {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
                               hour: "2-digit",
                               minute: "2-digit",
                               hour12: false,
-                            }
-                          )}
-                          onClick={() => handleLibraryItemSelect(item)}
-                          onRemove={undefined} // No remove button in selection mode
-                        />
-                      </div>
-                    ))}
+                            })}
+                            onClick={() => handleLibraryItemSelect(item)}
+                            onRemove={undefined} // No remove button in selection mode
+                          />
+                        </div>
+                      )
+                    )}
                   </div>
 
                   {/* Pagination */}
@@ -326,31 +331,42 @@ export default function ExamCreationModal({
                           </PaginationItem>
 
                           {/* Page Numbers */}
-                          {Array.from({ length: Math.min(5, toolResults.data.totalPages) }, (_, i) => {
-                            const pageNumber = currentPage < 3
-                              ? i
-                              : currentPage > toolResults.data.totalPages - 3
-                              ? toolResults.data.totalPages - 5 + i
-                              : currentPage - 2 + i;
+                          {Array.from(
+                            {
+                              length: Math.min(5, toolResults.data.totalPages),
+                            },
+                            (_, i) => {
+                              const pageNumber =
+                                currentPage < 3
+                                  ? i
+                                  : currentPage >
+                                    toolResults.data.totalPages - 3
+                                  ? toolResults.data.totalPages - 5 + i
+                                  : currentPage - 2 + i;
 
-                            if (pageNumber < 0 || pageNumber >= toolResults.data.totalPages) return null;
+                              if (
+                                pageNumber < 0 ||
+                                pageNumber >= toolResults.data.totalPages
+                              )
+                                return null;
 
-                            return (
-                              <PaginationItem key={pageNumber}>
-                                <PaginationLink
-                                  href="#"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handlePageChange(pageNumber);
-                                  }}
-                                  isActive={currentPage === pageNumber}
-                                  className="!text-black hover:!text-black"
-                                >
-                                  {pageNumber + 1}
-                                </PaginationLink>
-                              </PaginationItem>
-                            );
-                          })}
+                              return (
+                                <PaginationItem key={pageNumber}>
+                                  <PaginationLink
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handlePageChange(pageNumber);
+                                    }}
+                                    isActive={currentPage === pageNumber}
+                                    className="!text-black hover:!text-black"
+                                  >
+                                    {pageNumber + 1}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            }
+                          )}
 
                           {/* Next Button */}
                           <PaginationItem>
@@ -358,7 +374,10 @@ export default function ExamCreationModal({
                               href="#"
                               onClick={(e) => {
                                 e.preventDefault();
-                                if (currentPage < toolResults.data.totalPages - 1) {
+                                if (
+                                  currentPage <
+                                  toolResults.data.totalPages - 1
+                                ) {
                                   handlePageChange(currentPage + 1);
                                 }
                               }}
@@ -377,17 +396,20 @@ export default function ExamCreationModal({
               )}
 
               {/* Empty state */}
-              {!isLoadingLibrary && (!toolResults?.data?.content || toolResults.data.content.length === 0) && (
-                <div className="text-center p-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                  <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h4 className="text-lg font-calsans mb-2 text-gray-900">
-                    Chưa có đề kiểm tra nào
-                  </h4>
-                  <p className="text-gray-600 font-questrial mb-6 max-w-md mx-auto">
-                    Bạn chưa có đề kiểm tra nào trong thư viện. Hãy tạo đề kiểm tra mới trước.
-                  </p>
-                </div>
-              )}
+              {!isLoadingLibrary &&
+                (!toolResults?.data?.content ||
+                  toolResults.data.content.length === 0) && (
+                  <div className="text-center p-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                    <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h4 className="text-lg font-calsans mb-2 text-gray-900">
+                      Chưa có đề kiểm tra nào
+                    </h4>
+                    <p className="text-gray-600 font-questrial mb-6 max-w-md mx-auto">
+                      Bạn chưa có đề kiểm tra nào trong thư viện. Hãy tạo đề
+                      kiểm tra mới trước.
+                    </p>
+                  </div>
+                )}
             </div>
           )}
         </div>
