@@ -113,7 +113,7 @@ export default function Home() {
         className="mb-8"
       />
 
-      <section className="grid grid-cols-1 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2 gap-5">
+      <section className="grid grid-cols-1 xl:grid-grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-5">
         {bookTypes?.data?.content
           ?.sort((a: any, b: any) => a.priority - b.priority)
           ?.map((feature: any) => (
