@@ -14,7 +14,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 function OrderManagementPage() {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +37,7 @@ function OrderManagementPage() {
     [currentPage, pageSize], // dependencies for query key
     { retry: 1, staleTime: 0 }, // options
     {
-      offset: currentPage + 1,
+      offset: currentPage,
       pageSize: pageSize,
       sort: "createdAt,desc",
     } // pagination params

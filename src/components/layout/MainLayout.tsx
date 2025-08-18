@@ -2,6 +2,7 @@
 
 import React from "react";
 import MainHeader from "../organisms/header/MainHeader";
+import ChatBox from "../organisms/chat-box";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,15 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <main className="flex-grow container mx-auto p-5 space-y-5">
         {children}
       </main>
+
+      <ChatBox
+        position="bottom-left"
+        size="md"
+        variant="default"
+        title="PlanBook AI Assistant"
+        placeholder="Nhập câu hỏi của bạn..."
+        showBadge={true}
+      />
 
       {/* <footer className="bg-gray-100 p-4">
         <div className="container mx-auto text-center text-gray-600">
