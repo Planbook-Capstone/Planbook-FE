@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import { UserWithWalletResponse } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAllUsersService } from "@/services/userService";
+import { useUsersByIdsService } from "@/services/userService";
 
 interface UserStats {
   userId: string;
@@ -18,29 +18,27 @@ interface UserStatsTableProps {
 }
 
 export function UserStatsTable({ userStats }: UserStatsTableProps) {
-  // Fetch all users for user information
-  const { data: allUsersData } = useAllUsersService();
+  // Get top 5 user stats first
+  const topUserStats = useMemo(() => userStats.slice(0, 5), [userStats]);
 
-  // Map user stats with user data and only show top 5
+  // Extract user IDs from top 5 stats
+  const userIds = useMemo(() => topUserStats.map(stat => stat.userId), [topUserStats]);
+
+  // Fetch users by IDs using the new service
+  const userQueries = useUsersByIdsService(userIds);
+
+  // Map user stats with user data
   const topUsers = useMemo(() => {
-    if (!allUsersData?.data?.content) {
-      return userStats.slice(0, 5);
-    }
+    return topUserStats.map((stat, index) => {
+      const userQuery = userQueries[index];
+      const userData = userQuery?.data?.data;
 
-    // Create user lookup map
-    const usersMap = new Map<string, UserWithWalletResponse>();
-    allUsersData.data.content.forEach((user: UserWithWalletResponse) => {
-      usersMap.set(user.id, user);
+      return {
+        ...stat,
+        user: userData,
+      };
     });
-
-    // Map user stats with user data
-    const enrichedUserStats = userStats.map((stat) => ({
-      ...stat,
-      user: usersMap.get(stat.userId),
-    }));
-
-    return enrichedUserStats.slice(0, 5);
-  }, [userStats, allUsersData]);
+  }, [topUserStats, userQueries]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("vi-VN").format(value) + " VNĐ";
@@ -88,7 +86,7 @@ export function UserStatsTable({ userStats }: UserStatsTableProps) {
                             {user.user.fullName
                               ? user.user.fullName
                                   .split(" ")
-                                  .map((n) => n[0])
+                                  .map((n: string) => n[0])
                                   .join("")
                                   .toUpperCase()
                               : user.user.username?.slice(0, 2).toUpperCase() ||

@@ -9,6 +9,7 @@ import {
   Settings,
   Trash,
   User,
+  Wallet,
 } from "lucide-react";
 
 import {
@@ -42,16 +43,16 @@ const items = [
     icon: History,
   },
   {
+    title: "Ví của tôi",
+    url: "/auth/wallet",
+    icon: Wallet,
+  },
+  {
     title: "Thùng rác",
     url: "/auth/trash",
     icon: Trash,
   },
 
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
   {
     title: "Đăng xuất",
     url: "#",
