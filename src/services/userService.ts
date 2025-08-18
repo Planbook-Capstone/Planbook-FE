@@ -1,4 +1,12 @@
-import { createDynamicQueryHook, createMutationHook, createQueryHook, patchMutationHook, updateMutationHook } from "@/hooks/react-query";
+import {
+  createDynamicQueryHook,
+  createMutationHook,
+  createQueryHook,
+  createQueryWithPathParamHook,
+  createMultiQueryHook,
+  patchMutationHook,
+  updateMutationHook,
+} from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 export const useUserServices = createMutationHook(
@@ -39,3 +47,12 @@ export const useUpdateProfileService = updateMutationHook(
   API_ENDPOINTS.USERS_MANAGEMENT.BASE
 );
 
+export const useUserByIdService = createQueryWithPathParamHook(
+  "user-by-id",
+  API_ENDPOINTS.USERS_MANAGEMENT.BASE
+);
+
+export const useUsersByIdsService = createMultiQueryHook(
+  "user-by-id",
+  (userId) => `${API_ENDPOINTS.USERS_MANAGEMENT.BASE}/${userId}`
+);

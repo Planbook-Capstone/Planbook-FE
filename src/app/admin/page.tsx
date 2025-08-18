@@ -41,6 +41,8 @@ const AdminPage = () => {
     }
   }, [orders, error]);
 
+  console.log(userStats, "userStats");
+
   return (
     <div className="p-6">
       {isLoading && (
