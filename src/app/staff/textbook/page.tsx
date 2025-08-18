@@ -7,9 +7,11 @@ import { useSubjectsByGradeService } from "@/services/subjectServices";
 import { useBooksBySubjectService } from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
-import { Home } from "lucide-react";
 import Image from "next/image";
-import { BreadcrumbTrail, type BreadcrumbItem } from "@/components/ui/BreadcrumbTrail";
+import {
+  BreadcrumbTrail,
+  type BreadcrumbItem,
+} from "@/components/ui/BreadcrumbTrail";
 import LessonDetail from "@/components/templates/lesson-detail";
 
 function TextbookManagementPage() {
@@ -33,9 +35,12 @@ function TextbookManagementPage() {
   });
 
   // Get chapters by selected book
-  const { data: chaptersResponse } = useChaptersByBookService(selectedBook?.id || "", {
-    enabled: !!selectedBook,
-  });
+  const { data: chaptersResponse } = useChaptersByBookService(
+    selectedBook?.id || "",
+    {
+      enabled: !!selectedBook,
+    }
+  );
   const chapters = chaptersResponse?.data?.content || [];
 
   // Get lessons by all chapter IDs
@@ -45,8 +50,8 @@ function TextbookManagementPage() {
 
   // Flatten all lessons from all chapters
   const allLessons = lessonQueries
-    .filter(query => query.data?.data?.content)
-    .flatMap(query => query.data.data.content);
+    .filter((query) => query.data?.data?.content)
+    .flatMap((query) => query.data.data.content);
 
   // Generate breadcrumbs based on current view and selections
   const getBreadcrumbs = (): BreadcrumbItem[] => {
@@ -215,7 +220,7 @@ function TextbookManagementPage() {
 
   const renderLessons = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-10 gap-4">
+      <div className="grid grid-cols-7 gap-4">
         {allLessons && allLessons.length > 0 ? (
           allLessons.map((lesson: any) => (
             <div

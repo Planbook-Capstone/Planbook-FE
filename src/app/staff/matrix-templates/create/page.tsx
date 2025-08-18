@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/FormField";
@@ -8,31 +9,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2, Save, Eye } from "lucide-react";
 import { toast } from "sonner";
-
-// Types for matrix template configuration
-interface DifficultyLevel {
-  id: string;
-  name: string;
-  label: string;
-  color: string;
-}
-
-interface MatrixPart {
-  id: string;
-  name: string;
-  label: string;
-  color: string;
-  difficultyLevels: DifficultyLevel[];
-}
-
-interface MatrixTemplateConfig {
-  id?: string;
-  name: string;
-  description: string;
-  parts: MatrixPart[];
-}
+import {
+  type MatrixTemplateConfig,
+  type DifficultyLevel,
+  type MatrixPart,
+  validateMatrixTemplate,
+  useCreateMatrixTemplateService,
+} from "@/services/matrixTemplateServices";
+import ConfigurableExamMatrixForm from "@/components/forms/ConfigurableExamMatrixForm";
+import ColorPicker from "@/components/ui/ColorPicker";
 
 function CreateMatrixTemplatePage() {
+  const router = useRouter();
   const [config, setConfig] = useState<MatrixTemplateConfig>({
     name: "",
     description: "",
@@ -74,7 +62,7 @@ function CreateMatrixTemplatePage() {
   });
 
   const [showPreview, setShowPreview] = useState(false);
-
+const {mutate:createMatrixTemplate, isPending: isCreating} = useCreateMatrixTemplateService();
   // Handle template info changes
   const handleTemplateInfoChange = (field: keyof MatrixTemplateConfig, value: string) => {
     setConfig(prev => ({
@@ -118,14 +106,14 @@ function CreateMatrixTemplatePage() {
   // Add new part
   const addPart = () => {
     const newPart: MatrixPart = {
-      id: `part${config.parts.length + 1}`,
+      id: "",
       name: `Phần ${config.parts.length + 1}`,
       label: "",
       color: "bg-gray-50",
       difficultyLevels: [
-        { id: "nb", name: "NB", label: "Nhận biết", color: "text-gray-700" },
-        { id: "th", name: "TH", label: "Thông hiểu", color: "text-gray-700" },
-        { id: "vd", name: "VD", label: "Vận dụng", color: "text-gray-700" },
+        { id: "", name: "NB", label: "Nhận biết", color: "text-gray-700" },
+        { id: "", name: "TH", label: "Thông hiểu", color: "text-gray-700" },
+        { id: "", name: "VD", label: "Vận dụng", color: "text-gray-700" },
       ],
     };
 
@@ -151,7 +139,7 @@ function CreateMatrixTemplatePage() {
   // Add difficulty level to a part
   const addDifficultyLevel = (partIndex: number) => {
     const newDifficulty: DifficultyLevel = {
-      id: `level${config.parts[partIndex].difficultyLevels.length + 1}`,
+      id: "",
       name: "",
       label: "",
       color: config.parts[partIndex].difficultyLevels[0]?.color || "text-gray-700",
@@ -189,25 +177,38 @@ function CreateMatrixTemplatePage() {
 
   // Save template
   const handleSave = () => {
-    if (!config.name.trim()) {
-      toast.error("Vui lòng nhập tên template");
+    const validationErrors = validateMatrixTemplate(config);
+    if (validationErrors.length > 0) {
+      toast.error(validationErrors[0]);
       return;
     }
 
-    if (config.parts.some(part => !part.name.trim())) {
-      toast.error("Vui lòng nhập tên cho tất cả các phần");
-      return;
-    }
+    // Prepare data for API
+    const createData = {
+      name: config.name,
+      description: config.description,
+      matrixJson: {
+        parts: config.parts
+      },
+      status: "ACTIVE"
+    };
 
-    // TODO: Call API to save template
-    console.log("Saving matrix template config:", config);
-    toast.success("Mẫu ma trận đã được lưu thành công!");
+    createMatrixTemplate(createData, {
+      onSuccess: () => {
+        toast.success("Mẫu ma trận đã được tạo thành công!");
+        router.push("/staff/matrix-templates");
+      },
+      onError: (error) => {
+        console.error("Error creating template:", error);
+        toast.error("Có lỗi xảy ra khi tạo template!");
+      },
+    });
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold font-calsans mb-2">Tạo Template Ma Trận Đề Thi</h1>
+        <h1 className="text-2xl font-calsans mb-2">Tạo Mẫu Ma Trận Đề Thi</h1>
         <p className="text-gray-600 font-questrial">
           Cấu hình cấu trúc ma trận đề thi với các phần và mức độ khó tùy chỉnh
         </p>
@@ -273,7 +274,19 @@ function CreateMatrixTemplatePage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField label="ID phần" htmlFor={`part-id-${partIndex}`}>
+                      <Input
+                        id={`part-id-${partIndex}`}
+                        value={part.id}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handlePartChange(partIndex, "id", e.target.value)
+                        }
+                        placeholder="part1"
+                        className="font-questrial"
+                      />
+                    </FormField>
+
                     <FormField label="Tên hiển thị" htmlFor={`part-name-${partIndex}`}>
                       <Input
                         id={`part-name-${partIndex}`}
@@ -300,21 +313,10 @@ function CreateMatrixTemplatePage() {
                   </div>
 
                   <FormField label="Màu nền" htmlFor={`part-color-${partIndex}`}>
-                    <select
-                      id={`part-color-${partIndex}`}
-                      value={part.color}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                        handlePartChange(partIndex, "color", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-questrial"
-                    >
-                      <option value="bg-amber-50">Vàng nhạt</option>
-                      <option value="bg-green-50">Xanh lá nhạt</option>
-                      <option value="bg-sky-50">Xanh dương nhạt</option>
-                      <option value="bg-purple-50">Tím nhạt</option>
-                      <option value="bg-pink-50">Hồng nhạt</option>
-                      <option value="bg-gray-50">Xám nhạt</option>
-                    </select>
+                    <ColorPicker
+                      selectedColor={part.color}
+                      onColorChange={(color) => handlePartChange(partIndex, "color", color)}
+                    />
                   </FormField>
 
                   {/* Difficulty Levels */}
@@ -331,8 +333,21 @@ function CreateMatrixTemplatePage() {
                       </Button>
                     </div>
 
+                    <div className="text-xs text-gray-500 font-questrial">
+                      <span className="font-medium">Thứ tự:</span> ID | Tên | Mô tả
+                    </div>
+
                     {part.difficultyLevels.map((difficulty, difficultyIndex) => (
-                      <div key={difficulty.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                      <div key={difficulty.id || difficultyIndex} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                        <Input
+                          value={difficulty.id}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            handleDifficultyChange(partIndex, difficultyIndex, "id", e.target.value)
+                          }
+                          placeholder="nb"
+                          className="w-16 text-center font-questrial"
+                          title="ID mức độ"
+                        />
                         <Input
                           value={difficulty.name}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -340,6 +355,7 @@ function CreateMatrixTemplatePage() {
                           }
                           placeholder="NB"
                           className="w-16 text-center font-questrial"
+                          title="Tên hiển thị"
                         />
                         <Input
                           value={difficulty.label}
@@ -348,6 +364,7 @@ function CreateMatrixTemplatePage() {
                           }
                           placeholder="Nhận biết"
                           className="flex-1 font-questrial"
+                          title="Mô tả mức độ"
                         />
                         {part.difficultyLevels.length > 1 && (
                           <Button
@@ -386,96 +403,10 @@ function CreateMatrixTemplatePage() {
             </CardHeader>
             {showPreview && (
               <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-center rounded-md border mb-4">
-                    <thead className="font-calsans text-base">
-                      <tr>
-                        {config.parts.map((part, index) => (
-                          <th
-                            key={part.id}
-                            className={`border px-2 py-4 align-middle ${part.color}`}
-                            colSpan={part.difficultyLevels.length}
-                          >
-                            <span className="font-normal">
-                              {part.name}
-                              {part.label && (
-                                <div className="text-xs text-gray-600 mt-1">
-                                  ({part.label})
-                                </div>
-                              )}
-                            </span>
-                          </th>
-                        ))}
-                        <th className="border px-2 py-4 align-middle" rowSpan={2}>
-                          <span className="font-normal">Tổng</span>
-                        </th>
-                      </tr>
-                      <tr>
-                        {config.parts.map((part) =>
-                          part.difficultyLevels.map((difficulty) => (
-                            <th key={`${part.id}-${difficulty.id}`} className="border px-2 py-2">
-                              <span className="font-normal" title={difficulty.label}>
-                                {difficulty.name}
-                              </span>
-                            </th>
-                          ))
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* Sample row */}
-                      <tr className="font-questrial">
-                        {config.parts.map((part) =>
-                          part.difficultyLevels.map((difficulty) => (
-                            <td key={`${part.id}-${difficulty.id}-sample`} className="border px-2 py-1">
-                              <input
-                                type="number"
-                                min="0"
-                                defaultValue={0}
-                                className="w-full px-2 py-2 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="0"
-                                disabled
-                              />
-                            </td>
-                          ))
-                        )}
-                        <td className="border px-2 py-1">
-                          <div className="px-2 py-2 text-center font-semibold text-blue-600 bg-gray-50 rounded">
-                            0
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Total row */}
-                      <tr className="bg-gray-50">
-                        {config.parts.map((part) => (
-                          <td
-                            key={`${part.id}-total`}
-                            className="border px-2 py-3 text-center"
-                            colSpan={part.difficultyLevels.length}
-                          >
-                            <span className={`font-calsans ${part.color.replace('bg-', 'text-').replace('-50', '-700')}`}>
-                              0
-                            </span>
-                          </td>
-                        ))}
-                        <td className="border px-2 py-3 text-center">
-                          <span className="font-bold font-questrial text-blue-700">
-                            0
-                          </span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Template JSON Preview */}
-                <div className="mt-4">
-                  <h4 className="font-medium font-calsans mb-2">Cấu hình JSON:</h4>
-                  <pre className="bg-gray-100 p-3 rounded text-xs overflow-x-auto font-mono">
-                    {JSON.stringify(config, null, 2)}
-                  </pre>
-                </div>
+                <ConfigurableExamMatrixForm
+                  config={config}
+                  readonly={true}
+                />
               </CardContent>
             )}
           </Card>
@@ -490,16 +421,24 @@ function CreateMatrixTemplatePage() {
                 <strong>1. Cấu hình thông tin template:</strong> Nhập tên và mô tả cho template ma trận.
               </div>
               <div>
-                <strong>2. Thiết lập các phần:</strong> Mỗi phần đại diện cho một loại câu hỏi (trắc nghiệm, đúng/sai, tự luận).
+                <strong>2. Thiết lập các phần:</strong> Nhập ID, tên hiển thị và nhãn mô tả cho mỗi phần. ID phải là duy nhất.
               </div>
               <div>
-                <strong>3. Định nghĩa mức độ khó:</strong> Mỗi phần có thể có nhiều mức độ khó khác nhau (NB, TH, VD).
+                <strong>3. Định nghĩa mức độ khó:</strong> Nhập ID, tên và mô tả cho mỗi mức độ khó. ID trong cùng một phần phải khác nhau.
               </div>
               <div>
                 <strong>4. Xem trước:</strong> Kiểm tra giao diện ma trận sẽ hiển thị như thế nào.
               </div>
               <div>
-                <strong>5. Lưu template:</strong> Template sẽ được sử dụng khi tạo đề thi mới.
+                <strong>5. Lưu template:</strong> Hệ thống sẽ kiểm tra tính hợp lệ của ID trước khi lưu.
+              </div>
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                <strong className="text-yellow-800">Lưu ý:</strong>
+                <ul className="mt-1 ml-4 list-disc text-yellow-700">
+                  <li>ID không được để trống và không được trùng lặp</li>
+                  <li>ID nên sử dụng ký tự không dấu, không khoảng trắng</li>
+                  <li>Ví dụ ID hợp lệ: part1, nb, th, vd</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
@@ -508,12 +447,12 @@ function CreateMatrixTemplatePage() {
 
       {/* Action Buttons */}
       <div className="mt-8 flex justify-end gap-4">
-        <Button variant="outline" onClick={() => window.history.back()}>
+        <Button variant="outline" onClick={() => router.push("/staff/matrix-templates")}>
           Hủy
         </Button>
-        <Button onClick={handleSave}>
+        <Button onClick={handleSave} disabled={isCreating}>
           <Save className="w-4 h-4 mr-2" />
-          Lưu ma trận
+          {isCreating ? "Đang tạo..." : "Lưu ma trận"}
         </Button>
       </div>
     </div>
