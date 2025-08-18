@@ -38,25 +38,16 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
 
     const averageLength = totalLength / optionValues.length;
 
-    // Debug log để kiểm tra
-    console.log('=== GRID CLASS DEBUG ===');
-    console.log('Options:', options);
-    console.log('Option values:', optionValues);
-    console.log('Individual lengths:', optionValues.map(opt => opt.replace(/<[^>]*>/g, "").trim().length));
-    console.log('Total length:', totalLength);
-    console.log('Average length:', averageLength);
-
     let gridClass;
-    if (averageLength < 20) {
+    if (averageLength < 10) {
       gridClass = "grid grid-cols-4 gap-2";
-    } else if (averageLength >= 20 && averageLength < 40) {
+    } else if (averageLength >= 10 && averageLength < 25) {
       gridClass = "grid grid-cols-2 gap-2";
     } else {
       gridClass = "grid grid-cols-1 gap-2";
     }
 
-    console.log('Grid class:', gridClass);
-    console.log('========================');
+  
 
     return gridClass;
   };
