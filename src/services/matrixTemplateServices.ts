@@ -1,5 +1,6 @@
 "use client";
 
+import { EXAM_ENDPOINTS } from "@/constants/apiEndpoints";
 import {
   createMutationHook,
   createQueryHook,
@@ -7,9 +8,6 @@ import {
   updateMutationHook,
   deleteMutationHook,
 } from "@/hooks/react-query";
-
-// Define the base endpoint for matrix templates
-const MATRIX_TEMPLATES_ENDPOINT = "/api/matrix-templates";
 
 /**
  * Types for matrix template configuration
@@ -58,7 +56,7 @@ export interface UpdateMatrixTemplateRequest {
  */
 export const useMatrixTemplatesService = createQueryHook(
   "matrixTemplates",
-  MATRIX_TEMPLATES_ENDPOINT
+  `${EXAM_ENDPOINTS.MATRIX_CONFIGS}?status=ACTIVE`
 );
 
 /**
@@ -66,7 +64,7 @@ export const useMatrixTemplatesService = createQueryHook(
  */
 export const useMatrixTemplateByIdService = createQueryWithPathParamHook(
   "matrixTemplate",
-  MATRIX_TEMPLATES_ENDPOINT
+  EXAM_ENDPOINTS.MATRIX_CONFIGS
 );
 
 /**
@@ -74,7 +72,7 @@ export const useMatrixTemplateByIdService = createQueryWithPathParamHook(
  */
 export const useCreateMatrixTemplateService = createMutationHook(
   "createMatrixTemplate",
-  MATRIX_TEMPLATES_ENDPOINT
+  EXAM_ENDPOINTS.MATRIX_CONFIGS
 );
 
 /**
@@ -82,7 +80,7 @@ export const useCreateMatrixTemplateService = createMutationHook(
  */
 export const useUpdateMatrixTemplateService = updateMutationHook(
   "matrixTemplates",
-  MATRIX_TEMPLATES_ENDPOINT
+  EXAM_ENDPOINTS.MATRIX_CONFIGS
 );
 
 /**
@@ -90,7 +88,7 @@ export const useUpdateMatrixTemplateService = updateMutationHook(
  */
 export const useDeleteMatrixTemplateService = deleteMutationHook(
   "matrixTemplates",
-  MATRIX_TEMPLATES_ENDPOINT
+  EXAM_ENDPOINTS.MATRIX_CONFIGS
 );
 
 /**
@@ -100,7 +98,8 @@ export const DEFAULT_MATRIX_TEMPLATES: MatrixTemplateConfig[] = [
   {
     id: "default-3-parts",
     name: "Ma trận 3 phần chuẩn",
-    description: "Ma trận đề thi chuẩn với 3 phần: Trắc nghiệm, Đúng/Sai, Tự luận",
+    description:
+      "Ma trận đề thi chuẩn với 3 phần: Trắc nghiệm, Đúng/Sai, Tự luận",
     parts: [
       {
         id: "part1",
@@ -109,7 +108,12 @@ export const DEFAULT_MATRIX_TEMPLATES: MatrixTemplateConfig[] = [
         color: "bg-amber-50",
         difficultyLevels: [
           { id: "nb", name: "NB", label: "Nhận biết", color: "text-amber-700" },
-          { id: "th", name: "TH", label: "Thông hiểu", color: "text-amber-700" },
+          {
+            id: "th",
+            name: "TH",
+            label: "Thông hiểu",
+            color: "text-amber-700",
+          },
           { id: "vd", name: "VD", label: "Vận dụng", color: "text-amber-700" },
         ],
       },
@@ -120,7 +124,12 @@ export const DEFAULT_MATRIX_TEMPLATES: MatrixTemplateConfig[] = [
         color: "bg-green-50",
         difficultyLevels: [
           { id: "nb", name: "NB", label: "Nhận biết", color: "text-green-700" },
-          { id: "th", name: "TH", label: "Thông hiểu", color: "text-green-700" },
+          {
+            id: "th",
+            name: "TH",
+            label: "Thông hiểu",
+            color: "text-green-700",
+          },
           { id: "vd", name: "VD", label: "Vận dụng", color: "text-green-700" },
         ],
       },
@@ -150,7 +159,12 @@ export const DEFAULT_MATRIX_TEMPLATES: MatrixTemplateConfig[] = [
         color: "bg-blue-50",
         difficultyLevels: [
           { id: "easy", name: "Dễ", label: "Dễ", color: "text-blue-700" },
-          { id: "medium", name: "TB", label: "Trung bình", color: "text-blue-700" },
+          {
+            id: "medium",
+            name: "TB",
+            label: "Trung bình",
+            color: "text-blue-700",
+          },
           { id: "hard", name: "Khó", label: "Khó", color: "text-blue-700" },
         ],
       },
@@ -161,7 +175,12 @@ export const DEFAULT_MATRIX_TEMPLATES: MatrixTemplateConfig[] = [
         color: "bg-purple-50",
         difficultyLevels: [
           { id: "easy", name: "Dễ", label: "Dễ", color: "text-purple-700" },
-          { id: "medium", name: "TB", label: "Trung bình", color: "text-purple-700" },
+          {
+            id: "medium",
+            name: "TB",
+            label: "Trung bình",
+            color: "text-purple-700",
+          },
           { id: "hard", name: "Khó", label: "Khó", color: "text-purple-700" },
         ],
       },
@@ -173,14 +192,18 @@ export const DEFAULT_MATRIX_TEMPLATES: MatrixTemplateConfig[] = [
 /**
  * Utility function to get default template by ID
  */
-export const getDefaultTemplate = (id: string): MatrixTemplateConfig | undefined => {
-  return DEFAULT_MATRIX_TEMPLATES.find(template => template.id === id);
+export const getDefaultTemplate = (
+  id: string
+): MatrixTemplateConfig | undefined => {
+  return DEFAULT_MATRIX_TEMPLATES.find((template) => template.id === id);
 };
 
 /**
  * Utility function to validate matrix template config
  */
-export const validateMatrixTemplate = (config: MatrixTemplateConfig): string[] => {
+export const validateMatrixTemplate = (
+  config: MatrixTemplateConfig
+): string[] => {
   const errors: string[] = [];
 
   if (!config.name?.trim()) {
@@ -202,7 +225,9 @@ export const validateMatrixTemplate = (config: MatrixTemplateConfig): string[] =
 
     part.difficultyLevels?.forEach((difficulty, diffIndex) => {
       if (!difficulty.name?.trim()) {
-        errors.push(`Phần ${index + 1}, Mức độ ${diffIndex + 1}: Tên không được để trống`);
+        errors.push(
+          `Phần ${index + 1}, Mức độ ${diffIndex + 1}: Tên không được để trống`
+        );
       }
     });
   });
