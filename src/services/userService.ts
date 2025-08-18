@@ -14,6 +14,11 @@ export const useLoginGoogleService = createMutationHook(
   API_ENDPOINTS.AUTH.LOGIN_GOOGLE
 );
 
+export const useForgotPasswordService = createMutationHook(
+  "forgot-password",
+  API_ENDPOINTS.AUTH.FORGOT_PASSWORD
+);
+
 //API FOR USER MANAGEMENT
 export const useAllUsersService = createDynamicQueryHook(
   "all-users",

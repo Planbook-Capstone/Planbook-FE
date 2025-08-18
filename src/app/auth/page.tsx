@@ -3,7 +3,11 @@ import { Button, Divider, Form, Input } from "antd";
 import { ArrowRight } from "lucide-react";
 import React from "react";
 import Image from "next/image";
-import { useRegisterService, useUserServices } from "@/services/userService";
+import {
+  useForgotPasswordService,
+  useRegisterService,
+  useUserServices,
+} from "@/services/userService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
@@ -18,8 +22,10 @@ const LoginPage = () => {
   const { mutate: register } = useRegisterService();
   const [form] = Form.useForm();
   const [registerForm] = Form.useForm();
+  const [forgotPasswordForm] = Form.useForm();
   const [isRegister, setIsRegister] = React.useState(false);
   const [showRegisterOptions, setShowRegisterOptions] = React.useState(false);
+  const [showForgotPassword, setShowForgotPassword] = React.useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setUser } = useAppStore();
@@ -101,6 +107,31 @@ const LoginPage = () => {
   const handleBackToLogin = () => {
     setIsRegister(false);
     setShowRegisterOptions(false);
+    setShowForgotPassword(false);
+  };
+
+  const handleShowForgotPassword = () => {
+    setShowForgotPassword(true);
+    setIsRegister(false);
+    setShowRegisterOptions(false);
+  };
+
+  const { mutate: forgotPassword } = useForgotPasswordService();
+
+  const onForgotPasswordFinish = (values: any) => {
+    forgotPassword(values, {
+      onSuccess: () => {
+        toast.success("Đã gửi email khôi phục mật khẩu đến: " + values.email);
+        setShowForgotPassword(false);
+        forgotPasswordForm.resetFields();
+      },
+      onError: () => {
+        toast.error("Gửi email khôi phục mật khẩu thất bại.Vui lòng thử lại");
+      },
+    });
+
+    setShowForgotPassword(false);
+    forgotPasswordForm.resetFields();
   };
 
   const loginGG = async () => {
@@ -161,7 +192,9 @@ const LoginPage = () => {
         <div className="min-h-fit flex items-center justify-center bg-white px-4 py-10 z-10 rounded-md">
           <div
             className={`w-full space-y-6 px-4 transition-all duration-300 ${
-              showRegisterOptions || isRegister ? "min-w-sm" : "max-w-sm"
+              showRegisterOptions || isRegister || showForgotPassword
+                ? "min-w-sm"
+                : "max-w-sm"
             }`}
           >
             <div>
@@ -175,6 +208,11 @@ const LoginPage = () => {
                   <>
                     Tạo tài khoản{" "}
                     <span className="font-calsans text-gray-900">mới</span>
+                  </>
+                ) : showForgotPassword ? (
+                  <>
+                    Khôi phục{" "}
+                    <span className="font-calsans text-gray-900">mật khẩu</span>
                   </>
                 ) : (
                   <>
@@ -190,6 +228,8 @@ const LoginPage = () => {
                   ? "Chọn cách bạn muốn tạo tài khoản mới."
                   : isRegister
                   ? "Điền thông tin để tạo tài khoản mới."
+                  : showForgotPassword
+                  ? "Nhập email để nhận liên kết khôi phục mật khẩu."
                   : "Nhập email và mật khẩu để đăng nhập vào tài khoản."}
               </p>
             </div>
@@ -218,6 +258,43 @@ const LoginPage = () => {
                   </div>
                 </Button>
               </div>
+            ) : showForgotPassword ? (
+              // Forgot Password Form
+              <Form
+                form={forgotPasswordForm}
+                onFinish={onForgotPasswordFinish}
+                layout="vertical"
+                className="space-y-4 font-questrial"
+              >
+                <Form.Item
+                  name="email"
+                  rules={[
+                    { required: true, message: "Vui lòng nhập email!" },
+                    { type: "email", message: "Email không hợp lệ!" },
+                  ]}
+                >
+                  <Input
+                    placeholder="Email"
+                    size="large"
+                    className="input-base input-secondary"
+                  />
+                </Form.Item>
+
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    size="large"
+                    block
+                    className="w-full btn-base flex !justify-between !pl-4 !border-none btn-secondary !bg-[#0BD7DA] !hover:bg-cyan-500"
+                  >
+                    <span>Gửi email khôi phục</span>
+                    <div className="w-14 h-full flex justify-center items-center bg-[#00BFC9]">
+                      <ArrowRight />
+                    </div>
+                  </Button>
+                </Form.Item>
+              </Form>
             ) : isRegister ? (
               // Register Form
               <Form
@@ -360,7 +437,7 @@ const LoginPage = () => {
                 </Form.Item>
               </Form>
             )}
-            {!isRegister && !showRegisterOptions && (
+            {!isRegister && !showRegisterOptions && !showForgotPassword && (
               <Button
                 onClick={loginGG}
                 block
@@ -376,11 +453,15 @@ const LoginPage = () => {
               </Button>
             )}
 
-            {!isRegister && (
+            {!isRegister && !showRegisterOptions && !showForgotPassword && (
               <div className="text-sm font-questrial mt-2">
-                <a href="#" className="text-cyan-500 hover:underline">
+                <button
+                  type="button"
+                  onClick={handleShowForgotPassword}
+                  className="text-cyan-500 hover:underline bg-transparent border-none cursor-pointer"
+                >
                   Quên mật khẩu
-                </a>
+                </button>
               </div>
             )}
 
@@ -401,6 +482,17 @@ const LoginPage = () => {
               ) : isRegister ? (
                 <>
                   Đã có tài khoản?{" "}
+                  <button
+                    type="button"
+                    onClick={handleBackToLogin}
+                    className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
+                  >
+                    Đăng nhập ngay
+                  </button>
+                </>
+              ) : showForgotPassword ? (
+                <>
+                  Nhớ mật khẩu?{" "}
                   <button
                     type="button"
                     onClick={handleBackToLogin}

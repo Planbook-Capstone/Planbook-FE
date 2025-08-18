@@ -18,8 +18,6 @@ export default function MaterialPage() {
 
   const handleCreateMaterial = async (data: MaterialFormData) => {
     try {
-      console.log("Creating material:", data);
-
       const formData = new FormData();
       formData.append("file", data.file as File);
       formData.append(
