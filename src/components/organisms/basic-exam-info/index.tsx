@@ -116,7 +116,7 @@ export default function BasicExamInfoComponent({
 
         {/* Duration */}
         <div className="space-y-2">
-          <Label htmlFor="duration">Thời gian làm bài (phút)</Label>
+          <Label htmlFor="duration">Thời gian (phút)</Label>
           <Input
             id="duration"
             type="number"
