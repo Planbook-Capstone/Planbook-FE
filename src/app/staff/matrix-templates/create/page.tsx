@@ -219,15 +219,15 @@ function CreateMatrixTemplatePage() {
           {/* Template Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="font-calsans">Thông tin Template</CardTitle>
+              <CardTitle className="font-calsans">Thông tin Ma trận</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <FormField label="Tên Template" htmlFor="template-name">
+              <FormField label="Tên ma trận" htmlFor="template-name">
                 <Input
                   id="template-name"
                   value={config.name}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTemplateInfoChange("name", e.target.value)}
-                  placeholder="Nhập tên template"
+                  placeholder="Nhập tên ma trận"
                   className="font-questrial"
                 />
               </FormField>
@@ -237,7 +237,7 @@ function CreateMatrixTemplatePage() {
                   id="template-description"
                   value={config.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleTemplateInfoChange("description", e.target.value)}
-                  placeholder="Mô tả về template này"
+                  placeholder="Mô tả về mẫu ma trận này"
                   rows={3}
                   className="font-questrial"
                 />
@@ -513,7 +513,7 @@ function CreateMatrixTemplatePage() {
         </Button>
         <Button onClick={handleSave}>
           <Save className="w-4 h-4 mr-2" />
-          Lưu Template
+          Lưu ma trận
         </Button>
       </div>
     </div>

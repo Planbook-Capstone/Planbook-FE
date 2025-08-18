@@ -244,7 +244,7 @@ export default function SlideTemplatesList({
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Tạo Template
+            Tạo mẫu slide mới
           </Button>
         )}
       </div>
@@ -254,10 +254,10 @@ export default function SlideTemplatesList({
         <div className="text-center py-12">
           <Palette className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-calsans text-gray-900 mb-2">
-            Không tìm thấy template
+            Không tìm thấy mẫu slide
           </h3>
           <p className="text-gray-600 font-questrial">
-            Thử thay đổi từ khóa tìm kiếm hoặc tạo template mới
+            Thử thay đổi từ khóa tìm kiếm hoặc tạo mẫu slide mới
           </p>
         </div>
       ) : (

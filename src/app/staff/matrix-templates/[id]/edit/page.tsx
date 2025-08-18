@@ -266,7 +266,7 @@ function EditMatrixTemplatePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold font-calsans">Chỉnh sửa Template Ma Trận</h1>
+            <h1 className="text-2xl font-bold font-calsans">Chỉnh sửa mẫu Ma Trận</h1>
             <p className="text-gray-600 font-questrial">
               Cập nhật cấu hình template "{config.name}"
             </p>
@@ -280,7 +280,7 @@ function EditMatrixTemplatePage() {
           {/* Template Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="font-calsans">Thông tin Template</CardTitle>
+              <CardTitle className="font-calsans">Thông tin mẫu ma trận</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField label="Tên Template" htmlFor="template-name">
@@ -288,7 +288,7 @@ function EditMatrixTemplatePage() {
                   id="template-name"
                   value={config.name}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTemplateInfoChange("name", e.target.value)}
-                  placeholder="Nhập tên template"
+                  placeholder="Nhập tên mẫu ma trận"
                   className="font-questrial"
                 />
               </FormField>
@@ -298,7 +298,7 @@ function EditMatrixTemplatePage() {
                   id="template-description"
                   value={config.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleTemplateInfoChange("description", e.target.value)}
-                  placeholder="Mô tả về template này"
+                  placeholder="Mô tả về mẫu này"
                   rows={3}
                   className="font-questrial"
                 />
@@ -466,7 +466,7 @@ function EditMatrixTemplatePage() {
         </Link>
         <Button onClick={handleSave} disabled={isUpdating}>
           <Save className="w-4 h-4 mr-2" />
-          {isUpdating ? "Đang lưu..." : "Cập nhật Template"}
+          {isUpdating ? "Đang lưu..." : "Cập nhật mẫu ma trận"}
         </Button>
       </div>
     </div>

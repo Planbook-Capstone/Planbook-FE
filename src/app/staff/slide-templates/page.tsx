@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSlideTemplatesService } from "@/services/slideTemplateServices";
 import { SlideTemplateResponse } from "@/types";
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SlideTemplatesPage() {
   const router = useRouter();
@@ -48,6 +49,21 @@ export default function SlideTemplatesPage() {
       console.log("Template deleted:", templateId);
     }
   };
+
+  if (isLoadingTemplates) {
+    return (
+      <>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+          {[...Array(7)].map((_, index) => (
+            <Skeleton
+              key={index}
+              className="h-[150px] w-full rounded-md bg-neutral-300"
+            />
+          ))}
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="space-y-6">
