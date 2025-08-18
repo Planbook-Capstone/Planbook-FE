@@ -159,7 +159,8 @@ function MyLibrary() {
 
         <FallingTextContainer />
       </div>
-      <ItemSection title="Phân loại tài liệu" action={<CreateFolderModal />} />
+      <h1 className="font-calsans text-xl py-2">Phân loại tài liệu</h1>
+      {/* <ItemSection title="Phân loại tài liệu" action={<CreateFolderModal />} /> */}
       <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8  mx-auto">
         {myFolder?.map((f) => (
           <div onClick={() => router.push(`/my-library/${f.type}`)}>

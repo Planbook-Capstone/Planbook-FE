@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useWalletService } from "@/services/walletServices";
+import { useAcademicYearActiceService } from "@/services/academicYearServices";
 
 function UserButton() {
   const { user, logout, displayName, avatarUrl, initials, isAuthenticated } =
@@ -24,6 +25,7 @@ function UserButton() {
   const router = useRouter();
 
   const { data: wallet, isLoading } = useWalletService("");
+  const { data: academicYear } = useAcademicYearActiceService();
 
   if (!isAuthenticated) {
     return null;
@@ -39,8 +41,7 @@ function UserButton() {
           </div>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="2025">2025-2026</SelectItem>
-          <SelectItem value="2024">2024-2025</SelectItem>
+          <SelectItem value="2025">{academicYear?.data?.yearLabel}</SelectItem>
         </SelectContent>
       </Select>
       <div

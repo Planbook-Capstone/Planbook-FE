@@ -16,4 +16,12 @@ export const useCreateAcademicYearService = createMutationHook(
   API_ENDPOINTS.ACADEMIC_YEARS
 );
 
-export const useUpdateAcademicYearStatus = patchMutationHook("academicYears", API_ENDPOINTS.ACADEMIC_YEARS);
+export const useUpdateAcademicYearStatus = patchMutationHook(
+  "academicYears",
+  API_ENDPOINTS.ACADEMIC_YEARS
+);
+
+export const useAcademicYearActiceService = createQueryHook(
+  "academicYears",
+  `${API_ENDPOINTS.ACADEMIC_YEARS}/active`
+);

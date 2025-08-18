@@ -1,5 +1,3 @@
-import Account from "@/components/molecules/account";
-import { Divider } from "antd";
 import Image from "next/image";
 import { FC } from "react";
 
@@ -11,7 +9,6 @@ const Header: FC<HeaderProps> = ({ title }) => {
   return (
     <div className="flex items-center gap-2 pt-7">
       <div>
-        {/* <h1 className="text-2xl font-semibold pt-3 font-questrial">{title}</h1> */}
         <Image
           src="/images/planbook.svg"
           alt="planbook"

@@ -2,10 +2,9 @@
 
 import { userItems } from "@/constants/menuItem";
 import { cn } from "@/lib/utils";
-import { Avatar } from "antd";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import UserButton from "../user-button";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
@@ -15,12 +14,16 @@ type MainHeaderProps = {};
 const MainHeader = (props: MainHeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <header className="w-full py-3 pt-10 bg-white">
       <div className="container mx-auto flex justify-between items-center px-5">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <div
+          onClick={() => router.push("/home")}
+          className="flex items-center gap-2 cursor-pointer"
+        >
           <Image
             src="/images/logoPlanbook.png"
             alt="PlanBook Logo"
