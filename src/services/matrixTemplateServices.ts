@@ -7,6 +7,7 @@ import {
   createQueryWithPathParamHook,
   updateMutationHook,
   deleteMutationHook,
+  patchMutationHook,
 } from "@/hooks/react-query";
 
 /**
@@ -41,13 +42,18 @@ export interface MatrixTemplateConfig {
 export interface CreateMatrixTemplateRequest {
   name: string;
   description: string;
-  parts: MatrixPart[];
+  matrixJson: {
+    parts: MatrixPart[];
+  };
+  status?: "ACTIVE" | "INACTIVE";
 }
 
 export interface UpdateMatrixTemplateRequest {
   name?: string;
   description?: string;
-  parts?: MatrixPart[];
+  matrixJson?: {
+    parts: MatrixPart[];
+  };
   status?: "ACTIVE" | "INACTIVE";
 }
 
@@ -55,6 +61,10 @@ export interface UpdateMatrixTemplateRequest {
  * Hook for fetching all matrix templates
  */
 export const useMatrixTemplatesService = createQueryHook(
+  "matrixTemplates",
+  EXAM_ENDPOINTS.MATRIX_CONFIGS
+);
+export const useMatrixTemplateActiveService = createQueryHook(
   "matrixTemplates",
   `${EXAM_ENDPOINTS.MATRIX_CONFIGS}?status=ACTIVE`
 );
@@ -91,112 +101,10 @@ export const useDeleteMatrixTemplateService = deleteMutationHook(
   EXAM_ENDPOINTS.MATRIX_CONFIGS
 );
 
-/**
- * Default matrix template configurations
- */
-export const DEFAULT_MATRIX_TEMPLATES: MatrixTemplateConfig[] = [
-  {
-    id: "default-3-parts",
-    name: "Ma trận 3 phần chuẩn",
-    description:
-      "Ma trận đề thi chuẩn với 3 phần: Trắc nghiệm, Đúng/Sai, Tự luận",
-    parts: [
-      {
-        id: "part1",
-        name: "Phần 1",
-        label: "Trắc nghiệm",
-        color: "bg-amber-50",
-        difficultyLevels: [
-          { id: "nb", name: "NB", label: "Nhận biết", color: "text-amber-700" },
-          {
-            id: "th",
-            name: "TH",
-            label: "Thông hiểu",
-            color: "text-amber-700",
-          },
-          { id: "vd", name: "VD", label: "Vận dụng", color: "text-amber-700" },
-        ],
-      },
-      {
-        id: "part2",
-        name: "Phần 2",
-        label: "Đúng/Sai",
-        color: "bg-green-50",
-        difficultyLevels: [
-          { id: "nb", name: "NB", label: "Nhận biết", color: "text-green-700" },
-          {
-            id: "th",
-            name: "TH",
-            label: "Thông hiểu",
-            color: "text-green-700",
-          },
-          { id: "vd", name: "VD", label: "Vận dụng", color: "text-green-700" },
-        ],
-      },
-      {
-        id: "part3",
-        name: "Phần 3",
-        label: "Tự luận",
-        color: "bg-sky-50",
-        difficultyLevels: [
-          { id: "nb", name: "NB", label: "Nhận biết", color: "text-sky-700" },
-          { id: "th", name: "TH", label: "Thông hiểu", color: "text-sky-700" },
-          { id: "vd", name: "VD", label: "Vận dụng", color: "text-sky-700" },
-        ],
-      },
-    ],
-    status: "ACTIVE",
-  },
-  {
-    id: "simple-2-parts",
-    name: "Ma trận 2 phần đơn giản",
-    description: "Ma trận đề thi đơn giản với 2 phần: Trắc nghiệm và Tự luận",
-    parts: [
-      {
-        id: "part1",
-        name: "Phần 1",
-        label: "Trắc nghiệm",
-        color: "bg-blue-50",
-        difficultyLevels: [
-          { id: "easy", name: "Dễ", label: "Dễ", color: "text-blue-700" },
-          {
-            id: "medium",
-            name: "TB",
-            label: "Trung bình",
-            color: "text-blue-700",
-          },
-          { id: "hard", name: "Khó", label: "Khó", color: "text-blue-700" },
-        ],
-      },
-      {
-        id: "part2",
-        name: "Phần 2",
-        label: "Tự luận",
-        color: "bg-purple-50",
-        difficultyLevels: [
-          { id: "easy", name: "Dễ", label: "Dễ", color: "text-purple-700" },
-          {
-            id: "medium",
-            name: "TB",
-            label: "Trung bình",
-            color: "text-purple-700",
-          },
-          { id: "hard", name: "Khó", label: "Khó", color: "text-purple-700" },
-        ],
-      },
-    ],
-    status: "ACTIVE",
-  },
-];
-
-/**
- * Utility function to get default template by ID
- */
-export const getDefaultTemplate = (
-  id: string
-): MatrixTemplateConfig | undefined => {
-  return DEFAULT_MATRIX_TEMPLATES.find((template) => template.id === id);
-};
+export const useUpdateMatrixTemplateStatusService = patchMutationHook(
+  "matrixTemplates",
+  EXAM_ENDPOINTS.MATRIX_CONFIGS
+);
 
 /**
  * Utility function to validate matrix template config
@@ -214,7 +122,18 @@ export const validateMatrixTemplate = (
     errors.push("Template phải có ít nhất một phần");
   }
 
+  // Check for duplicate part IDs
+  const partIds =
+    config.parts?.map((part) => part.id?.trim()).filter(Boolean) || [];
+  if (partIds.length !== new Set(partIds).size) {
+    errors.push("ID của các phần không được trùng lặp");
+  }
+
   config.parts?.forEach((part, index) => {
+    if (!part.id?.trim()) {
+      errors.push(`Phần ${index + 1}: ID không được để trống`);
+    }
+
     if (!part.name?.trim()) {
       errors.push(`Phần ${index + 1}: Tên không được để trống`);
     }
@@ -223,7 +142,22 @@ export const validateMatrixTemplate = (
       errors.push(`Phần ${index + 1}: Phải có ít nhất một mức độ khó`);
     }
 
+    // Check for duplicate difficulty IDs within each part
+    const difficultyIds =
+      part.difficultyLevels?.map((d) => d.id?.trim()).filter(Boolean) || [];
+    if (difficultyIds.length !== new Set(difficultyIds).size) {
+      errors.push(
+        `Phần ${index + 1}: ID của các mức độ khó không được trùng lặp`
+      );
+    }
+
     part.difficultyLevels?.forEach((difficulty, diffIndex) => {
+      if (!difficulty.id?.trim()) {
+        errors.push(
+          `Phần ${index + 1}, Mức độ ${diffIndex + 1}: ID không được để trống`
+        );
+      }
+
       if (!difficulty.name?.trim()) {
         errors.push(
           `Phần ${index + 1}, Mức độ ${diffIndex + 1}: Tên không được để trống`

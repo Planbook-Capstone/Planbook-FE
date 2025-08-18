@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
   useMatrixTemplatesService,
   useDeleteMatrixTemplateService,
+  useUpdateMatrixTemplateStatusService,
   type MatrixTemplateConfig,
 } from "@/services/matrixTemplateServices";
 import ConfigurableExamMatrixForm from "@/components/forms/ConfigurableExamMatrixForm";
 import { Modal } from "@/components/ui/modal";
+import GeneralConfirmDialog from "@/components/ui/GeneralConfirmDialog";
 
 function MatrixTemplatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,9 +24,27 @@ function MatrixTemplatesPage() {
     useState<MatrixTemplateConfig | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
+  // Confirm dialog states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showActivateConfirm, setShowActivateConfirm] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+  const [templateToActivate, setTemplateToActivate] = useState<string | null>(
+    null
+  );
+  const [templateNameToDelete, setTemplateNameToDelete] = useState<string>("");
+  const [templateNameToActivate, setTemplateNameToActivate] =
+    useState<string>("");
+
   // Use API data
-  const { data: templatesData, isLoading, error, refetch } = useMatrixTemplatesService();
+  const {
+    data: templatesData,
+    isLoading,
+    error,
+    refetch,
+  } = useMatrixTemplatesService();
   const { mutate: deleteTemplate } = useDeleteMatrixTemplateService();
+  const { mutate: updateTemplateStatus } =
+    useUpdateMatrixTemplateStatusService();
 
   // Use API data, fallback to empty array if no data
   const rawTemplates = templatesData?.data || [];
@@ -42,22 +62,78 @@ function MatrixTemplatesPage() {
       template.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeleteTemplate = (templateId: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa template này?")) {
-      deleteTemplate(templateId, {
+  const handleDeleteTemplate = (templateId: string, templateName: string) => {
+    setTemplateToDelete(templateId);
+    setTemplateNameToDelete(templateName);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (templateToDelete) {
+      deleteTemplate(templateToDelete, {
         onSuccess: () => {
           toast.success("Mẫu ma trận đã được xóa thành công!");
           refetch(); // Refresh the list after deletion
+          setShowDeleteConfirm(false);
+          setTemplateToDelete(null);
+          setTemplateNameToDelete("");
         },
         onError: (error) => {
           console.error("Error deleting template:", error);
           toast.error("Có lỗi xảy ra khi xóa mẫu ma trận!");
+          setShowDeleteConfirm(false);
+          setTemplateToDelete(null);
+          setTemplateNameToDelete("");
         },
       });
     }
   };
 
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setTemplateToDelete(null);
+    setTemplateNameToDelete("");
+  };
 
+  const handleActivateTemplate = (templateId: string, templateName: string) => {
+    setTemplateToActivate(templateId);
+    setTemplateNameToActivate(templateName);
+    setShowActivateConfirm(true);
+  };
+
+  const handleConfirmActivate = () => {
+    if (templateToActivate) {
+      updateTemplateStatus(
+        {
+          id: templateToActivate,
+          field: "status",
+          queryParams: { status: "ACTIVE" },
+        },
+        {
+          onSuccess: () => {
+            toast.success("Mẫu ma trận đã được kích hoạt thành công!");
+            refetch(); // Refresh the list after status update
+            setShowActivateConfirm(false);
+            setTemplateToActivate(null);
+            setTemplateNameToActivate("");
+          },
+          onError: (error) => {
+            console.error("Error activating template:", error);
+            toast.error("Có lỗi xảy ra khi kích hoạt mẫu ma trận!");
+            setShowActivateConfirm(false);
+            setTemplateToActivate(null);
+            setTemplateNameToActivate("");
+          },
+        }
+      );
+    }
+  };
+
+  const handleCancelActivate = () => {
+    setShowActivateConfirm(false);
+    setTemplateToActivate(null);
+    setTemplateNameToActivate("");
+  };
 
   const handlePreviewTemplate = (template: MatrixTemplateConfig) => {
     setSelectedTemplate(template);
@@ -85,12 +161,8 @@ function MatrixTemplatesPage() {
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Có lỗi xảy ra khi tải dữ liệu
           </h3>
-          <p className="text-gray-600 mb-4">
-            Vui lòng thử lại sau
-          </p>
-          <Button onClick={() => refetch()}>
-            Thử lại
-          </Button>
+          <p className="text-gray-600 mb-4">Vui lòng thử lại sau</p>
+          <Button onClick={() => refetch()}>Thử lại</Button>
         </div>
       </div>
     );
@@ -102,9 +174,7 @@ function MatrixTemplatesPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold font-calsans">
-              Quản lý Mẫu Ma Trận
-            </h1>
+            <h1 className="text-2xl  font-calsans">Quản lý Mẫu Ma Trận</h1>
             <p className="text-gray-600 font-questrial">
               Tạo và quản lý các mẫu ma trận đề thi
             </p>
@@ -134,7 +204,7 @@ function MatrixTemplatesPage() {
       {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredTemplates.map((template: MatrixTemplateConfig) => (
-          <Card key={template.id} className="hover:shadow-lg transition-shadow">
+          <Card key={template.id} className="hover:shadow-lg transition-shadow flex flex-col h-full">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -147,7 +217,7 @@ function MatrixTemplatesPage() {
                 </div>
                 <Badge
                   variant={
-                    template.status === "ACTIVE" ? "default" : "secondary"
+                    template.status === "ACTIVE" ? "success" : "secondary"
                   }
                 >
                   {template.status === "ACTIVE"
@@ -156,18 +226,21 @@ function MatrixTemplatesPage() {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col h-full">
               {/* Template Info */}
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Số phần:</span>
-                  <span className="font-medium">{template.parts?.length || 0}</span>
+                  <span className="font-medium">
+                    {template.parts?.length || 0}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Tổng mức độ:</span>
                   <span className="font-medium">
                     {template.parts?.reduce(
-                      (total, part) => total + (part.difficultyLevels?.length || 0),
+                      (total, part) =>
+                        total + (part.difficultyLevels?.length || 0),
                       0
                     ) || 0}
                   </span>
@@ -175,7 +248,7 @@ function MatrixTemplatesPage() {
               </div>
 
               {/* Parts Preview */}
-              <div className="mb-4">
+              <div className="mb-3">
                 <h4 className="text-sm font-medium mb-2">Các phần:</h4>
                 <div className="space-y-1">
                   {(template.parts || []).map((part) => (
@@ -183,7 +256,11 @@ function MatrixTemplatesPage() {
                       key={part.id}
                       className="flex items-center gap-2 text-xs"
                     >
-                      <div className={`w-3 h-3 rounded ${part.color || 'bg-gray-200'}`}></div>
+                      <div
+                        className={`w-3 h-3 rounded ${
+                          part.color || "bg-gray-200"
+                        }`}
+                      ></div>
                       <span>{part.name}</span>
                       {part.label && (
                         <span className="text-gray-500">({part.label})</span>
@@ -194,7 +271,7 @@ function MatrixTemplatesPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-auto mt-auto">
                 <Button
                   size="sm"
                   variant="outline"
@@ -204,6 +281,19 @@ function MatrixTemplatesPage() {
                   <Eye className="w-3 h-3 mr-1" />
                   Xem
                 </Button>
+                {template.status === "INACTIVE" && template.id && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      handleActivateTemplate(template.id!, template.name)
+                    }
+                    className="text-green-600 hover:text-green-700"
+                    title="Kích hoạt template"
+                  >
+                    <CheckCircle className="w-3 h-3" />
+                  </Button>
+                )}
                 {template.id ? (
                   <Link href={`/staff/matrix-templates/${template.id}/edit`}>
                     <Button size="sm" variant="outline">
@@ -215,15 +305,18 @@ function MatrixTemplatesPage() {
                     <Edit className="w-3 h-3" />
                   </Button>
                 )}
-                <Button
+                {/* <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => template.id && handleDeleteTemplate(template.id)}
+                  onClick={() =>
+                    template.id &&
+                    handleDeleteTemplate(template.id, template.name)
+                  }
                   className="text-red-600 hover:text-red-700"
                   disabled={!template.id}
                 >
                   <Trash2 className="w-3 h-3" />
-                </Button>
+                </Button> */}
               </div>
             </CardContent>
           </Card>
@@ -242,12 +335,12 @@ function MatrixTemplatesPage() {
           <p className="text-gray-600 mb-4">
             {searchTerm
               ? "Thử tìm kiếm với từ khóa khác"
-              : "Chưa có template nào được tạo"}
+              : "Chưa có mẫu nào được tạo"}
           </p>
           <Link href="/staff/matrix-templates/create">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Tạo Template Đầu Tiên
+              Tạo Mẫu Đầu Tiên
             </Button>
           </Link>
         </div>
@@ -263,9 +356,7 @@ function MatrixTemplatesPage() {
         {selectedTemplate && (
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium font-calsans mb-2">
-                Thông tin Template
-              </h4>
+              <h4 className="font-medium font-calsans mb-2">Thông tin mẫu</h4>
               <p className="text-sm text-gray-600 font-questrial">
                 {selectedTemplate.description}
               </p>
@@ -278,6 +369,26 @@ function MatrixTemplatesPage() {
           </div>
         )}
       </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <GeneralConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        type="delete"
+        itemName={templateNameToDelete}
+        isLoading={false}
+      />
+
+      {/* Activate Confirmation Dialog */}
+      <GeneralConfirmDialog
+        isOpen={showActivateConfirm}
+        onClose={handleCancelActivate}
+        onConfirm={handleConfirmActivate}
+        type="activate"
+        itemName={templateNameToActivate}
+        isLoading={false}
+      />
     </div>
   );
 }
