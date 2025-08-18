@@ -153,7 +153,7 @@ function MyLibrary() {
             Kho cá nhân
           </h1>
           <p className="text-lg pl-1 md:text-lg sm:text-sm">
-            Lưu tài liệu cá nhân theo cách của bạn
+            Kho lưu trữ nội dung đã tạo
           </p>
         </div>
 
