@@ -100,13 +100,6 @@ export const adminMenuItems: MenuItem[] = adminItems.map((item) =>
 // Staff menu items - focused on teaching materials and lesson planning
 export const staffItems = [
   {
-    label: "Tổng quan",
-    key: "/",
-    icon: <HomeOutlined />,
-    image: "/icons/home.svg",
-    active: "/icons/home-active.svg",
-  },
-  {
     label: "Học liệu",
     key: "material",
     icon: <HomeOutlined />,

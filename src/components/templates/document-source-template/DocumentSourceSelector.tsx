@@ -407,7 +407,7 @@ function DocumentSourceSelector({
   }, [questions?.data, selectedGrade, selectedSubject, selectedBook, selectedLessons, selectedExamType, selectedDifficultLevel]);
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 ${className} `}>
       <div className="mb-8">
         <h2 className="text-lg font-calsans">{title}</h2>
         <h3 className="text-base font-questrial text-neutral-500">
@@ -416,7 +416,7 @@ function DocumentSourceSelector({
       </div>
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 ">
         {/* Left column - Folders */}
         <div className="w-full col-span-2">
           <div className="grid grid-cols-4 gap-4">

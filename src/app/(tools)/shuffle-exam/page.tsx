@@ -280,7 +280,7 @@ function ShuffleExamPage() {
         );
       case 2:
         return (
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Exam Information Form */}
             <div className="space-y-5">
               <div>
