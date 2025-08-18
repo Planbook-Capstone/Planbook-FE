@@ -165,6 +165,8 @@ export const EXAM_ENDPOINTS = {
   QUESTION_BANKS: `/exam-service/api/v1/question-banks`,
 
   EXAM_GENERATOR: buildEndpoint(SERVICES.EXAM_SERVICE, "/exam-generator"),
+
+  MATRIX_CONFIGS: buildEndpoint(SERVICES.EXAM_SERVICE, "/matrix-configs"),
 } as const;
 
 export const LESSON_FRAMEWORK_ENDPOINTS = {

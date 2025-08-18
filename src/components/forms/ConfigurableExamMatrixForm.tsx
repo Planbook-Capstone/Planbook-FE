@@ -47,9 +47,9 @@ const ConfigurableExamMatrixForm: React.FC<ConfigurableExamMatrixFormProps> = ({
   // Initialize matrix data based on config
   const initializeMatrix = (): MatrixData => {
     const matrix: MatrixData = {};
-    config.parts.forEach((part) => {
+    config.parts.forEach((part: MatrixPart) => {
       matrix[part.id] = {};
-      part.difficultyLevels.forEach((difficulty) => {
+      part.difficultyLevels.forEach((difficulty: DifficultyLevel) => {
         matrix[part.id][difficulty.id] = 0;
       });
     });

@@ -13,7 +13,6 @@ import Link from "next/link";
 import {
   useMatrixTemplateByIdService,
   useUpdateMatrixTemplateService,
-  DEFAULT_MATRIX_TEMPLATES,
   type MatrixTemplateConfig,
   type DifficultyLevel,
   type MatrixPart,
@@ -30,22 +29,41 @@ function EditMatrixTemplatePage() {
   const [showPreview, setShowPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // For now, use default templates. In production, use API
-  const { data: templateData } = useMatrixTemplateByIdService(templateId);
+  // Use API to fetch template data
+  const { data: templateData, isLoading: isLoadingTemplate } = useMatrixTemplateByIdService(templateId);
   const { mutate: updateTemplate, isPending: isUpdating } = useUpdateMatrixTemplateService();
 
   useEffect(() => {
-    // Find template from default templates or API data
-    const template = DEFAULT_MATRIX_TEMPLATES.find(t => t.id === templateId) || templateData?.data;
-    
+    // Wait for API data to load
+    if (isLoadingTemplate) {
+      setIsLoading(true);
+      return;
+    }
+
+    // Use API data
+    let template = templateData?.data;
+
     if (template) {
+      // Map API data structure to expected format
+      if (template.matrixJson && !template.parts) {
+        template = {
+          ...template,
+          parts: template.matrixJson.parts || []
+        };
+      }
+
+      // Ensure parts array exists
+      if (!template.parts) {
+        template.parts = [];
+      }
+
       setConfig(template);
-    } else {
+      setIsLoading(false);
+    } else if (!isLoadingTemplate) {
       toast.error("Không tìm thấy template");
       router.push("/staff/matrix-templates");
     }
-    setIsLoading(false);
-  }, [templateId, templateData, router]);
+  }, [templateId, templateData, isLoadingTemplate, router]);
 
   // Handle template info changes
   const handleTemplateInfoChange = (field: keyof MatrixTemplateConfig, value: string) => {
@@ -95,8 +113,8 @@ function EditMatrixTemplatePage() {
 
   // Add new part
   const addPart = () => {
-    if (!config) return;
-    
+    if (!config || !config.parts) return;
+
     const newPart: MatrixPart = {
       id: `part${config.parts.length + 1}`,
       name: `Phần ${config.parts.length + 1}`,
@@ -117,7 +135,7 @@ function EditMatrixTemplatePage() {
 
   // Remove part
   const removePart = (partIndex: number) => {
-    if (!config || config.parts.length <= 1) {
+    if (!config || !config.parts || config.parts.length <= 1) {
       toast.error("Phải có ít nhất một phần trong ma trận");
       return;
     }
@@ -130,13 +148,16 @@ function EditMatrixTemplatePage() {
 
   // Add difficulty level to a part
   const addDifficultyLevel = (partIndex: number) => {
-    if (!config) return;
-    
+    if (!config || !config.parts || !config.parts[partIndex]) return;
+
+    const currentPart = config.parts[partIndex];
+    const difficultyLevels = currentPart.difficultyLevels || [];
+
     const newDifficulty: DifficultyLevel = {
-      id: `level${config.parts[partIndex].difficultyLevels.length + 1}`,
+      id: `level${difficultyLevels.length + 1}`,
       name: "",
       label: "",
-      color: config.parts[partIndex].difficultyLevels[0]?.color || "text-gray-700",
+      color: difficultyLevels[0]?.color || "text-gray-700",
     };
 
     setConfig(prev => prev ? ({
@@ -151,7 +172,7 @@ function EditMatrixTemplatePage() {
 
   // Remove difficulty level
   const removeDifficultyLevel = (partIndex: number, difficultyIndex: number) => {
-    if (!config || config.parts[partIndex].difficultyLevels.length <= 1) {
+    if (!config || !config.parts || !config.parts[partIndex] || !config.parts[partIndex].difficultyLevels || config.parts[partIndex].difficultyLevels.length <= 1) {
       toast.error("Phải có ít nhất một mức độ trong mỗi phần");
       return;
     }
@@ -172,17 +193,36 @@ function EditMatrixTemplatePage() {
   // Save template
   const handleSave = () => {
     if (!config) return;
-    
+
     const validationErrors = validateMatrixTemplate(config);
     if (validationErrors.length > 0) {
       toast.error(validationErrors[0]);
       return;
     }
 
-    // For now, just show success. In production, call API
-    console.log("Updating template:", config);
-    toast.success("Template đã được cập nhật thành công!");
-    router.push("/staff/matrix-templates");
+    // Prepare data for API (convert back to API format)
+    const updateData = {
+      name: config.name,
+      description: config.description,
+      matrixJson: {
+        parts: config.parts
+      },
+      status: config.status
+    };
+
+    updateTemplate(
+      { id: templateId, data: updateData },
+      {
+        onSuccess: () => {
+          toast.success("Template đã được cập nhật thành công!");
+          router.push("/staff/matrix-templates");
+        },
+        onError: (error) => {
+          console.error("Error updating template:", error);
+          toast.error("Có lỗi xảy ra khi cập nhật template!");
+        },
+      }
+    );
   };
 
   if (isLoading) {
@@ -278,11 +318,11 @@ function EditMatrixTemplatePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {config.parts.map((part, partIndex) => (
+              {(config.parts || []).map((part, partIndex) => (
                 <div key={part.id} className="border rounded-lg p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium font-calsans">Phần {partIndex + 1}</h4>
-                    {config.parts.length > 1 && (
+                    {(config.parts?.length || 0) > 1 && (
                       <Button
                         onClick={() => removePart(partIndex)}
                         size="sm"
@@ -352,7 +392,7 @@ function EditMatrixTemplatePage() {
                       </Button>
                     </div>
 
-                    {part.difficultyLevels.map((difficulty, difficultyIndex) => (
+                    {(part.difficultyLevels || []).map((difficulty, difficultyIndex) => (
                       <div key={difficulty.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
                         <Input
                           value={difficulty.name}
@@ -370,7 +410,7 @@ function EditMatrixTemplatePage() {
                           placeholder="Nhận biết"
                           className="flex-1 font-questrial"
                         />
-                        {part.difficultyLevels.length > 1 && (
+                        {(part.difficultyLevels?.length || 0) > 1 && (
                           <Button
                             onClick={() => removeDifficultyLevel(partIndex, difficultyIndex)}
                             size="sm"
