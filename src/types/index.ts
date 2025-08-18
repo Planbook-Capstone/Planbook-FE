@@ -209,6 +209,17 @@ export interface Transaction {
   updatedAt: string;
 }
 
+// Wallet Transaction types (for token transactions)
+export interface WalletTransaction {
+  id: string;
+  orderId: string;
+  tokenBefore: number;
+  tokenChange: number;
+  type: "RECHARGE" | "TOOL_USAGE";
+  description: string;
+  createdAt: string;
+}
+
 // Wallet types
 export interface Wallet {
   id: string;
