@@ -597,7 +597,7 @@ function LessonPlanTemplate({
                 <StepFloatingPanel
                   items={items}
                   current={currentStep}
-                  layout="horizontal"
+                  layout="vertical"
                   visible={true}
                   onStepChange={handleChangeStep}
                   style={{ width: 300 }}

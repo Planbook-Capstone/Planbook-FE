@@ -237,7 +237,7 @@ export function LessonPlanTemplateBuilder({
           </Button>
           <Button onClick={handleSave}>
             <Download className="w-4 h-4 mr-2" />
-            Lưu template
+            Lưu mẫu
           </Button>
         </div>
       )}

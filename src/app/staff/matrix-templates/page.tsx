@@ -112,7 +112,7 @@ function MatrixTemplatesPage() {
           <Link href="/staff/matrix-templates/create">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Tạo Template Mới
+              Tạo Mẫu Mới
             </Button>
           </Link>
         </div>
