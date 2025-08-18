@@ -201,7 +201,7 @@ function CreateMatrixTemplatePage() {
 
     // TODO: Call API to save template
     console.log("Saving matrix template config:", config);
-    toast.success("Template đã được lưu thành công!");
+    toast.success("Mẫu ma trận đã được lưu thành công!");
   };
 
   return (

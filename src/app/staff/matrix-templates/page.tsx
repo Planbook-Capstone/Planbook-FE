@@ -46,12 +46,12 @@ function MatrixTemplatesPage() {
     if (window.confirm("Bạn có chắc chắn muốn xóa template này?")) {
       deleteTemplate(templateId, {
         onSuccess: () => {
-          toast.success("Template đã được xóa thành công!");
+          toast.success("Mẫu ma trận đã được xóa thành công!");
           refetch(); // Refresh the list after deletion
         },
         onError: (error) => {
           console.error("Error deleting template:", error);
-          toast.error("Có lỗi xảy ra khi xóa template!");
+          toast.error("Có lỗi xảy ra khi xóa mẫu ma trận!");
         },
       });
     }

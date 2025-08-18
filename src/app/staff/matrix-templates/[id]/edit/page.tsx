@@ -60,7 +60,7 @@ function EditMatrixTemplatePage() {
       setConfig(template);
       setIsLoading(false);
     } else if (!isLoadingTemplate) {
-      toast.error("Không tìm thấy template");
+      toast.error("Không tìm thấy mẫu ma trận");
       router.push("/staff/matrix-templates");
     }
   }, [templateId, templateData, isLoadingTemplate, router]);
