@@ -58,6 +58,8 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
+        // Override Ant Design styles and force black text
+        "!text-black hover:!text-black focus:!text-black active:!text-black",
         className
       )}
       {...props}
@@ -73,7 +75,7 @@ function PaginationPrevious({
     <PaginationLink
       aria-label="Go to previous page"
       size="default"
-      className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
+      className={cn("gap-1 px-2.5 sm:pl-2.5 !text-black hover:!text-black focus:!text-black active:!text-black", className)}
       {...props}
     >
       <ChevronLeftIcon />
@@ -90,7 +92,7 @@ function PaginationNext({
     <PaginationLink
       aria-label="Go to next page"
       size="default"
-      className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
+      className={cn("gap-1 px-2.5 sm:pr-2.5 !text-black hover:!text-black focus:!text-black active:!text-black", className)}
       {...props}
     >
       <span className="hidden sm:block">Trang sau</span>
@@ -107,10 +109,10 @@ function PaginationEllipsis({
     <span
       aria-hidden
       data-slot="pagination-ellipsis"
-      className={cn("flex size-9 items-center justify-center", className)}
+      className={cn("flex size-9 items-center justify-center !text-black", className)}
       {...props}
     >
-      <MoreHorizontalIcon className="size-4" />
+      <MoreHorizontalIcon className="size-4 !text-black" />
       <span className="sr-only">More pages</span>
     </span>
   )

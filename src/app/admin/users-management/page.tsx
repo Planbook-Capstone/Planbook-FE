@@ -24,7 +24,15 @@ import {
 import { toast } from "sonner";
 import { UserWithWalletResponse } from "@/types";
 import UserDetailModal from "@/components/molecules/user-detail-modal";
-
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 // Filter options for role
 const filterOptions = [
   { value: "all", label: "Tất cả vai trò" },
@@ -40,8 +48,20 @@ export default function StaffUsersManagementPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] =
     useState<UserWithWalletResponse | null>(null);
-  const { data: allUsers } = useAllUsersService();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+
+  // Use the paginated service
+  const { data: allUsers, refetch } = useAllUsersService(
+    [currentPage, pageSize], // dependencies for query key
+    { retry: 1, staleTime: 0 }, // options
+    {
+      offset: currentPage, // Convert 1-based to 0-based for API
+      pageSize: pageSize,
+      sort: "createdAt,desc",
+    } // pagination params
+  );
   // API hooks
   const createUserMutation = useCreateUserService();
   const updateUserStatusMutation = useUpdateUserStatusService();
@@ -94,6 +114,10 @@ export default function StaffUsersManagementPage() {
         },
       }
     );
+  };
+  const handlePageChange = (page: number) => {
+    // Update current page state - this will trigger refetch automatically
+    setCurrentPage(page);
   };
 
   return (
@@ -153,6 +177,138 @@ export default function StaffUsersManagementPage() {
           onToggleUserStatus={handleToggleUserStatus}
         />
       </div>
+      {allUsers?.data && allUsers.data.totalPages > 1 && (
+        <div className="float-end mt-5 space-y-4">
+          <Pagination>
+            <PaginationContent>
+              {/* Previous Button */}
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                      handlePageChange(currentPage - 1);
+                    }
+                  }}
+                  className={
+                    currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                  }
+                />
+              </PaginationItem>
+
+              {/* Page Numbers */}
+              {(() => {
+                const totalPages = allUsers.data.totalPages;
+                const pages = [];
+
+                // Show first page
+                if (totalPages > 0) {
+                  pages.push(
+                    <PaginationItem key={1}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === 1}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage !== 1) {
+                            handlePageChange(1);
+                          }
+                        }}
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                // Show ellipsis if needed
+                if (currentPage > 3) {
+                  pages.push(
+                    <PaginationItem key="ellipsis-start">
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                // Show pages around current page
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+
+                for (let i = start; i <= end; i++) {
+                  if (i !== 1 && i !== totalPages) {
+                    pages.push(
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === i}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage !== i) {
+                              handlePageChange(i);
+                            }
+                          }}
+                        >
+                          {i}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+                }
+
+                // Show ellipsis if needed
+                if (currentPage < totalPages - 2) {
+                  pages.push(
+                    <PaginationItem key="ellipsis-end">
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                // Show last page (if different from first)
+                if (totalPages > 1) {
+                  pages.push(
+                    <PaginationItem key={totalPages}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === totalPages}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage !== totalPages) {
+                            handlePageChange(totalPages);
+                          }
+                        }}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                return pages;
+              })()}
+
+              {/* Next Button */}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < allUsers.data.totalPages) {
+                      handlePageChange(currentPage + 1);
+                    }
+                  }}
+                  className={
+                    currentPage >= allUsers.data.totalPages
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
       <CreateUserModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
