@@ -379,15 +379,11 @@ export default function CreateSlideTemplatePage() {
       // Đợi một chút để đảm bảo DOM đã render xong
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      console.log("🔍 Debugging DOM structure...");
-
       // Debug: Log tất cả các elements có thể liên quan
       const allDivs = document.querySelectorAll("div");
-      console.log(`🔍 Total divs in DOM: ${allDivs.length}`);
 
       // Tìm HorizontalSlidePanel
       const horizontalPanel = document.querySelector('[class*="w-full h-40"]');
-      console.log("🔍 HorizontalSlidePanel found:", horizontalPanel);
 
       // Tìm slide container
       const slideContainer = document.querySelector(
@@ -410,11 +406,6 @@ export default function CreateSlideTemplatePage() {
       const method4 = document.querySelectorAll(
         '[class*="relative border border-gray-200 rounded overflow-hidden"]'
       );
-
-      console.log(`� Method 1 (width 88px): ${method1.length}`);
-      console.log(`🔍 Method 2 (height 50px): ${method2.length}`);
-      console.log(`🔍 Method 3 (class selector): ${method3.length}`);
-      console.log(`🔍 Method 4 (class contains): ${method4.length}`);
 
       // Log chi tiết các elements tìm được
       if (slideElements.length > 0) {
@@ -475,22 +466,8 @@ export default function CreateSlideTemplatePage() {
         console.error("Error parsing textBlocks:", error);
       }
 
-      console.log("🚀 About to capture screenshots...");
-      console.log("🚀 Slides data:", slides);
-      console.log("🚀 Number of slides:", slides.length);
-
       // Capture screenshots của từng slide
       const extractedImageBlocks = await captureSlideScreenshots(slides);
-
-      console.log("🚀 Capture completed!");
-      console.log(
-        "🚀 extractedImageBlocks keys:",
-        Object.keys(extractedImageBlocks)
-      );
-      console.log(
-        "🚀 extractedImageBlocks values length:",
-        Object.values(extractedImageBlocks).map((v) => v.length)
-      );
 
       // Prepare full data để POST API
       const fullData = {
@@ -499,13 +476,6 @@ export default function CreateSlideTemplatePage() {
         imageBlocks: extractedImageBlocks,
         textBlocks: parsedTextBlocks,
       };
-
-      console.log("🚀 Full data to save:", fullData);
-      console.log("🚀 Final imageBlocks check:", fullData.imageBlocks);
-      console.log(
-        "🚀 Is imageBlocks empty?",
-        Object.keys(fullData.imageBlocks).length === 0
-      );
 
       // POST API tạo template
       await createMutation.mutateAsync(fullData);

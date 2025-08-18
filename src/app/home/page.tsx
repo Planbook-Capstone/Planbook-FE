@@ -24,11 +24,12 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useExternalToolsService } from "@/services/externalToolsServices";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
-  const { data: bookTypes } = useBookTypesService();
+  const { data: bookTypes, isLoading } = useBookTypesService();
   const {
     data: externalTools,
     isLoading: isLoadingTools,
@@ -112,6 +113,21 @@ export default function Home() {
         relaxation={0.9}
         className="mb-8"
       />
+
+      {isLoading ||
+        (isLoadingTools && (
+          <div>
+            {" "}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              {[...Array(6)].map((_, index) => (
+                <Skeleton
+                  key={index}
+                  className="h-[120px] w-full rounded-md bg-neutral-300"
+                />
+              ))}
+            </div>
+          </div>
+        ))}
 
       <section className="grid grid-cols-1 xl:grid-grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-5">
         {bookTypes?.data?.content

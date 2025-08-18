@@ -84,7 +84,7 @@ export default function CreateSlideTemplateForm({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-calsans text-xl">
-            Tạo Template Mới
+            Tạo mẫu slide mới
           </DialogTitle>
         </DialogHeader>
 
@@ -98,7 +98,7 @@ export default function CreateSlideTemplateForm({
             {/* Template Name */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
-                Tên Template <span className="text-red-500">*</span>
+                Tên mẫu slide <span className="text-red-500">*</span>
               </label>
               <Controller
                 name="name"
@@ -125,7 +125,7 @@ export default function CreateSlideTemplateForm({
                 render={({ field }) => (
                   <Textarea
                     {...field}
-                    placeholder="Nhập mô tả template"
+                    placeholder="Nhập mô tả mẫu"
                     className="font-questrial min-h-[80px]"
                   />
                 )}
@@ -186,7 +186,7 @@ export default function CreateSlideTemplateForm({
               ) : (
                 <Plus className="w-4 h-4" />
               )}
-              {isSubmitting ? "Đang tạo..." : "Tạo Template"}
+              {isSubmitting ? "Đang tạo..." : "Tạo slide mới"}
             </Button>
           </div>
         </form>
