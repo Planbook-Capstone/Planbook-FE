@@ -95,7 +95,7 @@ function CreateConfigurationForm({
     <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">
-          Tên Configuration <span className="text-red-500">*</span>
+          Tên hướng dẫn <span className="text-red-500">*</span>
         </label>
         <Controller
           name="name"
@@ -104,7 +104,7 @@ function CreateConfigurationForm({
             <Input
               {...field}
               className="bg-neutral-100 font-calsans placeholder:text-neutral-300 text-black"
-              placeholder="Nhập tên configuration"
+              placeholder="Nhập tên huong dẫn"
             />
           )}
         />
@@ -206,7 +206,7 @@ function CreateConfigurationForm({
           ) : (
             <>
               <Upload className="h-4 w-4" />
-              Tạo Material
+              Tạo hướng dẫn
             </>
           )}
         </Button>

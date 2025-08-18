@@ -41,9 +41,9 @@ export const subscriptionColumns: ColumnDef<SubscriptionResponse>[] = [
     accessorKey: "description",
     header: "Mô tả",
     cell: ({ row }) => (
-      <span className="max-w-xs truncate" title={row.original.description}>
+      <p className="max-w-sm truncate" title={row.original.description}>
         {row.original.description}
-      </span>
+      </p>
     ),
   },
   // {

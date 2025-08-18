@@ -1,8 +1,10 @@
 "use client";
+import CreateConfigurationModal from "@/components/organisms/create-configuration-modal";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { BrainCircuit, Globe, ImageIcon, Upload, X } from "lucide-react";
+import { ConfigurationFormData } from "@/schemas/configuration.schema";
+import { BrainCircuit, Globe, ImageIcon, Plus, Upload, X } from "lucide-react";
 import React, { useState } from "react";
 
 const AdminConfigurationPage = () => {
@@ -22,9 +24,32 @@ const AdminConfigurationPage = () => {
     setCapabilities((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleCreateConfiguration = (data: ConfigurationFormData) => {
+    console.log("Creating material:", data);
+    // TODO: Call API to create material
+  };
+
   return (
     <div className="mx-auto p-6 space-y-6 font-questrial">
       <div className="flex justify-between items-center">
+        <h1 className="font-calsans text-base">Danh sách hướng dẫn</h1>
+        <Button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 float-end"
+        >
+          <Plus className="w-4 h-4" />
+          Tạo hướng dẫn
+        </Button>
+      </div>
+
+      <CreateConfigurationModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateConfiguration}
+      />
+      {/* <div className="flex justify-between items-center">
         <Button variant="outline">Tạo mới</Button>
         <Button variant="default">Cấu hình</Button>
       </div>
@@ -110,7 +135,7 @@ const AdminConfigurationPage = () => {
           <label className="block mb-2">Hành động</label>
           <Button variant="outline">Thêm hành động</Button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
