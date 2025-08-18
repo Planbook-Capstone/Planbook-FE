@@ -41,7 +41,7 @@ function BookTypePage() {
 
   const handleEdit = () => {
     if (selected.length > 1) {
-      toast.error("Vui lòng chỉ chọn 1 loại sách");
+      toast.error("Vui lòng chỉ chọn 1 loại chức năng");
     } else if (selected.length === 1) {
       setEditModalOpen(true);
     }
@@ -50,7 +50,7 @@ function BookTypePage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="font-calsans text-base">Danh sách loại sách</h1>
+        <h1 className="font-calsans text-base">Danh sách chức năng</h1>
         {editModalOpen ? null : selected.length > 0 ? (
           <div className="flex gap-1.5 items-center">
             <p className="text-sm text-muted-foreground pr-2.5">
