@@ -63,13 +63,13 @@ export const adminItems = [
     image: "/icons/cube.svg",
     active: "/icons/cube-active.svg",
   },
-  {
-    label: "Giáo án",
-    key: "lesson-plan-template",
-    icon: <HomeOutlined />,
-    image: "/icons/book.svg",
-    active: "/icons/book-active.svg",
-  },
+  // {
+  //   label: "Giáo án",
+  //   key: "lesson-plan-template",
+  //   icon: <HomeOutlined />,
+  //   image: "/icons/book.svg",
+  //   active: "/icons/book-active.svg",
+  // },
   {
     label: "Năm học",
     key: "workspace",
@@ -121,6 +121,13 @@ export const staffItems = [
     active: "/icons/exam-active.svg",
   },
   {
+    label: "Giáo án",
+    key: "lesson-plan",
+    icon: <HomeOutlined />,
+    image: "/icons/lesson-plan.svg",
+    active: "/icons/lesson-plan-active.svg",
+  },
+  {
     label: "Mẫu Ma Trận",
     key: "matrix-templates",
     icon: <HomeOutlined />,
@@ -134,20 +141,14 @@ export const staffItems = [
     image: "/icons/slide.svg",
     active: "/icons/slide-active.svg",
   },
-  {
-    label: "Giáo án",
-    key: "lesson-plan",
-    icon: <HomeOutlined />,
-    image: "/icons/lesson-plan.svg",
-    active: "/icons/lesson-plan-active.svg",
-  },
-  {
-    label: "Cấu hình",
-    key: "configuration",
-    icon: <SettingOutlined />,
-    image: "/icons/gear.svg",
-    active: "/icons/gear-active.svg",
-  },
+
+  // {
+  //   label: "Cấu hình",
+  //   key: "configuration",
+  //   icon: <SettingOutlined />,
+  //   image: "/icons/gear.svg",
+  //   active: "/icons/gear-active.svg",
+  // },
 ];
 
 function getStaffItem(
