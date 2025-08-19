@@ -405,9 +405,10 @@ const getAnswerColumnsCount = (options: string[] | Record<string, string>): numb
 
   const averageLength = totalLength / optionValues.length;
 
-  if (averageLength < 30) {
-    return 4; // 4 cột cho đáp án ngắn
-  } else if (averageLength >= 30 && averageLength < 50) {
+  // Logic mới: nếu độ dài trung bình < 15 thì in 4 cột
+  if (averageLength < 10) {
+    return 4; // 4 cột cho đáp án rất ngắn
+  } else if (averageLength >= 10 && averageLength < 20) {
     return 2; // 2 cột cho đáp án trung bình
   } else {
     return 1; // 1 cột cho đáp án dài
@@ -927,11 +928,13 @@ export const generateExamDocx = async (examData: ExamData): Promise<void> => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `exam-test.docx`;
-    // link.download = `${examData.examTitle.replace(
-    //   /\s+/g,
-    //   "_"
-    // )}_${new Date().getTime()}.docx`;
+
+    // Set filename based on exam title or default
+    const filename = examData.examTitle
+      ? `${examData.examTitle.replace(/\s+/g, "_")}.docx`
+      : "ĐỀ_KIỂM_TRA.docx";
+    link.download = filename;
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
