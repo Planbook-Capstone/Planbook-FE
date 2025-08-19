@@ -15,16 +15,18 @@ interface CreateConfigurationModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit?: (data: ConfigurationFormData) => void;
+  isLoading?: boolean;
 }
 
 export default function CreateConfigurationModal({
   open,
   onClose,
   onSubmit,
+  isLoading = false,
 }: CreateConfigurationModalProps) {
   const handleSubmit = (data: ConfigurationFormData) => {
     onSubmit?.(data);
-    onClose();
+    // Don't close modal here - let parent handle it after successful API call
   };
 
   return (
@@ -37,7 +39,11 @@ export default function CreateConfigurationModal({
         </DialogHeader>
 
         <div className="mt-4">
-          <CreateConfigurationForm onClose={onClose} onSubmit={handleSubmit} />
+          <CreateConfigurationForm
+            onClose={onClose}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
         </div>
       </DialogContent>
     </Dialog>
