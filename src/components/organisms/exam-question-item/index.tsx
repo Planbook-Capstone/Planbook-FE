@@ -6,7 +6,7 @@ import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
 import { Question, QuestionItemProps } from "./types";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
+
 import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import { useDroppable } from "@dnd-kit/core";
 
@@ -142,15 +142,15 @@ export default function QuestionItem({
 
               <div className="w-full space-y-1">
                 {/* Option Text */}
-                <Input
-                  type="text"
-                  value={option}
-                  onChange={(e: any) =>
-                    handleOptionChange(optionIndex, e.target.value)
+                <AdvancedTextEditor
+                  content={option}
+                  onChange={(content) =>
+                    handleOptionChange(optionIndex, content)
                   }
                   placeholder={`Đáp án ${String.fromCharCode(
                     65 + optionIndex
                   )}`}
+                  className="w-full border-b border-dashed border-gray-300 font-questrial text-sm bg-white p-2 rounded-md min-h-[40px]"
                 />
               </div>
             </div>
