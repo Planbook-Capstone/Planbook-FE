@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 // Menu items.
 const items = [
@@ -63,6 +64,7 @@ const items = [
 
 export function AppSidebar() {
   const { logout } = useAuth();
+  const router = useRouter();
 
   const handleItemClick = (item: any) => {
     if (item.isLogout) {
@@ -75,12 +77,17 @@ export function AppSidebar() {
       <SidebarContent className="bg-white">
         <SidebarGroup>
           <SidebarGroupLabel className="p-3 mt-5">
-            <Image
-              src="/images/planbook.svg"
-              alt="planbook"
-              height="90"
-              width="150"
-            />
+            <div
+              onClick={() => router.push("/home")}
+              className="cursor-pointer"
+            >
+              <Image
+                src="/images/planbook.svg"
+                alt="planbook"
+                height="90"
+                width="150"
+              />
+            </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="p-3 flex items-start justify-start ">
