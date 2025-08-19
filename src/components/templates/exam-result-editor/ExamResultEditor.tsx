@@ -18,7 +18,7 @@ import {
 } from "@dnd-kit/core";
 import { X, Trash2, Plus } from "lucide-react";
 import { ExamProvider } from "@/contexts/ExamContext";
-import { UploadCloudIcon } from "@/constants/icon";
+import { DowloadIcon, UploadCloudIcon } from "@/constants/icon";
 import { Label } from "@/components/ui/label";
 import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +27,9 @@ import { useUpdateToolResultService } from "@/services/toolResultService";
 import { toast } from "sonner";
 import ConfirmSaveResult from "@/components/modals/ConfirmSaveResult";
 import { useRouter } from "next/navigation";
+import TemplatePreview from "@/components/organisms/template-preview";
+import { Download } from "lucide-react";
+import { generateExamDocx, ExamData } from "@/utils/docxGeneratorExam";
 
 interface Props {
   examResult: any;
@@ -210,6 +213,8 @@ function ExamResultEditorTemplate({ examResult }: Props) {
   // State for confirmation modal
   const [showConfirmSaveResult, setShowConfirmSaveResult] =
     useState<boolean>(false);
+  // State for preview modal
+  const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
 
   // Tool result services for saving
   const { mutate: updateToolResult, isPending: isSavingResult } =
@@ -402,6 +407,109 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     setShowConfirmSaveResult(true);
   };
 
+  // Hàm chuyển đổi dữ liệu từ format examResult.data.parts sang ExamData
+  const convertToExamData = (data: any): ExamData => {
+    const questions: any[] = [];
+    const yesNoQuestions: any[] = [];
+    const shortQuestions: any[] = [];
+
+    if (data.parts) {
+      data.parts.forEach((part: any, partIndex: number) => {
+        if (part.questions) {
+          part.questions.forEach((q: any) => {
+            // Lấy nội dung câu hỏi đã được edit (nếu có)
+            const questionKey = `part${partIndex + 1}-${q?.questionNumber || 0}`;
+            const questionContentKey = `${questionKey}-question`;
+            const finalQuestionContent = questionContents[questionContentKey] || q.question || "";
+
+            if (partIndex === 0) {
+              // Part 1 - Multiple Choice (PHẦN I)
+              const finalOptions: Record<string, string> = {};
+              if (q.options) {
+                Object.keys(q.options).forEach((optionKey) => {
+                  const optionContentKey = `${questionKey}-option-${optionKey}`;
+                  finalOptions[optionKey] = answerContents[optionContentKey] || q.options[optionKey] || "";
+                });
+              }
+
+              questions.push({
+                question: finalQuestionContent,
+                options: finalOptions,
+                illustrationImage: q.image || questionImages[questionKey],
+              });
+            } else if (partIndex === 1) {
+              // Part 2 - True/False (PHẦN II)
+              // Đảm bảo format đúng với interface YesNoQuestion (a, b, c, d)
+              const finalStatements = {
+                a: { text: "" },
+                b: { text: "" },
+                c: { text: "" },
+                d: { text: "" },
+              };
+
+              if (q.statements) {
+                // Map các keys hiện có sang a, b, c, d
+                const statementKeys = Object.keys(q.statements);
+                const targetKeys = ['a', 'b', 'c', 'd'];
+
+                statementKeys.forEach((statementKey, index) => {
+                  if (index < 4) {
+                    const targetKey = targetKeys[index];
+                    const statementContentKey = `${questionKey}-statement-${statementKey}`;
+                    finalStatements[targetKey as keyof typeof finalStatements] = {
+                      text: answerContents[statementContentKey] || q.statements[statementKey]?.text || "",
+                    };
+                  }
+                });
+              }
+
+              yesNoQuestions.push({
+                question: finalQuestionContent,
+                statements: finalStatements,
+                illustrationImage: q.image || questionImages[questionKey],
+              });
+            } else {
+              // Part 3 - Short Answer (PHẦN III)
+              shortQuestions.push({
+                question: finalQuestionContent,
+                illustrationImage: q.image || questionImages[questionKey],
+              });
+            }
+          });
+        }
+      });
+    }
+
+    return {
+      examTitle: data.examTitle || data.title || "ĐỀ KIỂM TRA",
+      examSubject: data.examSubject || data.subject || "Môn học",
+      examTime: data.examTime || data.duration || "45 phút, không kể thời gian phát đề",
+      examDate: data.examDate || new Date().toLocaleDateString("vi-VN"),
+      examCode: data.examCode || data.code || "001",
+      atomic_masses: data.atomic_masses || data.atomicMasses || null,
+      questions,
+      yesNoQuestions,
+      shortQuestions,
+    };
+  };
+
+  const handleDownload = async () => {
+    try {
+      if (examResult?.data) {
+        // Chuyển đổi dữ liệu từ format examResult.data sang format ExamData
+        const convertedData = convertToExamData(examResult.data);
+        // Gọi hàm generator docx để tạo và download file
+        await generateExamDocx(convertedData);
+        toast.success("Tải xuống file DOCX thành công!");
+      } else {
+        toast.error("Không có dữ liệu đề thi để tải xuống");
+      }
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      toast.error("Có lỗi xảy ra khi tải xuống. Vui lòng thử lại.");
+    }
+  };
+
   const handleConfirmSave = (formData: {
     name: string;
     description?: string;
@@ -563,13 +671,18 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             </p>
             <p className="font-calsans text-lg">{examResult?.name}</p>
           </div>
-          <Button onClick={handleSaveExam} disabled={isSavingResult}>
-            {isSavingResult ? "Đang lưu..." : "Lưu"}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowPreviewModal(true)} variant="outline">
+              Xem trước
+            </Button>
+            <Button onClick={handleSaveExam} disabled={isSavingResult}>
+              {isSavingResult ? "Đang lưu..." : "Lưu"}
+            </Button>
+          </div>
         </div>
         <div className="flex">
           <ToolExamPanel />
-          <div className="flex-1 space-y-10 p-5 col-span-4 border-l ">
+          <div className="flex-1 space-y-10 p-5 col-span-4 border-l min-h-screen ">
             {/* Navigation buttons for parts */}
             <div className="flex gap-2 mb-6 border-b pb-4">
               {examResult?.data?.parts?.map((part: any, index: number) => (
@@ -1137,6 +1250,43 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             )}
           </div>
         </div>
+
+        {/* Preview Modal */}
+        {showPreviewModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 className="text-xl font-calsans text-gray-800">
+                  Xem trước đề thi
+                </h2>
+                <div className="flex items-center gap-3">
+                  <Button onClick={handleDownload}>
+                    {DowloadIcon}
+                    <span>Tải về</span>
+                  </Button>
+                  <Button
+                    onClick={() => setShowPreviewModal(false)}
+                    variant="outline"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Đóng</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6 bg-gray-100">
+                <div
+                  className="max-w-[210mm] mx-auto bg-white shadow-lg"
+                  style={{ minHeight: "297mm" }}
+                >
+                  <TemplatePreview data={examResult?.data} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Confirmation Save Modal */}
         <ConfirmSaveResult
