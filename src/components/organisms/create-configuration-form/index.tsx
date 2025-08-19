@@ -29,13 +29,14 @@ import {
 interface CreateConfigurationFormProps {
   onClose?: () => void;
   onSubmit?: (data: ConfigurationFormData) => void;
+  isLoading?: boolean;
 }
 
 function CreateConfigurationForm({
   onClose,
   onSubmit: onSubmitProp,
+  isLoading = false,
 }: CreateConfigurationFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // React Hook Form setup
   const {
@@ -55,35 +56,11 @@ function CreateConfigurationForm({
   });
 
   const onSubmit = async (data: ConfigurationFormData) => {
-    setIsSubmitting(true);
-    try {
-      console.log("Configuration form data:", data);
-      console.log("Form errors:", errors);
+    console.log("Configuration form data:", data);
+    console.log("Form errors:", errors);
 
-      const formData = new FormData();
-      formData.append("file", data.file as File);
-      formData.append("name", data.name);
-
-      console.log(
-        "FormData entries:",
-        Array.from(formData.entries()).map(([key, value]) => ({
-          key,
-          value: value instanceof File ? `File: ${value.name}` : value,
-        }))
-      );
-
-      // Call API here when available
-      // await createConfigurationMutation.mutateAsync(formData);
-
-      toast.success("Configuration đã được tạo thành công!");
-      onSubmitProp?.(data);
-      onClose?.();
-    } catch (error) {
-      console.error("Error creating configuration:", error);
-      toast.error("Có lỗi xảy ra khi tạo configuration!");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Pass data to parent component to handle API call
+    onSubmitProp?.(data);
   };
 
   const onError = (errors: any) => {
@@ -193,15 +170,15 @@ function CreateConfigurationForm({
           type="button"
           variant="outline"
           onClick={onClose}
-          disabled={isSubmitting}
+          disabled={isLoading}
         >
           Hủy
         </Button>
-        <Button type="submit" disabled={isSubmitting} className="min-w-[120px]">
-          {isSubmitting ? (
+        <Button type="submit" disabled={isLoading} className="min-w-[120px]">
+          {isLoading ? (
             <>
               <Upload className="h-4 w-4 animate-spin" />
-              Đang tạo...
+              Đang import...
             </>
           ) : (
             <>

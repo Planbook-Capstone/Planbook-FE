@@ -50,15 +50,15 @@ export const trashsColumns = (
         </div>
       ),
     },
-    {
-      accessorKey: "lessonIds",
-      header: "Bài học đã chọn",
-      cell: ({ row }) => (
-        <div className="font-medium text-gray-900  font-questrial">
-          {row.original.lessonIds.join(", ")}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "lessonIds",
+    //   header: "Bài học đã chọn",
+    //   cell: ({ row }) => (
+    //     <div className="font-medium text-gray-900  font-questrial">
+    //       {row.original.lessonIds.join(", ")}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "updatedAt",
       header: "Cập nhật lần cuối",

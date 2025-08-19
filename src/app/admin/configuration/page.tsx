@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ConfigurationFormData } from "@/schemas/configuration.schema";
+import { useQuickTextBookAnalysisService } from "@/services/textbookServices";
 import { BrainCircuit, Globe, ImageIcon, Plus, Upload, X } from "lucide-react";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 const AdminConfigurationPage = () => {
   const [name, setName] = useState("");
@@ -26,9 +28,35 @@ const AdminConfigurationPage = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  const { mutate: importConfiguration, isPending: isImporting } =
+    useQuickTextBookAnalysisService();
   const handleCreateConfiguration = (data: ConfigurationFormData) => {
-    console.log("Creating material:", data);
-    // TODO: Call API to create material
+    console.log("Creating configuration:", data);
+
+    // Tạo FormData cho import configuration
+    const formData = new FormData();
+    formData.append("file", data.file);
+    formData.append("isImportGuide", "true");
+
+    // Gọi service import configuration
+    importConfiguration(formData, {
+      onSuccess: (response) => {
+        console.log("✅ Configuration Import Response:", response);
+
+        toast.success("Import hướng dẫn thành công!");
+
+        // Đóng modal sau khi thành công
+        setIsCreateModalOpen(false);
+      },
+      onError: (error) => {
+        console.error("❌ Configuration Import Error:", error);
+
+        toast.error(
+          error?.response?.data?.message ||
+            "Import hướng dẫn thất bại. Vui lòng thử lại!"
+        );
+      },
+    });
   };
 
   return (
@@ -48,6 +76,7 @@ const AdminConfigurationPage = () => {
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateConfiguration}
+        isLoading={isImporting}
       />
       {/* <div className="flex justify-between items-center">
         <Button variant="outline">Tạo mới</Button>
