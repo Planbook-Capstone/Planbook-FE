@@ -1,11 +1,28 @@
 "use client";
+import DocumentItem from "@/components/molecules/document-item";
 import CreateConfigurationModal from "@/components/organisms/create-configuration-modal";
+import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ConfigurationFormData } from "@/schemas/configuration.schema";
-import { useQuickTextBookAnalysisService } from "@/services/textbookServices";
-import { BrainCircuit, Globe, ImageIcon, Plus, Upload, X } from "lucide-react";
+import {
+  useDeletePdfWithQuery,
+  useGetAllGuides,
+  useQuickTextBookAnalysisService,
+} from "@/services/textbookServices";
+
+import {
+  BrainCircuit,
+  Download,
+  Eye,
+  Globe,
+  ImageIcon,
+  Plus,
+  Upload,
+  X,
+} from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -26,8 +43,16 @@ const AdminConfigurationPage = () => {
     setCapabilities((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { data: guides, isLoading: isGuidesLoading } = useGetAllGuides();
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewFileUrl, setPreviewFileUrl] = useState("");
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedGuide, setSelectedGuide] = useState<any>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [guideToDelete, setGuideToDelete] = useState<any>(null);
+  const { mutate: deletePdf, isPending: isDeleting } = useDeletePdfWithQuery();
   const { mutate: importConfiguration, isPending: isImporting } =
     useQuickTextBookAnalysisService();
   const handleCreateConfiguration = (data: ConfigurationFormData) => {
@@ -59,6 +84,145 @@ const AdminConfigurationPage = () => {
     });
   };
 
+  // Hàm xử lý download file
+  const handleDownloadFile = async (guide: any) => {
+    try {
+      if (!guide?.file_url) {
+        toast.error("Không tìm thấy đường dẫn file để tải xuống");
+        return;
+      }
+
+      toast.info("Đang chuẩn bị tải xuống...");
+
+      // Tạo tên file từ collection_name hoặc sử dụng tên mặc định
+      const fileName = guide?.collection_name
+        ? `${guide.collection_name.replace(/[^a-zA-Z0-9\s]/g, "_")}.pdf`
+        : `guide_${guide.id}.pdf`;
+
+      // Kiểm tra nếu file_url là đường dẫn tuyệt đối hay tương đối
+      let downloadUrl = guide.file_url;
+
+      // Nếu là đường dẫn tương đối, thêm base URL của API
+      if (!downloadUrl.startsWith("http")) {
+        // Giả sử API base URL cho file downloads
+        downloadUrl = `${
+          process.env.NEXT_PUBLIC_SECONDARY_API_URL || "http://localhost:8000"
+        }${downloadUrl}`;
+      }
+
+      try {
+        // Thử fetch file trước để kiểm tra
+        const response = await fetch(downloadUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/pdf,application/octet-stream,*/*",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Tạo blob từ response
+        const blob = await response.blob();
+
+        // Tạo URL object từ blob
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        // Tạo link download
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName;
+
+        // Thêm vào DOM, click và xóa
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Cleanup blob URL
+        window.URL.revokeObjectURL(blobUrl);
+
+        toast.success("Tải xuống thành công!");
+      } catch (fetchError) {
+        console.warn("Fetch failed, trying direct download:", fetchError);
+
+        // Fallback: thử download trực tiếp
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = fileName;
+        link.target = "_blank";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success("Đang tải xuống file...");
+      }
+    } catch (error) {
+      console.error("❌ Download Error:", error);
+      toast.error("Có lỗi xảy ra khi tải xuống file. Vui lòng thử lại!");
+    }
+  };
+
+  // Hàm xử lý xem trước file
+  const handlePreviewFile = (guide: any) => {
+    try {
+      if (!guide?.file_url) {
+        toast.error("Không tìm thấy đường dẫn file để xem trước");
+        return;
+      }
+
+      // Tạo URL cho Google Docs viewer
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(
+        guide.file_url
+      )}&embedded=true`;
+      setPreviewFileUrl(viewerUrl);
+      setIsPreviewModalOpen(true);
+    } catch (error) {
+      console.error("❌ Preview Error:", error);
+      toast.error("Có lỗi xảy ra khi xem trước file");
+    }
+  };
+
+  // Hàm xử lý click vào item guide
+  const handleGuideClick = (guide: any) => {
+    setSelectedGuide(guide);
+    setIsDetailModalOpen(true);
+  };
+
+  // Hàm xử lý xóa guide
+  const handleRemoveGuide = (guide: any) => {
+    setGuideToDelete(guide);
+    setShowDeleteModal(true);
+  };
+
+  // Hàm xác nhận xóa
+  const handleConfirmDelete = () => {
+    if (!guideToDelete?.book_id || isDeleting) return;
+
+    deletePdf(guideToDelete.book_id, {
+      onSuccess: () => {
+        toast.success("Xóa hướng dẫn thành công!");
+        setShowDeleteModal(false);
+        setGuideToDelete(null);
+        // Refetch guides list sẽ tự động được gọi bởi react-query
+      },
+      onError: (error: any) => {
+        console.error("Delete guide failed:", error);
+        toast.error(
+          error?.response?.data?.message ||
+            "Xóa hướng dẫn thất bại. Vui lòng thử lại!"
+        );
+      },
+    });
+  };
+
+  // Hàm hủy xóa
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setGuideToDelete(null);
+  };
+
   return (
     <div className="mx-auto p-6 space-y-6 font-questrial">
       <div className="flex justify-between items-center">
@@ -72,12 +236,150 @@ const AdminConfigurationPage = () => {
         </Button>
       </div>
 
+      {isGuidesLoading && (
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            {[...Array(7)].map((_, index) => (
+              <Skeleton
+                key={index}
+                className="h-[200px] w-full rounded-md bg-neutral-300"
+              />
+            ))}
+          </div>
+        </>
+      )}
+      <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-5 gap-5">
+        {guides?.data?.guides?.map((guide: any) => (
+          <DocumentItem
+            onClick={() => handleGuideClick(guide)}
+            key={guide.book_id}
+            type="DOCX"
+            name={guide?.collection_name}
+            description={`Ngày tạo: ${
+              guide?.uploaded_at
+                ? new Date(guide.uploaded_at).toLocaleDateString("vi-VN", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "N/A"
+            }`}
+            onRemove={() => handleRemoveGuide(guide)}
+          />
+        ))}
+      </div>
       <CreateConfigurationModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateConfiguration}
         isLoading={isImporting}
       />
+
+      {/* Preview Modal */}
+      {isPreviewModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-[90vw] h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">Xem trước tài liệu</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsPreviewModalOpen(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex-1 p-4">
+              <iframe
+                src={previewFileUrl}
+                className="w-full h-full border rounded"
+                title="Document Preview"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {isDetailModalOpen && selectedGuide && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-[500px] max-w-[90vw] flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h3 className="text-lg font-semibold">Chi tiết hướng dẫn</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDetailModalOpen(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-4">
+                <img
+                  src={"/images/files/DOC.svg"}
+                  alt="Document icon"
+                  className="w-12 h-12"
+                />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-lg">
+                    {selectedGuide?.collection_name}
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    Ngày tạo:{" "}
+                    {selectedGuide?.uploaded_at
+                      ? new Date(selectedGuide.uploaded_at).toLocaleDateString(
+                          "vi-VN",
+                          {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handlePreviewFile(selectedGuide);
+                    setIsDetailModalOpen(false);
+                  }}
+                  className="flex items-center gap-2 flex-1"
+                >
+                  <Eye className="w-4 h-4" />
+                  Xem trước
+                </Button>
+                <Button
+                  onClick={() => handleDownloadFile(selectedGuide)}
+                  className="flex items-center gap-2 flex-1"
+                >
+                  <Download className="w-4 h-4" />
+                  Tải xuống
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận xóa hướng dẫn"
+        itemName={guideToDelete?.collection_name}
+        isLoading={isDeleting}
+      />
+
       {/* <div className="flex justify-between items-center">
         <Button variant="outline">Tạo mới</Button>
         <Button variant="default">Cấu hình</Button>
