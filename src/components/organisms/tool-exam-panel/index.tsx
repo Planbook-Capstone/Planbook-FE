@@ -18,6 +18,7 @@ import {
 import { UploadCloudIcon } from "@/constants/icon";
 import { QuestionBankModal } from "@/components/modals/QuestionBankModal";
 import { QuestionBankItem } from "@/services/questionBankServices";
+import { useExamResultEditorContext } from "@/contexts/ExamResultEditorContext";
 
 interface AssetItem {
   id: string;
@@ -90,6 +91,9 @@ export default function ToolExamPanel() {
   const [uploadedImages, setUploadedImages] = useState<AssetItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isQuestionBankModalOpen, setIsQuestionBankModalOpen] = useState(false);
+
+  // Check if we're in ExamResultEditor context
+  const examResultEditorContext = useExamResultEditorContext();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -386,6 +390,8 @@ export default function ToolExamPanel() {
         onSelectQuestion={handleQuestionSelect}
         lessonId={1} // You can make this dynamic based on current lesson
         title="Ngân hàng đề"
+        mode={examResultEditorContext?.isExamResultEditor ? "exam-result-editor" : "exam-context"}
+        onAddToExamResult={examResultEditorContext?.onAddQuestionFromBank}
       />
     </div>
   );

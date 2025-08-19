@@ -35,6 +35,9 @@ interface QuestionBankModalProps {
   onSelectQuestion?: (question: QuestionBankItem) => void;
   lessonId?: number;
   title?: string;
+  // New props for ExamResultEditor integration
+  mode?: "exam-context" | "exam-result-editor";
+  onAddToExamResult?: (question: QuestionBankItem) => void;
 }
 
 export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
@@ -42,6 +45,8 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
   onClose,
   onSelectQuestion,
   lessonId,
+  mode = "exam-context",
+  onAddToExamResult,
 }) => {
   // State management
   const [searchValue, setSearchValue] = useState("");
@@ -184,21 +189,28 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
   const handleAddQuestionToExam = (question: QuestionBankItem) => {
     const { questionType, questionContent } = question;
 
-    switch (questionType) {
-      case "PART_I":
-        const mcQuestion = convertToMultipleChoiceQuestion(question);
-        addQuestionWithData(mcQuestion);
-        break;
+    // Check mode and use appropriate handler
+    if (mode === "exam-result-editor" && onAddToExamResult) {
+      // Use ExamResultEditor handler
+      onAddToExamResult(question);
+    } else {
+      // Use ExamContext handler (default behavior)
+      switch (questionType) {
+        case "PART_I":
+          const mcQuestion = convertToMultipleChoiceQuestion(question);
+          addQuestionWithData(mcQuestion);
+          break;
 
-      case "PART_II":
-        const ynQuestion = convertToYesNoQuestion(question);
-        addYesNoQuestionWithData(ynQuestion);
-        break;
+        case "PART_II":
+          const ynQuestion = convertToYesNoQuestion(question);
+          addYesNoQuestionWithData(ynQuestion);
+          break;
 
-      case "PART_III":
-        const shortQuestion = convertToShortAnswerQuestion(question);
-        addShortQuestionWithData(shortQuestion);
-        break;
+        case "PART_III":
+          const shortQuestion = convertToShortAnswerQuestion(question);
+          addShortQuestionWithData(shortQuestion);
+          break;
+      }
     }
 
     // Show success feedback
