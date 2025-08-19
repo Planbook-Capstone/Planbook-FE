@@ -47,8 +47,6 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
       gridClass = "grid grid-cols-1 gap-2";
     }
 
-  
-
     return gridClass;
   };
 
@@ -260,6 +258,15 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                 />
                               </div>
                             )}
+                            {question.image && (
+                              <div className="mb-3 flex justify-center">
+                                <img
+                                  src={question.image}
+                                  alt="Hình minh họa"
+                                  className="max-w-xs max-h-48 rounded border"
+                                />
+                              </div>
+                            )}
                             <div className="ml-4 space-y-1">
                               {question.statements &&
                                 Object.entries(question.statements).map(
@@ -332,6 +339,15 @@ export default function TemplatePreview({ data }: TemplatePreviewProps) {
                                 }}
                               />
                             </div>
+                            {question.image && (
+                              <div className="mb-3 flex justify-center">
+                                <img
+                                  src={question.image}
+                                  alt="Hình minh họa"
+                                  className="max-w-xs max-h-48 rounded border"
+                                />
+                              </div>
+                            )}
                             {question.illustrationImage && (
                               <div className="mb-3">
                                 <img
