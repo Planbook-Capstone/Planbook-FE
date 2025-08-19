@@ -81,10 +81,6 @@ export default function YesNoQuestionItem({
 
   const displayOptions = getOptionsFromStatements();
 
-
-
-
-
   const handleOptionTextChange = (optionId: string, text: string) => {
     // Convert line breaks back to <br/> tags when saving
     const textWithBrTags = convertLineBreaksToBrTags(text);
@@ -163,9 +159,6 @@ export default function YesNoQuestionItem({
   const handleEditClick = () => {
     setShowImageDropZone(!showImageDropZone);
   };
-
-
-
   return (
     <div className="flex space-y-4 w-full gap-1">
       <div className="w-full">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ToolExamPanel from "@/components/organisms/tool-exam-panel";
 import { Switch } from "@/components/ui/Switch";
 import {
@@ -196,15 +196,53 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     }
   }, [examResult, localExamResult]);
 
+  // Function to update answer states for newly added questions
+  const updateAnswerStatesForNewQuestion = useCallback((question: any, partIndex: number, questionNumber: number) => {
+    const questionKey = `part${partIndex + 1}-${questionNumber}`;
+
+    if (partIndex === 0 && question?.answer) {
+      // Part 1 - Multiple choice
+      setCorrectAnswers(prev => ({
+        ...prev,
+        [questionKey]: question.answer
+      }));
+      console.log("🔍 Updated correctAnswers for new PART_I question:", {
+        questionKey,
+        answer: question.answer
+      });
+    } else if (partIndex === 1 && question?.statements) {
+      // Part 2 - True/False
+      const statements: Record<string, boolean> = {};
+      Object.entries(question.statements).forEach(
+        ([key, value]: [string, any]) => {
+          if (typeof value === 'object' && value !== null) {
+            statements[key] = Boolean(value.answer);
+          } else {
+            statements[key] = Boolean(value);
+          }
+        }
+      );
+      setTrueFalseAnswers(prev => ({
+        ...prev,
+        [questionKey]: statements
+      }));
+      console.log("🔍 Updated trueFalseAnswers for new PART_II question:", {
+        questionKey,
+        statements
+      });
+    }
+  }, []);
+
   // Use the new hook for exam result editor with local state
-  const { addQuestionFromBankByType, deleteQuestion, addEmptyQuestion, forceUpdate } =
+  const { addQuestionFromBankByType, deleteQuestion, addEmptyQuestion } =
     useExamResultEditor({
       examResult: localExamResult,
       onDataChange: (updatedData) => {
         // Update local state when data changes
         setLocalExamResult(updatedData);
         setQuestionContents(prev => ({ ...prev }));
-      }
+      },
+      onQuestionAdded: updateAnswerStatesForNewQuestion
     });
   const [imageUploadStates, setImageUploadStates] = useState<
     Record<string, boolean>
@@ -264,12 +302,22 @@ function ExamResultEditorTemplate({ examResult }: Props) {
           if (partIndex === 0 && question?.answer) {
             // Part 1 - Multiple choice
             newCorrectAnswers[questionKey] = question.answer;
+            console.log("🔍 Initializing correctAnswers for PART_I:", {
+              questionKey,
+              questionAnswer: question.answer,
+              questionOptions: question.options
+            });
           } else if (partIndex === 1 && question?.statements) {
             // Part 2 - True/False
             const statements: Record<string, boolean> = {};
             Object.entries(question.statements).forEach(
               ([key, value]: [string, any]) => {
-                statements[key] = value?.answer || false;
+                // Handle both formats: { text: string, answer: boolean } and boolean directly
+                if (typeof value === 'object' && value !== null) {
+                  statements[key] = Boolean(value.answer);
+                } else {
+                  statements[key] = Boolean(value);
+                }
               }
             );
             newTrueFalseAnswers[questionKey] = statements;
@@ -277,10 +325,18 @@ function ExamResultEditorTemplate({ examResult }: Props) {
         });
       });
 
-      setCorrectAnswers(newCorrectAnswers);
-      setTrueFalseAnswers(newTrueFalseAnswers);
-      setImageUploadStates(newImageUploadStates);
-      setQuestionImages(newQuestionImages);
+      // Merge with existing states instead of replacing completely
+      setCorrectAnswers(prev => ({ ...prev, ...newCorrectAnswers }));
+      setTrueFalseAnswers(prev => ({ ...prev, ...newTrueFalseAnswers }));
+      setImageUploadStates(prev => ({ ...prev, ...newImageUploadStates }));
+      setQuestionImages(prev => ({ ...prev, ...newQuestionImages }));
+
+      console.log("🔍 Updated all states:", {
+        newCorrectAnswers,
+        newTrueFalseAnswers,
+        totalQuestions: localExamResult.data.parts.reduce((total: number, part: any) =>
+          total + (part.questions?.length || 0), 0)
+      });
     }
   }, [localExamResult]);
 
@@ -400,31 +456,18 @@ function ExamResultEditorTemplate({ examResult }: Props) {
               });
             } else if (partIndex === 1) {
               // Part 2 - True/False (PHẦN II)
-              // Đảm bảo format đúng với interface YesNoQuestion (a, b, c, d)
-              const finalStatements = {
-                a: { text: "" },
-                b: { text: "" },
-                c: { text: "" },
-                d: { text: "" },
-              };
+              const finalStatements: any = {};
 
               if (q.statements) {
-                // Map các keys hiện có sang a, b, c, d
-                const statementKeys = Object.keys(q.statements);
-                const targetKeys = ["a", "b", "c", "d"];
-
-                statementKeys.forEach((statementKey, index) => {
-                  if (index < 4) {
-                    const targetKey = targetKeys[index];
-                    const statementContentKey = `${questionKey}-statement-${statementKey}`;
-                    finalStatements[targetKey as keyof typeof finalStatements] =
-                      {
-                        text:
-                          answerContents[statementContentKey] ||
-                          q.statements[statementKey]?.text ||
-                          "",
-                      };
-                  }
+                // Preserve original keys and get updated content
+                Object.keys(q.statements).forEach((statementKey) => {
+                  const statementContentKey = `${questionKey}-statement-${statementKey}`;
+                  finalStatements[statementKey] = {
+                    text:
+                      answerContents[statementContentKey] ||
+                      q.statements[statementKey]?.text ||
+                      "",
+                  };
                 });
               }
 

@@ -30,6 +30,8 @@ export interface QuestionContent {
   answer?: string;
   // For PART_II (True/False) - statements with text and answer
   statements?: Record<string, { text: string; answer: boolean }>;
+  // For PART_II (True/False) - legacy format with separate answers
+  answers?: Record<string, boolean>;
   // For PART_III (Short answer)
   keywords?: string[];
 }

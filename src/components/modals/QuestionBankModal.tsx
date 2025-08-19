@@ -83,7 +83,21 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
   } = useQuestionBankFilterService(filterParams);
 
   const { data: lessonsData } = useLessonsService();
-  console.log(lessonsData);
+
+  // Log PART_II questions for debugging
+  React.useEffect(() => {
+    if (questionBankData?.data) {
+      const part2Questions = questionBankData.data.filter(q => q.questionType === "PART_II");
+      if (part2Questions.length > 0) {
+        console.log("🔍 Found PART_II questions in question bank:", part2Questions.map(q => ({
+          id: q.id,
+          questionContent: q.questionContent,
+          statements: q.questionContent.statements,
+          answers: q.questionContent.answers
+        })));
+      }
+    }
+  }, [questionBankData]);
   // Filter handlers
   const handleQuestionTypeChange = (value: string) => {
     if (value === "all") {
