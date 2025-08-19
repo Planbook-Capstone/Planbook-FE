@@ -9,9 +9,10 @@ import {
 interface UseExamResultEditorProps {
   examResult: any;
   onDataChange?: (updatedData: any) => void;
+  onQuestionAdded?: (question: any, partIndex: number, questionNumber: number) => void;
 }
 
-export const useExamResultEditor = ({ examResult, onDataChange }: UseExamResultEditorProps) => {
+export const useExamResultEditor = ({ examResult, onDataChange, onQuestionAdded }: UseExamResultEditorProps) => {
   const [forceUpdate, setForceUpdate] = useState(0);
 
   // Force re-render helper
@@ -59,10 +60,15 @@ export const useExamResultEditor = ({ examResult, onDataChange }: UseExamResultE
     currentQuestions.push(convertedQuestion);
 
     console.log(`✅ Added question from bank to part ${partIndex + 1}:`, convertedQuestion);
-    
+
+    // Call the callback to update answer states
+    if (onQuestionAdded) {
+      onQuestionAdded(convertedQuestion, partIndex, convertedQuestion.questionNumber);
+    }
+
     // Trigger re-render
     triggerUpdate();
-  }, [examResult, triggerUpdate]);
+  }, [examResult, triggerUpdate, onQuestionAdded]);
 
   // Add question from question bank based on question type
   const addQuestionFromBankByType = useCallback((question: QuestionBankItem) => {
@@ -163,10 +169,15 @@ export const useExamResultEditor = ({ examResult, onDataChange }: UseExamResultE
     currentQuestions.push(newQuestion);
 
     console.log(`➕ Added new empty question ${newQuestionNumber} to part ${partIndex + 1}`);
-    
+
+    // Call the callback to update answer states
+    if (onQuestionAdded) {
+      onQuestionAdded(newQuestion, partIndex, newQuestionNumber);
+    }
+
     // Trigger re-render
     triggerUpdate();
-  }, [examResult, triggerUpdate]);
+  }, [examResult, triggerUpdate, onQuestionAdded]);
 
   // Clear all questions from a specific part
   const clearPartQuestions = useCallback((partIndex: number) => {
