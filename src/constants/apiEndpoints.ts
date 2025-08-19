@@ -134,6 +134,7 @@ export const API_ENDPOINTS = {
 
 // PDF API Endpoints (Secondary API - Port 8000)
 export const PDF_API_ENDPOINTS = {
+  BASE: "/pdf",
   // Textbook management
   GET_ALL_TEXTBOOKS: "/pdf/getAllTextBook",
   GET_TEXTBOOK_BY_ID: (id: string) => `/pdf/getTextBook/${id}`,
@@ -142,6 +143,8 @@ export const PDF_API_ENDPOINTS = {
 
   // Quick analysis
   QUICK_TEXTBOOK_ANALYSIS: "/pdf/import",
+
+  GUIDES: "/pdf/guides",
 
   //SEARCH
   RAG_QUERY: "/rag/query",
