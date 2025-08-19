@@ -30,6 +30,7 @@ export const API_ENDPOINTS = {
   BOOK_TYPES: buildEndpoint(SERVICES.AUTH, "/book-types"),
 
   WALLET: buildEndpoint(SERVICES.AUTH, "/wallets"),
+  WALLET_TRANSACTIONS: buildEndpoint(SERVICES.AUTH, "/wallets/transactions"),
 
   // Academic Years
   ACADEMIC_YEARS: buildEndpoint(SERVICES.WORKSPACE, "/academic-years"),

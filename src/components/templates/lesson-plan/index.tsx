@@ -281,6 +281,7 @@ function LessonPlanTemplate({
     handleGenerationLessonPlan,
     handleDownloadDocx,
     resultId: generationResultId,
+    isGenerating,
   } = useLessonPlanGeneration({
     demoData,
 
@@ -316,7 +317,6 @@ function LessonPlanTemplate({
       // Stop loading
       setIsLoading(false);
       setLoadingNodes(new Set()); // Clear all loading nodes
-      console.log("✅ Loading finished - isLoading:", false);
     }
 
     // Force reset loading if data status is not processing
@@ -371,6 +371,21 @@ function LessonPlanTemplate({
     setLoadingNodes(allNodeIds);
     console.log("🔄 Set all nodes loading:", Array.from(allNodeIds));
   }, [demoData]);
+
+  // Function to count total nodes recursively
+  const countTotalNodes = useCallback((nodes: DemoNode[]): number => {
+    let count = 0;
+    nodes.forEach((node) => {
+      count += 1; // Count the current node
+      if (node.children && node.children.length > 0) {
+        count += countTotalNodes(node.children); // Count children recursively
+      }
+    });
+    return count;
+  }, []);
+
+  // Get current node count
+  const currentNodeCount = countTotalNodes(demoData);
 
   // Use tool result service for saving results
   const { mutate: updateToolResult, isPending: isSavingResult } =
@@ -553,28 +568,19 @@ function LessonPlanTemplate({
                   onShowPreview={() => setShowPreview(true)}
                   onExportJSON={handleGenerationLessonPlan}
                   sidebarCollapsed={sidebarCollapsed}
-                  onToggleSidebar={() =>
-                    setSidebarCollapsed(!sidebarCollapsed)
-                  }
+                  onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
                   canUndo={canUndo}
                   canRedo={canRedo}
                   onUndo={undo}
                   onRedo={redo}
                   hideAIButton={mode === "edit"}
+                  isGenerating={isGenerating}
+                  currentNodeCount={currentNodeCount}
                 />
               </div>
             )}
 
             <div className="flex-1 overflow-auto">
-              {/* Debug StepFloatingPanel */}
-              {console.log("🔍 StepFloatingPanel Debug:", {
-                mode,
-                modeNotEdit: mode !== "edit",
-                items,
-                itemsLength: items?.length || 0,
-                shouldShow: mode !== "edit" && items && items.length > 0,
-              })}
-
               {/* Step Title - only show in create mode */}
               {mode !== "edit" &&
                 items &&

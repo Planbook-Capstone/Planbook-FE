@@ -18,6 +18,10 @@ interface ToolbarProps {
   onRedo?: () => void;
   // Hide AI button in edit mode
   hideAIButton?: boolean;
+  // Loading state for AI generation
+  isGenerating?: boolean;
+  // Current node count for display
+  currentNodeCount?: number;
 }
 
 export default function Toolbar({
@@ -32,6 +36,8 @@ export default function Toolbar({
   onUndo,
   onRedo,
   hideAIButton = false,
+  isGenerating = false,
+  currentNodeCount = 0,
 }: ToolbarProps) {
   return (
     <div className=" p-4">
@@ -48,12 +54,20 @@ export default function Toolbar({
         </div> */}
 
         <div className="flex items-center gap-3">
+          {/* Node count display */}
+          <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg text-sm">
+            <span className="text-gray-600">Nodes:</span>
+            <span className={`font-medium ${currentNodeCount >= 30 ? 'text-red-600' : currentNodeCount >= 25 ? 'text-orange-600' : 'text-gray-800'}`}>
+              {currentNodeCount}/30
+            </span>
+          </div>
+
           {/* Undo/Redo buttons */}
           {(onUndo || onRedo) && (
             <div className="flex items-center gap-1 mr-2">
               <Button
                 onClick={onUndo}
-                disabled={!canUndo}
+                disabled={!canUndo || isGenerating}
                 variant="outline"
                 size="sm"
                 className="px-2"
@@ -65,7 +79,7 @@ export default function Toolbar({
               </Button>
               <Button
                 onClick={onRedo}
-                disabled={!canRedo}
+                disabled={!canRedo || isGenerating}
                 variant="outline"
                 size="sm"
                 className="px-2"
@@ -81,6 +95,7 @@ export default function Toolbar({
           {!hideAIButton && (
             <Button
               onClick={onExportJSON}
+              disabled={isGenerating}
               className=" flex items-center justify-center bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)]"
             >
               <Image
@@ -89,17 +104,18 @@ export default function Toolbar({
                 height={25}
                 alt="AI"
               />
-              <p>Tạo nhanh cùng AI</p>
+              <p>{isGenerating ? "Đang tạo..." : "Tạo nhanh cùng AI"}</p>
             </Button>
           )}
 
           <Button
             onClick={onToggleDeleteButtons}
+            disabled={isGenerating}
             variant={showDeleteButtons ? "default" : "outline"}
           >
             {showDeleteButtons ? "Hoàn thành" : "Chỉnh sửa"}
           </Button>
-          <Button onClick={onShowPreview}>
+          <Button onClick={onShowPreview} disabled={isGenerating}>
             <FileText /> Xem trước
           </Button>
         </div>

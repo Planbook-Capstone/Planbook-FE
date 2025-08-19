@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { DropResult } from "@hello-pangea/dnd";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 import { DemoNode } from "../types";
 import { getComponentPalette, DEFAULT_TABLE_DATA } from "../constants";
 
@@ -27,6 +28,17 @@ export const useLessonPlanDragDrop = ({
   removeNodeById,
   setTrashData,
 }: UseLessonPlanDragDropProps) => {
+  // Function to count total nodes recursively
+  const countTotalNodes = useCallback((nodes: DemoNode[]): number => {
+    let count = 0;
+    nodes.forEach((node) => {
+      count += 1; // Count the current node
+      if (node.children && node.children.length > 0) {
+        count += countTotalNodes(node.children); // Count children recursively
+      }
+    });
+    return count;
+  }, []);
   // Create new node from component palette
   const createNewNode = useCallback((componentType: any): DemoNode => {
     // Create default content for specific types
@@ -56,6 +68,13 @@ export const useLessonPlanDragDrop = ({
   // Handle dragging from palette to canvas
   const handlePaletteToCanvas = useCallback(
     (draggableId: string, destination: any) => {
+      // Check node limit before adding
+      const currentNodeCount = countTotalNodes(demoData);
+      if (currentNodeCount >= 30) {
+        toast.error("Không thể thêm node mới. Giới hạn tối đa 30 node.");
+        return;
+      }
+
       const componentPalette = getComponentPalette();
       const componentType = componentPalette.find(
         (item: any) => item.id === draggableId
@@ -83,7 +102,7 @@ export const useLessonPlanDragDrop = ({
         addChildToNode(parentId, newNode);
       }
     },
-    [createNewNode, setDemoData, updateFinalData, addChildToNode]
+    [createNewNode, setDemoData, updateFinalData, addChildToNode, countTotalNodes, demoData]
   );
 
   // Check if a node is a descendant of another node

@@ -52,7 +52,7 @@ export const useLessonPlanGeneration = ({
   const query = searchParams.get("bookTypeId");
 
   const { data: bookType } = useBookTypeByIdService(query || "");
-  const { mutate } = useExecuteToolService();
+  const { mutate, isPending: isGenerating } = useExecuteToolService();
   const { data, isConnected, error, sendMessage, reconnect } =
     useSimpleWebSocket({
       url: wsUrl,
@@ -62,8 +62,6 @@ export const useLessonPlanGeneration = ({
 
   // Handle WebSocket data
   useEffect(() => {
-    console.log("🔍 WebSocket data received: TRAN", data);
-
     // Save result_id if it exists and we haven't saved it yet
     if (
       data?.result_id &&
@@ -88,10 +86,6 @@ export const useLessonPlanGeneration = ({
       data.partial_result.output.children.length > 0
     ) {
       childrenData = data.partial_result.output.children;
-      console.log(
-        "📊 Found children data in data.partial_result.output.children:",
-        childrenData
-      );
     }
 
     if (childrenData && data?.tool_code === bookType?.data?.code) {
@@ -100,7 +94,6 @@ export const useLessonPlanGeneration = ({
 
       // Only process if this is new data
       if (processedDataRef.current !== dataKey) {
-        console.log("✨ New data detected, processing...");
         processedDataRef.current = dataKey;
 
         const convertedData =
@@ -120,17 +113,6 @@ export const useLessonPlanGeneration = ({
       }
     } else {
       console.log("❌ No children data found in WebSocket response");
-      console.log("🔍 Data structure:", {
-        hasChildren: !!data?.children,
-        childrenLength: data?.children?.length || 0,
-        hasPartialResult: !!data?.partial_result,
-        hasOutput: !!data?.partial_result?.output,
-        hasPartialChildren: !!data?.partial_result?.output?.children,
-        partialChildrenLength:
-          data?.partial_result?.output?.children?.length || 0,
-        toolCode: data?.tool_code,
-        expectedToolCode: bookType?.data?.code,
-      });
     }
   }, [data, resultId]); // Add resultId to dependencies
 
@@ -225,6 +207,9 @@ export const useLessonPlanGeneration = ({
     // Data
     bookType: bookType?.data,
     resultId,
+
+    // Loading states
+    isGenerating,
 
     // Actions
     handleGenerationLessonPlan,
