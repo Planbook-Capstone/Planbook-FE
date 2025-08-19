@@ -48,8 +48,9 @@ export default function TableMyWallet({
       ),
     ].join("\n");
 
-    // Download CSV
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    // Download CSV with UTF-8 BOM for proper Vietnamese character encoding
+    const BOM = "\uFEFF"; // UTF-8 BOM
+    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
