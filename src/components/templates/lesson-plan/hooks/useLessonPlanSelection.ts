@@ -25,6 +25,18 @@ export const useLessonPlanSelection = ({
     operation: "copy" | "cut";
   } | null>(null);
 
+  // Function to count total nodes recursively
+  const countTotalNodes = useCallback((nodes: DemoNode[]): number => {
+    let count = 0;
+    nodes.forEach((node) => {
+      count += 1; // Count the current node
+      if (node.children && node.children.length > 0) {
+        count += countTotalNodes(node.children); // Count children recursively
+      }
+    });
+    return count;
+  }, []);
+
   // Clear selection when exiting edit mode
   useEffect(() => {
     if (!isEditMode) {
@@ -261,6 +273,14 @@ export const useLessonPlanSelection = ({
         return;
       }
 
+      // Check node limit before pasting
+      const currentNodeCount = countTotalNodes(demoData);
+      const nodesToPasteCount = countTotalNodes(clipboard.nodes);
+      if (currentNodeCount + nodesToPasteCount > 30) {
+        toast.error(`Không thể paste. Giới hạn tối đa 30 node (hiện tại: ${currentNodeCount}, sẽ thêm: ${nodesToPasteCount}).`);
+        return;
+      }
+
       const newDemoData = addNodesToParent(
         demoData,
         targetNodeId,
@@ -292,6 +312,7 @@ export const useLessonPlanSelection = ({
       setDemoData,
       updateFinalData,
       findNodeById,
+      countTotalNodes,
     ]
   );
 

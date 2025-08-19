@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { toast } from "sonner";
 import { DemoNode } from "../types";
 
 interface UseLessonPlanActionsProps {
@@ -16,6 +17,17 @@ export const useLessonPlanActions = ({
   setTrashData,
   updateFinalData,
 }: UseLessonPlanActionsProps) => {
+  // Function to count total nodes recursively
+  const countTotalNodes = useCallback((nodes: DemoNode[]): number => {
+    let count = 0;
+    nodes.forEach((node) => {
+      count += 1; // Count the current node
+      if (node.children && node.children.length > 0) {
+        count += countTotalNodes(node.children); // Count children recursively
+      }
+    });
+    return count;
+  }, []);
   // Handle content changes
   const handleInputChange = useCallback(
     (nodeId: string, value: string) => {
@@ -95,6 +107,13 @@ export const useLessonPlanActions = ({
       newChild: DemoNode,
       preserveOrderIndex: boolean = false
     ) => {
+      // Check node limit before adding
+      const currentNodeCount = countTotalNodes(demoData);
+      if (currentNodeCount >= 30) {
+        toast.error("Không thể thêm mục mới. Giới hạn tối đa 30 mục.");
+        return;
+      }
+
       const updateNodeWithChild = (nodeList: DemoNode[]): DemoNode[] => {
         return nodeList.map((node) => {
           if (node.id.toString() === parentId) {
@@ -143,7 +162,7 @@ export const useLessonPlanActions = ({
         return newData;
       });
     },
-    [setDemoData, updateFinalData]
+    [setDemoData, updateFinalData, countTotalNodes, demoData]
   );
 
   // Find node by ID in nested structure
@@ -255,6 +274,13 @@ export const useLessonPlanActions = ({
   // Restore from trash
   const handleRestoreNode = useCallback(
     (nodeId: string) => {
+      // Check node limit before restoring
+      const currentNodeCount = countTotalNodes(demoData);
+      if (currentNodeCount >= 30) {
+        toast.error("Không thể khôi phục node. Giới hạn tối đa 30 node.");
+        return;
+      }
+
       const nodeToRestore = trashData.find(
         (node) => node.id.toString() === nodeId
       );
@@ -310,6 +336,7 @@ export const useLessonPlanActions = ({
       setDemoData,
       setTrashData,
       updateFinalData,
+      countTotalNodes,
     ]
   );
 

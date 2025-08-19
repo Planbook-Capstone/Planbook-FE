@@ -1,13 +1,18 @@
 "use client";
 
-import { useWalletService } from "@/services/walletServices";
+import {
+  useWalletService,
+  useWalletTransactionsService,
+} from "@/services/walletServices";
 import TableMyWallet from "@/components/organisms/table-my-wallet";
 
 import { WalletTransaction } from "@/types";
 
 function WalletPage() {
   const { data: walletData } = useWalletService();
+  const { data: walletTransaction } = useWalletTransactionsService();
 
+  console.log(walletTransaction?.data, "tran");
   // Sort transactions by createdAt in descending order (newest first)
   const sortedTransactions = (walletData?.data?.transactions || []).sort(
     (a: WalletTransaction, b: WalletTransaction) =>
