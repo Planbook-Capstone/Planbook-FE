@@ -30,7 +30,7 @@ export const useExamResultEditor = ({ examResult, onDataChange }: UseExamResultE
     }
 
     let convertedQuestion: any;
-    
+
     switch (partIndex) {
       case 0: // PART_I - Multiple Choice
         convertedQuestion = convertToExamResultMultipleChoice(question);

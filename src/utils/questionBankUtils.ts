@@ -1,23 +1,54 @@
 import { QuestionBankItem } from "@/services/questionBankServices";
 
+// Helper function to normalize statements data
+const normalizeStatementsData = (statementsData: any, answersData: any) => {
+  if (!statementsData) return {};
+
+  const result: any = {};
+
+  Object.keys(statementsData).forEach(key => {
+    const value = statementsData[key];
+
+    if (typeof value === "object" && value !== null && value.text !== undefined) {
+      // Format: { text: string, answer: boolean }
+      result[key] = {
+        text: String(value.text || ""),
+        answer: Boolean(value.answer)
+      };
+    } else {
+      // Legacy format: statements are strings, answers are separate
+      result[key] = {
+        text: String(value || ""),
+        answer: Boolean(answersData?.[key] || false)
+      };
+    }
+  });
+
+  return result;
+};
+
 // Convert QuestionBankItem to exam context format for PART_I (Multiple Choice)
 export const convertToMultipleChoiceQuestion = (question: QuestionBankItem) => {
-  const optionsArray = question.questionContent.options
-    ? [
-        question.questionContent.options.A || "",
-        question.questionContent.options.B || "",
-        question.questionContent.options.C || "",
-        question.questionContent.options.D || "",
-      ]
-    : ["", "", "", ""];
+  const options = question.questionContent.options || {};
+
+  // Handle both uppercase and lowercase option keys
+  const optionsArray = [
+    options.A || options.a || "",
+    options.B || options.b || "",
+    options.C || options.c || "",
+    options.D || options.d || "",
+  ];
+
+  // Handle both uppercase and lowercase answer
+  const answer = question.questionContent.answer || "";
+  const answerIndex = ["A", "B", "C", "D", "a", "b", "c", "d"].indexOf(answer);
+  const correctAnswer = answerIndex >= 0 ? answerIndex % 4 : 0;
 
   return {
     id: `qb_${question.id}_${Date.now()}`,
     question: question.questionContent.question,
     options: optionsArray,
-    correctAnswer: question.questionContent.answer
-      ? ["A", "B", "C", "D"].indexOf(question.questionContent.answer)
-      : 0,
+    correctAnswer: correctAnswer,
     type: "single" as const,
     illustrationImage: question.questionContent.image,
   };
@@ -27,21 +58,37 @@ export const convertToMultipleChoiceQuestion = (question: QuestionBankItem) => {
 export const convertToExamResultMultipleChoice = (question: QuestionBankItem) => {
   const options = question.questionContent.options || {};
 
-  return {
+  console.log("🔍 Converting PART_I question:", {
+    questionId: question.id,
+    originalOptions: options,
+    originalAnswer: question.questionContent.answer,
+    questionContent: question.questionContent
+  });
+
+  // Handle both uppercase and lowercase option keys
+  const normalizedOptions = {
+    A: options.A || options.a || "",
+    B: options.B || options.b || "",
+    C: options.C || options.c || "",
+    D: options.D || options.d || "",
+  };
+
+  // Ensure answer is uppercase to match option keys
+  const normalizedAnswer = (question.questionContent.answer || "A").toUpperCase();
+
+  const result = {
     questionNumber: 1, // Will be updated when added to the array
     question: question.questionContent.question,
-    options: {
-      A: options.A || "",
-      B: options.B || "",
-      C: options.C || "",
-      D: options.D || "",
-    },
-    answer: question.questionContent.answer || "A",
+    options: normalizedOptions,
+    answer: normalizedAnswer,
     difficultyLevel: question.difficultyLevel || "KNOWLEDGE",
     image: question.questionContent.image || undefined,
     explanation: question.explanation || "",
     referenceSource: question.referenceSource || "",
   };
+
+  console.log("🔍 Converted PART_I result:", result);
+  return result;
 };
 
 // Convert QuestionBankItem to exam context format for PART_II (Yes/No)
@@ -49,52 +96,20 @@ export const convertToYesNoQuestion = (question: QuestionBankItem) => {
   const statementsData = question.questionContent.statements as any;
   const answersData = question.questionContent.answers as any;
 
-  const statements = {
-    a: {
-      text:
-        typeof statementsData?.a === "object" && statementsData.a?.text
-          ? String(statementsData.a.text)
-          : String(statementsData?.a || ""),
-      answer:
-        typeof statementsData?.a === "object" &&
-        typeof statementsData.a?.answer === "boolean"
-          ? statementsData.a.answer
-          : Boolean(answersData?.a || false),
-    },
-    b: {
-      text:
-        typeof statementsData?.b === "object" && statementsData.b?.text
-          ? String(statementsData.b.text)
-          : String(statementsData?.b || ""),
-      answer:
-        typeof statementsData?.b === "object" &&
-        typeof statementsData.b?.answer === "boolean"
-          ? statementsData.b.answer
-          : Boolean(answersData?.b || false),
-    },
-    c: {
-      text:
-        typeof statementsData?.c === "object" && statementsData.c?.text
-          ? String(statementsData.c.text)
-          : String(statementsData?.c || ""),
-      answer:
-        typeof statementsData?.c === "object" &&
-        typeof statementsData.c?.answer === "boolean"
-          ? statementsData.c.answer
-          : Boolean(answersData?.c || false),
-    },
-    d: {
-      text:
-        typeof statementsData?.d === "object" && statementsData.d?.text
-          ? String(statementsData.d.text)
-          : String(statementsData?.d || ""),
-      answer:
-        typeof statementsData?.d === "object" &&
-        typeof statementsData.d?.answer === "boolean"
-          ? statementsData.d.answer
-          : Boolean(answersData?.d || false),
-    },
-  };
+  // Normalize and convert to a, b, c, d format for exam context
+  const normalizedData = normalizeStatementsData(statementsData, answersData);
+  const statementKeys = Object.keys(normalizedData);
+  const targetKeys = ['a', 'b', 'c', 'd'];
+
+  const statements: any = {};
+  targetKeys.forEach((targetKey, index) => {
+    if (index < statementKeys.length) {
+      const sourceKey = statementKeys[index];
+      statements[targetKey] = normalizedData[sourceKey];
+    } else {
+      statements[targetKey] = { text: "", answer: false };
+    }
+  });
 
   return {
     id: `qb_${question.id}_${Date.now()}`,
@@ -110,52 +125,8 @@ export const convertToExamResultYesNo = (question: QuestionBankItem) => {
   const statementsData = question.questionContent.statements as any;
   const answersData = question.questionContent.answers as any;
 
-  const statements = {
-    a: {
-      text:
-        typeof statementsData?.a === "object" && statementsData.a?.text
-          ? String(statementsData.a.text)
-          : String(statementsData?.a || ""),
-      answer:
-        typeof statementsData?.a === "object" &&
-        typeof statementsData.a?.answer === "boolean"
-          ? statementsData.a.answer
-          : Boolean(answersData?.a || false),
-    },
-    b: {
-      text:
-        typeof statementsData?.b === "object" && statementsData.b?.text
-          ? String(statementsData.b.text)
-          : String(statementsData?.b || ""),
-      answer:
-        typeof statementsData?.b === "object" &&
-        typeof statementsData.b?.answer === "boolean"
-          ? statementsData.b.answer
-          : Boolean(answersData?.b || false),
-    },
-    c: {
-      text:
-        typeof statementsData?.c === "object" && statementsData.c?.text
-          ? String(statementsData.c.text)
-          : String(statementsData?.c || ""),
-      answer:
-        typeof statementsData?.c === "object" &&
-        typeof statementsData.c?.answer === "boolean"
-          ? statementsData.c.answer
-          : Boolean(answersData?.c || false),
-    },
-    d: {
-      text:
-        typeof statementsData?.d === "object" && statementsData.d?.text
-          ? String(statementsData.d.text)
-          : String(statementsData?.d || ""),
-      answer:
-        typeof statementsData?.d === "object" &&
-        typeof statementsData.d?.answer === "boolean"
-          ? statementsData.d.answer
-          : Boolean(answersData?.d || false),
-    },
-  };
+  // Normalize statements data and preserve original keys
+  const statements = normalizeStatementsData(statementsData, answersData);
 
   return {
     questionNumber: 1, // Will be updated when added to the array

@@ -264,12 +264,22 @@ function ExamResultEditorTemplate({ examResult }: Props) {
           if (partIndex === 0 && question?.answer) {
             // Part 1 - Multiple choice
             newCorrectAnswers[questionKey] = question.answer;
+            console.log("🔍 Initializing correctAnswers for PART_I:", {
+              questionKey,
+              questionAnswer: question.answer,
+              questionOptions: question.options
+            });
           } else if (partIndex === 1 && question?.statements) {
             // Part 2 - True/False
             const statements: Record<string, boolean> = {};
             Object.entries(question.statements).forEach(
               ([key, value]: [string, any]) => {
-                statements[key] = value?.answer || false;
+                // Handle both formats: { text: string, answer: boolean } and boolean directly
+                if (typeof value === 'object' && value !== null) {
+                  statements[key] = Boolean(value.answer);
+                } else {
+                  statements[key] = Boolean(value);
+                }
               }
             );
             newTrueFalseAnswers[questionKey] = statements;
@@ -281,6 +291,13 @@ function ExamResultEditorTemplate({ examResult }: Props) {
       setTrueFalseAnswers(newTrueFalseAnswers);
       setImageUploadStates(newImageUploadStates);
       setQuestionImages(newQuestionImages);
+
+      console.log("🔍 Updated all states:", {
+        newCorrectAnswers,
+        newTrueFalseAnswers,
+        totalQuestions: localExamResult.data.parts.reduce((total: number, part: any) =>
+          total + (part.questions?.length || 0), 0)
+      });
     }
   }, [localExamResult]);
 
@@ -400,31 +417,18 @@ function ExamResultEditorTemplate({ examResult }: Props) {
               });
             } else if (partIndex === 1) {
               // Part 2 - True/False (PHẦN II)
-              // Đảm bảo format đúng với interface YesNoQuestion (a, b, c, d)
-              const finalStatements = {
-                a: { text: "" },
-                b: { text: "" },
-                c: { text: "" },
-                d: { text: "" },
-              };
+              const finalStatements: any = {};
 
               if (q.statements) {
-                // Map các keys hiện có sang a, b, c, d
-                const statementKeys = Object.keys(q.statements);
-                const targetKeys = ["a", "b", "c", "d"];
-
-                statementKeys.forEach((statementKey, index) => {
-                  if (index < 4) {
-                    const targetKey = targetKeys[index];
-                    const statementContentKey = `${questionKey}-statement-${statementKey}`;
-                    finalStatements[targetKey as keyof typeof finalStatements] =
-                      {
-                        text:
-                          answerContents[statementContentKey] ||
-                          q.statements[statementKey]?.text ||
-                          "",
-                      };
-                  }
+                // Preserve original keys and get updated content
+                Object.keys(q.statements).forEach((statementKey) => {
+                  const statementContentKey = `${questionKey}-statement-${statementKey}`;
+                  finalStatements[statementKey] = {
+                    text:
+                      answerContents[statementContentKey] ||
+                      q.statements[statementKey]?.text ||
+                      "",
+                  };
                 });
               }
 
