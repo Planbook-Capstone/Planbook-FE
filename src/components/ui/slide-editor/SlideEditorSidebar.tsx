@@ -39,22 +39,22 @@ export default function SlideEditorSidebar({
             className="w-full p-3 text-white bg-neutral-800 border-0 rounded-sm transition-colors flex items-center gap-3"
           >
             <PiCursorText />
-            <div className="text-sm">Add Text Box</div>
+            <div className="text-sm">Thêm chữ</div>
           </button>
 
           {/* Text Presets */}
           <div className="mt-4 space-y-2">
             <div className="text-xs font-medium text-gray-600 mb-2">
-              Basic Text Styles
+              Kiểu chữ căn bản
             </div>
 
             <button
               onClick={onAddHeading || onAddText}
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm hover:bg-gray-100 transition-colors text-left"
             >
-              <div className="text-4xl font-calsans text-gray-900">Heading</div>
+              <div className="text-4xl font-calsans text-gray-900">Tiêu đề</div>
               <div className="text-xs text-gray-500">
-                Large title text (72px, bold)
+                Chữ kích cỡ lớn (72px, in đậm)
               </div>
             </button>
 
@@ -63,10 +63,10 @@ export default function SlideEditorSidebar({
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm hover:bg-gray-100 transition-colors text-left"
             >
               <div className="text-2xl font-calsans text-gray-900">
-                Subheading
+                Tiêu đề phụ
               </div>
               <div className="text-xs text-gray-500">
-                Medium subtitle text (36px, bold)
+                Chữ kích cỡ trung bình (36px, in đậm)
               </div>
             </button>
 
@@ -75,10 +75,10 @@ export default function SlideEditorSidebar({
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm hover:bg-gray-100 transition-colors text-left"
             >
               <div className="text-sm font-questrial text-gray-900">
-                Body Text
+                Chữ thường
               </div>
               <div className="text-xs text-gray-500">
-                Regular paragraph text (18px, normal)
+                Chữ kich cỡ nhỏ (18px, thường)
               </div>
             </button>
           </div>
