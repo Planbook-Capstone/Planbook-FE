@@ -569,7 +569,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
         </div>
         <div className="flex">
           <ToolExamPanel />
-          <div className="flex-1 space-y-10 p-5 col-span-4 ">
+          <div className="flex-1 space-y-10 p-5 col-span-4 border-l ">
             {/* Navigation buttons for parts */}
             <div className="flex gap-2 mb-6 border-b pb-4">
               {examResult?.data?.parts?.map((part: any, index: number) => (

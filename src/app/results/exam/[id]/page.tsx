@@ -17,7 +17,7 @@ function ExamResultPage({ params }: ExamResultPageProps) {
     isLoading,
     error,
   } = useToolResultByIdService(id);
-  console.log(examResultResponse?.data,"ngoc");
+
   return (
     <div>
       <ExamResultEditorTemplate examResult={examResultResponse?.data} />

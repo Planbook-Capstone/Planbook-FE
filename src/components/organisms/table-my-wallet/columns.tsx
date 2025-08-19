@@ -40,8 +40,10 @@ export const walletColumns: ColumnDef<WalletTransaction>[] = [
     cell: ({ row }) => {
       const description = row.getValue("description") as string;
       return (
-        <div className="max-w-[300px] truncate text-sm" title={description}>
-          {description}
+        <div className="max-w-[250px]" title={description}>
+          <span className="block font-medium whitespace-normal break-words line-clamp-2">
+            {description}
+          </span>
         </div>
       );
     },
@@ -68,16 +70,22 @@ export const walletColumns: ColumnDef<WalletTransaction>[] = [
 
       // For tool usage, always show negative and red
       // For recharge, show positive and green
-      const displayValue = isToolUsage ? -Math.abs(tokenChange) : Math.abs(tokenChange);
+      const displayValue = isToolUsage
+        ? -Math.abs(tokenChange)
+        : Math.abs(tokenChange);
       const isPositive = !isToolUsage && tokenChange > 0;
 
       return (
         <div
           className={`text-right font-mono text-sm font-semibold ${
-            isToolUsage ? "text-red-600" : (isPositive ? "text-green-600" : "text-red-600")
+            isToolUsage
+              ? "text-red-600"
+              : isPositive
+              ? "text-green-600"
+              : "text-red-600"
           }`}
         >
-          {isToolUsage ? "-" : (isPositive ? "+" : "")}
+          {isToolUsage ? "-" : isPositive ? "+" : ""}
           {Math.abs(displayValue).toLocaleString()}
         </div>
       );
