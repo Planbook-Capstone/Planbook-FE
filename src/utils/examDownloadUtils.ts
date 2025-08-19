@@ -709,22 +709,7 @@ export const downloadAnswerKeyAsDocx = async (answerData: any) => {
                             ],
                           }),
                         ],
-                        width: { size: 25, type: WidthType.PERCENTAGE },
-                      }),
-                      new TableCell({
-                        children: [
-                          new Paragraph({
-                            alignment: AlignmentType.CENTER,
-                            children: [
-                              new TextRun({
-                                text: "Giải thích",
-                                size: 20,
-                                bold: true,
-                              }),
-                            ],
-                          }),
-                        ],
-                        width: { size: 60, type: WidthType.PERCENTAGE },
+                        width: { size: 85, type: WidthType.PERCENTAGE },
                       }),
                     ],
                   }),
@@ -741,7 +726,7 @@ export const downloadAnswerKeyAsDocx = async (answerData: any) => {
                                   new TextRun({
                                     text:
                                       question.questionNumber?.toString() || "",
-                                    size: 18,
+                                    size: 20,
                                   }),
                                 ],
                               }),
@@ -757,20 +742,10 @@ export const downloadAnswerKeyAsDocx = async (answerData: any) => {
                                       question,
                                       partIndex
                                     ),
-                                    size: 18,
+                                    size: 20,
                                     bold: true,
                                   }),
                                 ],
-                              }),
-                            ],
-                          }),
-                          new TableCell({
-                            children: [
-                              new Paragraph({
-                                children: parseHtmlText(
-                                  question.explanation || "Không có giải thích",
-                                  18
-                                ),
                               }),
                             ],
                           }),
@@ -986,7 +961,7 @@ export const downloadAllAnswerKeysAsTableDocx = async (examResults: any[]) => {
                                 children: [
                                   new TextRun({
                                     text: examCode,
-                                    size: 18,
+                                    size: 20,
                                     bold: true,
                                   }),
                                 ],
@@ -1008,7 +983,7 @@ export const downloadAllAnswerKeysAsTableDocx = async (examResults: any[]) => {
                                 children: [
                                   new TextRun({
                                     text: questionNumber.toString(),
-                                    size: 18,
+                                    size: 20,
                                     bold: true,
                                   }),
                                 ],
@@ -1023,7 +998,7 @@ export const downloadAllAnswerKeysAsTableDocx = async (examResults: any[]) => {
                                   children: [
                                     new TextRun({
                                       text: answers[examCode] || "",
-                                      size: 16,
+                                      size: 20,
                                     }),
                                   ],
                                 }),

@@ -9,12 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 
 interface Question {
   questionNumber: number;
   answer?: string;
-  explanation?: string;
   statements?: Record<string, boolean>;
   id?: string;
   difficultyLevel?: string;
@@ -70,66 +69,74 @@ const AnswerKeyTable: React.FC<AnswerKeyTableProps> = ({ answerData }) => {
     }
   };
 
-  const formatExplanation = (explanation?: string): string => {
-    if (!explanation) return "Không có giải thích";
 
-    // Remove HTML tags for display but keep basic formatting
-    return explanation
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<[^>]*>/g, "")
-      .replace(/&nbsp;/g, " ")
-      .trim();
-  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">{answerData.school || "TRƯỜNG THPT"}</h1>
-        <h2 className="text-xl font-semibold">
-          ĐÁP ÁN {answerData.subject?.toUpperCase() || "MÔN HỌC"} - LỚP {answerData.grade || ""}
-        </h2>
-        <h3 className="text-lg font-medium">{answerData.examTitle || "KIỂM TRA"}</h3>
-        <p className="text-base font-medium">Mã đề: {answerData.examCode || ""}</p>
+      {/* Exam Header */}
+      <div className="mb-8">
+        {/* Top row with ministry and exam info */}
+        <div className="flex justify-between items-start mb-4">
+          <div className="text-center" style={{ width: "30%" }}>
+            <p className="font-bold text-sm">
+              SỞ GIÁO DỤC VÀ ĐÀO TẠO
+            </p>
+            <p className="font-bold text-sm text-center mt-1">
+              ĐÁP ÁN CHÍNH THỨC
+            </p>
+          </div>
+          <div className="text-center flex-1">
+            <p className="font-bold text-lg">
+              {answerData?.examTitle?.toUpperCase() || "ĐỀ KIỂM TRA ......"}
+            </p>
+            <p className="font-bold text-base mt-1">
+              Môn: {answerData?.subject || "......"}. - Lớp{" "}
+              {answerData?.grade || "....."}
+            </p>
+            <p className="text-sm mt-1">
+              Thời gian làm bài:{answerData?.duration || "..."} phút, không
+              kể thời gian phát đề
+            </p>
+          </div>
+        </div>
+
+        {/* Exam code section */}
+        <div className="flex justify-end mt-8">
+          <div className="border-2 border-black px-6 py-2 flex items-center justify-center">
+            <p className="text-sm text-center">
+              Mã đề: {answerData?.examCode || "001"}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Answer tables for each part */}
       {answerData.parts?.map((part, partIndex) => (
-        <Card key={partIndex} className="w-full">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">
-              {part.part || `PHẦN ${partIndex + 1}`}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16 text-center font-semibold">Câu</TableHead>
-                  <TableHead className="w-32 text-center font-semibold">Đáp án</TableHead>
-                  <TableHead className="text-center font-semibold">Giải thích</TableHead>
+        <div key={partIndex} className="w-full space-y-4">
+          <h3 className="text-lg font-semibold">
+            {part.part || `PHẦN ${partIndex + 1}`}
+          </h3>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16 text-center font-semibold">Câu</TableHead>
+                <TableHead className="w-32 text-center font-semibold">Đáp án</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {part.questions?.map((question, questionIndex) => (
+                <TableRow key={questionIndex} className="hover:bg-gray-50">
+                  <TableCell className="text-center font-medium">
+                    {question.questionNumber || questionIndex + 1}
+                  </TableCell>
+                  <TableCell className="text-center font-semibold text-blue-600">
+                    {formatAnswer(question, partIndex)}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {part.questions?.map((question, questionIndex) => (
-                  <TableRow key={questionIndex} className="hover:bg-gray-50">
-                    <TableCell className="text-center font-medium">
-                      {question.questionNumber || questionIndex + 1}
-                    </TableCell>
-                    <TableCell className="text-center font-semibold text-blue-600">
-                      {formatAnswer(question, partIndex)}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <div className="max-w-prose whitespace-pre-line">
-                        {formatExplanation(question.explanation)}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       ))}
     </div>
   );
