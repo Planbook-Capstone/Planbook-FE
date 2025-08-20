@@ -117,7 +117,7 @@ export default function QuestionItem({
               content={question?.question || ""}
               onChange={handleQuestionChange}
               placeholder="Nhập câu hỏi..."
-              className="w-full border-none font-calsans text-base bg-transparent p-2 rounded-md min-h-[40px]"
+              className="w-full border-b border-dashed font-calsans text-base bg-transparent p-2  "
             />
           </div>
         </div>

@@ -60,7 +60,7 @@ export default function ShortQuestionItem({
             Câu {index + 1}:
           </div>
           {/* Question Text */}
-          <div className="w-full">
+          <div className="w-full pb-3">
             <AdvancedTextEditor
               content={getQuestionText()}
               onChange={(content) => {
@@ -72,7 +72,7 @@ export default function ShortQuestionItem({
                 }
               }}
               placeholder="Nhập câu hỏi tự luận..."
-              className="w-full font-calsans text-base bg-transparent p-2 rounded-md min-h-[40px]"
+              className="w-full border-b  font-calsans text-base bg-transparent p-2  "
             />
           </div>
         </div>

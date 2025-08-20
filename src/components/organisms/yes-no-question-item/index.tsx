@@ -180,7 +180,7 @@ export default function YesNoQuestionItem({
                 }
               }}
               placeholder="Nhập câu hỏi đúng/sai..."
-              className="w-full font-calsans text-base bg-transparent p-2 rounded-md min-h-[40px]"
+              className="w-full font-calsans text-base bg-transparent p-2 border-b"
             />
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function YesNoQuestionItem({
                   placeholder={`Phát biểu ${String.fromCharCode(
                     97 + optionIndex
                   )}`}
-                  className="flex-1 text-sm text-black bg-transparent py-2 min-h-[32px]"
+                  className="flex-1 border-b border-dashed text-sm text-black bg-transparent py-2 "
                 />
                 {displayOptions.length > 1 && !question.statements && (
                   <Button
@@ -251,15 +251,7 @@ export default function YesNoQuestionItem({
           ))}
 
           {/* Add new sub-question button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-6 text-gray-500 hover:text-gray-700 border-dashed border"
-            onClick={addNewOption}
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Thêm phát biểu
-          </Button>
+    
         </div>
 
         {/* Illustration Image Section */}
