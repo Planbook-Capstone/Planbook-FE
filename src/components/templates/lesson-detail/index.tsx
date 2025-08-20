@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/modal";
 import { Upload, FileText, X, Eye } from "lucide-react";
 import { UploadIcon } from "@/constants/icon";
-import { useTextbookByLessonIdService, useQuickTextBookAnalysisService } from "@/services/textbookServices";
+import {
+  useTextbookByLessonIdService,
+  useQuickTextBookAnalysisService,
+} from "@/services/textbookServices";
+import TaskProgressWrapper from "@/components/molecules/task-progress-wrapper";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface LessonDetailProps {
   lesson: any;
@@ -38,13 +44,21 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
   // State for import modal
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   // State for view modal
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
+  // State for task progress tracking
+  const [activeTaskIds, setActiveTaskIds] = useState<string[]>([]);
+
+  // Function to remove completed tasks
+  const removeCompletedTask = (taskId: string) => {
+    setActiveTaskIds((prev) => prev.filter((id) => id !== taskId));
+  };
+
   // Quick textbook analysis mutation
-  const { mutateAsync: quickAnalysisMutateAsync } = useQuickTextBookAnalysisService();
+  const { mutateAsync: quickAnalysisMutateAsync, isPending } =
+    useQuickTextBookAnalysisService();
   const queryClient = useQueryClient();
 
   // Handle file selection
@@ -74,7 +88,6 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
       return;
     }
 
-    setIsUploading(true);
     try {
       // Create FormData for quick analysis
       const formData = new FormData();
@@ -83,17 +96,27 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
       formData.append("book_id", selectedBook.id);
       formData.append("create_embeddings", "true");
 
-      console.log("🚀 Starting Quick TextBook Analysis:", {
-        lessonId: lesson.id,
-        bookId: selectedBook.id,
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
+      // Call the quick textbook analysis service
+      const response = await quickAnalysisMutateAsync(formData, {
+        onSuccess: (response) => {
+          setIsImportModalOpen(false);
+          setSelectedFile(null);
+        },
+        onError: (error) => {
+          console.error("❌ Quick Analysis Error:", error);
+        },
       });
 
-      // Call the quick textbook analysis service
-      const response = await quickAnalysisMutateAsync(formData);
+      // Get taskId from response and add to activeTaskIds
+      const taskId = response?.data?.task_id;
 
-      console.log("✅ Quick Analysis Response:", response);
+      // Add task_id to activeTaskIds array
+      if (taskId) {
+        setActiveTaskIds((prev) => [...prev, taskId]);
+        toast.success(
+          `Đang tiến hành phân tích PDF cho bài "${lesson.name}"...`
+        );
+      }
 
       // Invalidate and refetch textbook data
       await queryClient.invalidateQueries({
@@ -101,14 +124,9 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
       });
 
       // Close modal and reset state
-      setIsImportModalOpen(false);
-      setSelectedFile(null);
-      alert("Upload và phân tích thành công!");
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Upload thất bại. Vui lòng thử lại.");
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -157,7 +175,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
     return breadcrumbs;
   };
 
-  const { data: textbook } = useTextbookByLessonIdService(
+  const { data: textbook, isLoading } = useTextbookByLessonIdService(
     [lesson?.id], // dependencies array
     {
       enabled: !!lesson?.id,
@@ -167,7 +185,24 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
     }
   );
 
-  console.log(textbook?.data?.lessons[0], "textbook");
+  if (activeTaskIds.length) {
+    return (
+      <div className="mt-8 space-y-4">
+        <h3 className="text-lg font-semibold text-gray-800">
+          Tiến trình phân tích PDF
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {activeTaskIds.map((taskId) => (
+            <TaskProgressWrapper
+              key={taskId}
+              taskId={taskId}
+              onTaskCompleted={removeCompletedTask}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -186,45 +221,71 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
             <p>{lesson.createdAt}</p>
           </div>
         </div>
-        <div>
-          <Button variant={"custom"} onClick={() => setIsImportModalOpen(true)}>
-            {textbook?.data?.lessons[0]?.file_url ? "Sửa nội dung sách" : "Import nội dung sách"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Lesson Content */}
-      <div className="">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Nội dung bài
-        </h2>
-        {textbook?.data?.lessons[0]?.file_url ? (
-          <div className="flex justify-between items-center w-1/4 border border-dashed rounded-md p-3">
-            <div className="flex items-center gap-2">
-              <div>
-                <img src={"/images/files/PDF.svg"} alt="Document icon" />
-              </div>
-              <p className="text-blue-500">Sách giáo khoa</p>
+        {isLoading ? (
+          <>
+            <div className="w-1/5">
+              <Skeleton className="h-[40px] w-full rounded-md bg-neutral-300" />
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsViewModalOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              Xem
-            </Button>
-          </div>
+          </>
         ) : (
-          <div className="flex justify-start items-end gap-2 w-1/4 border border-dashed rounded-md p-3">
-            <div>
-              <img src={"/images/files/PDF.svg"} alt="Document icon" />
-            </div>
-            <p className="text-gray-400">Chưa có sách giáo khoa</p>
+          <div>
+            <Button
+              variant={"custom"}
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              {textbook?.data?.lessons[0]?.file_url
+                ? "Sửa nội dung sách"
+                : "Import nội dung sách"}
+            </Button>
           </div>
         )}
       </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+          {[...Array(1)].map((_, index) => (
+            <Skeleton
+              key={index}
+              className="h-[150px] w-full rounded-md bg-neutral-300"
+            />
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* Lesson Content */}
+          <div className="">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Nội dung bài
+            </h2>
+            {textbook?.data?.lessons[0]?.file_url ? (
+              <div className="flex justify-between items-center w-1/4 border border-dashed rounded-md p-3">
+                <div className="flex items-center gap-2">
+                  <div>
+                    <img src={"/images/files/PDF.svg"} alt="Document icon" />
+                  </div>
+                  <p className="text-blue-500">Sách giáo khoa</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsViewModalOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  Xem
+                </Button>
+              </div>
+            ) : (
+              <div className="flex justify-start items-end gap-2 w-1/4 border border-dashed rounded-md p-3">
+                <div>
+                  <img src={"/images/files/PDF.svg"} alt="Document icon" />
+                </div>
+                <p className="text-gray-400">Chưa có sách giáo khoa</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Import File Modal */}
       <Modal
@@ -295,16 +356,16 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
                 setIsImportModalOpen(false);
                 setSelectedFile(null);
               }}
-              disabled={isUploading}
+              disabled={isPending}
             >
               Hủy
             </Button>
             <Button
               variant="custom"
               onClick={handleUpload}
-              disabled={!selectedFile || isUploading}
+              disabled={!selectedFile || isPending}
             >
-              {isUploading ? (
+              {isPending ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Đang upload...</span>
