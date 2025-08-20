@@ -8,7 +8,7 @@ import {
   updateMutationHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/config/axios";
 
 export const useUserServices = createMutationHook(
@@ -41,6 +41,22 @@ export const useForgotPasswordService = createMutationHook(
   "forgot-password",
   API_ENDPOINTS.AUTH.FORGOT_PASSWORD
 );
+
+export const useResetPasswordService = (token?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { password: string }) => {
+      const response = await api.patch(API_ENDPOINTS.AUTH.RESET_PASSWORD, data, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reset-password"] });
+    },
+  });
+};
 
 //API FOR USER MANAGEMENT
 export const useAllUsersService = createDynamicQueryHook(
