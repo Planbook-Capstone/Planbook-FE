@@ -229,7 +229,7 @@ function TextbookManagementPage() {
               className="flex flex-col items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <img src={"/images/files/DOC.svg"} alt="Document icon" />
-              <span className="truncate w-full text-center text-sm">
+              <span className="line-clamp-2 w-full text-center text-sm">
                 {lesson.name}
               </span>
             </div>

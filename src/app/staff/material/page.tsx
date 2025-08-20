@@ -68,7 +68,7 @@ export default function MaterialPage() {
               className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Tạo Material
+              Tạo học liệu
             </Button>
           </div>
 
@@ -85,14 +85,14 @@ export default function MaterialPage() {
       <div className="space-y-5 w-full">
         <Tabs defaultValue="grade" className="w-full">
           <TabsList>
-            {tabs.map((tab) => (
+            {tabs?.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
                 {tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {tabs.map((tab) => (
+          {tabs?.map((tab) => (
             <TabsContent key={tab.value} value={tab.value}>
               {tab.content}
             </TabsContent>

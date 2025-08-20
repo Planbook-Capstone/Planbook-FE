@@ -5,23 +5,29 @@ import {
   useMaterialSearchService,
   useUpdateMaterialService,
   useMaterialByIdService,
+  useDeleteMaterialService,
 } from "@/services/materialServices";
 import { useTagService } from "@/services/tagServices";
 import { TagResponse } from "@/types";
 import { Tabs } from "antd";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Eye } from "lucide-react";
+import { Eye, X } from "lucide-react";
 import EditMaterialModal from "@/components/organisms/edit-material-modal";
 import { EditMaterialFormData } from "@/schemas/material.schema";
 import { toast } from "sonner";
+import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 
 function MaterialContent() {
   const { data: tag } = useTagService();
   const [activeTabId, setActiveTabId] = useState<string>("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedMaterialId, setSelectedMaterialId] = useState<string>("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState<any>(null);
+
   const { mutate, isPending } = useUpdateMaterialService();
+  const { mutate: deleteMaterial, isPending: isDeleting } = useDeleteMaterialService();
 
   // Get current material data to preserve existing values
   const { data: currentMaterialData } = useMaterialByIdService(selectedMaterialId);
@@ -100,6 +106,36 @@ function MaterialContent() {
     }
   };
 
+  const handleDeleteClick = (material: any) => {
+    setMaterialToDelete(material);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (materialToDelete?.id) {
+      deleteMaterial(materialToDelete.id, {
+        onSuccess: () => {
+          toast.success("Xóa học liệu thành công!");
+          setIsDeleteModalOpen(false);
+          setMaterialToDelete(null);
+          // Refetch materials to update the list
+          refetchMaterials();
+        },
+        onError: (error: any) => {
+          console.error("Error deleting material:", error);
+          toast.error(
+            error?.response?.data?.message || "Có lỗi xảy ra khi xóa học liệu!"
+          );
+        },
+      });
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setMaterialToDelete(null);
+  };
+
   return (
     <div>
       <Tabs
@@ -122,7 +158,7 @@ function MaterialContent() {
           const renderMaterialWithButton = (content: React.ReactNode) => (
             <div key={idx} className="relative group">
               {content}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                 <Button
                   size="sm"
                   variant="secondary"
@@ -131,6 +167,14 @@ function MaterialContent() {
                 >
                   <Eye className="w-3 h-3" />
                   Chi tiết
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDeleteClick(item)}
+                  className="flex items-center justify-center w-8 h-8 p-0 bg-red-500 hover:bg-red-600 text-white"
+                >
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -164,6 +208,16 @@ function MaterialContent() {
           onSubmit={handleUpdateMaterial}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={isDeleteModalOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Xác nhận xóa học liệu"
+        itemName={materialToDelete?.name}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
