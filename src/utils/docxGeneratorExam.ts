@@ -684,47 +684,26 @@ const createYesNoSection = async (
       }
 
       // Add statements with proper indentation and HTML parsing
+      // Ensure statements exist and have the required format
+      const statements = question.statements || {};
+      const statementKeys = ['a', 'b', 'c', 'd'];
+
+      const statementParagraphs = statementKeys.map(key => {
+        const statementText = statements[key]?.text || "";
+        return new Paragraph({
+          children: [
+            new TextRun({
+              text: `${key}) `,
+              size: 24,
+            }),
+            ...parseHtmlText(statementText, 24)
+          ],
+          indent: { left: 720 },
+        });
+      });
+
       questionParagraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "a) ",
-              size: 24,
-            }),
-            ...parseHtmlText(question.statements.a.text, 24)
-          ],
-          indent: { left: 720 },
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "b) ",
-              size: 24,
-            }),
-            ...parseHtmlText(question.statements.b.text, 24)
-          ],
-          indent: { left: 720 },
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "c) ",
-              size: 24,
-            }),
-            ...parseHtmlText(question.statements.c.text, 24)
-          ],
-          indent: { left: 720 },
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "d) ",
-              size: 24,
-            }),
-            ...parseHtmlText(question.statements.d.text, 24)
-          ],
-          indent: { left: 720 },
-        }),
+        ...statementParagraphs,
         new Paragraph({
           text: "",
           spacing: { after: 240 },

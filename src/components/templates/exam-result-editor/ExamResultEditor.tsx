@@ -459,15 +459,32 @@ function ExamResultEditorTemplate({ examResult }: Props) {
               const finalStatements: any = {};
 
               if (q.statements) {
-                // Preserve original keys and get updated content
-                Object.keys(q.statements).forEach((statementKey) => {
-                  const statementContentKey = `${questionKey}-statement-${statementKey}`;
-                  finalStatements[statementKey] = {
-                    text:
-                      answerContents[statementContentKey] ||
-                      q.statements[statementKey]?.text ||
-                      "",
-                  };
+                // Get all statement keys and normalize them to a, b, c, d format
+                const statementKeys = Object.keys(q.statements);
+                const targetKeys = ['a', 'b', 'c', 'd'];
+
+                // Map original keys to target keys (a, b, c, d)
+                targetKeys.forEach((targetKey, index) => {
+                  if (index < statementKeys.length) {
+                    const originalKey = statementKeys[index];
+                    const statementContentKey = `${questionKey}-statement-${originalKey}`;
+                    finalStatements[targetKey] = {
+                      text:
+                        answerContents[statementContentKey] ||
+                        q.statements[originalKey]?.text ||
+                        "",
+                    };
+                  } else {
+                    // Fill empty statements if not enough data
+                    finalStatements[targetKey] = {
+                      text: "",
+                    };
+                  }
+                });
+              } else {
+                // Fallback: create empty statements
+                ['a', 'b', 'c', 'd'].forEach(key => {
+                  finalStatements[key] = { text: "" };
                 });
               }
 
@@ -507,6 +524,13 @@ function ExamResultEditorTemplate({ examResult }: Props) {
       if (localExamResult?.data) {
         // Chuyển đổi dữ liệu từ format localExamResult.data sang format ExamData
         const convertedData = convertToExamData(localExamResult.data);
+
+        // Debug: Log converted data to check format
+        console.log("🔍 Converted data for DOCX:", {
+          yesNoQuestions: convertedData.yesNoQuestions,
+          totalYesNoQuestions: convertedData.yesNoQuestions.length
+        });
+
         // Gọi hàm generator docx để tạo và download file
         await generateExamDocx(convertedData);
         toast.success("Tải xuống file DOCX thành công!");
