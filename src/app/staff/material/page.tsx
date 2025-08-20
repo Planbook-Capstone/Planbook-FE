@@ -34,7 +34,7 @@ export default function MaterialPage() {
 
       await createMaterialMutation.mutateAsync(formData);
 
-      toast.success("Material đã được tạo thành công!");
+      toast.success("Học liệu đã được tạo thành công!");
       setIsCreateModalOpen(false);
     } catch (error) {
       console.error("Error creating material:", error);

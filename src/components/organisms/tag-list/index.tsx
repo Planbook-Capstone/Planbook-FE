@@ -42,7 +42,7 @@ export default function TagTable({ onSelectionChange }: TagTableProps) {
 
     try {
       await deleteTagMutation.mutateAsync(String(tagToDelete.id));
-      toast.success("Xóa loại tài liệu thành công!");
+      toast.success("Xóa loại loại học liệu thành công!");
       refetch();
       setIsDeleteModalOpen(false);
       setTagToDelete(null);

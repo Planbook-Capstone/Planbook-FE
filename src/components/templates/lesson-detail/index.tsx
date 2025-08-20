@@ -128,7 +128,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
       enabled: !!lesson?.id,
     },
     {
-      // lesson_id: lesson?.id.toString(), // query parameters
+      lesson_id: lesson?.id, // query parameters
     }
   );
 
