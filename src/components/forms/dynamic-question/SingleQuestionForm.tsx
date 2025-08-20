@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Control, FieldErrors, useWatch, useFormContext } from "react-hook-form";
+import {
+  Control,
+  FieldErrors,
+  useWatch,
+  useFormContext,
+} from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,14 +67,12 @@ export function SingleQuestionForm({
     name: `questions.${index}.lessonIds`,
   });
 
-
-
   // Get lesson names for display
   const lessonQueries = useLessonsByIdsService(watchedLessonIds || []);
   const selectedLessons = lessonQueries
-    .filter(query => query.data?.data)
-    .map(query => query.data.data)
-    .filter(lesson => lesson && lesson.name);
+    .filter((query) => query.data?.data)
+    .map((query) => query.data.data)
+    .filter((lesson) => lesson && lesson.name);
 
   // Handle image preview
   useEffect(() => {
@@ -117,7 +120,9 @@ export function SingleQuestionForm({
               <div key={optionIndex} className="flex items-center gap-2">
                 <FormField
                   control={control}
-                  name={`questions.${index}.correctAnswers.${optionIndex}` as any}
+                  name={
+                    `questions.${index}.correctAnswers.${optionIndex}` as any
+                  }
                   render={({ field }) => (
                     <FormItem className="flex items-center space-x-2">
                       <FormControl>
@@ -140,7 +145,7 @@ export function SingleQuestionForm({
                           content={field.value || ""}
                           onChange={field.onChange}
                           placeholder={`Đáp án ${letter}`}
-                          className="border-none shadow-none"
+                          className="border-b shadow-none"
                         />
                       </FormControl>
                       <FormMessage />
@@ -171,7 +176,7 @@ export function SingleQuestionForm({
                             content={field.value || ""}
                             onChange={field.onChange}
                             placeholder={`Nhập câu ${letter.toLowerCase()}...`}
-                            className="border-none shadow-none"
+                            className="border-b shadow-none"
                           />
                         </FormControl>
                         <FormMessage />
@@ -230,7 +235,7 @@ export function SingleQuestionForm({
                       content={field.value || ""}
                       onChange={field.onChange}
                       placeholder="Nhập đáp án cho câu hỏi tự luận..."
-                      className="text-base leading-relaxed"
+                      className="border-b text-base leading-relaxed"
                     />
                   </FormControl>
                   <FormMessage />
@@ -309,8 +314,7 @@ export function SingleQuestionForm({
                       <BookOpen className="w-4 h-4 mr-1" />
                       {selectedLessons.length > 0
                         ? `${selectedLessons.length} bài học`
-                        : "Chọn bài học"
-                      }
+                        : "Chọn bài học"}
                     </Button>
                   </FormControl>
                 </FormItem>
@@ -330,7 +334,7 @@ export function SingleQuestionForm({
                       type="button"
                       onClick={() => {
                         const newLessonIds = (watchedLessonIds || []).filter(
-                          id => id !== Number(lesson.id)
+                          (id) => id !== Number(lesson.id)
                         );
                         setValue(`questions.${index}.lessonIds`, newLessonIds);
                       }}
@@ -409,8 +413,6 @@ export function SingleQuestionForm({
               </FormItem>
             )}
           />
-
-
         </div>
 
         {/* Question content */}
@@ -424,7 +426,7 @@ export function SingleQuestionForm({
                   content={field.value}
                   onChange={field.onChange}
                   placeholder="Nhập nội dung câu hỏi..."
-                  className="text-base leading-relaxed"
+                  className="border-b text-base leading-relaxed"
                 />
               </FormControl>
               <FormMessage />
@@ -508,7 +510,7 @@ export function SingleQuestionForm({
                   content={field.value || ""}
                   onChange={field.onChange}
                   placeholder="Nhập giải thích cho đáp án..."
-                  className="text-base leading-relaxed text-neutral-700"
+                  className="border-b border-dashed text-base leading-relaxed text-neutral-700"
                 />
               </FormControl>
             </FormItem>

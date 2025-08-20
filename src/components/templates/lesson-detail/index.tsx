@@ -51,9 +51,14 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
   // State for task progress tracking
   const [activeTaskIds, setActiveTaskIds] = useState<string[]>([]);
 
-  // Function to remove completed tasks
+  // Function to remove completed tasks and refetch textbook data
   const removeCompletedTask = (taskId: string) => {
     setActiveTaskIds((prev) => prev.filter((id) => id !== taskId));
+
+    // Refetch textbook data when task completed
+    queryClient.invalidateQueries({
+      queryKey: ["secondary-textbook", lesson?.id],
+    });
   };
 
   // Quick textbook analysis mutation
@@ -175,10 +180,18 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
     return breadcrumbs;
   };
 
-  const { data: textbook, isLoading } = useTextbookByLessonIdService(
+  const {
+    data: textbook,
+    isLoading,
+  } = useTextbookByLessonIdService(
     [lesson?.id], // dependencies array
     {
       enabled: !!lesson?.id,
+      retry: false, // Không retry khi gặp lỗi
+      refetchOnWindowFocus: false, // Không refetch khi focus window
+      refetchOnMount: false, // Không refetch khi component mount lại
+      refetchOnReconnect: false, // Không refetch khi reconnect
+      staleTime: 5 * 60 * 1000, // 5 phút - cho phép refetch khi invalidate
     },
     {
       lesson_id: lesson?.id, // query parameters
