@@ -797,7 +797,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                               }))
                             }
                             placeholder="Nhập nội dung câu hỏi..."
-                            className="mb-4"
+                            className="mb-4 border-b"
                           />
                           {question.image && (
                             <div className="mb-3 flex justify-center">
@@ -886,7 +886,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                                           }))
                                         }
                                         placeholder={`Nhập nội dung đáp án ${key}...`}
-                                        className="w-full"
+                                        className="w-full border-b"
                                       />
                                     </div>
                                   </div>
@@ -984,7 +984,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                               }))
                             }
                             placeholder="Nhập nội dung câu hỏi..."
-                            className="mb-4"
+                            className="mb-4 border-b"
                           />
                           {question.image && (
                             <div className="mb-3 flex justify-center">
@@ -1027,7 +1027,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                                         }))
                                       }
                                       placeholder={`Nhập nội dung câu ${key}...`}
-                                      className="flex-1"
+                                      className="flex-1 border-b"
                                     />
                                   </div>
 
@@ -1219,7 +1219,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                               }))
                             }
                             placeholder="Nhập nội dung câu hỏi..."
-                            className="mb-4"
+                            className="mb-4 border-b"
                           />
                           {question.image && (
                             <div className="mb-3 flex justify-center">
@@ -1255,7 +1255,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                                 }))
                               }
                               placeholder="Nhập đáp án..."
-                              className="inline-block w-full"
+                              className="inline-block w-full border-b"
                             />
                           </div>
                         </div>

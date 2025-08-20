@@ -29,6 +29,23 @@ export const useQuickTextBookAnalysisService = createSecondaryMutationHook(
   PDF_API_ENDPOINTS.QUICK_TEXTBOOK_ANALYSIS
 );
 
+// Update textbook - Custom hook for PUT without ID in path
+export const useUpdateTextBookService = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (formData: FormData) =>
+      apiSecondary.put(PDF_API_ENDPOINTS.BASE, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["secondary-textbooks"],
+      });
+    },
+  });
+};
+
 // Get task result by ID with step context
 export const useTaskResultService = (taskId: string, currentStep?: number) => {
   return useQuery({
