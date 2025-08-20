@@ -15,7 +15,20 @@ interface UserDetailModalProps {
 }
 
 function UserDetailModal({ user, open, onClose }: UserDetailModalProps) {
-  const status = user.status === "ACTIVE" ? true : false;
+  const getStatusDisplay = (status: string | null) => {
+    switch (status) {
+      case "ACTIVE":
+        return { text: "Hoạt động", color: "text-green-600" };
+      case "INACTIVE":
+        return { text: "Chưa xác thực tài khoản", color: "text-gray-600" };
+      case "DELETED":
+        return { text: "Đã bị vô hiệu hóa", color: "text-red-600" };
+      default:
+        return { text: "Không xác định", color: "text-gray-600" };
+    }
+  };
+
+  const statusDisplay = getStatusDisplay(user.status);
 
   return (
     <div>
@@ -59,12 +72,8 @@ function UserDetailModal({ user, open, onClose }: UserDetailModalProps) {
                 <label className="text-sm font-medium text-gray-600">
                   Trạng thái
                 </label>
-                <p
-                  className={`font-questrial ${
-                    !status ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  {!status ? "Đã vô hiệu hóa" : "Hoạt động"}
+                <p className={`font-questrial ${statusDisplay.color}`}>
+                  {statusDisplay.text}
                 </p>
               </div>
             </div>

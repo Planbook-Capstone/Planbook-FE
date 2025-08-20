@@ -74,12 +74,18 @@ export const createUserColumns = (
       return (
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            isDisabled
+            row.original.status === "DELETED"
+              ? "bg-red-100 text-red-800"
+              : isDisabled
               ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+              : "bg-gray-100 text-gray-800"
           }`}
         >
-          {isDisabled ? "Hoạt động" : "Đã vô hiệu hóa"}
+          {row.original.status === "DELETED"
+            ? "Đã bị vô hiệu hóa"
+            : isDisabled
+            ? "Hoạt động"
+            : "Chưa xác thực tài khoản"}
         </span>
       );
     },
@@ -101,23 +107,25 @@ export const createUserColumns = (
           >
             <Eye size={16} />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handlers.onToggleUserStatus(user)}
-            className={`p-2 ${
-              user.status === "ACTIVE"
-                ? "hover:bg-red-50 hover:text-red-600"
-                : "hover:bg-green-50 hover:text-green-600"
-            }`}
-            title={user.status === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"}
-          >
-            {user.status === "ACTIVE" ? (
-              <UserX size={16} />
-            ) : (
-              <UserCheck size={16} />
-            )}
-          </Button>
+          {user.status !== "INACTIVE" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handlers.onToggleUserStatus(user)}
+              className={`p-2 ${
+                user.status === "ACTIVE"
+                  ? "hover:bg-red-50 hover:text-red-600"
+                  : "hover:bg-green-50 hover:text-green-600"
+              }`}
+              title={user.status === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"}
+            >
+              {user.status === "ACTIVE" ? (
+                <UserX size={16} />
+              ) : (
+                <UserCheck size={16} />
+              )}
+            </Button>
+          )}
         </div>
       );
     },

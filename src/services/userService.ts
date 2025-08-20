@@ -8,6 +8,8 @@ import {
   updateMutationHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/config/axios";
 
 export const useUserServices = createMutationHook(
   "user",
@@ -21,6 +23,19 @@ export const useLoginGoogleService = createMutationHook(
   "user",
   API_ENDPOINTS.AUTH.LOGIN_GOOGLE
 );
+export const useVerifyUserService = (token?: string) => {
+  return useQuery({
+    queryKey: ["verify-user", token],
+    queryFn: async () => {
+      const response = await api.get(API_ENDPOINTS.AUTH.VERIFY, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+      });
+      return response.data;
+    },
+    enabled: !!token,
+    retry: false,
+  });
+};
 
 export const useForgotPasswordService = createMutationHook(
   "forgot-password",
