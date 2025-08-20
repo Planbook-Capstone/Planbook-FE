@@ -7,9 +7,10 @@ import {
   useForgotPasswordService,
   useRegisterService,
   useUserServices,
+  useVerifyUserService,
 } from "@/services/userService";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/store";
@@ -26,9 +27,45 @@ const LoginPage = () => {
   const [isRegister, setIsRegister] = React.useState(false);
   const [showRegisterOptions, setShowRegisterOptions] = React.useState(false);
   const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+  const [isVerifying, setIsVerifying] = React.useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { setUser } = useAppStore();
+
+  // Get token from URL params
+  const token = searchParams.get('token');
+
+  // Use verify service with token
+  const { data: verifyData, isLoading: isVerifyLoading, error: verifyError } = useVerifyUserService(token || undefined);
+
+  // Set verifying state when token exists
+  React.useEffect(() => {
+    if (token) {
+      setIsVerifying(true);
+    }
+  }, [token]);
+
+  // Handle verification result
+  React.useEffect(() => {
+    if (verifyData && token) {
+      toast.success("Xác thực tài khoản thành công! Bạn có thể đăng nhập ngay.");
+      // Remove token from URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      setIsVerifying(false);
+    }
+  }, [verifyData, token]);
+
+  React.useEffect(() => {
+    if (verifyError && token) {
+      toast.error("Xác thực tài khoản thất bại. Vui lòng thử lại hoặc liên hệ hỗ trợ.");
+      // Remove token from URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      setIsVerifying(false);
+    }
+  }, [verifyError, token]);
 
   const onFinish = (values: any) => {
     mutate(values, {
@@ -57,9 +94,12 @@ const LoginPage = () => {
           router.push("/home");
         }
       },
-      onError: () => {
+      onError: (response) => {
         toast.error(
-          "Đăng nhập thất bại.Vui lòng kiểm tra kĩ thông tin đăng nhập"
+          `${
+            response?.response?.data ||
+            "Đăng nhập thất bại.Vui lòng kiểm tra kĩ thông tin đăng nhập"
+          }`
         );
       },
     });
@@ -75,14 +115,21 @@ const LoginPage = () => {
 
     register(payload, {
       onSuccess: (data) => {
-        toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+        toast.success(
+          "Đăng ký thành công! Vui lòng vào mail xác thực tài khoản."
+        );
 
         setIsRegister(false);
         setShowRegisterOptions(false);
         registerForm.resetFields();
       },
-      onError: () => {
-        toast.error("Đăng ký thất bại.Vui lòng kiểm tra kĩ thông tin đăng ký");
+      onError: (response) => {
+        toast.error(
+          `${
+            response?.response?.data ||
+            "Đăng ký thất bại.Vui lòng kiểm tra kĩ thông tin đăng ký"
+          }`
+        );
       },
     });
   };
@@ -199,7 +246,12 @@ const LoginPage = () => {
           >
             <div>
               <h1 className="text-2xl font-questrial text-gray-900">
-                {showRegisterOptions ? (
+                {isVerifying ? (
+                  <>
+                    Đang xác thực{" "}
+                    <span className="font-calsans text-gray-900">tài khoản</span>
+                  </>
+                ) : showRegisterOptions ? (
                   <>
                     Chọn phương thức{" "}
                     <span className="font-calsans text-gray-900">đăng ký</span>
@@ -224,7 +276,9 @@ const LoginPage = () => {
                 )}
               </h1>
               <p className="mt-2 text-sm text-gray-500 font-questrial">
-                {showRegisterOptions
+                {isVerifying
+                  ? "Vui lòng chờ trong khi chúng tôi xác thực tài khoản của bạn..."
+                  : showRegisterOptions
                   ? "Chọn cách bạn muốn tạo tài khoản mới."
                   : isRegister
                   ? "Điền thông tin để tạo tài khoản mới."
@@ -234,7 +288,15 @@ const LoginPage = () => {
               </p>
             </div>
 
-            {showRegisterOptions ? (
+            {isVerifying ? (
+              // Verification Loading
+              <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+                <p className="text-sm text-gray-600 font-questrial">
+                  Đang xác thực tài khoản...
+                </p>
+              </div>
+            ) : showRegisterOptions ? (
               // Register Options
               <div className="space-y-4">
                 <Button
@@ -437,7 +499,7 @@ const LoginPage = () => {
                 </Form.Item>
               </Form>
             )}
-            {!isRegister && !showRegisterOptions && !showForgotPassword && (
+            {!isRegister && !showRegisterOptions && !showForgotPassword && !isVerifying && (
               <Button
                 onClick={loginGG}
                 block
@@ -453,7 +515,7 @@ const LoginPage = () => {
               </Button>
             )}
 
-            {!isRegister && !showRegisterOptions && !showForgotPassword && (
+            {!isRegister && !showRegisterOptions && !showForgotPassword && !isVerifying && (
               <div className="text-sm font-questrial mt-2">
                 <button
                   type="button"
@@ -465,55 +527,59 @@ const LoginPage = () => {
               </div>
             )}
 
-            <Divider />
+            {!isVerifying && (
+              <>
+                <Divider />
 
-            <p className="text-sm text-gray-600 font-questrial block">
-              {showRegisterOptions ? (
-                <>
-                  Đã có tài khoản?{" "}
-                  <button
-                    type="button"
-                    onClick={handleBackToLogin}
-                    className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
-                  >
-                    Đăng nhập ngay
-                  </button>
-                </>
-              ) : isRegister ? (
-                <>
-                  Đã có tài khoản?{" "}
-                  <button
-                    type="button"
-                    onClick={handleBackToLogin}
-                    className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
-                  >
-                    Đăng nhập ngay
-                  </button>
-                </>
-              ) : showForgotPassword ? (
-                <>
-                  Nhớ mật khẩu?{" "}
-                  <button
-                    type="button"
-                    onClick={handleBackToLogin}
-                    className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
-                  >
-                    Đăng nhập ngay
-                  </button>
-                </>
-              ) : (
-                <>
-                  Bạn chưa có tài khoản?{" "}
-                  <button
-                    type="button"
-                    onClick={handleShowRegisterOptions}
-                    className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
-                  >
-                    Đăng ký ngay
-                  </button>
-                </>
-              )}
-            </p>
+                <p className="text-sm text-gray-600 font-questrial block">
+                  {showRegisterOptions ? (
+                    <>
+                      Đã có tài khoản?{" "}
+                      <button
+                        type="button"
+                        onClick={handleBackToLogin}
+                        className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
+                      >
+                        Đăng nhập ngay
+                      </button>
+                    </>
+                  ) : isRegister ? (
+                    <>
+                      Đã có tài khoản?{" "}
+                      <button
+                        type="button"
+                        onClick={handleBackToLogin}
+                        className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
+                      >
+                        Đăng nhập ngay
+                      </button>
+                    </>
+                  ) : showForgotPassword ? (
+                    <>
+                      Nhớ mật khẩu?{" "}
+                      <button
+                        type="button"
+                        onClick={handleBackToLogin}
+                        className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
+                      >
+                        Đăng nhập ngay
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      Bạn chưa có tài khoản?{" "}
+                      <button
+                        type="button"
+                        onClick={handleShowRegisterOptions}
+                        className="text-cyan-500 font-calsans hover:underline bg-transparent border-none cursor-pointer"
+                      >
+                        Đăng ký ngay
+                      </button>
+                    </>
+                  )}
+                </p>
+              </>
+            )}
           </div>
         </div>
         <div className="hidden lg:flex text-white">
