@@ -41,13 +41,25 @@ export default function TagTable({ onSelectionChange }: TagTableProps) {
     if (!tagToDelete) return;
 
     try {
-      await deleteTagMutation.mutateAsync(String(tagToDelete.id));
-      toast.success("Xóa loại loại học liệu thành công!");
+      const response = await deleteTagMutation.mutateAsync(String(tagToDelete.id));
+      console.log(response);
+      // Hiển thị message từ API response nếu có
+      const successMessage = response?.data?.message || "Xóa loại học liệu thành công!";
+      toast.success(successMessage);
       refetch();
       setIsDeleteModalOpen(false);
       setTagToDelete(null);
-    } catch (error) {
-      toast.error("Có lỗi xảy ra khi xóa loại tài liệu!");
+    } catch (error: any) {
+      // Xử lý lỗi và hiển thị message từ API
+      let errorMessage = "Có lỗi xảy ra khi xóa loại tài liệu!";
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
       console.error("Delete tag error:", error);
     }
   };
