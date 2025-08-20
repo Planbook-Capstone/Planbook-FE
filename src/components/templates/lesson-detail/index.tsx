@@ -14,6 +14,7 @@ import {
   useTextbookByLessonIdService,
   useQuickTextBookAnalysisService,
   useDeletePdfWithQuery,
+  useUpdateTextBookService,
 } from "@/services/textbookServices";
 import TaskProgressWrapper from "@/components/molecules/task-progress-wrapper";
 import { toast } from "sonner";
@@ -68,6 +69,11 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
   // Quick textbook analysis mutation
   const { mutateAsync: quickAnalysisMutateAsync, isPending } =
     useQuickTextBookAnalysisService();
+
+  // Update textbook mutation
+  const { mutateAsync: updateTextbookMutateAsync, isPending: isUpdating } =
+    useUpdateTextBookService();
+
   const queryClient = useQueryClient();
 
   // Delete PDF mutation
@@ -136,23 +142,32 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
     }
 
     try {
-      // Create FormData for quick analysis
+      const hasExistingFile = textbook?.data?.lessons[0]?.file_url;
+
+      // Create FormData
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("lesson_id", lesson.id);
       formData.append("book_id", selectedBook.id);
       formData.append("create_embeddings", "true");
 
-      // Call the quick textbook analysis service
-      const response = await quickAnalysisMutateAsync(formData, {
-        onSuccess: (response) => {
-          setIsImportModalOpen(false);
-          setSelectedFile(null);
-        },
-        onError: (error) => {
-          console.error("❌ Quick Analysis Error:", error);
-        },
-      });
+      let response;
+
+      if (hasExistingFile) {
+        // Use update service for existing textbook
+        response = await updateTextbookMutateAsync(formData);
+      } else {
+        // Use create service for new textbook
+        response = await quickAnalysisMutateAsync(formData, {
+          onSuccess: (response) => {
+            setIsImportModalOpen(false);
+            setSelectedFile(null);
+          },
+          onError: (error) => {
+            console.error("❌ Quick Analysis Error:", error);
+          },
+        });
+      }
 
       // Get taskId from response and add to activeTaskIds
       const taskId = response?.data?.task_id;
@@ -161,7 +176,9 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
       if (taskId) {
         setActiveTaskIds((prev) => [...prev, taskId]);
         toast.success(
-          `Đang tiến hành phân tích PDF cho bài "${lesson.name}"...`
+          hasExistingFile
+            ? `Đang cập nhật nội dung sách cho bài "${lesson.name}"...`
+            : `Đang tiến hành phân tích PDF cho bài "${lesson.name}"...`
         );
       }
 
@@ -171,6 +188,8 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
       });
 
       // Close modal and reset state
+      setIsImportModalOpen(false);
+      setSelectedFile(null);
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Upload thất bại. Vui lòng thử lại.");
@@ -357,14 +376,17 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
           setIsImportModalOpen(false);
           setSelectedFile(null);
         }}
-        title="Import nội dung sách"
+        title={textbook?.data?.lessons[0]?.file_url ? "Sửa nội dung sách" : "Import nội dung sách"}
         size="md"
       >
         <div className="space-y-6">
           {/* File Upload Area */}
           <div className="space-y-4">
             <div className="text-sm text-gray-600">
-              Chọn file PDF để import nội dung sách
+              {textbook?.data?.lessons[0]?.file_url
+                ? "Chọn file PDF mới để thay thế nội dung sách hiện tại"
+                : "Chọn file PDF để import nội dung sách"
+              }
             </div>
 
             {!selectedFile ? (
@@ -419,22 +441,22 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
                 setIsImportModalOpen(false);
                 setSelectedFile(null);
               }}
-              disabled={isPending}
+              disabled={isPending || isUpdating}
             >
               Hủy
             </Button>
             <Button
               variant="custom"
               onClick={handleUpload}
-              disabled={!selectedFile || isPending}
+              disabled={!selectedFile || isPending || isUpdating}
             >
-              {isPending ? (
+              {(isPending || isUpdating) ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Đang upload...</span>
+                  <span>{textbook?.data?.lessons[0]?.file_url ? "Đang cập nhật..." : "Đang upload..."}</span>
                 </div>
               ) : (
-                "Upload"
+                textbook?.data?.lessons[0]?.file_url ? "Cập nhật" : "Upload"
               )}
             </Button>
           </div>
