@@ -7,6 +7,19 @@ import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/FormField";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
 import { Plus, Trash2, Save, Eye, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -31,8 +44,10 @@ function EditMatrixTemplatePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Use API to fetch template data
-  const { data: templateData, isLoading: isLoadingTemplate } = useMatrixTemplateByIdService(templateId);
-  const { mutate: updateTemplate, isPending: isUpdating } = useUpdateMatrixTemplateService();
+  const { data: templateData, isLoading: isLoadingTemplate } =
+    useMatrixTemplateByIdService(templateId);
+  const { mutate: updateTemplate, isPending: isUpdating } =
+    useUpdateMatrixTemplateService();
 
   useEffect(() => {
     // Wait for API data to load
@@ -49,7 +64,7 @@ function EditMatrixTemplatePage() {
       if (template.matrixJson && !template.parts) {
         template = {
           ...template,
-          parts: template.matrixJson.parts || []
+          parts: template.matrixJson.parts || [],
         };
       }
 
@@ -67,49 +82,71 @@ function EditMatrixTemplatePage() {
   }, [templateId, templateData, isLoadingTemplate, router]);
 
   // Handle template info changes
-  const handleTemplateInfoChange = (field: keyof MatrixTemplateConfig, value: string) => {
+  const handleTemplateInfoChange = (
+    field: keyof MatrixTemplateConfig,
+    value: string
+  ) => {
     if (!config) return;
-    
-    setConfig(prev => prev ? ({
-      ...prev,
-      [field]: value
-    }) : null);
+
+    setConfig((prev) =>
+      prev
+        ? {
+            ...prev,
+            [field]: value,
+          }
+        : null
+    );
   };
 
   // Handle part changes
-  const handlePartChange = (partIndex: number, field: keyof MatrixPart, value: string) => {
+  const handlePartChange = (
+    partIndex: number,
+    field: keyof MatrixPart,
+    value: string
+  ) => {
     if (!config) return;
-    
-    setConfig(prev => prev ? ({
-      ...prev,
-      parts: prev.parts.map((part, index) => 
-        index === partIndex ? { ...part, [field]: value } : part
-      )
-    }) : null);
+
+    setConfig((prev) =>
+      prev
+        ? {
+            ...prev,
+            parts: prev.parts.map((part, index) =>
+              index === partIndex ? { ...part, [field]: value } : part
+            ),
+          }
+        : null
+    );
   };
 
   // Handle difficulty level changes
   const handleDifficultyChange = (
-    partIndex: number, 
-    difficultyIndex: number, 
-    field: keyof DifficultyLevel, 
+    partIndex: number,
+    difficultyIndex: number,
+    field: keyof DifficultyLevel,
     value: string
   ) => {
     if (!config) return;
-    
-    setConfig(prev => prev ? ({
-      ...prev,
-      parts: prev.parts.map((part, pIndex) => 
-        pIndex === partIndex 
-          ? {
-              ...part,
-              difficultyLevels: part.difficultyLevels.map((difficulty, dIndex) =>
-                dIndex === difficultyIndex ? { ...difficulty, [field]: value } : difficulty
-              )
-            }
-          : part
-      )
-    }) : null);
+
+    setConfig((prev) =>
+      prev
+        ? {
+            ...prev,
+            parts: prev.parts.map((part, pIndex) =>
+              pIndex === partIndex
+                ? {
+                    ...part,
+                    difficultyLevels: part.difficultyLevels.map(
+                      (difficulty, dIndex) =>
+                        dIndex === difficultyIndex
+                          ? { ...difficulty, [field]: value }
+                          : difficulty
+                    ),
+                  }
+                : part
+            ),
+          }
+        : null
+    );
   };
 
   // Add new part
@@ -128,10 +165,14 @@ function EditMatrixTemplatePage() {
       ],
     };
 
-    setConfig(prev => prev ? ({
-      ...prev,
-      parts: [...prev.parts, newPart]
-    }) : null);
+    setConfig((prev) =>
+      prev
+        ? {
+            ...prev,
+            parts: [...prev.parts, newPart],
+          }
+        : null
+    );
   };
 
   // Remove part
@@ -140,11 +181,15 @@ function EditMatrixTemplatePage() {
       toast.error("Phải có ít nhất một phần trong ma trận");
       return;
     }
-    
-    setConfig(prev => prev ? ({
-      ...prev,
-      parts: prev.parts.filter((_, index) => index !== partIndex)
-    }) : null);
+
+    setConfig((prev) =>
+      prev
+        ? {
+            ...prev,
+            parts: prev.parts.filter((_, index) => index !== partIndex),
+          }
+        : null
+    );
   };
 
   // Add difficulty level to a part
@@ -161,34 +206,56 @@ function EditMatrixTemplatePage() {
       color: difficultyLevels[0]?.color || "text-gray-700",
     };
 
-    setConfig(prev => prev ? ({
-      ...prev,
-      parts: prev.parts.map((part, index) =>
-        index === partIndex
-          ? { ...part, difficultyLevels: [...part.difficultyLevels, newDifficulty] }
-          : part
-      )
-    }) : null);
+    setConfig((prev) =>
+      prev
+        ? {
+            ...prev,
+            parts: prev.parts.map((part, index) =>
+              index === partIndex
+                ? {
+                    ...part,
+                    difficultyLevels: [...part.difficultyLevels, newDifficulty],
+                  }
+                : part
+            ),
+          }
+        : null
+    );
   };
 
   // Remove difficulty level
-  const removeDifficultyLevel = (partIndex: number, difficultyIndex: number) => {
-    if (!config || !config.parts || !config.parts[partIndex] || !config.parts[partIndex].difficultyLevels || config.parts[partIndex].difficultyLevels.length <= 1) {
+  const removeDifficultyLevel = (
+    partIndex: number,
+    difficultyIndex: number
+  ) => {
+    if (
+      !config ||
+      !config.parts ||
+      !config.parts[partIndex] ||
+      !config.parts[partIndex].difficultyLevels ||
+      config.parts[partIndex].difficultyLevels.length <= 1
+    ) {
       toast.error("Phải có ít nhất một mức độ trong mỗi phần");
       return;
     }
 
-    setConfig(prev => prev ? ({
-      ...prev,
-      parts: prev.parts.map((part, pIndex) => 
-        pIndex === partIndex 
-          ? {
-              ...part,
-              difficultyLevels: part.difficultyLevels.filter((_, dIndex) => dIndex !== difficultyIndex)
-            }
-          : part
-      )
-    }) : null);
+    setConfig((prev) =>
+      prev
+        ? {
+            ...prev,
+            parts: prev.parts.map((part, pIndex) =>
+              pIndex === partIndex
+                ? {
+                    ...part,
+                    difficultyLevels: part.difficultyLevels.filter(
+                      (_, dIndex) => dIndex !== difficultyIndex
+                    ),
+                  }
+                : part
+            ),
+          }
+        : null
+    );
   };
 
   // Save template
@@ -206,9 +273,9 @@ function EditMatrixTemplatePage() {
       name: config.name,
       description: config.description,
       matrixJson: {
-        parts: config.parts
+        parts: config.parts,
       },
-      status: config.status
+      status: config.status,
     };
 
     updateTemplate(
@@ -267,7 +334,9 @@ function EditMatrixTemplatePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold font-calsans">Chỉnh sửa mẫu Ma Trận</h1>
+            <h1 className="text-2xl font-bold font-calsans">
+              Chỉnh sửa mẫu Ma Trận
+            </h1>
             <p className="text-gray-600 font-questrial">
               Cập nhật cấu hình template "{config.name}"
             </p>
@@ -281,24 +350,30 @@ function EditMatrixTemplatePage() {
           {/* Template Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="font-calsans">Thông tin mẫu ma trận</CardTitle>
+              <CardTitle className="font-calsans">
+                Thông tin mẫu ma trận
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField label="Tên Template" htmlFor="template-name">
                 <Input
                   id="template-name"
                   value={config.name}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTemplateInfoChange("name", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleTemplateInfoChange("name", e.target.value)
+                  }
                   placeholder="Nhập tên mẫu ma trận"
                   className="font-questrial"
                 />
               </FormField>
-              
+
               <FormField label="Mô tả" htmlFor="template-description">
                 <Textarea
                   id="template-description"
                   value={config.description}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleTemplateInfoChange("description", e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    handleTemplateInfoChange("description", e.target.value)
+                  }
                   placeholder="Mô tả về mẫu này"
                   rows={3}
                   className="font-questrial"
@@ -312,17 +387,28 @@ function EditMatrixTemplatePage() {
             <CardHeader>
               <CardTitle className="font-calsans flex items-center justify-between">
                 Cấu hình các Phần
-                <Button onClick={addPart} size="sm" variant="outline">
-                  <Plus className="w-4 h-4 mr-1" />
-                  Thêm phần
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button disabled size="sm" variant="outline">
+                        <Plus className="w-4 h-4 mr-1" />
+                        Thêm phần
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Tính năng chưa được triển khai</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {(config.parts || []).map((part, partIndex) => (
                 <div key={part.id} className="border rounded-lg p-4 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium font-calsans">Phần {partIndex + 1}</h4>
+                    <h4 className="font-medium font-calsans">
+                      Phần {partIndex + 1}
+                    </h4>
                     {(config.parts?.length || 0) > 1 && (
                       <Button
                         onClick={() => removePart(partIndex)}
@@ -336,19 +422,29 @@ function EditMatrixTemplatePage() {
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
-                    <FormField label="ID" htmlFor={`part-id-${partIndex}`}>
-                      <Input
-                        id={`part-id-${partIndex}`}
+                    <FormField label="Loại" htmlFor={`part-id-${partIndex}`}>
+                      <Select
                         value={part.id}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          handlePartChange(partIndex, "id", e.target.value)
+                        onValueChange={(value) =>
+                          handlePartChange(partIndex, "id", value)
                         }
-                        placeholder="part1"
-                        className="font-questrial"
-                      />
+                        disabled={true}
+                      >
+                        <SelectTrigger className="font-questrial">
+                          <SelectValue placeholder="Chọn loại" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="part1">Trắc nghiệm</SelectItem>
+                          <SelectItem value="part2">Đúng/Sai</SelectItem>
+                          <SelectItem value="part3">Tự luận</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormField>
 
-                    <FormField label="Tên hiển thị" htmlFor={`part-name-${partIndex}`}>
+                    <FormField
+                      label="Tên hiển thị"
+                      htmlFor={`part-name-${partIndex}`}
+                    >
                       <Input
                         id={`part-name-${partIndex}`}
                         value={part.name}
@@ -360,7 +456,10 @@ function EditMatrixTemplatePage() {
                       />
                     </FormField>
 
-                    <FormField label="Nhãn mô tả" htmlFor={`part-label-${partIndex}`}>
+                    <FormField
+                      label="Nhãn mô tả"
+                      htmlFor={`part-label-${partIndex}`}
+                    >
                       <Input
                         id={`part-label-${partIndex}`}
                         value={part.label}
@@ -373,17 +472,24 @@ function EditMatrixTemplatePage() {
                     </FormField>
                   </div>
 
-                  <FormField label="Màu nền" htmlFor={`part-color-${partIndex}`}>
+                  <FormField
+                    label="Màu nền"
+                    htmlFor={`part-color-${partIndex}`}
+                  >
                     <ColorPicker
                       selectedColor={part.color}
-                      onColorChange={(color) => handlePartChange(partIndex, "color", color)}
+                      onColorChange={(color) =>
+                        handlePartChange(partIndex, "color", color)
+                      }
                     />
                   </FormField>
 
                   {/* Difficulty Levels */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h5 className="font-medium font-calsans text-sm">Mức độ khó</h5>
+                      <h5 className="font-medium font-calsans text-sm">
+                        Mức độ khó
+                      </h5>
                       <Button
                         onClick={() => addDifficultyLevel(partIndex)}
                         size="sm"
@@ -402,52 +508,83 @@ function EditMatrixTemplatePage() {
                       <div className="col-span-1"></div>
                     </div>
 
-                    {(part.difficultyLevels || []).map((difficulty, difficultyIndex) => (
-                      <div key={difficulty.id || difficultyIndex} className="grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded items-center">
-                        <div className="col-span-3">
-                          <Input
-                            value={difficulty.id}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              handleDifficultyChange(partIndex, difficultyIndex, "id", e.target.value)
-                            }
-                            placeholder="nb"
-                            className="text-center font-questrial text-xs"
-                          />
+                    {(part.difficultyLevels || []).map(
+                      (difficulty, difficultyIndex) => (
+                        <div
+                          key={difficulty.id || difficultyIndex}
+                          className="grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded items-center"
+                        >
+                          <div className="col-span-3">
+                            <Input
+                              value={difficulty.id}
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) =>
+                                handleDifficultyChange(
+                                  partIndex,
+                                  difficultyIndex,
+                                  "id",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="nb"
+                              className="text-center font-questrial text-xs"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Input
+                              value={difficulty.name}
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) =>
+                                handleDifficultyChange(
+                                  partIndex,
+                                  difficultyIndex,
+                                  "name",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="NB"
+                              className="text-center font-questrial text-xs"
+                            />
+                          </div>
+                          <div className="col-span-6">
+                            <Input
+                              value={difficulty.label}
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) =>
+                                handleDifficultyChange(
+                                  partIndex,
+                                  difficultyIndex,
+                                  "label",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Nhận biết"
+                              className="font-questrial text-xs"
+                            />
+                          </div>
+                          <div className="col-span-1">
+                            {(part.difficultyLevels?.length || 0) > 1 && (
+                              <Button
+                                onClick={() =>
+                                  removeDifficultyLevel(
+                                    partIndex,
+                                    difficultyIndex
+                                  )
+                                }
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 hover:text-red-700 h-8 w-8 p-0"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <div className="col-span-2">
-                          <Input
-                            value={difficulty.name}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              handleDifficultyChange(partIndex, difficultyIndex, "name", e.target.value)
-                            }
-                            placeholder="NB"
-                            className="text-center font-questrial text-xs"
-                          />
-                        </div>
-                        <div className="col-span-6">
-                          <Input
-                            value={difficulty.label}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              handleDifficultyChange(partIndex, difficultyIndex, "label", e.target.value)
-                            }
-                            placeholder="Nhận biết"
-                            className="font-questrial text-xs"
-                          />
-                        </div>
-                        <div className="col-span-1">
-                          {(part.difficultyLevels?.length || 0) > 1 && (
-                            <Button
-                              onClick={() => removeDifficultyLevel(partIndex, difficultyIndex)}
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 hover:text-red-700 h-8 w-8 p-0"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </div>
               ))}
@@ -473,10 +610,7 @@ function EditMatrixTemplatePage() {
             </CardHeader>
             {showPreview && (
               <CardContent>
-                <ConfigurableExamMatrixForm
-                  config={config}
-                  readonly={true}
-                />
+                <ConfigurableExamMatrixForm config={config} readonly={true} />
               </CardContent>
             )}
           </Card>
@@ -486,9 +620,7 @@ function EditMatrixTemplatePage() {
       {/* Action Buttons */}
       <div className="mt-8 flex justify-end gap-4">
         <Link href="/staff/matrix-templates">
-          <Button variant="outline">
-            Hủy
-          </Button>
+          <Button variant="outline">Hủy</Button>
         </Link>
         <Button onClick={handleSave} disabled={isUpdating}>
           <Save className="w-4 h-4 mr-2" />
