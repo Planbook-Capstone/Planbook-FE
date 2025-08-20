@@ -3,10 +3,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { TagResponse } from "@/types";
 
 import { Button } from "@/components/ui/Button";
-import { Edit } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 
 interface TagColumnHandlers {
   onEdit: (tag: TagResponse) => void;
+  onDelete: (tag: TagResponse) => void;
 }
 
 export const tagColumns = (
@@ -44,6 +45,15 @@ export const tagColumns = (
             title="Chỉnh sửa"
           >
             <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handlers.onDelete(tag)}
+            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+            title="Xóa"
+          >
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       );
