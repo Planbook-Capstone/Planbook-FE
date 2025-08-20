@@ -13,11 +13,12 @@ import { UploadIcon } from "@/constants/icon";
 import {
   useTextbookByLessonIdService,
   useQuickTextBookAnalysisService,
+  useDeletePdfWithQuery,
 } from "@/services/textbookServices";
 import TaskProgressWrapper from "@/components/molecules/task-progress-wrapper";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import { CloseOutlined } from "@ant-design/icons";
 interface LessonDetailProps {
   lesson: any;
   selectedGrade?: any;
@@ -48,6 +49,9 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
   // State for view modal
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
+  // State for delete confirmation modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   // State for task progress tracking
   const [activeTaskIds, setActiveTaskIds] = useState<string[]>([]);
 
@@ -65,6 +69,44 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
   const { mutateAsync: quickAnalysisMutateAsync, isPending } =
     useQuickTextBookAnalysisService();
   const queryClient = useQueryClient();
+
+  // Delete PDF mutation
+  const { mutate: deletePdf, isPending: isDeleting } = useDeletePdfWithQuery();
+
+  // Handle delete PDF
+  const handleDeletePdf = () => {
+    if (!lesson?.id || !selectedBook?.id) return;
+
+    // Create delete payload with both lesson_id and book_id
+    const deletePayload = {
+      lesson_id: lesson.id,
+      book_id: lesson?.chapter?.book?.id,
+    };
+
+    deletePdf(deletePayload, {
+      onSuccess: () => {
+        toast.success("Xóa file PDF thành công!");
+        setIsDeleteModalOpen(false);
+
+        // Reset query data và force refetch để hiển thị loading
+        queryClient.resetQueries({
+          queryKey: ["secondary-textbook", lesson.id],
+        });
+
+        // Force refetch để load data mới
+        queryClient.refetchQueries({
+          queryKey: ["secondary-textbook", lesson.id],
+        });
+      },
+      onError: (error: any) => {
+        console.error("Delete PDF failed:", error);
+        toast.error(
+          error?.response?.data?.message ||
+            "Xóa file PDF thất bại. Vui lòng thử lại!"
+        );
+      },
+    });
+  };
 
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,10 +222,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
     return breadcrumbs;
   };
 
-  const {
-    data: textbook,
-    isLoading,
-  } = useTextbookByLessonIdService(
+  const { data: textbook, isLoading } = useTextbookByLessonIdService(
     [lesson?.id], // dependencies array
     {
       enabled: !!lesson?.id,
@@ -191,7 +230,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
       refetchOnWindowFocus: false, // Không refetch khi focus window
       refetchOnMount: false, // Không refetch khi component mount lại
       refetchOnReconnect: false, // Không refetch khi reconnect
-      staleTime: 5 * 60 * 1000, // 5 phút - cho phép refetch khi invalidate
+      staleTime: 0, // Cho phép refetch ngay lập tức
     },
     {
       lesson_id: lesson?.id, // query parameters
@@ -271,22 +310,33 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
               Nội dung bài
             </h2>
             {textbook?.data?.lessons[0]?.file_url ? (
-              <div className="flex justify-between items-center w-1/4 border border-dashed rounded-md p-3">
+              <div className="relative flex justify-between items-center w-1/4 border border-dashed rounded-md p-3">
                 <div className="flex items-center gap-2">
                   <div>
                     <img src={"/images/files/PDF.svg"} alt="Document icon" />
                   </div>
                   <p className="text-blue-500">Sách giáo khoa</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsViewModalOpen(true)}
-                  className="flex items-center gap-2"
-                >
-                  <Eye className="h-4 w-4" />
-                  Xem
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsViewModalOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Xem
+                  </Button>
+                  <button
+                    className=" hover:scale-105 cursor-pointer mt-1 absolute -right-2 -top-3 hover:bg-red-400 border h-6 w-6 rounded-full shadow-base"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering parent onClick
+                      setIsDeleteModalOpen(true);
+                    }}
+                  >
+                    <CloseOutlined className="h-2 w-2" />
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="flex justify-start items-end gap-2 w-1/4 border border-dashed rounded-md p-3">
@@ -411,6 +461,43 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
               <p className="text-gray-500">Không có file để hiển thị</p>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Xác nhận xóa"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Bạn có chắc chắn muốn xóa file PDF này không? Hành động này không
+            thể hoàn tác.
+          </p>
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeletePdf}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Đang xóa...</span>
+                </div>
+              ) : (
+                "Xóa"
+              )}
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>
