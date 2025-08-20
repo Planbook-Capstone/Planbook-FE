@@ -9,6 +9,9 @@ import {
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import { OrderFilterParams } from "@/types/order";
+import { useMutation, useQueryClient, UseMutationResult } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import api from "@/config/axios";
 
 export const useOrderService = createQueryHook("order", API_ENDPOINTS.ORDERS);
 
@@ -61,3 +64,21 @@ export const useOrdersWithParamsService = createDynamicQueryHook(
   "order",
   API_ENDPOINTS.ORDERS
 );
+
+export const useCancelPaymentService = (): UseMutationResult<
+  any,
+  AxiosError<{ message: string }>,
+  { orderId: string; data?: any }
+> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, data }: { orderId: string; data?: any }) =>
+      api.patch(`${API_ENDPOINTS.CANCEL_PAYMENT}/${orderId}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cancel-payment"] });
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["orders-filter"] });
+    },
+  });
+};
