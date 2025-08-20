@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   BreadcrumbTrail,
   type BreadcrumbItem,
 } from "@/components/ui/BreadcrumbTrail";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/modal";
-import { Upload, FileText, X } from "lucide-react";
+import { Upload, FileText, X, Eye } from "lucide-react";
 import { UploadIcon } from "@/constants/icon";
-import { useTextbookByLessonIdService } from "@/services/textbookServices";
+import { useTextbookByLessonIdService, useQuickTextBookAnalysisService } from "@/services/textbookServices";
 
 interface LessonDetailProps {
   lesson: any;
@@ -39,6 +40,13 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // State for view modal
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  // Quick textbook analysis mutation
+  const { mutateAsync: quickAnalysisMutateAsync } = useQuickTextBookAnalysisService();
+  const queryClient = useQueryClient();
+
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -61,14 +69,41 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
 
   // Handle file upload
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !lesson?.id || !selectedBook?.id) {
+      alert("Thiếu thông tin cần thiết để upload file");
+      return;
+    }
 
     setIsUploading(true);
     try {
+      // Create FormData for quick analysis
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("lesson_id", lesson.id);
+      formData.append("book_id", selectedBook.id);
+      formData.append("create_embeddings", "true");
+
+      console.log("🚀 Starting Quick TextBook Analysis:", {
+        lessonId: lesson.id,
+        bookId: selectedBook.id,
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+      });
+
+      // Call the quick textbook analysis service
+      const response = await quickAnalysisMutateAsync(formData);
+
+      console.log("✅ Quick Analysis Response:", response);
+
+      // Invalidate and refetch textbook data
+      await queryClient.invalidateQueries({
+        queryKey: ["secondary-textbook", lesson.id],
+      });
+
       // Close modal and reset state
       setIsImportModalOpen(false);
       setSelectedFile(null);
-      alert("Upload thành công!");
+      alert("Upload và phân tích thành công!");
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Upload thất bại. Vui lòng thử lại.");
@@ -132,7 +167,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
     }
   );
 
-  console.log(textbook, "textbook");
+  console.log(textbook?.data?.lessons[0], "textbook");
 
   return (
     <div className="space-y-6">
@@ -153,7 +188,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
         </div>
         <div>
           <Button variant={"custom"} onClick={() => setIsImportModalOpen(true)}>
-            Import nội dung sách
+            {textbook?.data?.lessons[0]?.file_url ? "Sửa nội dung sách" : "Import nội dung sách"}
           </Button>
         </div>
       </div>
@@ -163,12 +198,32 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Nội dung bài
         </h2>
-        <div className="flex justify-start items-end gap-2">
-          <div>
-            <img src={"/images/files/PDF.svg"} alt="Document icon" />
+        {textbook?.data?.lessons[0]?.file_url ? (
+          <div className="flex justify-between items-center w-1/4 border border-dashed rounded-md p-3">
+            <div className="flex items-center gap-2">
+              <div>
+                <img src={"/images/files/PDF.svg"} alt="Document icon" />
+              </div>
+              <p className="text-blue-500">Sách giáo khoa</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsViewModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Xem
+            </Button>
           </div>
-          <p className="text-blue-500">link sách</p>
-        </div>
+        ) : (
+          <div className="flex justify-start items-end gap-2 w-1/4 border border-dashed rounded-md p-3">
+            <div>
+              <img src={"/images/files/PDF.svg"} alt="Document icon" />
+            </div>
+            <p className="text-gray-400">Chưa có sách giáo khoa</p>
+          </div>
+        )}
       </div>
 
       {/* Import File Modal */}
@@ -259,6 +314,29 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
               )}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* View Textbook Modal */}
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        title="Xem sách giáo khoa"
+        size="xl"
+      >
+        <div className="h-full">
+          {textbook?.data?.lessons[0]?.file_url ? (
+            <iframe
+              src={textbook.data.lessons[0].file_url}
+              className="w-full h-full border-0"
+              title="Sách giáo khoa"
+              style={{ minHeight: "80vh" }}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-64">
+              <p className="text-gray-500">Không có file để hiển thị</p>
+            </div>
+          )}
         </div>
       </Modal>
     </div>
