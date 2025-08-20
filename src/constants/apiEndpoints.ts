@@ -74,7 +74,10 @@ export const API_ENDPOINTS = {
   ORDERS: buildEndpoint(SERVICES.SUBSCRIPTION, "/orders"),
 
   //CANCEL ORDER
-  CANCEL_PAYMENT: buildEndpoint(SERVICES.SUBSCRIPTION, "/orders/cancel-payment"),
+  CANCEL_PAYMENT: buildEndpoint(
+    SERVICES.SUBSCRIPTION,
+    "/orders/cancel-payment"
+  ),
 
   //EXECUTE-TOOL
   EXECUTE_TOOL: "aggregator/api/tool/execute",
@@ -150,6 +153,8 @@ export const PDF_API_ENDPOINTS = {
   QUICK_TEXTBOOK_ANALYSIS: "/pdf/import",
 
   GUIDES: "/pdf/guides",
+
+  LESSON: "/pdf/lessons",
 
   //SEARCH
   RAG_QUERY: "/rag/query",

@@ -248,13 +248,17 @@ const AdminConfigurationPage = () => {
           </div>
         </>
       )}
-      <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-4 gap-5">
         {guides?.data?.guides?.map((guide: any) => (
           <DocumentItem
             onClick={() => handleGuideClick(guide)}
             key={guide.book_id}
             type="DOCX"
-            name={guide?.collection_name}
+            name={
+              guide?.collection_name?.length > 20
+                ? guide.collection_name.substring(0, 20) + "..."
+                : guide?.collection_name
+            }
             description={`Ngày tạo: ${
               guide?.uploaded_at
                 ? new Date(guide.uploaded_at).toLocaleDateString("vi-VN", {

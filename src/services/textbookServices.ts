@@ -1,4 +1,4 @@
-import { API_ENDPOINTS, PDF_API_ENDPOINTS } from "@/constants/apiEndpoints";
+import {  PDF_API_ENDPOINTS } from "@/constants/apiEndpoints";
 import {
   createSecondaryMutationHook,
   createSecondaryQueryHook,
@@ -6,6 +6,7 @@ import {
 } from "@/hooks/useApiFactory";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiSecondary } from "@/config/axios";
+import { createDynamicQueryHook } from "@/hooks/react-query";
 
 // ===== TEXTBOOK SERVICES USING PDF API (Secondary API - Port 8000) =====
 
@@ -56,7 +57,9 @@ export const useDeletePdfWithQuery = () => {
 
   return useMutation({
     mutationFn: async (bookId: string) => {
-      const response = await apiSecondary.delete(`${PDF_API_ENDPOINTS.BASE}?book_id=${bookId}`);
+      const response = await apiSecondary.delete(
+        `${PDF_API_ENDPOINTS.BASE}?book_id=${bookId}`
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -67,3 +70,8 @@ export const useDeletePdfWithQuery = () => {
     },
   });
 };
+
+export const useTextbookByLessonIdService = createDynamicQueryHook(
+  "textbook",
+  PDF_API_ENDPOINTS.LESSON
+);
