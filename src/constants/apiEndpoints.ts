@@ -72,6 +72,10 @@ export const API_ENDPOINTS = {
 
   //Order
   ORDERS: buildEndpoint(SERVICES.SUBSCRIPTION, "/orders"),
+
+  //CANCEL ORDER
+  CANCEL_PAYMENT: buildEndpoint(SERVICES.SUBSCRIPTION, "/orders/cancel-payment"),
+
   //EXECUTE-TOOL
   EXECUTE_TOOL: "aggregator/api/tool/execute",
 

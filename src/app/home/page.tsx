@@ -25,10 +25,14 @@ import {
 } from "@/components/ui/pagination";
 import { useExternalToolsService } from "@/services/externalToolsServices";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCancelPaymentService } from "@/services/orderServices";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 export default function Home() {
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "grid";
+  const orderCode = searchParams.get("orderCode");
   const { data: bookTypes, isLoading } = useBookTypesService();
   const {
     data: externalTools,
@@ -47,6 +51,7 @@ export default function Home() {
     }
   );
   const { user } = useAuth();
+  const { mutate: cancelPayment } = useCancelPaymentService();
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
@@ -64,6 +69,39 @@ export default function Home() {
   );
 
   const { displayName } = useAuth();
+
+  // Handle orderCode parameter for payment cancellation
+  useEffect(() => {
+    if (orderCode) {
+      console.log("OrderCode found in URL:", orderCode);
+
+      // Cancel payment with the orderCode
+      cancelPayment(
+        {
+          orderId: orderCode,
+          // data: { reason: "User requested cancellation from URL" }
+        },
+        {
+          onSuccess: (response) => {
+            console.log("Payment cancelled successfully:", response);
+            toast.success(`Đã hủy thanh toán cho đơn hàng ${orderCode} thành công`);
+
+            // Remove all query parameters from URL after successful cancellation
+            const newUrl = new URL(window.location.href);
+            newUrl.search = ""; // This removes all query parameters
+            window.history.replaceState({}, "", newUrl.toString());
+          },
+          onError: (error) => {
+            console.error("Failed to cancel payment:", error);
+            toast.error(
+              error?.response?.data?.message ||
+              `Có lỗi xảy ra khi hủy thanh toán cho đơn hàng ${orderCode}`
+            );
+          }
+        }
+      );
+    }
+  }, [orderCode, cancelPayment]);
 
   const getRandomColorClass = () => {
     const colorClasses = [

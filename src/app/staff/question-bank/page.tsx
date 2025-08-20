@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit, Plus, XIcon, Copy, Filter } from "lucide-react";
+import { Edit, Plus, XIcon, Filter } from "lucide-react";
 import Link from "next/link";
 import { DynamicQuestionForm } from "@/components/forms/dynamic-question/DynamicQuestionForm";
 import {
@@ -444,9 +444,9 @@ function QuestionBankManagementPage() {
             Dạng 3
           </Button>
           <Link href="/staff/question-bank/create">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Copy className="w-4 h-4" />
-              Tạo nhiều câu hỏi
+            <Button variant="custom" className="flex items-center gap-2">
+              <Plus />
+              Tạo câu hỏi
             </Button>
           </Link>
         </div>
@@ -455,185 +455,196 @@ function QuestionBankManagementPage() {
       {/* Filter Section */}
       {showFilter && (
         <div className="space-y-4 p-4 bg-gray-50 rounded-lg mb-6 grid grid-cols-6 gap-5">
-        {/* Grade Selection */}
-        <div className="space-y-2 ">
-          <label className="text-sm font-medium text-gray-700">Khối học</label>
-          <Select value={selectedGrade} onValueChange={handleGradeChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Chọn khối học" />
-            </SelectTrigger>
-            <SelectContent>
-              {grades?.data?.content?.map((grade: any) => (
-                <SelectItem
-                  key={grade.id.toString()}
-                  value={grade.id.toString()}
-                >
-                  {grade.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Subject Selection */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Môn học</label>
-          <Select
-            value={selectedSubject}
-            onValueChange={handleSubjectChange}
-            disabled={!selectedGrade}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue
-                placeholder={
-                  selectedGrade ? "Chọn môn học" : "Chọn khối học trước"
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {subjects?.data?.content?.map((subject: any) => (
-                <SelectItem
-                  key={subject.id.toString()}
-                  value={subject.id.toString()}
-                >
-                  {subject.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Book Selection */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Sách</label>
-          <Select
-            value={selectedBook}
-            onValueChange={handleBookChange}
-            disabled={!selectedSubject}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue
-                placeholder={
-                  selectedSubject ? "Chọn sách" : "Chọn môn học trước"
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {books?.data?.content?.map((book: any) => (
-                <SelectItem key={book.id.toString()} value={book.id.toString()}>
-                  {book.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Difficult Level Selection */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">
-            Mức độ khó (
-            {selectedDifficultLevel.includes("all")
-              ? "Tất cả"
-              : selectedDifficultLevel.length + " đã chọn"}
-            )
-          </label>
-          <div className="space-y-2 border rounded p-3 bg-white">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="level-all"
-                checked={selectedDifficultLevel.includes("all")}
-                onCheckedChange={() => handleDifficultLevelToggle("all")}
-              />
-              <label
-                htmlFor="level-all"
-                className="text-sm cursor-pointer flex-1 font-medium"
-              >
-                Tất cả
-              </label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="level-nhan-biet"
-                checked={selectedDifficultLevel.includes("nhan_biet")}
-                onCheckedChange={() => handleDifficultLevelToggle("nhan_biet")}
-              />
-              <label
-                htmlFor="level-nhan-biet"
-                className="text-sm cursor-pointer flex-1"
-              >
-                Nhận biết
-              </label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="level-thong-hieu"
-                checked={selectedDifficultLevel.includes("thong_hieu")}
-                onCheckedChange={() => handleDifficultLevelToggle("thong_hieu")}
-              />
-              <label
-                htmlFor="level-thong-hieu"
-                className="text-sm cursor-pointer flex-1"
-              >
-                Thông hiểu
-              </label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="level-van-dung"
-                checked={selectedDifficultLevel.includes("van_dung")}
-                onCheckedChange={() => handleDifficultLevelToggle("van_dung")}
-              />
-              <label
-                htmlFor="level-van-dung"
-                className="text-sm cursor-pointer flex-1"
-              >
-                Vận dụng
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Lesson Selection */}
-        {selectedBook && filterLessons.length > 0 && (
-          <div className="space-y-2 col-span-2">
+          {/* Grade Selection */}
+          <div className="space-y-2 ">
             <label className="text-sm font-medium text-gray-700">
-              Bài học ({selectedLessonsList.length} đã chọn)
+              Khối học
             </label>
-            <div className="max-h-40 overflow-y-auto space-y-2 border rounded p-2 bg-white">
-              {filterLessons?.map((lesson: any) => (
-                <div key={lesson.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`lesson-${lesson.id}`}
-                    checked={selectedLessonsList.includes(lesson.id.toString())}
-                    onCheckedChange={() =>
-                      handleLessonToggle(lesson.id.toString())
-                    }
-                  />
-                  <label
-                    htmlFor={`lesson-${lesson.id}`}
-                    className="text-sm cursor-pointer flex-1"
+            <Select value={selectedGrade} onValueChange={handleGradeChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn khối học" />
+              </SelectTrigger>
+              <SelectContent>
+                {grades?.data?.content?.map((grade: any) => (
+                  <SelectItem
+                    key={grade.id.toString()}
+                    value={grade.id.toString()}
                   >
-                    {lesson.name}
-                  </label>
-                </div>
-              ))}
-            </div>
-
-            {selectedLessonsList.length > 0 && (
-              <div className="flex justify-between items-center pt-2">
-                {showSuccessMessage && (
-                  <div className="text-green-600 text-sm font-medium">
-                    ✓ Đã chọn {selectedLessonsList.length} bài học!
-                  </div>
-                )}
-                <Button onClick={handleSelectLessons} className="ml-auto">
-                  Chọn {selectedLessonsList.length} bài học
-                </Button>
-              </div>
-            )}
+                    {grade.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
-      </div>
+
+          {/* Subject Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Môn học</label>
+            <Select
+              value={selectedSubject}
+              onValueChange={handleSubjectChange}
+              disabled={!selectedGrade}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={
+                    selectedGrade ? "Chọn môn học" : "Chọn khối học trước"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects?.data?.content?.map((subject: any) => (
+                  <SelectItem
+                    key={subject.id.toString()}
+                    value={subject.id.toString()}
+                  >
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Book Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Sách</label>
+            <Select
+              value={selectedBook}
+              onValueChange={handleBookChange}
+              disabled={!selectedSubject}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={
+                    selectedSubject ? "Chọn sách" : "Chọn môn học trước"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {books?.data?.content?.map((book: any) => (
+                  <SelectItem
+                    key={book.id.toString()}
+                    value={book.id.toString()}
+                  >
+                    {book.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Difficult Level Selection */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Mức độ khó (
+              {selectedDifficultLevel.includes("all")
+                ? "Tất cả"
+                : selectedDifficultLevel.length + " đã chọn"}
+              )
+            </label>
+            <div className="space-y-2 border rounded p-3 bg-white">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="level-all"
+                  checked={selectedDifficultLevel.includes("all")}
+                  onCheckedChange={() => handleDifficultLevelToggle("all")}
+                />
+                <label
+                  htmlFor="level-all"
+                  className="text-sm cursor-pointer flex-1 font-medium"
+                >
+                  Tất cả
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="level-nhan-biet"
+                  checked={selectedDifficultLevel.includes("nhan_biet")}
+                  onCheckedChange={() =>
+                    handleDifficultLevelToggle("nhan_biet")
+                  }
+                />
+                <label
+                  htmlFor="level-nhan-biet"
+                  className="text-sm cursor-pointer flex-1"
+                >
+                  Nhận biết
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="level-thong-hieu"
+                  checked={selectedDifficultLevel.includes("thong_hieu")}
+                  onCheckedChange={() =>
+                    handleDifficultLevelToggle("thong_hieu")
+                  }
+                />
+                <label
+                  htmlFor="level-thong-hieu"
+                  className="text-sm cursor-pointer flex-1"
+                >
+                  Thông hiểu
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="level-van-dung"
+                  checked={selectedDifficultLevel.includes("van_dung")}
+                  onCheckedChange={() => handleDifficultLevelToggle("van_dung")}
+                />
+                <label
+                  htmlFor="level-van-dung"
+                  className="text-sm cursor-pointer flex-1"
+                >
+                  Vận dụng
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Lesson Selection */}
+          {selectedBook && filterLessons.length > 0 && (
+            <div className="space-y-2 col-span-2">
+              <label className="text-sm font-medium text-gray-700">
+                Bài học ({selectedLessonsList.length} đã chọn)
+              </label>
+              <div className="max-h-40 overflow-y-auto space-y-2 border rounded p-2 bg-white">
+                {filterLessons?.map((lesson: any) => (
+                  <div key={lesson.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`lesson-${lesson.id}`}
+                      checked={selectedLessonsList.includes(
+                        lesson.id.toString()
+                      )}
+                      onCheckedChange={() =>
+                        handleLessonToggle(lesson.id.toString())
+                      }
+                    />
+                    <label
+                      htmlFor={`lesson-${lesson.id}`}
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      {lesson.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              {selectedLessonsList.length > 0 && (
+                <div className="flex justify-between items-center pt-2">
+                  {showSuccessMessage && (
+                    <div className="text-green-600 text-sm font-medium">
+                      ✓ Đã chọn {selectedLessonsList.length} bài học!
+                    </div>
+                  )}
+                  <Button onClick={handleSelectLessons} className="ml-auto">
+                    Chọn {selectedLessonsList.length} bài học
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Questions List */}
@@ -737,8 +748,10 @@ function QuestionBankManagementPage() {
               </div>
               {question?.explanation && (
                 <div className="text-lg">
-                  <span className="font-bold text-purple-700">Giải thích: </span>
-                  <br/>
+                  <span className="font-bold text-purple-700">
+                    Giải thích:{" "}
+                  </span>
+                  <br />
                   <div
                     dangerouslySetInnerHTML={{
                       __html: question?.explanation || "-",
