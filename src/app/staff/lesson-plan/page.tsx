@@ -397,7 +397,7 @@ export default function LessonPlanPage() {
               <div
                 key={template.id}
                 className={`rounded-lg p-4 hover:shadow-md transition-shadow ${
-                  template.isActive
+                  template?.status === "ACTIVE"
                     ? "bg-[url('/images/background/abstract-bg.png')] bg-[length:150%] bg-center text-white"
                     : "bg-white border"
                 }`}
@@ -434,7 +434,7 @@ export default function LessonPlanPage() {
                         <Edit className="w-4 h-4 mr-2" />
                         Chỉnh sửa
                       </DropdownMenuItem>
-                      {!template.isActive && (
+                      {template?.status === "ACTIVE" || (
                         <DropdownMenuItem
                           onClick={() => handleActivateTemplate(template.id)}
                         >

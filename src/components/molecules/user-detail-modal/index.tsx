@@ -15,6 +15,8 @@ interface UserDetailModalProps {
 }
 
 function UserDetailModal({ user, open, onClose }: UserDetailModalProps) {
+  const status = user.status === "ACTIVE" ? true : false;
+
   return (
     <div>
       <Dialog open={open} onOpenChange={onClose}>
@@ -59,10 +61,10 @@ function UserDetailModal({ user, open, onClose }: UserDetailModalProps) {
                 </label>
                 <p
                   className={`font-questrial ${
-                    user.status ? "text-red-600" : "text-green-600"
+                    !status ? "text-red-600" : "text-green-600"
                   }`}
                 >
-                  {user.status ? "Đã vô hiệu hóa" : "Hoạt động"}
+                  {!status ? "Đã vô hiệu hóa" : "Hoạt động"}
                 </p>
               </div>
             </div>
