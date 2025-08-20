@@ -57,10 +57,18 @@ export const useDeletePdfWithQuery = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (bookId: string) => {
-      const response = await apiSecondary.delete(
-        `${PDF_API_ENDPOINTS.BASE}?book_id=${bookId}`
-      );
+    mutationFn: async (params: string | { lesson_id: string; book_id: string }) => {
+      let url = `${PDF_API_ENDPOINTS.BASE}`;
+
+      if (typeof params === 'string') {
+        // Backward compatibility: if string is passed, treat as book_id
+        url += `?book_id=${params}`;
+      } else {
+        // New format: object with lesson_id and book_id
+        url += `?lesson_id=${params.lesson_id}&book_id=${params.book_id}`;
+      }
+
+      const response = await apiSecondary.delete(url);
       return response.data;
     },
     onSuccess: () => {
