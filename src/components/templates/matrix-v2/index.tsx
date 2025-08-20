@@ -43,6 +43,7 @@ import FileIcon from "@/components/ui/FileIcon";
 import { DowloadIcon } from "@/constants/icon";
 import { generateExamDocx } from "@/utils/docxGeneratorExam";
 import LoadingRealtimeExamMatrix from "./LoadingRealtimeExamMatrix";
+import { DIFFICULTY_LEVEL } from "@/constants/enum";
 
 export default function MatrixTemplate2() {
   const router = useRouter();
@@ -402,25 +403,25 @@ export default function MatrixTemplate2() {
           {
             part: 1,
             objectives: {
-              Biết: row.distribution.part1.biet,
-              Hiểu: row.distribution.part1.hieu,
-              Vận_dụng: row.distribution.part1.vd,
+              [DIFFICULTY_LEVEL.KNOWLEDGE]: row.distribution.part1.biet,
+              [DIFFICULTY_LEVEL.COMPREHENSION]: row.distribution.part1.hieu,
+              [DIFFICULTY_LEVEL.APPLICATION]: row.distribution.part1.vd,
             },
           },
           {
             part: 2,
             objectives: {
-              Biết: row.distribution.part2.biet,
-              Hiểu: row.distribution.part2.hieu,
-              Vận_dụng: row.distribution.part2.vd,
+              [DIFFICULTY_LEVEL.KNOWLEDGE]: row.distribution.part2.biet,
+              [DIFFICULTY_LEVEL.COMPREHENSION]: row.distribution.part2.hieu,
+              [DIFFICULTY_LEVEL.APPLICATION]: row.distribution.part2.vd,
             },
           },
           {
             part: 3,
             objectives: {
-              Biết: row.distribution.part3.biet,
-              Hiểu: row.distribution.part3.hieu,
-              Vận_dụng: row.distribution.part3.vd,
+              [DIFFICULTY_LEVEL.KNOWLEDGE]: row.distribution.part3.biet,
+              [DIFFICULTY_LEVEL.COMPREHENSION]: row.distribution.part3.hieu,
+              [DIFFICULTY_LEVEL.APPLICATION]: row.distribution.part3.vd,
             },
           },
         ],

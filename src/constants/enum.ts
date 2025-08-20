@@ -23,7 +23,6 @@ export const LessonPlanNodeTypeLabel: Record<LESSON_PLAN_TYPE, string> = {
   [LESSON_PLAN_TYPE.SECTION]: "Phần chính",
 };
 
-
 export const LessonPlanFieldTypeLabel: Record<LESSON_PLAN_FIELDTYPE, string> = {
   [LESSON_PLAN_FIELDTYPE.INPUT]: "Ô nhập liệu",
   [LESSON_PLAN_FIELDTYPE.TABLE]: "Bảng",
@@ -39,7 +38,7 @@ export const convertNodeTypeToVietnamese = (type: string): string => {
     PARAGRAPH: "Nội dung",
     TABLE: "Bảng",
     INPUT: "Ô nhập liệu",
-    REFERENCES: "Tài liệu tham khảo"
+    REFERENCES: "Tài liệu tham khảo",
   };
 
   return typeMap[type] || type;
@@ -50,7 +49,7 @@ export const convertFieldTypeToVietnamese = (fieldType: string): string => {
   const fieldTypeMap: Record<string, string> = {
     INPUT: "Ô nhập liệu",
     TABLE: "Bảng",
-    REFERENCES: "Tài liệu tham khảo"
+    REFERENCES: "Tài liệu tham khảo",
   };
 
   return fieldTypeMap[fieldType] || fieldType;
@@ -63,17 +62,17 @@ export const convertToVietnamese = (
 ): { nodeType: string; fieldType: string } => {
   return {
     nodeType: type ? convertNodeTypeToVietnamese(type) : "",
-    fieldType: fieldType ? convertFieldTypeToVietnamese(fieldType) : ""
+    fieldType: fieldType ? convertFieldTypeToVietnamese(fieldType) : "",
   };
 };
 
 export enum ORDER_STATUS {
-  PENDING = "PENDING",        // Đang chờ thanh toán
-  PAID = "PAID",             // Đã thanh toán thành công (thay cho SUCCESS)
-  FAILED = "FAILED",         // Thất bại
-  CANCELLED = "CANCELLED",   // Đã hủy
-  EXPIRED = "EXPIRED",       // Đã hết hạn
-  RETRY = "RETRY"           // Đã thử thanh toán lại (tùy chọn, để theo dõi)
+  PENDING = "PENDING", // Đang chờ thanh toán
+  PAID = "PAID", // Đã thanh toán thành công (thay cho SUCCESS)
+  FAILED = "FAILED", // Thất bại
+  CANCELLED = "CANCELLED", // Đã hủy
+  EXPIRED = "EXPIRED", // Đã hết hạn
+  RETRY = "RETRY", // Đã thử thanh toán lại (tùy chọn, để theo dõi)
 }
 
 export const OrderStatusLabel: Record<ORDER_STATUS, string> = {
@@ -85,7 +84,14 @@ export const OrderStatusLabel: Record<ORDER_STATUS, string> = {
   [ORDER_STATUS.RETRY]: "Đã thử thanh toán lại",
 };
 
-export type OrderStatus = "PENDING" | "PAID" | "COMPLETED" | "CANCELLED" | "FAILED" | "EXPIRED" | "RETRY"; 
+export type OrderStatus =
+  | "PENDING"
+  | "PAID"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "FAILED"
+  | "EXPIRED"
+  | "RETRY";
 
 export const getOrderStatusLabel = (status: OrderStatus): string => {
   const labels: Record<OrderStatus, string> = {
@@ -95,7 +101,7 @@ export const getOrderStatusLabel = (status: OrderStatus): string => {
     CANCELLED: "Đã hủy",
     FAILED: "Thất bại",
     EXPIRED: "Hết hạn",
-    RETRY:"Thanh toán lại"
+    RETRY: "Thanh toán lại",
   };
   return labels[status];
 };
@@ -107,3 +113,8 @@ export enum ROLE {
   PARTNER = "PARTNER",
 }
 
+export enum DIFFICULTY_LEVEL {
+  KNOWLEDGE = "KNOWLEDGE",
+  COMPREHENSION = "COMPREHENSION",
+  APPLICATION = "APPLICATION",
+}
