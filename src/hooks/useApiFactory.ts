@@ -64,6 +64,25 @@ export const createApiHooks = (
       });
     };
 
+  // Dynamic query hook factory with custom dependencies
+  const createDynamicQueryHook =
+    (baseQueryKey: string, url: string) =>
+    (
+      dependencies?: any[], // Array of dependencies to include in queryKey
+      options?: any,
+      params?: any
+    ): UseQueryResult<any, AxiosError<{ message: string }>> => {
+      const queryKey = dependencies
+        ? [`${instanceName}-${baseQueryKey}`, ...dependencies]
+        : [`${instanceName}-${baseQueryKey}`];
+
+      return useQuery({
+        queryKey,
+        queryFn: async () => (await axiosInstance.get(url, { params })).data,
+        ...options,
+      });
+    };
+
   // Mutation hook factory
   const createMutationHook =
     (queryKey: string, url: string) =>
@@ -159,6 +178,7 @@ export const createApiHooks = (
     createQueryHook,
     createQueryWithPathParamHook,
     createSearchQueryHook,
+    createDynamicQueryHook,
     createMutationHook,
     createMutationUploadFilesHook,
     updateMutationHook,
@@ -190,6 +210,7 @@ export const {
   updateMutationHook: updateSecondaryMutationHook,
   deleteMutationHook: deleteSecondaryMutationHook,
   createSearchQueryHook: createSecondarySearchQueryHook,
+  createDynamicQueryHook: createSecondaryDynamicQueryHook,
 } = secondaryApiHooks;
 
 

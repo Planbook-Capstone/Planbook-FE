@@ -1,5 +1,6 @@
 import {  PDF_API_ENDPOINTS } from "@/constants/apiEndpoints";
 import {
+  createSecondaryDynamicQueryHook,
   createSecondaryMutationHook,
   createSecondaryQueryHook,
   deleteSecondaryMutationHook,
@@ -71,7 +72,7 @@ export const useDeletePdfWithQuery = () => {
   });
 };
 
-export const useTextbookByLessonIdService = createDynamicQueryHook(
+export const useTextbookByLessonIdService = createSecondaryDynamicQueryHook(
   "textbook",
   PDF_API_ENDPOINTS.LESSON
 );
