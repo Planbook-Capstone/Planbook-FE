@@ -42,7 +42,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex py-5 flex-col items-center justify-between h-full border-r-[0.5px] border-r-[#DFDFDF]">
             <SidebarMenu
               menuItems={staffItems}
-              defaultActiveKey="/"
+              defaultActiveKey="textbook"
               basePath="/staff"
             />
 

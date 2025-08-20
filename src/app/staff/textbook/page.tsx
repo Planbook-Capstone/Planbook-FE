@@ -4,7 +4,7 @@ import { useState } from "react";
 import FolderCard from "@/components/molecules/folder-card";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
-import { useBooksBySubjectService } from "@/services/bookServices";
+import { useBookActiveBySubjectService } from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import Image from "next/image";
@@ -30,9 +30,13 @@ function TextbookManagementPage() {
       enabled: !!selectedGrade,
     }
   );
-  const { data: books } = useBooksBySubjectService(selectedSubject?.id || "", {
-    enabled: !!selectedSubject,
-  });
+  const { data: books } = useBookActiveBySubjectService(
+    selectedSubject?.id || "",
+    "ACTIVE",
+    {
+      enabled: !!selectedSubject,
+    }
+  );
 
   // Get chapters by selected book
   const { data: chaptersResponse } = useChaptersByBookService(

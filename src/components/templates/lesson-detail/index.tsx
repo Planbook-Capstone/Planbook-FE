@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/modal";
 import { Upload, FileText, X } from "lucide-react";
 import { UploadIcon } from "@/constants/icon";
+import { useTextbookByLessonIdService } from "@/services/textbookServices";
 
 interface LessonDetailProps {
   lesson: any;
@@ -121,6 +122,18 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
     return breadcrumbs;
   };
 
+  const { data: textbook } = useTextbookByLessonIdService(
+    [lesson?.id], // dependencies array
+    {
+      enabled: !!lesson?.id,
+    },
+    {
+      lessonsID: lesson?.id, // query parameters
+    }
+  );
+
+  console.log(textbook, "textbook");
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb Navigation */}
@@ -172,7 +185,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
           {/* File Upload Area */}
           <div className="space-y-4">
             <div className="text-sm text-gray-600">
-              Chọn file PDF hoặc DOCX để import nội dung sách
+              Chọn file PDF để import nội dung sách
             </div>
 
             {!selectedFile ? (
@@ -191,7 +204,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({
                     Chọn file để upload
                   </p>
                   <p className="text-sm text-gray-500">
-                    Hỗ trợ file PDF, DOC, DOCX (tối đa 10MB)
+                    Chỉ hỗ trợ file PDF (tối đa 10MB)
                   </p>
                 </label>
               </div>
