@@ -63,6 +63,55 @@ interface ExamProviderProps {
   children: ReactNode;
 }
 
+// Helper function to normalize statements format
+const normalizeStatements = (statements: any, answers?: any) => {
+  let normalizedStatements = {
+    a: { text: "", answer: false },
+    b: { text: "", answer: false },
+    c: { text: "", answer: false },
+    d: { text: "", answer: false },
+  };
+
+  if (!statements) return normalizedStatements;
+
+  // Map from various possible key formats to lowercase a,b,c,d
+  const keyMappings = [
+    { from: ['A', 'B', 'C', 'D'], to: ['a', 'b', 'c', 'd'] },
+    { from: ['a', 'b', 'c', 'd'], to: ['a', 'b', 'c', 'd'] },
+    { from: ['1', '2', '3', '4'], to: ['a', 'b', 'c', 'd'] },
+  ];
+
+  for (const mapping of keyMappings) {
+    let hasValidMapping = false;
+    mapping.from.forEach((fromKey, index) => {
+      if (statements[fromKey]) {
+        const toKey = mapping.to[index];
+        const statementData = statements[fromKey];
+
+        // Handle both object format {text: string, answer: boolean} and string format
+        if (typeof statementData === 'object' && statementData.text !== undefined) {
+          normalizedStatements[toKey as keyof typeof normalizedStatements] = {
+            text: String(statementData.text || ""),
+            answer: Boolean(statementData.answer || false),
+          };
+        } else if (typeof statementData === 'string') {
+          // Legacy format where statements are strings and answers might be separate
+          normalizedStatements[toKey as keyof typeof normalizedStatements] = {
+            text: String(statementData),
+            answer: Boolean(answers?.[fromKey] || false),
+          };
+        }
+        hasValidMapping = true;
+      }
+    });
+
+    // If we found valid data with this mapping, break
+    if (hasValidMapping) break;
+  }
+
+  return normalizedStatements;
+};
+
 export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [disableReloadWarning, setDisableReloadWarning] = useState(false);
@@ -118,28 +167,9 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
             // Migrate old format to new format
             return questions.map((question: any) => {
               if (question.statements) {
-                // Ensure statements have proper format
-                const migratedStatements = {
-                  a: {
-                    text: String(question.statements.a?.text || ""),
-                    answer: Boolean(question.statements.a?.answer || false),
-                  },
-                  b: {
-                    text: String(question.statements.b?.text || ""),
-                    answer: Boolean(question.statements.b?.answer || false),
-                  },
-                  c: {
-                    text: String(question.statements.c?.text || ""),
-                    answer: Boolean(question.statements.c?.answer || false),
-                  },
-                  d: {
-                    text: String(question.statements.d?.text || ""),
-                    answer: Boolean(question.statements.d?.answer || false),
-                  },
-                };
                 return {
                   ...question,
-                  statements: migratedStatements,
+                  statements: normalizeStatements(question.statements, question.answers),
                 };
               }
               return question;
@@ -447,12 +477,7 @@ export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
           const question: YesNoQuestion = {
             id: questionId,
             question: q.question || "",
-            statements: q.statements || {
-              a: { text: "", answer: true },
-              b: { text: "", answer: false },
-              c: { text: "", answer: true },
-              d: { text: "", answer: false },
-            },
+            statements: normalizeStatements(q.statements, q.answers),
             type: "yes-no",
             illustrationImage: q.illustrationImage || undefined,
           };
