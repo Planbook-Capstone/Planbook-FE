@@ -1,59 +1,42 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 // Định nghĩa các route tĩnh của website
 const staticRoutes = [
   {
-    url: 'https://planbook.vn',
+    url: "https://planbook.vn",
     lastModified: new Date(),
-    changeFrequency: 'daily' as const,
+    changeFrequency: "daily" as const,
     priority: 1.0,
   },
   {
-    url: 'https://planbook.vn/auth/login',
+    url: "https://planbook.vn/auth/login",
     lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
+    changeFrequency: "monthly" as const,
     priority: 0.8,
   },
   {
-    url: 'https://planbook.vn/auth/register',
+    url: "https://planbook.vn/auth/register",
     lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
+    changeFrequency: "monthly" as const,
     priority: 0.8,
   },
   {
-    url: 'https://planbook.vn/home',
+    url: "https://planbook.vn/home",
     lastModified: new Date(),
-    changeFrequency: 'daily' as const,
+    changeFrequency: "daily" as const,
     priority: 0.9,
   },
+
   {
-    url: 'https://planbook.vn/admin',
+    url: "https://planbook.vn/exam",
     lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  },
-  {
-    url: 'https://planbook.vn/staff',
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  },
-  {
-    url: 'https://planbook.vn/auto-grading',
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
+    changeFrequency: "weekly" as const,
     priority: 0.8,
   },
   {
-    url: 'https://planbook.vn/exam',
+    url: "https://planbook.vn/tool-manager",
     lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  },
-  {
-    url: 'https://planbook.vn/tool-manager',
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
+    changeFrequency: "weekly" as const,
     priority: 0.7,
   },
 ];
@@ -76,7 +59,7 @@ ${routes
     <priority>${route.priority}</priority>
   </url>`
   )
-  .join('\n')}
+  .join("\n")}
 </urlset>`;
 
   return sitemap;
@@ -86,18 +69,18 @@ export async function GET() {
   try {
     // Trong tương lai có thể thêm logic để lấy dynamic routes từ database
     // Ví dụ: danh sách bài học, giáo án, etc.
-    
+
     const sitemap = generateSitemapXML(staticRoutes);
 
     return new NextResponse(sitemap, {
       status: 200,
       headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600', // Cache 1 giờ
+        "Content-Type": "application/xml",
+        "Cache-Control": "public, max-age=3600, s-maxage=3600", // Cache 1 giờ
       },
     });
   } catch (error) {
-    console.error('Error generating sitemap:', error);
-    return new NextResponse('Error generating sitemap', { status: 500 });
+    console.error("Error generating sitemap:", error);
+    return new NextResponse("Error generating sitemap", { status: 500 });
   }
 }
