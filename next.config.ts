@@ -3,6 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   output: "standalone", // Tối ưu cho Docker
+
+  // SEO và Performance optimizations
+  poweredByHeader: false, // Ẩn header "X-Powered-By: Next.js"
+  generateEtags: true, // Tạo ETags cho caching
+  compress: true, // Bật gzip compression
+
+  // Image optimization
   images: {
     domains: ["localhost"],
     remotePatterns: [
@@ -11,7 +18,63 @@ const nextConfig: NextConfig = {
         hostname: "**",
       },
     ],
+    formats: ["image/webp", "image/avif"], // Tối ưu format ảnh
+    minimumCacheTTL: 60 * 60 * 24 * 30, // Cache ảnh 30 ngày
   },
+
+  // Headers cho SEO và Security
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+        ],
+      },
+      {
+        source: "/sitemap.xml",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/xml",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, s-maxage=3600",
+          },
+        ],
+      },
+      {
+        source: "/robots.txt",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "text/plain",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400",
+          },
+        ],
+      },
+    ];
+  },
+
   reactStrictMode: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
