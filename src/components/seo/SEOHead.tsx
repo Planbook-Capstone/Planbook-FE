@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
 export interface SEOProps {
   title?: string;
@@ -6,7 +6,7 @@ export interface SEOProps {
   keywords?: string[];
   image?: string;
   url?: string;
-  type?: 'website' | 'article';
+  type?: "website" | "article";
   publishedTime?: string;
   modifiedTime?: string;
   author?: string;
@@ -22,7 +22,7 @@ export function generateMetadata({
   keywords = [],
   image,
   url,
-  type = 'website',
+  type = "website",
   publishedTime,
   modifiedTime,
   author,
@@ -31,16 +31,18 @@ export function generateMetadata({
   noIndex = false,
   noFollow = false,
 }: SEOProps): Metadata {
-  const baseUrl = 'https://planbook.vn';
+  const baseUrl = "https://planbook.vn";
   const fullUrl = url ? `${baseUrl}${url}` : baseUrl;
-  const ogImage = image ? `${baseUrl}${image}` : `${baseUrl}/images/og-image.png`;
+  const ogImage = image
+    ? `${baseUrl}${image}`
+    : `${baseUrl}/images/og-image.png`;
 
   const allKeywords = [
     ...keywords,
-    'planbook',
-    'giáo án',
-    'quản lý giáo án',
-    'hệ thống giáo dục',
+    "planbook",
+    "giáo án",
+    "quản lý giáo án",
+    "hệ thống giáo dục",
     ...tags,
   ];
 
@@ -49,24 +51,28 @@ export function generateMetadata({
     description,
     keywords: allKeywords.length > 0 ? allKeywords : undefined,
     alternates: {
-      canonical: url || '/',
+      canonical: url || "/",
     },
     openGraph: {
       type,
-      locale: 'vi_VN',
+      locale: "vi_VN",
       url: fullUrl,
-      title: title ? `${title} | PlanBook` : 'PlanBook - Hệ thống quản lý giáo án thông minh',
-      description: description || 'PlanBook là hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.',
-      siteName: 'PlanBook',
+      title: title
+        ? `${title} | PlanBook`
+        : "PlanBook - Hệ thống quản lý giáo án thông minh",
+      description:
+        description ||
+        "PlanBook là hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.",
+      siteName: "PlanBook",
       images: [
         {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: title || 'PlanBook',
+          alt: title || "PlanBook",
         },
       ],
-      ...(type === 'article' && {
+      ...(type === "article" && {
         publishedTime,
         modifiedTime,
         authors: author ? [author] : undefined,
@@ -75,11 +81,15 @@ export function generateMetadata({
       }),
     },
     twitter: {
-      card: 'summary_large_image',
-      title: title ? `${title} | PlanBook` : 'PlanBook - Hệ thống quản lý giáo án thông minh',
-      description: description || 'PlanBook là hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.',
+      card: "summary_large_image",
+      title: title
+        ? `${title} | PlanBook`
+        : "PlanBook - Hệ thống quản lý giáo án thông minh",
+      description:
+        description ||
+        "PlanBook là hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.",
       images: [ogImage],
-      creator: '@planbook_vn',
+      creator: "@planbook_vn",
     },
     robots: {
       index: !noIndex,
@@ -87,9 +97,9 @@ export function generateMetadata({
       googleBot: {
         index: !noIndex,
         follow: !noFollow,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
       },
     },
   };
@@ -105,47 +115,33 @@ export function useSEO(props: SEOProps) {
 // Các template SEO cho các trang phổ biến
 export const SEOTemplates = {
   home: (): SEOProps => ({
-    title: 'Trang chủ',
-    description: 'PlanBook - Hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.',
-    keywords: ['trang chủ', 'planbook', 'hệ thống giáo dục'],
-    url: '/',
+    title: "Trang chủ",
+    description:
+      "PlanBook - Hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.",
+    keywords: [
+      "trang chủ",
+      "planbook",
+      "hệ thống giáo dục",
+      "tạo giáo án",
+      "slide",
+      "đề thi AI",
+      "bài kiểm tra",
+    ],
+    url: "/",
   }),
 
   login: (): SEOProps => ({
-    title: 'Đăng nhập',
-    description: 'Đăng nhập vào hệ thống PlanBook để quản lý giáo án và sử dụng các tính năng giáo dục thông minh.',
-    keywords: ['đăng nhập', 'login', 'tài khoản'],
-    url: '/auth/login',
-    noIndex: true, // Không index trang login
+    title: "Đăng nhập",
+    description:
+      "Đăng nhập vào hệ thống PlanBook để quản lý giáo án và sử dụng các tính năng giáo dục thông minh.",
+    keywords: ["đăng nhập", "login", "tài khoản"],
+    url: "/auth",
   }),
-
-  register: (): SEOProps => ({
-    title: 'Đăng ký',
-    description: 'Tạo tài khoản PlanBook miễn phí để bắt đầu sử dụng hệ thống quản lý giáo án thông minh.',
-    keywords: ['đăng ký', 'register', 'tài khoản mới'],
-    url: '/auth/register',
-    noIndex: true, // Không index trang register
-  }),
-
-  autoGrading: (): SEOProps => ({
-    title: 'Chấm điểm tự động',
-    description: 'Hệ thống chấm điểm tự động của PlanBook giúp giáo viên tiết kiệm thời gian và nâng cao độ chính xác trong việc đánh giá học sinh.',
-    keywords: ['chấm điểm tự động', 'đánh giá', 'AI grading'],
-    url: '/auto-grading',
-  }),
-
   exam: (): SEOProps => ({
-    title: 'Thi trực tuyến',
-    description: 'Hệ thống thi trực tuyến của PlanBook cho phép tạo và quản lý các kỳ thi một cách hiệu quả và bảo mật.',
-    keywords: ['thi trực tuyến', 'online exam', 'kiểm tra'],
-    url: '/exam',
-  }),
-
-  admin: (): SEOProps => ({
-    title: 'Quản trị hệ thống',
-    description: 'Trang quản trị hệ thống PlanBook dành cho administrators.',
-    url: '/admin',
-    noIndex: true, // Không index trang admin
-    noFollow: true,
+    title: "Thi trực tuyến",
+    description:
+      "Hệ thống thi trực tuyến của PlanBook cho phép tạo và quản lý các kỳ thi một cách hiệu quả và bảo mật.",
+    keywords: ["thi trực tuyến", "online exam", "kiểm tra"],
+    url: "/exam",
   }),
 };
