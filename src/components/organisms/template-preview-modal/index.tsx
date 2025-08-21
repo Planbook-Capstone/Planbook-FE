@@ -194,21 +194,56 @@ export default function TemplatePreviewModal({
                                     />
                                   </div>
                                 )}
-                                <div className="grid grid-cols-2 gap-2 ml-4">
-                                  {Object.entries(question.options || {}).map(
-                                    ([key, value]) => (
-                                      <div
-                                        key={key}
-                                        className="flex items-start"
-                                      >
-                                        <span className="font-medium mr-2">
-                                          {key.toUpperCase()}.
-                                        </span>
-                                        <span>{value as string}</span>
-                                      </div>
-                                    )
-                                  )}
-                                </div>
+                                {(() => {
+                                  // Calculate average length of options to determine grid layout
+                                  const options = Object.values(question.options || {});
+                                  const avgLength = options.length > 0
+                                    ? options.reduce((sum: number, option) => sum + (option as string).length, 0) / options.length
+                                    : 0;
+
+                                  // Determine grid class based on average length
+                                  const gridClass = avgLength < 10
+                                    ? "grid-cols-4"
+                                    : avgLength >= 10 && avgLength < 20
+                                    ? "grid-cols-2"
+                                    : "grid-cols-1";
+
+                                  return (
+                                    <div className={`grid ${gridClass} gap-2 ml-4`}>
+                                      {Object.entries(question.options || {}).map(
+                                        ([key, value]) => (
+                                          <div
+                                            key={key}
+                                            className={`flex items-start ${
+                                              question.correctAnswer === key
+                                                ? "font-bold text-green-600"
+                                                : ""
+                                            }`}
+                                          >
+                                            <span className="font-medium mr-2">
+                                              {key.toUpperCase()}.
+                                            </span>
+                                            <span
+                                              dangerouslySetInnerHTML={{
+                                                __html: value as string,
+                                              }}
+                                            />
+                                            {question.correctAnswer === key && (
+                                              <span className="ml-1 text-green-600 font-bold text-sm">
+                                                ✓
+                                              </span>
+                                            )}
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                                {question.correctAnswer && (
+                                  <div className="mt-1 ml-4 text-xs text-green-600 font-medium">
+                                    Đáp án: {question.correctAnswer.toUpperCase()}
+                                  </div>
+                                )}
                               </div>
                             )
                           )}
@@ -245,22 +280,78 @@ export default function TemplatePreviewModal({
                                     />
                                   </div>
                                 )}
-                                <div className="ml-4 space-y-1">
+                                <div className="grid grid-cols-1 gap-1 ml-4">
                                   {question.statements &&
                                     Object.entries(question.statements).map(
-                                      ([key, statement]: [string, any]) => (
-                                        <div
-                                          key={key}
-                                          className="flex items-start"
-                                        >
-                                          <span className="font-medium mr-2">
-                                            {key.toUpperCase()}.
-                                          </span>
-                                          <span>{statement.text}</span>
-                                        </div>
-                                      )
+                                      ([key, statement]: [string, any]) => {
+                                        // Check both lowercase and uppercase keys for correctAnswers
+                                        const correctAnswer = question.correctAnswers && (
+                                          question.correctAnswers[key] !== undefined
+                                            ? question.correctAnswers[key]
+                                            : question.correctAnswers[key.toLowerCase()] !== undefined
+                                            ? question.correctAnswers[key.toLowerCase()]
+                                            : question.correctAnswers[key.toUpperCase()] !== undefined
+                                            ? question.correctAnswers[key.toUpperCase()]
+                                            : undefined
+                                        );
+
+                                        return (
+                                          <div
+                                            key={key}
+                                            className={`flex items-start ${
+                                              correctAnswer !== undefined
+                                                ? correctAnswer
+                                                  ? "text-green-600 font-medium"
+                                                  : "text-red-600 font-medium"
+                                                : ""
+                                            }`}
+                                          >
+                                            <span className="font-medium mr-2">
+                                              {key.toUpperCase()}.
+                                            </span>
+                                            <span
+                                              dangerouslySetInnerHTML={{
+                                                __html: statement.text || "",
+                                              }}
+                                            />
+                                            {correctAnswer !== undefined && (
+                                              <span className="ml-1 font-bold text-sm">
+                                                {correctAnswer ? "✓" : "✗"}
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      }
                                     )}
                                 </div>
+                                {question.correctAnswers && (
+                                  <div className="mt-1 ml-4 text-xs font-medium">
+                                    <span className="text-gray-700">Đáp án: </span>
+                                    {Object.entries(question.statements || {}).map(
+                                      ([statementKey], index: number) => {
+                                        // Find the correct answer for this statement key (case insensitive)
+                                        const correctAnswer = question.correctAnswers[statementKey] !== undefined
+                                          ? question.correctAnswers[statementKey]
+                                          : question.correctAnswers[statementKey.toLowerCase()] !== undefined
+                                          ? question.correctAnswers[statementKey.toLowerCase()]
+                                          : question.correctAnswers[statementKey.toUpperCase()] !== undefined
+                                          ? question.correctAnswers[statementKey.toUpperCase()]
+                                          : undefined;
+
+                                        if (correctAnswer === undefined) return null;
+
+                                        return (
+                                          <span key={statementKey}>
+                                            {index > 0 && ", "}
+                                            <span className={correctAnswer ? "text-green-600" : "text-red-600"}>
+                                              {statementKey.toUpperCase()}: {correctAnswer ? "Đúng" : "Sai"}
+                                            </span>
+                                          </span>
+                                        );
+                                      }
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             )
                           )}
@@ -297,6 +388,19 @@ export default function TemplatePreviewModal({
                                     />
                                   </div>
                                 )}
+                                {/* {question.answer && (
+                                  <div className="mt-3 ml-4 p-3 bg-green-50 border-l-4 border-green-400">
+                                    <div className="text-sm font-medium text-green-800 mb-1">
+                                      Đáp án:
+                                    </div>
+                                    <div
+                                      className="text-sm text-green-700"
+                                      dangerouslySetInnerHTML={{
+                                        __html: question.answer,
+                                      }}
+                                    />
+                                  </div>
+                                )} */}
                               </div>
                             )
                           )}
