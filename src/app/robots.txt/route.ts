@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const robotsTxt = `User-agent: *
+  const robotsTxt = `# Cho phép tất cả bot crawl
+User-agent: *
 Allow: /
 
 # Disallow admin and private areas
@@ -18,15 +19,13 @@ Allow: /home
 Allow: /auto-grading
 Allow: /exam
 
-# Sitemap location
-Sitemap: https://planbook.vn/sitemap.xml
-
 # Crawl delay (optional - giúp giảm tải server)
 Crawl-delay: 1
 
 # Specific rules for Google
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: facebookexternalhit
 Allow: /
@@ -39,7 +38,10 @@ User-agent: MJ12bot
 Disallow: /
 
 User-agent: DotBot
-Disallow: /`;
+Disallow: /
+
+# Khai báo sitemap để Google tìm thấy
+Sitemap: https://planbook.vn/sitemap.xml`;
 
   return new NextResponse(robotsTxt, {
     status: 200,
