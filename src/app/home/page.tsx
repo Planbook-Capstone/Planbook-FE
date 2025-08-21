@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCancelPaymentService } from "@/services/orderServices";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import HomeTour from "@/components/organisms/home-tour";
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -84,7 +85,9 @@ export default function Home() {
         {
           onSuccess: (response) => {
             console.log("Payment cancelled successfully:", response);
-            toast.success(`Đã hủy thanh toán cho đơn hàng ${orderCode} thành công`);
+            toast.success(
+              `Đã hủy thanh toán cho đơn hàng ${orderCode} thành công`
+            );
 
             // Remove all query parameters from URL after successful cancellation
             const newUrl = new URL(window.location.href);
@@ -95,9 +98,9 @@ export default function Home() {
             console.error("Failed to cancel payment:", error);
             toast.error(
               error?.response?.data?.message ||
-              `Có lỗi xảy ra khi hủy thanh toán cho đơn hàng ${orderCode}`
+                `Có lỗi xảy ra khi hủy thanh toán cho đơn hàng ${orderCode}`
             );
-          }
+          },
         }
       );
     }
@@ -139,18 +142,20 @@ export default function Home() {
   return (
     <MainLayout>
       {/* <Banner /> */}
-      <BannerOverlay
-        imageSrc="/images/background/abstract-bg.svg"
-        videoSrc="https://res.cloudinary.com/dpo0ad3aq/video/upload/Scene_03_-_4K_3840x2160_h0awgk.mp4"
-        title={"Chào mừng " + displayName || "Chào mừng Người dùng ẩn danh"}
-        onSearch={(query) => console.log("Searching for:", query)}
-        height="h-80"
-        grid={10}
-        mouse={0.1}
-        strength={0.15}
-        relaxation={0.9}
-        className="mb-8"
-      />
+      <div data-tour="banner">
+        <BannerOverlay
+          imageSrc="/images/background/abstract-bg.svg"
+          videoSrc="https://res.cloudinary.com/dpo0ad3aq/video/upload/Scene_03_-_4K_3840x2160_h0awgk.mp4"
+          title={"Chào mừng " + displayName || "Chào mừng Người dùng ẩn danh"}
+          onSearch={(query) => console.log("Searching for:", query)}
+          height="h-80"
+          grid={10}
+          mouse={0.1}
+          strength={0.15}
+          relaxation={0.9}
+          className="mb-8"
+        />
+      </div>
 
       {isLoading ||
         (isLoadingTools && (
@@ -167,7 +172,10 @@ export default function Home() {
           </div>
         ))}
 
-      <section className="grid grid-cols-1 xl:grid-grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-5">
+      <section
+        data-tour="features"
+        className="grid grid-cols-1 xl:grid-grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-5"
+      >
         {bookTypes?.data?.content
           ?.sort((a: any, b: any) => a.priority - b.priority)
           ?.map((feature: any) => (
@@ -180,7 +188,7 @@ export default function Home() {
               href={feature.href}
             />
           ))}
-        {externalTools?.data?.content
+        {/* {externalTools?.data?.content
           ?.sort((a: any, b: any) => a.priority - b.priority)
           ?.map((feature: any) => (
             <CardFeature
@@ -191,10 +199,13 @@ export default function Home() {
               description={feature.description}
               href={feature.href}
             />
-          ))}
+          ))} */}
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+      <section
+        data-tour="illustrations"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5"
+      >
         <SpotlightCard
           className="!p-0 !bg-transparent !border-0 w-full aspect-[4/3] rounded-lg overflow-hidden"
           spotlightColor="rgba(59, 130, 246, 0.3)"
@@ -224,18 +235,25 @@ export default function Home() {
         </SpotlightCard>
       </section>
 
-      <ItemSection
-        title={
-          <>
-            {HistoryIcon}
-            Lịch sử
-          </>
-        }
-      />
+      <div data-tour="history">
+        <ItemSection
+          title={
+            <>
+              {HistoryIcon}
+              Lịch sử
+            </>
+          }
+        />
+      </div>
       {view === "list" ? (
-        <HistoryList data={toolLogs?.data?.content || []} />
+       <div data-tour="history-list">
+         <HistoryList  data={toolLogs?.data?.content || []} />
+       </div>
       ) : (
-        <section className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <section
+          data-tour="history-list"
+          className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5"
+        >
           {toolLogs?.data?.content?.map((data: any, index: number) => (
             <HistoryCard
               key={index}
@@ -247,7 +265,7 @@ export default function Home() {
       )}
 
       {toolLogs?.data && toolLogs.data.totalPages > 1 && (
-        <div className="float-end mt-5 space-y-4">
+        <div data-tour="pagination" className="float-end mt-5 space-y-4">
           {/* Info text */}
           {/* <div className="text-center">
             <p className="text-sm text-gray-700">
@@ -401,6 +419,9 @@ export default function Home() {
           </Pagination>
         </div>
       )}
+
+      {/* Tour hướng dẫn */}
+      <HomeTour bookTypes={bookTypes?.data?.content || []} />
     </MainLayout>
   );
 }

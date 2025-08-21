@@ -21,6 +21,7 @@ const MainHeader = (props: MainHeaderProps) => {
       <div className="container mx-auto flex justify-between items-center px-5">
         {/* Logo */}
         <div
+          data-tour="logo"
           onClick={() => router.push("/home")}
           className="flex items-center gap-2 cursor-pointer"
         >
@@ -35,7 +36,7 @@ const MainHeader = (props: MainHeaderProps) => {
         </div>
 
         {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav data-tour="navigation" className="hidden md:flex items-center gap-6">
           {userItems.map((item) => {
             const isActive = pathname === item.href;
             return (
