@@ -1,0 +1,86 @@
+{
+  "name": "PlanBook - Hệ thống quản lý giáo án thông minh",
+  "short_name": "PlanBook",
+  "description": "Hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "vi",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/images/logo/planbook-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/logo/planbook-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/screenshots/desktop-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Trang chủ PlanBook trên desktop"
+    },
+    {
+      "src": "/images/screenshots/mobile-home.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Trang chủ PlanBook trên mobile"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tạo giáo án mới",
+      "short_name": "Giáo án mới",
+      "description": "Tạo giáo án mới nhanh chóng",
+      "url": "/lesson-plan/create",
+      "icons": [
+        {
+          "src": "/icons/lesson-plan.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Chấm điểm tự động",
+      "short_name": "Chấm điểm",
+      "description": "Truy cập tính năng chấm điểm tự động",
+      "url": "/auto-grading",
+      "icons": [
+        {
+          "src": "/icons/exam.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Thi trực tuyến",
+      "short_name": "Thi online",
+      "description": "Tạo và quản lý bài thi trực tuyến",
+      "url": "/exam",
+      "icons": [
+        {
+          "src": "/icons/exam.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
