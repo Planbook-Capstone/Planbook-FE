@@ -3,6 +3,7 @@ import { UserWithWalletResponse } from "@/types";
 import { DataTable } from "../data-table";
 import { createUserColumns } from "./columns";
 import { Row } from "@tanstack/react-table";
+import { useAuth } from "@/hooks/useAuth";
 
 interface UserTableProps {
   users: UserWithWalletResponse[];
@@ -17,9 +18,12 @@ export default function UserTable({
   onViewUser,
   onToggleUserStatus,
 }: UserTableProps) {
+  const { user: currentUser } = useAuth();
+
   const columns = createUserColumns({
     onViewUser,
     onToggleUserStatus,
+    currentUserId: currentUser?.id, // Truyền currentUserId để so sánh
   });
 
   return (

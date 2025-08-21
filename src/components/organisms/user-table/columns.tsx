@@ -4,11 +4,11 @@ import { ROLE_LABELS, ROLE_COLORS } from "@/constants";
 import { Button } from "@/components/ui/Button";
 import { Eye, UserCheck, UserX } from "lucide-react";
 
-
 // Handler function types
 interface UserColumnHandlers {
   onViewUser: (user: UserWithWalletResponse) => void;
   onToggleUserStatus: (user: UserWithWalletResponse) => void;
+  currentUserId?: string; // Thêm currentUserId để so sánh
 }
 
 export const createUserColumns = (
@@ -96,6 +96,10 @@ export const createUserColumns = (
     header: "Hành động",
     cell: ({ row }) => {
       const user = row.original;
+
+      // Kiểm tra nếu user hiện tại trùng với user đang xem
+      const isCurrentUser = handlers.currentUserId === user.id;
+
       return (
         <div className="flex items-center gap-2">
           <Button
@@ -107,7 +111,8 @@ export const createUserColumns = (
           >
             <Eye size={16} />
           </Button>
-          {user.status !== "INACTIVE" && (
+          {/* Ẩn button active/inactive nếu là user hiện tại */}
+          {!isCurrentUser && user.status !== "INACTIVE" && (
             <Button
               variant="ghost"
               size="sm"
