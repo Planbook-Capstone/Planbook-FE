@@ -124,7 +124,7 @@ export default function ChatBox({
   // console.log("Render check - isOpen:", isOpen);
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative", className)} >
       {/* Chat Toggle Button with Settings on Hover */}
       <div
         className="relative"
@@ -177,7 +177,9 @@ export default function ChatBox({
             title={title}
             placeholder={placeholder}
             showMinimize={false}
-            onAddMessage={(message) => setMessages((prev) => [...prev, message])}
+            onAddMessage={(message) =>
+              setMessages((prev) => [...prev, message])
+            }
           />
         </div>
       )}

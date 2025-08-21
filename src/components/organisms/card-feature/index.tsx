@@ -67,6 +67,7 @@ const CardFeature = ({
     <div
       onClick={handleClick}
       className="w-full flex justify-between items-center gap-1 border border-[#DFDFDF]  rounded-2xl cursor-pointer  hover:bg-[#FAFAFA] "
+      data-tour={id ? `feature-${id}` : undefined}
     >
       <SpotlightCard
         className=" !bg-transparent !border-0 w-full flex justify-between items-center aspect-[4/3] rounded-lg overflow-hidden max-h-20 !px-2.5 !py-3.5"

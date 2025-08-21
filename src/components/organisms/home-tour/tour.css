@@ -1,0 +1,111 @@
+/* Tour component styles with Questrial font */
+.ant-tour {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour * {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-content {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-title {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-description {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-description p {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-description ul {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-description li {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-description strong {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-buttons {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-buttons .ant-btn {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour .ant-tour-indicators {
+  font-family: var(--font-questrial) !important;
+}
+
+/* Help button styles */
+.tour-help-button {
+  font-family: var(--font-questrial) !important;
+}
+
+.tour-help-button * {
+  font-family: var(--font-questrial) !important;
+}
+
+/* Custom button text for Vietnamese */
+/* Reset tất cả button text trước */
+.ant-tour .ant-tour-buttons .ant-btn span {
+  display: none !important;
+}
+
+/* Nút Next (có class ant-tour-next-btn) */
+.ant-tour .ant-tour-buttons .ant-btn.ant-tour-next-btn::after {
+  content: "Tiếp tục";
+  font-family: var(--font-questrial) !important;
+}
+
+/* Nút Previous (không có class ant-tour-next-btn và không phải only-child) */
+.ant-tour .ant-tour-buttons .ant-btn:not(.ant-tour-next-btn):not(:only-child)::after {
+  content: "Quay lại";
+  font-family: var(--font-questrial) !important;
+}
+
+/* Nút Next (primary button, không phải only-child) - fallback */
+.ant-tour .ant-tour-buttons .ant-btn.ant-btn-primary:not(:only-child)::after {
+  content: "Tiếp tục";
+  font-family: var(--font-questrial) !important;
+}
+
+/* Nút Finish (only-child) */
+.ant-tour .ant-tour-buttons .ant-btn:only-child::after {
+  content: "Hoàn thành";
+  font-family: var(--font-questrial) !important;
+}
+
+/* Fallback cho trường hợp đặc biệt */
+.ant-tour .ant-tour-buttons .ant-btn::after {
+  font-family: var(--font-questrial) !important;
+}
+
+.ant-tour-inner{
+  background-color: white !important;
+  color:black !important;
+  border: 1px solid black !important;
+}
+
+/* Debug CSS - có thể xóa sau khi test */
+/* .ant-tour .ant-tour-buttons .ant-btn {
+  border: 2px solid red !important;
+}
+
+.ant-tour .ant-tour-buttons .ant-btn.ant-btn-primary {
+  border: 2px solid blue !important;
+}
+
+.ant-tour .ant-tour-buttons .ant-btn:only-child {
+  border: 2px solid green !important;
+} */

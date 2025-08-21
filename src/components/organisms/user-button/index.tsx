@@ -33,8 +33,8 @@ function UserButton() {
 
   return (
     <div className="flex justify-end items-center gap-2.5">
-      <Select defaultValue="2025">
-        <SelectTrigger className="w-4/5 p-2 rounded-full">
+      <Select defaultValue="2025" >
+        <SelectTrigger className="w-4/5 p-2 rounded-full" data-tour="academic-year">
           <div className="flex gap-2 items-center">
             <p className="font-calsans border-r-2 px-1">Năm học </p>
             <SelectValue placeholder="Học kì" />
@@ -45,6 +45,7 @@ function UserButton() {
         </SelectContent>
       </Select>
       <div
+        data-tour="wallet"
         onClick={() => router.push("/pricing")}
         className="cursor-pointer px-3.5 py-1.5 border flex items-center justify-center font-calsans rounded-full"
       >
@@ -58,7 +59,7 @@ function UserButton() {
         {isLoading ? <>Loading...</> : wallet?.data?.balance}
       </div>
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger className="outline-none relative">
+        <DropdownMenuTrigger data-tour="user-menu" className="outline-none relative">
           <Avatar className="size-9 rounded-full hover:opacity-75 transition border border-neutral-300">
             <AvatarImage
               src={avatarUrl || "/images/avatarLogo.png"}

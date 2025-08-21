@@ -47,6 +47,7 @@ export default function ChatToggle({
         )}
 
         <ChatButton
+          data-tour="chat-box"
           variant={variant}
           size={size}
           iconType={isOpen ? "close" : "message"}

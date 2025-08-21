@@ -24,6 +24,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         title="PlanBook AI Assistant"
         placeholder="Nhập câu hỏi của bạn..."
         showBadge={true}
+  
       />
 
       {/* <footer className="bg-gray-100 p-4">
