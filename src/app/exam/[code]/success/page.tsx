@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 import { SubmitExamResponse } from "@/services/studentExamServices";
+import { CoppyIcon } from "@/constants/icon";
+import { toast } from "sonner";
 
 interface ExamSuccessPageProps {
   params: Promise<{
@@ -80,7 +82,18 @@ export default function ExamSuccessPage({ params }: ExamSuccessPageProps) {
     localStorage.removeItem(`exam_result_${resolvedParams.code}`);
     router.push("/");
   };
+  const [copied, setCopied] = useState(false);
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(examResult?.submissionId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // reset sau 2s
+      toast.success("Coppy thành công");
+    } catch (err) {
+      console.error("Copy failed", err);
+    }
+  };
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
       {/* Video Background - Cloudinary với URL đúng */}
@@ -244,7 +257,7 @@ export default function ExamSuccessPage({ params }: ExamSuccessPageProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3 rounded-lg">
                     <div>
                       <p className="text-sm text-black">Mã đề thi</p>
@@ -255,13 +268,18 @@ export default function ExamSuccessPage({ params }: ExamSuccessPageProps) {
                   </div>
 
                   {examResult && examResult.submissionId && (
-                    <div className="flex items-center gap-3 rounded-lg">
+                    <div className="flex justify-between items-center gap-3">
                       <div>
-                        <p className="text-sm text-black">Mã bài nộp</p>
-                        <p className="font-medium font-mono text-xs text-black">
-                          {examResult.submissionId.slice(0, 8)}...
+                        <p className="text-sm text-red-500 font-bold">
+                          Mã bài nộp
+                        </p>
+                        <p className="font-medium font-questrial text-xl text-black text-nowrap">
+                          {examResult.submissionId}
                         </p>
                       </div>
+                      <Button onClick={handleCopy} variant={"outline"}>
+                        {CoppyIcon} Coppy
+                      </Button>
                     </div>
                   )}
                 </div>

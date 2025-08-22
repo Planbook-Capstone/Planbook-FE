@@ -29,7 +29,10 @@ import {
 } from "./validation";
 
 import { useTaskStatusService } from "@/services/progressTaskServices";
-import { useExecuteToolService, useEstimateTokenService } from "@/services/executeToolServices";
+import {
+  useExecuteToolService,
+  useEstimateTokenService,
+} from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
@@ -62,8 +65,10 @@ export default function MatrixTemplate2() {
 
   const { data: bookType } = useBookTypeByIdService(query || "");
 
-  const { mutate: executeTool, isPending: isGenerating } = useExecuteToolService();
-  const { mutate: estimateToken, isPending: isEstimating } = useEstimateTokenService();
+  const { mutate: executeTool, isPending: isGenerating } =
+    useExecuteToolService();
+  const { mutate: estimateToken, isPending: isEstimating } =
+    useEstimateTokenService();
 
   // Token estimation state
   const [showTokenConfirmModal, setShowTokenConfirmModal] = useState(false);
@@ -210,10 +215,8 @@ export default function MatrixTemplate2() {
           router.push("/my-library/EXAM");
         },
         onError: (error: any) => {
-          console.error("Error saving result:", error);
-          toast.error(
-            error?.response?.data?.message || "Có lỗi xảy ra khi lưu kết quả"
-          );
+          console.error("Error saving result:", error?.response?.data);
+          toast.error(error?.response?.data || "Có lỗi xảy ra khi lưu kết quả");
         },
       }
     );
@@ -485,12 +488,16 @@ export default function MatrixTemplate2() {
     estimateToken(payload, {
       onSuccess: (response: any) => {
         console.log("Token estimation response:", response?.data?.data);
-        setEstimatedTokens(response?.data?.data || response?.estimatedTokens || 0);
+        setEstimatedTokens(
+          response?.data?.data || response?.estimatedTokens || 0
+        );
         setShowTokenConfirmModal(true);
       },
       onError: (error) => {
         toast.error(
-          `${error?.response?.data?.message || "Có lỗi xảy ra khi ước tính token"}`
+          `${
+            error?.response?.data?.message || "Có lỗi xảy ra khi ước tính token"
+          }`
         );
         console.error("Token estimation error:", error);
       },

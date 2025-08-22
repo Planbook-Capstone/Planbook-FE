@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import MainLayout from "@/components/layout/MainLayout";
 import CardFeature from "@/components/organisms/card-feature";
@@ -29,6 +29,7 @@ import { useCancelPaymentService } from "@/services/orderServices";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import HomeTour from "@/components/organisms/home-tour";
+import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -58,7 +59,11 @@ export default function Home() {
   const [pageSize] = useState(10);
 
   // Use the paginated service
-  const { data: toolLogs, refetch } = useToolLogsWithParamsService(
+  const {
+    data: toolLogs,
+    refetch,
+    isLoading: isLoadingToolLogs,
+  } = useToolLogsWithParamsService(
     [currentPage, pageSize], // dependencies for query key
     { retry: 1, staleTime: 0 }, // options
     {
@@ -138,6 +143,15 @@ export default function Home() {
     // Update current page state - this will trigger refetch automatically
     setCurrentPage(page);
   };
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredBookTypes = useMemo(() => {
+    if (!bookTypes?.data?.content) return [];
+    if (!searchQuery) return bookTypes.data.content;
+
+    return bookTypes.data.content.filter((feature: any) =>
+      feature.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [bookTypes, searchQuery]);
 
   return (
     <MainLayout>
@@ -147,7 +161,7 @@ export default function Home() {
           imageSrc="/images/background/abstract-bg.svg"
           videoSrc="https://res.cloudinary.com/dpo0ad3aq/video/upload/Scene_03_-_4K_3840x2160_h0awgk.mp4"
           title={"Chào mừng " + displayName || "Chào mừng Người dùng ẩn danh"}
-          onSearch={(query) => console.log("Searching for:", query)}
+          onSearch={(query) => setSearchQuery(query)}
           height="h-80"
           grid={10}
           mouse={0.1}
@@ -160,15 +174,11 @@ export default function Home() {
       {isLoading ||
         (isLoadingTools && (
           <div>
-            {" "}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              {[...Array(6)].map((_, index) => (
-                <Skeleton
-                  key={index}
-                  className="h-[120px] w-full rounded-md bg-neutral-300"
-                />
-              ))}
-            </div>
+            <GridSkeleton
+              count={6}
+              height={120}
+              cols="grid-cols-3 lg:grid-cols-4"
+            />
           </div>
         ))}
 
@@ -176,7 +186,7 @@ export default function Home() {
         data-tour="features"
         className="grid grid-cols-1 xl:grid-grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-5"
       >
-        {bookTypes?.data?.content
+        {filteredBookTypes
           ?.sort((a: any, b: any) => a.priority - b.priority)
           ?.map((feature: any) => (
             <CardFeature
@@ -245,23 +255,36 @@ export default function Home() {
           }
         />
       </div>
-      {view === "list" ? (
-       <div data-tour="history-list">
-         <HistoryList  data={toolLogs?.data?.content || []} />
-       </div>
+
+      {isLoadingToolLogs ? (
+        <div>
+          <GridSkeleton
+            count={6}
+            height={140}
+            cols="grid-cols-3 lg:grid-cols-4"
+          />
+        </div>
       ) : (
-        <section
-          data-tour="history-list"
-          className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5"
-        >
-          {toolLogs?.data?.content?.map((data: any, index: number) => (
-            <HistoryCard
-              key={index}
-              data={data}
-              className={getRandomColorClass()}
-            />
-          ))}
-        </section>
+        <>
+          {view === "list" ? (
+            <div data-tour="history-list">
+              <HistoryList data={toolLogs?.data?.content || []} />
+            </div>
+          ) : (
+            <section
+              data-tour="history-list"
+              className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5"
+            >
+              {toolLogs?.data?.content?.map((data: any, index: number) => (
+                <HistoryCard
+                  key={index}
+                  data={data}
+                  className={getRandomColorClass()}
+                />
+              ))}
+            </section>
+          )}
+        </>
       )}
 
       {toolLogs?.data && toolLogs.data.totalPages > 1 && (
