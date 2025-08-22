@@ -109,3 +109,7 @@
 .ant-tour .ant-tour-buttons .ant-btn:only-child {
   border: 2px solid green !important;
 } */
+ /* đổi màu icon close (X) thành đen */
+.ant-tour .ant-tour-close-icon {
+  color: black !important;
+}
