@@ -46,7 +46,7 @@ function UserButton() {
       </Select>
       <div
         data-tour="wallet"
-        onClick={() => router.push("/pricing")}
+        onClick={() => router.push("/auth/wallet")}
         className="cursor-pointer px-3.5 py-1.5 border flex items-center justify-center font-calsans rounded-full"
       >
         <Image

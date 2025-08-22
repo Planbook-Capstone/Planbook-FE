@@ -168,8 +168,8 @@ export default function AssetsPanel() {
   };
 
   const tabs = [
-    // { id: "images", label: "Hình ảnh", icon: Image },
     { id: "steps", label: "Các bước", icon: Route },
+    // { id: "images", label: "Hình ảnh", icon: Image },
     { id: "upload", label: "Tải lên", icon: CloudUpload },
     { id: "questionBank", label: "Ngân hàng đề", icon: Database },
   ] as const;

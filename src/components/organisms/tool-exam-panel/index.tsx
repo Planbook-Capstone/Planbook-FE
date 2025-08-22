@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { toast } from "sonner";
 import {
@@ -9,6 +9,7 @@ import {
   CircleArrowOutDownLeft,
   CircleArrowOutUpRight,
   Database,
+  Search,
 } from "lucide-react";
 import {
   useCreateMaterialInternalService,
@@ -19,6 +20,7 @@ import { UploadCloudIcon } from "@/constants/icon";
 import { QuestionBankModal } from "@/components/modals/QuestionBankModal";
 import { QuestionBankItem } from "@/services/questionBankServices";
 import { useExamResultEditorContext } from "@/contexts/ExamResultEditorContext";
+import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 interface AssetItem {
   id: string;
@@ -91,6 +93,9 @@ export default function ToolExamPanel() {
   const [uploadedImages, setUploadedImages] = useState<AssetItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isQuestionBankModalOpen, setIsQuestionBankModalOpen] = useState(false);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Check if we're in ExamResultEditor context
   const examResultEditorContext = useExamResultEditorContext();
@@ -170,12 +175,40 @@ export default function ToolExamPanel() {
     { id: "questionBank", label: "Ngân hàng đề", icon: Database },
   ] as const;
 
-  const { data: materials } = useMaterialSearchService("1");
+  const { data: materials, isLoading: isLoadingMaterials } = useMaterialSearchService("1");
 
-  const { data: materialInternal, refetch: refetchMaterialInternal } =
+  const { data: materialInternal, refetch: refetchMaterialInternal, isLoading: isLoadingMaterialInternal } =
     useMaterialInternalService();
 
   const { mutate: createMaterialInternal } = useCreateMaterialInternalService();
+
+  // Filter materials based on search query
+  const filteredMaterials = useMemo(() => {
+    if (!materials?.data?.content) return [];
+    if (!searchQuery.trim()) return materials.data.content;
+
+    return materials.data.content.filter((asset: any) => {
+      const name = asset.name?.toLowerCase() || "";
+      const description = asset.description?.toLowerCase() || "";
+      const query = searchQuery.toLowerCase();
+
+      return name.includes(query) || description.includes(query);
+    });
+  }, [materials?.data?.content, searchQuery]);
+
+  // Filter internal materials based on search query
+  const filteredMaterialInternal = useMemo(() => {
+    if (!materialInternal?.data?.content) return [];
+    if (!searchQuery.trim()) return materialInternal.data.content;
+
+    return materialInternal.data.content.filter((asset: any) => {
+      const name = asset.name?.toLowerCase() || "";
+      const description = asset.description?.toLowerCase() || "";
+      const query = searchQuery.toLowerCase();
+
+      return name.includes(query) || description.includes(query);
+    });
+  }, [materialInternal?.data?.content, searchQuery]);
 
   return (
     <div
@@ -237,11 +270,40 @@ export default function ToolExamPanel() {
       {/* Assets Grid */}
       {!isCollapsed && (
         <div className="flex-1 p-2 sm:p-4 overflow-y-auto w-full">
+          {/* Search Input - Show for images and upload tabs */}
+          {(activeTab === "images" || activeTab === "upload") && (
+            <div className="relative mb-4">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên hoặc mô tả..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              />
+            </div>
+          )}
+
           {activeTab === "images" ? (
             <div className="space-y-4">
               {/* Images from materials service */}
-              <div className="columns-2 gap-3 space-y-3">
-                {materials?.data?.content?.map((asset: any) => {
+              {isLoadingMaterials ? (
+                <div>
+                  <GridSkeleton
+                    count={6}
+                    height={60}
+                    cols="grid-cols-1 lg:grid-cols-2"
+                  />
+                </div>
+              ) : filteredMaterials.length === 0 && searchQuery.trim() ? (
+                <div className="text-center text-gray-500 py-8">
+                  <span className="text-sm">Không tìm thấy hình ảnh nào phù hợp</span>
+                </div>
+              ) : (
+                <div className="columns-2 gap-3 space-y-3">
+                  {filteredMaterials.map((asset: any) => {
                   const assetItem: AssetItem = {
                     id: asset?.id,
                     type: "image",
@@ -254,7 +316,8 @@ export default function ToolExamPanel() {
                     </div>
                   );
                 })}
-              </div>
+                </div>
+              )}
             </div>
           ) : activeTab === "upload" ? (
             <div className="space-y-4">
@@ -299,15 +362,23 @@ export default function ToolExamPanel() {
               </div>
 
               {/* Uploaded Images Gallery */}
-              {materialInternal?.data?.content?.length > 0 ? (
+              {isLoadingMaterialInternal ? (
+                <div>
+                  <GridSkeleton
+                    count={6}
+                    height={60}
+                    cols="grid-cols-1 lg:grid-cols-2"
+                  />
+                </div>
+              ) : filteredMaterialInternal.length > 0 ? (
                 <div className="columns-2 gap-3 space-y-3">
-                  {materialInternal?.data?.content?.map(
+                  {filteredMaterialInternal.map(
                     (asset: any, idx: number) => {
                       const assetItem: AssetItem = {
                         type: "image",
                         id: idx.toString(),
                         content: asset?.url,
-                        preview: asset?.name,
+                        preview: asset?.name?.slice(0, 10),
                       };
                       return (
                         <div
@@ -320,6 +391,10 @@ export default function ToolExamPanel() {
                     }
                   )}
                 </div>
+              ) : searchQuery.trim() ? (
+                <div className="text-center text-gray-500 py-8">
+                  <span className="text-sm">Không tìm thấy hình ảnh nào phù hợp</span>
+                </div>
               ) : (
                 <div className="text-center text-gray-400 py-8">
                   <span className="text-sm">
@@ -330,7 +405,7 @@ export default function ToolExamPanel() {
             </div>
           ) : (
             <div className="columns-2 gap-3 space-y-3">
-              {materials?.data?.content?.map((asset: any) => {
+              {filteredMaterials.map((asset: any) => {
                 const assetItem: AssetItem = {
                   id: asset?.id,
                   type: "image",

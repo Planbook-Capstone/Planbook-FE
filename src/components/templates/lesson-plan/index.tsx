@@ -446,14 +446,12 @@ function LessonPlanTemplate({
   const renderEditHeader = () => (
     <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
+        <div
           onClick={() => router.back()}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 cursor-pointer pr-1 border-r"
         >
-          <ArrowLeft className="w-4 h-4" />
           Quay lại
-        </Button>
+        </div>
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-semibold text-gray-800">
             {editedName || existingData?.name || "Chỉnh sửa giáo án"}
