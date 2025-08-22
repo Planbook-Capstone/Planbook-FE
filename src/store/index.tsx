@@ -94,3 +94,7 @@ export function useAppState() {
     },
   };
 }
+
+// Export recent files store
+export * from './recentFilesStore';
+export * from './recentFilesHelpers';
