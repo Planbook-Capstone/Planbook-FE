@@ -4,6 +4,7 @@ import PreviewModal from "@/components/PreviewModalv2";
 import { SlidePreview } from "@/components/ui/SlidePreview";
 import { useLessonsByIdsService } from "@/services/lessonServices";
 import { useToolResultByIdService } from "@/services/toolResultService";
+import { useRecentFilesWithHelpers } from "@/store";
 import React from "react";
 
 interface Props {
@@ -15,6 +16,8 @@ interface Props {
 function FileDetailPage({ params }: Props) {
   const { fileId } = React.use(params);
   const { data } = useToolResultByIdService(fileId);
+  const { addFileFromApiResponse } = useRecentFilesWithHelpers();
+
   console.log(data?.data?.data);
 
   const lessonQueries = useLessonsByIdsService(data?.data?.lessonIds || []);
@@ -26,6 +29,32 @@ function FileDetailPage({ params }: Props) {
     .filter(Boolean);
 
   console.log(lessons[0]?.name);
+
+  // Thêm file vào recent files (chỉ chạy 1 lần khi có data)
+  React.useEffect(() => {
+    if (data?.data) {
+      const fileData = data.data;
+
+      // Xác định loại file
+      let fileType: 'exam' | 'lesson-plan' | 'slide' | 'other' = 'other';
+
+      if (fileData.type === 'EXAM') {
+        fileType = 'exam';
+      } else if (fileData.type === 'LESSON_PLAN') {
+        fileType = 'lesson-plan';
+      } else if (fileData.type === 'SLIDE') {
+        fileType = 'slide';
+      }
+
+      // Thêm vào recent files
+      addFileFromApiResponse({
+        ...fileData,
+        id: fileData.id || fileId,
+        name: fileData.name || `File ${fileId}`,
+        path: `/my-library/file/${fileId}`,
+      }, fileType);
+    }
+  }, [data?.data?.id, fileId]); // Chỉ depend vào data ID và fileId
 
   return (
     <div

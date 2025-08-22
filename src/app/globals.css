@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 @import "../styles/theme.css";
+@import "../styles/a4-preview.css";
 
 @custom-variant dark (&:is(.dark *));
 
