@@ -3,25 +3,40 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Cài đặt dependencies cần thiết
-RUN apk add --no-cache libc6-compat
+# Cài đặt dependencies cần thiết cho Alpine Linux
+RUN apk add --no-cache \
+    libc6-compat \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
 
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Cài đặt dependencies
-RUN npm ci --timeout=600000 --maxsockets=3 --prefer-offline \
-    && npm cache clean --force
+# Cài đặt dependencies với retry và tối ưu hóa
+RUN npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm ci --only=production --ignore-scripts --no-audit --no-fund && \
+    npm cache clean --force
+
+# Cài đặt dev dependencies cho build
+RUN npm ci --include=dev --ignore-scripts --no-audit --no-fund
 
 # Copy source code và config files
 COPY src ./src
 COPY public ./public
 COPY *.config.* ./
 COPY tsconfig.json ./
-
-# Build ứng dụng với Prisma
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build args để pass environment variables vào build time
 ARG NEXT_PUBLIC_API_URL
@@ -32,6 +47,8 @@ ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 # Set environment variables for build
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_SECONDARY_URL=$NEXT_PUBLIC_API_SECONDARY_URL
 ENV NEXT_PUBLIC_WEBSOCKET_URL=$NEXT_PUBLIC_WEBSOCKET_URL
@@ -39,6 +56,7 @@ ENV NEXT_PUBLIC_REDIRECT_URL=$NEXT_PUBLIC_REDIRECT_URL
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+# Build ứng dụng
 RUN npm run build:no-prisma
 
 # Stage 2: Production
