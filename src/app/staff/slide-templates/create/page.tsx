@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import SlideEditorLayout from "@/components/ui/slide-editor/SlideEditorLayout";
 import { useCreateSlideTemplateService } from "@/services/slideTemplateServices";
+import { useCreateMaterialService } from "@/services/materialServices";
 import { toast } from "sonner";
 import { useSlideTemplateContext } from "@/contexts/SlideTemplateContext";
 import { convertGoogleSlideJsonToEditor } from "@/utils/googleSlidesConverter";
@@ -13,6 +14,7 @@ import html2canvas from "html2canvas";
 export default function CreateSlideTemplatePage() {
   const router = useRouter();
   const createMutation = useCreateSlideTemplateService();
+  const createMaterialMutation = useCreateMaterialService();
   const { tempData, clearTempData } = useSlideTemplateContext();
   const [slides, setSlides] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -346,15 +348,51 @@ export default function CreateSlideTemplatePage() {
           }
         }
 
-        // Convert to base64
+        // Convert to base64 và upload lên API
         const slideImageBase64 = canvas.toDataURL("image/png", 0.9);
         const slideKey = `slide_${i + 1}`;
-        imageBlocks[slideKey] = slideImageBase64;
 
-        console.log(
-          `✅ Captured slide ${i + 1}, base64 length:`,
-          slideImageBase64.length
-        );
+        try {
+          // Convert base64 to blob
+          const response = await fetch(slideImageBase64);
+          const blob = await response.blob();
+
+          // Create file from blob
+          const file = new File([blob], `imageBlock_slide_${i + 1}_${tempData?.name || 'template'}.png`, {
+            type: 'image/png'
+          });
+
+          // Upload to API
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append(
+            "metadataJson",
+            JSON.stringify({
+              type: "slide-image",
+              name: `imageBlock_slide_${i + 1}_${tempData?.name || 'template'}`,
+              description: `Slide ${i + 1} image for template ${tempData?.name || 'template'}`,
+              url: "null", // Will be set by backend after file upload
+              tagIds: 9,
+            })
+          );
+
+          const uploadResult = await createMaterialMutation.mutateAsync(formData);
+          const imageUrl = uploadResult?.data?.data?.url;
+
+          if (imageUrl) {
+            imageBlocks[slideKey] = imageUrl;
+            console.log(`✅ Uploaded slide ${i + 1} to API, URL:`, imageUrl);
+          } else {
+            // Fallback to base64 if upload fails
+            imageBlocks[slideKey] = slideImageBase64;
+            console.log(`⚠️ Upload failed for slide ${i + 1}, using base64 fallback`);
+          }
+        } catch (uploadError) {
+          console.error(`❌ Error uploading slide ${i + 1}:`, uploadError);
+          // Fallback to base64 if upload fails
+          imageBlocks[slideKey] = slideImageBase64;
+          console.log(`⚠️ Using base64 fallback for slide ${i + 1}`);
+        }
       }
     } catch (error) {
       console.error("❌ Error in renderSlidesManually:", error);
