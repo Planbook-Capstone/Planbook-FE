@@ -106,6 +106,7 @@ function LessonPlanTemplate({
     trashData,
     setTrashData,
     updateFinalData,
+    mode,
   });
 
   // Use custom hooks for drag and drop
@@ -117,6 +118,7 @@ function LessonPlanTemplate({
     findNodeById,
     removeNodeById,
     setTrashData,
+    mode,
   });
 
   // Use custom hooks for selection and clipboard
@@ -581,6 +583,7 @@ function LessonPlanTemplate({
                   hideAIButton={mode === "edit"}
                   isGenerating={isGenerating || isEstimating}
                   currentNodeCount={currentNodeCount}
+                  mode={mode}
                 />
               </div>
             )}

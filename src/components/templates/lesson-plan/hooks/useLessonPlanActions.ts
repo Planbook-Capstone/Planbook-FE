@@ -8,6 +8,7 @@ interface UseLessonPlanActionsProps {
   trashData: DemoNode[];
   setTrashData: React.Dispatch<React.SetStateAction<DemoNode[]>>;
   updateFinalData: (newDemoData: DemoNode[]) => void;
+  mode?: "create" | "edit";
 }
 
 export const useLessonPlanActions = ({
@@ -16,6 +17,7 @@ export const useLessonPlanActions = ({
   trashData,
   setTrashData,
   updateFinalData,
+  mode = "create",
 }: UseLessonPlanActionsProps) => {
   // Function to count total nodes recursively
   const countTotalNodes = useCallback((nodes: DemoNode[]): number => {
@@ -107,11 +109,13 @@ export const useLessonPlanActions = ({
       newChild: DemoNode,
       preserveOrderIndex: boolean = false
     ) => {
-      // Check node limit before adding
-      const currentNodeCount = countTotalNodes(demoData);
-      if (currentNodeCount >= 30) {
-        toast.error("Không thể thêm mục mới. Giới hạn tối đa 30 mục.");
-        return;
+      // Check node limit before adding (only in create mode)
+      if (mode === "create") {
+        const currentNodeCount = countTotalNodes(demoData);
+        if (currentNodeCount >= 30) {
+          toast.error("Không thể thêm mục mới. Giới hạn tối đa 30 mục.");
+          return;
+        }
       }
 
       const updateNodeWithChild = (nodeList: DemoNode[]): DemoNode[] => {
@@ -274,11 +278,13 @@ export const useLessonPlanActions = ({
   // Restore from trash
   const handleRestoreNode = useCallback(
     (nodeId: string) => {
-      // Check node limit before restoring
-      const currentNodeCount = countTotalNodes(demoData);
-      if (currentNodeCount >= 30) {
-        toast.error("Không thể khôi phục node. Giới hạn tối đa 30 node.");
-        return;
+      // Check node limit before restoring (only in create mode)
+      if (mode === "create") {
+        const currentNodeCount = countTotalNodes(demoData);
+        if (currentNodeCount >= 30) {
+          toast.error("Không thể khôi phục node. Giới hạn tối đa 30 node.");
+          return;
+        }
       }
 
       const nodeToRestore = trashData.find(

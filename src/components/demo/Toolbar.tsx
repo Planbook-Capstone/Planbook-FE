@@ -22,6 +22,8 @@ interface ToolbarProps {
   isGenerating?: boolean;
   // Current node count for display
   currentNodeCount?: number;
+  // Mode to determine if node limit should be shown
+  mode?: "create" | "edit";
 }
 
 export default function Toolbar({
@@ -38,6 +40,7 @@ export default function Toolbar({
   hideAIButton = false,
   isGenerating = false,
   currentNodeCount = 0,
+  mode = "create",
 }: ToolbarProps) {
   return (
     <div className=" p-4">
@@ -54,12 +57,18 @@ export default function Toolbar({
         </div> */}
 
         <div className="flex items-center gap-3">
-          {/* Node count display */}
+          {/* Node count display - only show limit in create mode */}
           <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg text-sm">
-            <span className="text-gray-600">Nodes:</span>
-            <span className={`font-medium ${currentNodeCount >= 30 ? 'text-red-600' : currentNodeCount >= 25 ? 'text-orange-600' : 'text-gray-800'}`}>
-              {currentNodeCount}/30
-            </span>
+            <span className="text-gray-600">Mục:</span>
+            {mode === "create" ? (
+              <span className={`font-medium ${currentNodeCount >= 30 ? 'text-red-600' : currentNodeCount >= 25 ? 'text-orange-600' : 'text-gray-800'}`}>
+                {currentNodeCount}/30
+              </span>
+            ) : (
+              <span className="font-medium text-gray-800">
+                {currentNodeCount}
+              </span>
+            )}
           </div>
 
           {/* Undo/Redo buttons */}
