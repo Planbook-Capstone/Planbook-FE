@@ -431,7 +431,7 @@ function LessonPlanTemplate({
           onError: (error: any) => {
             console.error("Error saving result:", error);
             toast.error(
-              error?.response?.data?.message || "Có lỗi xảy ra khi lưu kết quả"
+              error?.response?.data || "Có lỗi xảy ra khi lưu kết quả"
             );
           },
         }

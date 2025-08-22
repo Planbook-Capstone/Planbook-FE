@@ -511,7 +511,7 @@ export default function SlideEditorDemo() {
         onError: (error: any) => {
           toast.error(
             `Lưu thất bại: ${
-              error?.response?.data?.message ||
+              error?.response?.data ||
               error?.message ||
               "Có lỗi xảy ra"
             }`

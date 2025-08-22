@@ -93,7 +93,7 @@ export function StudentInfoForm({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-black">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-3 p-3 rounded-lg">
               <div>
                 <p className="text-sm text-black/60">Môn học</p>
@@ -120,33 +120,33 @@ export function StudentInfoForm({
             <div className="flex items-center gap-3 p-3 rounded-lg">
               <div>
                 <p className="text-sm text-black/60">Mã đề</p>
-                <p className="font-medium font-questrial">
-                  {examInfo.code}
-                </p>
+                <p className="font-medium font-questrial">{examInfo.code}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-lg w-full">
-              {examInfo.school && (
-                <div >
-                  <div className="w-5 h-5 text-center font-calsans">🏫</div>
-                  <div>
-                    <p className="text-sm text-gray-500">Trường học</p>
-                    <p className="font-medium">{examInfo.school}</p>
-                  </div>
+            {examInfo.school && (
+              <div>
+                <div>
+                  <p className="text-sm text-gray-500 text-nowrap">
+                    Trường học
+                  </p>
+                  <p className="font-medium text-nowrap">{examInfo.school}</p>
                 </div>
-              )}
+              </div>
+            )}
 
-              {examInfo.totalScore && (
-                <div >
-                  <div>
-                    <p className="text-sm text-gray-500">Tổng điểm</p>
-                    <p className="font-medium text-orange-600">{examInfo.totalScore} điểm</p>
-                  </div>
+            {examInfo.totalScore && (
+              <div>
+                <div>
+                  <p className="text-sm text-gray-500 text-nowrap">Tổng điểm</p>
+                  <p className="font-medium text-orange-600">
+                    {examInfo.totalScore} điểm
+                  </p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
+          {/* </div> */}
 
           {examInfo.atomicMasses && (
             <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">

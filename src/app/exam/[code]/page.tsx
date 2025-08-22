@@ -230,7 +230,9 @@ export default function ExamPage({ params }: ExamPageProps) {
 
     submitExam(submitData, {
       onSuccess: (response: any) => {
-        toast.success("Nộp bài thành công!");
+        toast.success(
+          "Nộp bài thành công! Học sinh vui lòng giữ Mã bài nộp để kiểm tra kết quả sau khi kết thúc bài thi."
+        );
         setShowSubmitModal(false);
 
         // Store result data and redirect to success page

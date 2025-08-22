@@ -74,7 +74,7 @@ const BannerOverlay = ({
             <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5 z-50" />
             <Input
               type="text"
-              placeholder="Tìm kiếm chức năng, tài liệu, đề thi..."
+              placeholder="Tìm kiếm chức năng, ..."
               value={searchQuery}
               onChange={handleSearchChange}
               className="w-full h-14 pl-14 pr-6 text-white placeholder:text-white/70 bg-black/50 backdrop-blur-md border-white/20 rounded-full text-lg font-questrial focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
