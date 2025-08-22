@@ -84,6 +84,8 @@ export const API_ENDPOINTS = {
   //EXECUTE-TOOL
   EXECUTE_TOOL: "aggregator/api/tool/execute",
 
+  ESTIMATE_TOKEN: buildEndpoint(SERVICES.AGGREGATOR, "/tool/estimate-token"),
+
   // Forms (Lesson Plans)
   FORMS: "/forms",
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useExecuteToolService } from "@/services/executeToolServices";
+import { useExecuteToolService, useEstimateTokenService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { generateDocx } from "@/utils/docxGenerator";
 import { DemoNode, WebSocketData } from "../types";
@@ -53,6 +53,13 @@ export const useLessonPlanGeneration = ({
 
   const { data: bookType } = useBookTypeByIdService(query || "");
   const { mutate, isPending: isGenerating } = useExecuteToolService();
+  const { mutate: estimateToken, isPending: isEstimating } = useEstimateTokenService();
+
+  // Token estimation state
+  const [showTokenConfirmModal, setShowTokenConfirmModal] = useState(false);
+  const [estimatedTokens, setEstimatedTokens] = useState<number | null>(null);
+  const [pendingPayload, setPendingPayload] = useState<any>(null);
+
   const { data, isConnected, error, sendMessage, reconnect } =
     useSimpleWebSocket({
       url: wsUrl,
@@ -116,8 +123,8 @@ export const useLessonPlanGeneration = ({
     }
   }, [data, resultId]); // Add resultId to dependencies
 
-  // Handle lesson plan generation
-  const handleGenerationLessonPlan = useCallback(() => {
+  // Handle token estimation
+  const handleEstimateToken = useCallback(() => {
     // Use total data from all steps
     const allData = getAllFinalData();
 
@@ -142,14 +149,56 @@ export const useLessonPlanGeneration = ({
       book_id: lessonById?.data?.chapter?.book?.id,
       input: mergedNode,
       academicYearId: 1,
-      ...(resultId && { result_id: resultId }), // Add result_id if available
+      // Note: No result_id for estimation
     };
 
-    mutate(payload, {
+    // Store payload for later use
+    setPendingPayload({
+      ...payload,
+      ...(resultId && { result_id: resultId }), // Add result_id for actual execution
+    });
+
+    estimateToken(payload, {
+      onSuccess: (response: any) => {
+        console.log("Token estimation response:", response?.data?.data);
+        setEstimatedTokens(response?.data?.data || response?.estimatedTokens || 0);
+        setShowTokenConfirmModal(true);
+      },
+      onError: (error) => {
+        toast.error(
+          `${error?.response?.data?.message || "Có lỗi xảy ra khi ước tính token"}`
+        );
+        console.error("Token estimation error:", error);
+      },
+    });
+  }, [
+    getAllFinalData,
+    demoData,
+    lessonId,
+    estimateToken,
+    bookType?.data?.id,
+    resultId,
+    setPendingPayload,
+    setEstimatedTokens,
+    setShowTokenConfirmModal,
+  ]);
+
+  // Handle lesson plan generation after token confirmation
+  const handleGenerationLessonPlan = useCallback(() => {
+    if (!pendingPayload) {
+      toast.error("Không có dữ liệu để thực hiện");
+      return;
+    }
+
+    mutate(pendingPayload, {
       onSuccess: (e: any) => {
         toast.success("Gửi dữ liệu thành công!");
         console.log(e.data.task_id);
         setEnabled(true);
+        // Reset modal state
+        setShowTokenConfirmModal(false);
+        setPendingPayload(null);
+        setEstimatedTokens(null);
       },
       onError: (error) => {
         toast.error(
@@ -159,13 +208,20 @@ export const useLessonPlanGeneration = ({
       },
     });
   }, [
-    getAllFinalData,
-    demoData,
-    lessonId,
+    pendingPayload,
     mutate,
-    bookType?.data?.id,
-    resultId,
+    setEnabled,
+    setShowTokenConfirmModal,
+    setPendingPayload,
+    setEstimatedTokens,
   ]);
+
+  // Handle token confirmation modal close
+  const handleCloseTokenModal = useCallback(() => {
+    setShowTokenConfirmModal(false);
+    setPendingPayload(null);
+    setEstimatedTokens(null);
+  }, [setShowTokenConfirmModal, setPendingPayload, setEstimatedTokens]);
 
   // Handle download DOCX
   const handleDownloadDocx = useCallback(async () => {
@@ -210,9 +266,16 @@ export const useLessonPlanGeneration = ({
 
     // Loading states
     isGenerating,
+    isEstimating,
+
+    // Token estimation state
+    showTokenConfirmModal,
+    estimatedTokens,
 
     // Actions
+    handleEstimateToken,
     handleGenerationLessonPlan,
+    handleCloseTokenModal,
     handleDownloadDocx,
     sendMessage,
     reconnect,

@@ -29,7 +29,7 @@ import {
 } from "./validation";
 
 import { useTaskStatusService } from "@/services/progressTaskServices";
-import { useExecuteToolService } from "@/services/executeToolServices";
+import { useExecuteToolService, useEstimateTokenService } from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBookTypeByIdService } from "@/services/bookTypeServices";
@@ -39,6 +39,7 @@ import {
   useToolResultByIdService,
 } from "@/services/toolResultService";
 import ConfirmSaveResult from "@/components/modals/ConfirmSaveResult";
+import TokenConfirmModal from "@/components/modals/TokenConfirmModal";
 import FileIcon from "@/components/ui/FileIcon";
 import { DowloadIcon } from "@/constants/icon";
 import { generateExamDocx } from "@/utils/docxGeneratorExam";
@@ -61,7 +62,13 @@ export default function MatrixTemplate2() {
 
   const { data: bookType } = useBookTypeByIdService(query || "");
 
-  const { mutate: executeTool } = useExecuteToolService();
+  const { mutate: executeTool, isPending: isGenerating } = useExecuteToolService();
+  const { mutate: estimateToken, isPending: isEstimating } = useEstimateTokenService();
+
+  // Token estimation state
+  const [showTokenConfirmModal, setShowTokenConfirmModal] = useState(false);
+  const [estimatedTokens, setEstimatedTokens] = useState<number | null>(null);
+  const [pendingPayload, setPendingPayload] = useState<any>(null);
 
   // Tool result services for saving
   const { mutate: updateToolResult, isPending: isSavingResult } =
@@ -232,7 +239,7 @@ export default function MatrixTemplate2() {
       },
       {
         onSuccess: () => {
-          toast.success("Lưu bản nháp thành công!");
+          toast.success("Đang di chuyển đến trang chỉnh sửa!");
           // Execute callback after successful save
           if (callback) {
             callback();
@@ -449,8 +456,8 @@ export default function MatrixTemplate2() {
     return validationResult.errors;
   };
 
-  // Handle create exam
-  const handleCreateExam = () => {
+  // Handle token estimation
+  const handleEstimateToken = () => {
     const validationErrors = validateForm();
 
     if (validationErrors.length > 0) {
@@ -459,7 +466,7 @@ export default function MatrixTemplate2() {
       return;
     }
 
-    // If validation passes, proceed with exam creation
+    // If validation passes, proceed with token estimation
     const examData = mapToBackend();
 
     const payload = {
@@ -469,14 +476,43 @@ export default function MatrixTemplate2() {
       lesson_id: "4",
       input: examData,
       academicYearId: 1,
+      // Note: No result_id for estimation
     };
 
-    executeTool(payload, {
+    // Store payload for later use
+    setPendingPayload(payload);
+
+    estimateToken(payload, {
+      onSuccess: (response: any) => {
+        console.log("Token estimation response:", response?.data?.data);
+        setEstimatedTokens(response?.data?.data || response?.estimatedTokens || 0);
+        setShowTokenConfirmModal(true);
+      },
+      onError: (error) => {
+        toast.error(
+          `${error?.response?.data?.message || "Có lỗi xảy ra khi ước tính token"}`
+        );
+        console.error("Token estimation error:", error);
+      },
+    });
+  };
+
+  // Handle create exam after token confirmation
+  const handleCreateExam = () => {
+    if (!pendingPayload) {
+      toast.error("Không có dữ liệu để thực hiện");
+      return;
+    }
+
+    executeTool(pendingPayload, {
       onSuccess: (e: any) => {
         toast.success("Gửi dữ liệu thành công!");
         console.log(e.data.task_id);
-
         setEnabled(true);
+        // Reset modal state
+        setShowTokenConfirmModal(false);
+        setPendingPayload(null);
+        setEstimatedTokens(null);
       },
       onError: (error) => {
         toast.error(
@@ -484,6 +520,13 @@ export default function MatrixTemplate2() {
         );
       },
     });
+  };
+
+  // Handle token confirmation modal close
+  const handleCloseTokenModal = () => {
+    setShowTokenConfirmModal(false);
+    setPendingPayload(null);
+    setEstimatedTokens(null);
   };
 
   // Task status tracking
@@ -1063,13 +1106,22 @@ export default function MatrixTemplate2() {
             className={`px-8 py-3 text-white font-medium rounded-md ${
               resultId ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            onClick={resultId ? undefined : handleCreateExam}
-            disabled={!!resultId}
+            onClick={resultId ? undefined : handleEstimateToken}
+            disabled={!!resultId || isEstimating}
           >
-            Tạo đề thi
+            {isEstimating ? "Đang ước tính..." : "Tạo đề thi"}
           </Button>
         </div>
       )}
+
+      {/* Token Confirmation Modal */}
+      <TokenConfirmModal
+        isOpen={showTokenConfirmModal}
+        onClose={handleCloseTokenModal}
+        onConfirm={handleCreateExam}
+        estimatedTokens={estimatedTokens || 0}
+        isLoading={isGenerating}
+      />
     </div>
   );
 }
