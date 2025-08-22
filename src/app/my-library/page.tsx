@@ -7,10 +7,6 @@ import FolderCard from "@/components/molecules/folder-card";
 import CreateFolderModal from "@/components/organisms/create-folder-modal";
 import ItemSection from "@/components/organisms/item-section";
 import FallingText from "@/components/ui/FallingText";
-import { useRecentFiles } from "@/store";
-import FileThumbnailPreview from "@/components/examples/FileThumbnailPreview";
-import { Clock, FileText } from "lucide-react";
-import { HistoryIcon } from "@/constants/icon";
 
 // Isolated FallingText component to prevent URL-based re-renders
 const FallingTextContainer = memo(() => {
@@ -101,7 +97,6 @@ function MyLibrary() {
   const searchParams = useSearchParams();
   const currentView = useRef(searchParams.get("view") || "grid");
   const router = useRouter();
-  const { recentFiles, hasRecentFiles } = useRecentFiles();
   // Handle URL view changes (separate from FallingText logic)
   useEffect(() => {
     const newView = searchParams.get("view") || "grid";
@@ -166,7 +161,7 @@ function MyLibrary() {
       </div>
       <h1 className="font-calsans text-xl py-2">Phân loại tài liệu</h1>
       {/* <ItemSection title="Phân loại tài liệu" action={<CreateFolderModal />} /> */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8  mx-auto">
+      <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8  mx-auto">
         {myFolder?.map((f) => (
           <div onClick={() => router.push(`/my-library/${f.type}`)}>
             <FolderCard
@@ -178,49 +173,6 @@ function MyLibrary() {
           </div>
         ))}
       </div>
-
-      {/* Recent Files Section */}
-      {hasRecentFiles && (
-        <div className="mt-8">
-          <div className="flex items-center gap-2 mb-4">
-            <div>{HistoryIcon}</div>
-            <h2 className="font-calsans text-xl">Tài liệu gần đây</h2>
-            <span className="text-sm text-gray-500">
-              ({recentFiles.length}/10)
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-            {recentFiles?.slice(0, 10)?.map((file) => (
-              <div
-                key={file.id}
-                className="group cursor-pointer"
-                onClick={() => {
-                  // Handle file click - có thể navigate đến file detail hoặc mở preview
-                  // console.log("Opening file:", file);
-                  router.push(`/my-library/file/${file?.data?.id}`);
-                }}
-              >
-                <FileThumbnailPreview file={file} width={180} height={220} />
-
-                {/* File info below thumbnail */}
-                <div className="mt-2 px-1">
-                  <h3 className="text-sm font-medium text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                    {file.name}
-                  </h3>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {recentFiles.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>Chưa có file nào được mở gần đây</p>
-            </div>
-          )}
-        </div>
-      )}
     </MainLayout>
   );
 }
