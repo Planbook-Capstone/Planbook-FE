@@ -32,6 +32,9 @@ jobs:
             git reset --hard
             git pull origin master || git pull origin main
 
+            echo "📦 Installing/updating dependencies..."
+            npm install
+
             echo "🧹 Cleaning up old Docker resources (selective)..."
             # Chỉ xóa containers và images không sử dụng, giữ lại cache
             docker container prune -f || true

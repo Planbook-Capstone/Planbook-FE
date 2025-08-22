@@ -3,15 +3,31 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Cài đặt dependencies cần thiết
-RUN apk add --no-cache libc6-compat
+# Cài đặt dependencies cần thiết cho Alpine Linux
+RUN apk add --no-cache \
+    libc6-compat \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
 
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Cài đặt dependencies
-RUN npm ci --timeout=600000 --maxsockets=3 --prefer-offline \
-    && npm cache clean --force
+# Cài đặt dependencies với retry và tối ưu hóa
+RUN npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm ci --ignore-scripts --no-audit --no-fund && \
+    npm cache clean --force
 
 # Copy source code và config files
 COPY src ./src
