@@ -64,13 +64,14 @@ export default function TableMyWallet({
     document.body.removeChild(link);
   };
 
+  console.log(transactions,"thy")
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Lịch sử ví</h2>
           <p className="text-sm text-gray-500">
-            Tổng cộng {transactions.length} giao dịch
+            Tổng cộng {transactions?.totalElements || "0"} giao dịch
           </p>
         </div>
 
@@ -87,7 +88,7 @@ export default function TableMyWallet({
 
       <DataTable
         columns={walletColumns}
-        data={transactions}
+        data={transactions?.content || []}
         onSelectionChange={onSelectionChange}
       />
     </div>
