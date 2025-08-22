@@ -9,7 +9,7 @@ import ItemSection from "@/components/organisms/item-section";
 import FallingText from "@/components/ui/FallingText";
 import { useRecentFiles } from "@/store";
 import FileThumbnailPreview from "@/components/examples/FileThumbnailPreview";
-import { Clock, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { HistoryIcon } from "@/constants/icon";
 
 // Isolated FallingText component to prevent URL-based re-renders
