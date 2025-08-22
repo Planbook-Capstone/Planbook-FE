@@ -9,13 +9,13 @@ const staticRoutes = [
     priority: 1.0,
   },
   {
-    url: "https://planbook.vn/auth/login",
+    url: "https://planbook.vn/auth",
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.8,
   },
   {
-    url: "https://planbook.vn/auth/register",
+    url: "https://planbook.vn/auth",
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.8,

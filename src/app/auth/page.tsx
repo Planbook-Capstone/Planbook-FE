@@ -284,7 +284,7 @@ const LoginPage = () => {
                   ? "Điền thông tin để tạo tài khoản mới."
                   : showForgotPassword
                   ? "Nhập email để nhận liên kết khôi phục mật khẩu."
-                  : "Nhập email và mật khẩu để đăng nhập vào tài khoản."}
+                  : "Nhập username và mật khẩu để đăng nhập vào tài khoản."}
               </p>
             </div>
 
