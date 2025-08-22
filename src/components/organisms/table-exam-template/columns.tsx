@@ -2,7 +2,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/Button";
 import { Edit, Trash2, Copy, Eye, Plus, Info } from "lucide-react";
 import { ExamTemplate } from "@/components/molecules/exam-template-card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // Handler function types
 interface ExamTemplateColumnHandlers {
@@ -91,32 +95,46 @@ export const examTemplateColumns = (
           </PopoverTrigger>
           <PopoverContent className="w-80 p-4" align="start">
             <div className="space-y-3">
-              <h4 className="font-semibold text-gray-900 mb-3">Hướng dẫn sử dụng các nút</h4>
+              <h4 className="font-semibold text-gray-900 mb-3">
+                Hướng dẫn sử dụng các nút
+              </h4>
 
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4 text-blue-600" />
-                  <span><strong>Xem chi tiết:</strong> Xem thông tin chi tiết của mẫu kiểm tra</span>
+                  <span>
+                    <strong>Xem chi tiết:</strong> Xem thông tin chi tiết của
+                    mẫu kiểm tra
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Edit className="w-4 h-4 text-green-600" />
-                  <span><strong>Chỉnh sửa:</strong> Chỉnh sửa nội dung mẫu kiểm tra</span>
+                  <span>
+                    <strong>Chỉnh sửa:</strong> Chỉnh sửa nội dung mẫu kiểm tra
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Plus className="w-4 h-4 text-purple-600" />
-                  <span><strong>Tạo phiếu kiểm tra:</strong> Tạo phiếu kiểm tra từ mẫu này</span>
+                  <span>
+                    <strong>Tạo phiếu kiểm tra:</strong> Tạo phiếu kiểm tra từ
+                    mẫu này
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Copy className="w-4 h-4 text-blue-600" />
-                  <span><strong>Nhân bản:</strong> Tạo bản sao của mẫu kiểm tra</span>
+                  <span>
+                    <strong>Nhân bản:</strong> Tạo bản sao của mẫu kiểm tra
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Trash2 className="w-4 h-4 text-red-600" />
-                  <span><strong>Xóa:</strong> Xóa mẫu kiểm tra (không thể hoàn tác)</span>
+                  <span>
+                    <strong>Xóa:</strong> Xóa mẫu kiểm tra (không thể hoàn tác)
+                  </span>
                 </div>
               </div>
             </div>
@@ -160,7 +178,7 @@ export const examTemplateColumns = (
               size="sm"
               onClick={() => handlers.onCreateInstance!(examTemplate)}
               className="p-2 hover:bg-purple-50 hover:text-purple-600 border-purple-300"
-              title="Tạo phiếm kiểm tra"
+              title="Tạo phiên kiểm tra"
             >
               <Plus className="w-4 h-4" />
             </Button>
