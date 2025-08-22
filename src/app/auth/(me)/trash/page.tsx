@@ -49,8 +49,8 @@ function TrashPage() {
           toast.success("Khôi phục thành công");
         },
         onError: (error) => {
-          console.error("Error restoring item:", error?.response?.data);
-          toast.error(`Khôi phục thất bại: ${error?.response?.data}`);
+          console.error("Error restoring item:", error);
+          toast.error("Có lỗi xảy ra khi khôi phục");
         },
       }
     );
