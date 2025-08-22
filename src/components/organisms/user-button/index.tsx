@@ -56,7 +56,7 @@ function UserButton() {
           height={20}
           className="object-contain"
         />
-        {isLoading ? <>Loading...</> : wallet?.data?.balance}
+        {isLoading ? <>Loading...</> : wallet?.data?.balance || 0}
       </div>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger data-tour="user-menu" className="outline-none relative">

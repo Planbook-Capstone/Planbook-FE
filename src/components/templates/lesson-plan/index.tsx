@@ -8,6 +8,7 @@ import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 import LoadingAI from "@/components/molecules/loading";
+import TokenConfirmModal from "@/components/modals/TokenConfirmModal";
 import { toast } from "sonner";
 import { Eye, Save, ArrowLeft, Edit3, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -278,13 +279,17 @@ function LessonPlanTemplate({
   const {
     data,
     bookType,
+    handleEstimateToken,
     handleGenerationLessonPlan,
+    handleCloseTokenModal,
     handleDownloadDocx,
     resultId: generationResultId,
     isGenerating,
+    isEstimating,
+    showTokenConfirmModal,
+    estimatedTokens,
   } = useLessonPlanGeneration({
     demoData,
-
     lessonId,
     lessonById,
     getAllFinalData,
@@ -566,7 +571,7 @@ function LessonPlanTemplate({
                     setShowDeleteButtons(!showDeleteButtons)
                   }
                   onShowPreview={() => setShowPreview(true)}
-                  onExportJSON={handleGenerationLessonPlan}
+                  onExportJSON={handleEstimateToken}
                   sidebarCollapsed={sidebarCollapsed}
                   onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
                   canUndo={canUndo}
@@ -574,7 +579,7 @@ function LessonPlanTemplate({
                   onUndo={undo}
                   onRedo={redo}
                   hideAIButton={mode === "edit"}
-                  isGenerating={isGenerating}
+                  isGenerating={isGenerating || isEstimating}
                   currentNodeCount={currentNodeCount}
                 />
               </div>
@@ -640,6 +645,15 @@ function LessonPlanTemplate({
           lesson={lessonById?.data}
           onSaveResult={handleSaveResult}
           currentResultData={currentToolResult?.data}
+        />
+
+        {/* Token Confirmation Modal */}
+        <TokenConfirmModal
+          isOpen={showTokenConfirmModal}
+          onClose={handleCloseTokenModal}
+          onConfirm={handleGenerationLessonPlan}
+          estimatedTokens={estimatedTokens || 0}
+          isLoading={isGenerating}
         />
       </div>
     </DragDropContext>
