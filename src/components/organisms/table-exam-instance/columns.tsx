@@ -38,23 +38,17 @@ const ActionGuideModal = ({
         <h4 className="font-medium text-gray-900">
           Các trạng thái và hành động:
         </h4>
-
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            <Badge className="bg-gray-100 text-gray-800">Nháp</Badge>
-            <span>→</span>
-            <div className="flex gap-1">
-              <Button size="sm" variant="outline" className="p-1 h-6">
-                <Power className="w-3 h-3" />
-              </Button>
-              <span className="text-xs">Kích hoạt</span>
-              <Button size="sm" variant="outline" className="p-1 h-6 ml-2">
-                <XCircle className="w-3 h-3" />
-              </Button>
-              <span className="text-xs">Hủy</span>
-            </div>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-yellow-100 text-yellow-800">Đã lên lịch</Badge>
+          <span>→</span>
+          <div className="flex gap-1">
+            <Button size="sm" variant="outline" className="p-1 h-6">
+              <XCircle className="w-3 h-3" />
+            </Button>
+            <span className="text-xs">Hủy</span>
           </div>
-
+        </div>
+        <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2">
             <Badge className="bg-green-100 text-green-800">
               Đang hoạt động
@@ -82,17 +76,6 @@ const ActionGuideModal = ({
                 <Play className="w-3 h-3" />
               </Button>
               <span className="text-xs">Tiếp tục</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Badge className="bg-yellow-100 text-yellow-800">Đã lên lịch</Badge>
-            <span>→</span>
-            <div className="flex gap-1">
-              <Button size="sm" variant="outline" className="p-1 h-6">
-                <XCircle className="w-3 h-3" />
-              </Button>
-              <span className="text-xs">Hủy</span>
             </div>
           </div>
         </div>
