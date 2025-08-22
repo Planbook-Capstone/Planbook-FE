@@ -21,7 +21,7 @@ export const useLessonPlanData = ({
   const [demoData, setDemoData] = useState<DemoNode[]>([]);
   const [trashData, setTrashData] = useState<DemoNode[]>([]);
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
-  const [activeTab, setActiveTab] = useState<"components" | "images" | "trash">(
+  const [activeTab, setActiveTab] = useState<"components" | "images" | "upload" | "trash">(
     "components"
   );
   const [showPreview, setShowPreview] = useState(false);

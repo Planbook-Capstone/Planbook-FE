@@ -17,6 +17,7 @@ interface UseLessonPlanDragDropProps {
   findNodeById: (nodeList: DemoNode[], nodeId: string) => DemoNode | null;
   removeNodeById: (nodeList: DemoNode[], nodeId: string) => DemoNode[];
   setTrashData: React.Dispatch<React.SetStateAction<DemoNode[]>>;
+  mode?: "create" | "edit";
 }
 
 export const useLessonPlanDragDrop = ({
@@ -27,6 +28,7 @@ export const useLessonPlanDragDrop = ({
   findNodeById,
   removeNodeById,
   setTrashData,
+  mode = "create",
 }: UseLessonPlanDragDropProps) => {
   // Function to count total nodes recursively
   const countTotalNodes = useCallback((nodes: DemoNode[]): number => {
@@ -68,11 +70,13 @@ export const useLessonPlanDragDrop = ({
   // Handle dragging from palette to canvas
   const handlePaletteToCanvas = useCallback(
     (draggableId: string, destination: any) => {
-      // Check node limit before adding
-      const currentNodeCount = countTotalNodes(demoData);
-      if (currentNodeCount >= 30) {
-        toast.error("Không thể thêm node mới. Giới hạn tối đa 30 node.");
-        return;
+      // Check node limit before adding (only in create mode)
+      if (mode === "create") {
+        const currentNodeCount = countTotalNodes(demoData);
+        if (currentNodeCount >= 30) {
+          toast.error("Không thể thêm mục mới. Giới hạn tối đa khi tạo là 30 mục.");
+          return;
+        }
       }
 
       const componentPalette = getComponentPalette();

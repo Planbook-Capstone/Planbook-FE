@@ -244,149 +244,61 @@ export default function MaterialsLibrarySidebar({
 
       {/* Content with Sub-tabs */}
       <div className="flex-1 flex flex-col px-4 min-h-0 overflow-y-scroll">
-        <Tabs
-          tabs={[
-            {
-              id: "images",
-              label: `Ảnh (${filteredImages.length})`,
-              content: (
-                <div className="flex-1">
-                  {filteredImages.length > 0 ? (
-                    <div className="space-y-4">
-                      {/* Simple Grid Layout */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {filteredImages.map((image) => (
-                          <div
-                            key={image.id}
-                            className="group relative cursor-pointer rounded-lg overflow-hidden bg-white shadow-sm border-2 transition-all duration-200 hover:shadow-md hover:transform hover:scale-[1.02] border-gray-300 hover:border-blue-300"
-                            onClick={() => onAddImage(image.url)}
-                          >
-                            <div className="aspect-square">
-                              <img
-                                src={image.url}
-                                alt={image.name}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = "/placeholder-image.png"; // Fallback image
-                                }}
-                              />
-                            </div>
-
-                            {/* Image overlay with name */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                              <p className="text-white text-xs truncate">
-                                {image.name}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Load More Button - Force show for testing */}
-                      {(hasNextPage || filteredImages.length > 0) && (
-                        <div className="text-center py-4">
-                          <button
-                            onClick={() => fetchNextPage()}
-                            disabled={isFetchingNextPage}
-                            className="px-4 py-2 bg-black text-white rounded-full font-questrial hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
-                          </button>
-                        </div>
-                      )}
-                      <div className="h-16 w-full"></div>
+        <div className="flex-1">
+          {filteredImages.length > 0 ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                {filteredImages.map((image) => (
+                  <div
+                    key={image.id}
+                    className="group relative cursor-pointer rounded-lg overflow-hidden bg-white shadow-sm border-2 transition-all duration-200 hover:shadow-md hover:transform hover:scale-[1.02] border-gray-300 hover:border-blue-300"
+                    onClick={() => onAddImage(image.url)}
+                  >
+                    <div className="aspect-square">
+                      <img
+                        src={image.url}
+                        alt={image.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder-image.png"; // Fallback image
+                        }}
+                      />
                     </div>
-                  ) : (
-                    <div className="text-center py-16 text-sm text-gray-500">
-                      {searchQuery
-                        ? "Không tìm thấy ảnh nào"
-                        : "Chưa có ảnh, vui lòng tải lên"}
+
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                      <p className="text-white text-xs truncate">
+                        {image.name}
+                      </p>
                     </div>
-                  )}
-                </div>
-              ),
-            },
-            {
-              id: "videos",
-              label: `Video (${filteredVideos.length})`,
-              content: (
-                <div className="flex-1">
-                  <div className="p-4">
-                    {filteredVideos.length > 0 ? (
-                      <div className="space-y-3">
-                        {filteredVideos.map((video) => (
-                          <div
-                            key={video.id}
-                            className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={() => handleVideoSelect(video)}
-                          >
-                            <div className="flex items-center gap-3">
-                              {/* Video Thumbnail */}
-                              <div className="w-16 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
-                                <video
-                                  src={video.url}
-                                  className="w-full h-full object-cover rounded"
-                                  muted
-                                  preload="metadata"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLVideoElement;
-                                    target.style.display = "none";
-                                    const parent = target.parentElement;
-                                    if (parent) {
-                                      parent.innerHTML =
-                                        '<div class="text-purple-500"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l8-5-8-5z"/></svg></div>';
-                                    }
-                                  }}
-                                />
-                              </div>
-
-                              {/* Video Info */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <Play className="w-4 h-4 text-purple-500 flex-shrink-0" />
-                                  <h3 className="text-sm font-medium text-gray-900 truncate">
-                                    {video.name}
-                                  </h3>
-                                </div>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  🎬 Video file
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-16 text-sm text-gray-500">
-                        {searchQuery
-                          ? "Không tìm thấy video nào"
-                          : "Chưa có video, vui lòng tải lên"}
-                      </div>
-                    )}
-
-                    {/* Load More Button */}
-                    {hasNextPage && (
-                      <div className="text-center py-4">
-                        <button
-                          onClick={() => fetchNextPage()}
-                          disabled={isFetchingNextPage}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
-                        </button>
-                      </div>
-                    )}
                   </div>
+                ))}
+              </div>
+
+              {(hasNextPage || filteredImages.length > 0) && (
+                <div className="text-center py-4">
+                  <button
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="px-4 py-2 bg-black text-white rounded-full font-questrial hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
+                  </button>
                 </div>
-              ),
-            },
-          ]}
-        />
+              )}
+              <div className="h-16 w-full"></div>
+            </div>
+          ) : (
+            <div className="text-center py-16 text-sm text-gray-500">
+              {searchQuery
+                ? "Không tìm thấy ảnh nào"
+                : "Chưa có ảnh, vui lòng tải lên"}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Webcam Modal */}
       {showWebcam && (
         <WebcamCapture
           onCapture={handleWebcamCapture}
@@ -396,3 +308,143 @@ export default function MaterialsLibrarySidebar({
     </div>
   );
 }
+
+// <>
+//   <Tabs
+//     tabs={[
+//       {
+//         id: "images",
+//         label: `Ảnh (${filteredImages.length})`,
+//         content: (
+//           <div className="flex-1">
+//             {filteredImages.length > 0 ? (
+//               <div className="space-y-4">
+//                 {/* Simple Grid Layout */}
+//                 <div className="grid grid-cols-2 gap-3">
+//                   {filteredImages.map((image) => (
+//                     <div
+//                       key={image.id}
+//                       className="group relative cursor-pointer rounded-lg overflow-hidden bg-white shadow-sm border-2 transition-all duration-200 hover:shadow-md hover:transform hover:scale-[1.02] border-gray-300 hover:border-blue-300"
+//                       onClick={() => onAddImage(image.url)}
+//                     >
+//                       <div className="aspect-square">
+//                         <img
+//                           src={image.url}
+//                           alt={image.name}
+//                           className="w-full h-full object-cover"
+//                           loading="lazy"
+//                           onError={(e) => {
+//                             const target = e.target as HTMLImageElement;
+//                             target.src = "/placeholder-image.png"; // Fallback image
+//                           }}
+//                         />
+//                       </div>
+
+//                       {/* Image overlay with name */}
+//                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+//                         <p className="text-white text-xs truncate">
+//                           {image.name}
+//                         </p>
+//                       </div>
+//                     </div>
+//                   ))}
+//                 </div>
+
+//                 {(hasNextPage || filteredImages.length > 0) && (
+//                   <div className="text-center py-4">
+//                     <button
+//                       onClick={() => fetchNextPage()}
+//                       disabled={isFetchingNextPage}
+//                       className="px-4 py-2 bg-black text-white rounded-full font-questrial hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+//                     >
+//                       {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
+//                     </button>
+//                   </div>
+//                 )}
+//                 <div className="h-16 w-full"></div>
+//               </div>
+//             ) : (
+//               <div className="text-center py-16 text-sm text-gray-500">
+//                 {searchQuery
+//                   ? "Không tìm thấy ảnh nào"
+//                   : "Chưa có ảnh, vui lòng tải lên"}
+//               </div>
+//             )}
+//           </div>
+//         ),
+//       },
+//       {
+//         id: "videos",
+//         label: `Video (${filteredVideos.length})`,
+//         content: (
+//           <div className="flex-1">
+//             <div className="p-4">
+//               {filteredVideos.length > 0 ? (
+//                 <div className="space-y-3">
+//                   {filteredVideos.map((video) => (
+//                     <div
+//                       key={video.id}
+//                       className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+//                       onClick={() => handleVideoSelect(video)}
+//                     >
+//                       <div className="flex items-center gap-3">
+//                         <div className="w-16 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+//                           <video
+//                             src={video.url}
+//                             className="w-full h-full object-cover rounded"
+//                             muted
+//                             preload="metadata"
+//                             onError={(e) => {
+//                               const target =
+//                                 e.target as HTMLVideoElement;
+//                               target.style.display = "none";
+//                               const parent = target.parentElement;
+//                               if (parent) {
+//                                 parent.innerHTML =
+//                                   '<div class="text-purple-500"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M8 5v10l8-5-8-5z"/></svg></div>';
+//                               }
+//                             }}
+//                           />
+//                         </div>
+
+//                         <div className="flex-1 min-w-0">
+//                           <div className="flex items-center gap-2">
+//                             <Play className="w-4 h-4 text-purple-500 flex-shrink-0" />
+//                             <h3 className="text-sm font-medium text-gray-900 truncate">
+//                               {video.name}
+//                             </h3>
+//                           </div>
+//                           <p className="text-xs text-gray-500 mt-1">
+//                             🎬 Video file
+//                           </p>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   ))}
+//                 </div>
+//               ) : (
+//                 <div className="text-center py-16 text-sm text-gray-500">
+//                   {searchQuery
+//                     ? "Không tìm thấy video nào"
+//                     : "Chưa có video, vui lòng tải lên"}
+//                 </div>
+//               )}
+
+//               {hasNextPage && (
+//                 <div className="text-center py-4">
+//                   <button
+//                     onClick={() => fetchNextPage()}
+//                     disabled={isFetchingNextPage}
+//                     className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+//                   >
+//                     {isFetchingNextPage ? "Đang tải..." : "Tải thêm"}
+//                   </button>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         ),
+//       },
+//     ]}
+//   />
+// </>

@@ -53,7 +53,7 @@ export interface LessonPlanState {
   demoData: DemoNode[];
   trashData: DemoNode[];
   showDeleteButtons: boolean;
-  activeTab: "components" | "images" | "trash";
+  activeTab: "components" | "images" | "upload" | "trash";
   showPreview: boolean;
   sidebarCollapsed: boolean;
   currentStep: number;
