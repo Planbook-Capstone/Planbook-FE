@@ -22,10 +22,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Clock, BookOpen, GraduationCap } from "lucide-react";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+import {
+  getMinimumStartTime,
+  formatVietnamDate,
+  isToday,
+  isBeforeToday,
+  createVietnamDateTime,
+  formatTimeForInput,
+} from "@/utils/dateUtils";
 import { CreateExamInstanceData } from "@/services/examInstanceServices";
 import { BookMarkIcon, BookMarkWhiteIcon } from "@/constants/icon";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +54,10 @@ const createInstanceSchema = z
   .refine((data) => data.endAt > data.startAt, {
     message: "Thời gian kết thúc phải sau thời gian bắt đầu",
     path: ["endAt"],
+  })
+  .refine((data) => data.startAt >= getMinimumStartTime(), {
+    message: "Thời gian bắt đầu phải sau ít nhất 5 phút so với hiện tại",
+    path: ["startAt"],
   });
 
 type CreateInstanceFormData = z.infer<typeof createInstanceSchema>;
@@ -81,11 +92,23 @@ export function CreateInstanceForm({
   });
 
   const handleSubmit = (data: CreateInstanceFormData) => {
+    // Create ISO string without timezone conversion
+    const formatToISOWithoutTimezone = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
+    };
+
     const submitData: CreateExamInstanceData = {
       templateId: selectedTemplate.id,
       description: data.description,
-      startAt: data.startAt.toISOString(),
-      endAt: data.endAt.toISOString(),
+      startAt: formatToISOWithoutTimezone(data.startAt),
+      endAt: formatToISOWithoutTimezone(data.endAt),
     };
     onSubmit(submitData);
   };
@@ -178,9 +201,7 @@ export function CreateInstanceForm({
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "dd/MM/yyyy HH:mm", {
-                              locale: vi,
-                            })
+                            formatVietnamDate(field.value, "dd/MM/yyyy HH:mm")
                           ) : (
                             <span>Chọn thời gian bắt đầu</span>
                           )}
@@ -192,27 +213,66 @@ export function CreateInstanceForm({
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
+                        onSelect={(date) => {
+                          if (date) {
+                            // If selecting today, set minimum time to current time + 5 minutes
+                            if (isToday(date)) {
+                              const minTime = getMinimumStartTime();
+                              const newDate = createVietnamDateTime(
+                                date,
+                                minTime.getHours(),
+                                minTime.getMinutes()
+                              );
+                              field.onChange(newDate);
+                            } else {
+                              // For future dates, set default time to 8:00 AM
+                              const newDate = createVietnamDateTime(date, 8, 0);
+                              field.onChange(newDate);
+                            }
+                          }
+                        }}
+                        disabled={(date) => isBeforeToday(date)}
                       />
                       <div className="p-3 border-t">
                         <Input
                           type="time"
-                          onChange={(e) => {
+                          onChange={(
+                            e: React.ChangeEvent<HTMLInputElement>
+                          ) => {
                             if (field.value && e.target.value) {
                               const [hours, minutes] =
                                 e.target.value.split(":");
-                              const newDate = new Date(field.value);
-                              newDate.setHours(
+                              const newDate = createVietnamDateTime(
+                                field.value,
                                 parseInt(hours),
                                 parseInt(minutes)
                               );
+
+                              // Check if the selected time is valid (after minimum time for today)
+                              if (isToday(newDate)) {
+                                const minTime = getMinimumStartTime();
+                                if (newDate < minTime) {
+                                  // If time is too early for today, set to minimum allowed time
+                                  const correctedDate = createVietnamDateTime(
+                                    field.value,
+                                    minTime.getHours(),
+                                    minTime.getMinutes()
+                                  );
+                                  field.onChange(correctedDate);
+                                  return;
+                                }
+                              }
+
                               field.onChange(newDate);
                             }
                           }}
                           value={
-                            field.value ? format(field.value, "HH:mm") : ""
+                            field.value ? formatTimeForInput(field.value) : ""
+                          }
+                          min={
+                            field.value && isToday(field.value)
+                              ? formatTimeForInput(getMinimumStartTime())
+                              : undefined
                           }
                         />
                       </div>
@@ -241,9 +301,7 @@ export function CreateInstanceForm({
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "dd/MM/yyyy HH:mm", {
-                              locale: vi,
-                            })
+                            formatVietnamDate(field.value, "dd/MM/yyyy HH:mm")
                           ) : (
                             <span>Chọn thời gian kết thúc</span>
                           )}
@@ -255,27 +313,66 @@ export function CreateInstanceForm({
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
+                        onSelect={(date) => {
+                          if (date) {
+                            // If selecting today, set minimum time to current time + 5 minutes
+                            if (isToday(date)) {
+                              const minTime = getMinimumStartTime();
+                              const newDate = createVietnamDateTime(
+                                date,
+                                minTime.getHours(),
+                                minTime.getMinutes()
+                              );
+                              field.onChange(newDate);
+                            } else {
+                              // For future dates, set default time to 8:00 AM
+                              const newDate = createVietnamDateTime(date, 8, 0);
+                              field.onChange(newDate);
+                            }
+                          }
+                        }}
+                        disabled={(date) => isBeforeToday(date)}
                       />
                       <div className="p-3 border-t">
                         <Input
                           type="time"
-                          onChange={(e) => {
+                          onChange={(
+                            e: React.ChangeEvent<HTMLInputElement>
+                          ) => {
                             if (field.value && e.target.value) {
                               const [hours, minutes] =
                                 e.target.value.split(":");
-                              const newDate = new Date(field.value);
-                              newDate.setHours(
+                              const newDate = createVietnamDateTime(
+                                field.value,
                                 parseInt(hours),
                                 parseInt(minutes)
                               );
+
+                              // Check if the selected time is valid (after minimum time for today)
+                              if (isToday(newDate)) {
+                                const minTime = getMinimumStartTime();
+                                if (newDate < minTime) {
+                                  // If time is too early for today, set to minimum allowed time
+                                  const correctedDate = createVietnamDateTime(
+                                    field.value,
+                                    minTime.getHours(),
+                                    minTime.getMinutes()
+                                  );
+                                  field.onChange(correctedDate);
+                                  return;
+                                }
+                              }
+
                               field.onChange(newDate);
                             }
                           }}
                           value={
-                            field.value ? format(field.value, "HH:mm") : ""
+                            field.value ? formatTimeForInput(field.value) : ""
+                          }
+                          min={
+                            field.value && isToday(field.value)
+                              ? formatTimeForInput(getMinimumStartTime())
+                              : undefined
                           }
                         />
                       </div>

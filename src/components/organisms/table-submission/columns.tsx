@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { SubmissionData } from "@/services/examInstanceServices";
 import { Badge } from "@/components/ui/badge";
 import { SubmissionDetailsSheet } from "@/components/organisms/submission-details-sheet";
+import { formatVietnamDate } from "@/utils/dateUtils";
 
 // Handler function types (keeping for backward compatibility)
 interface OrderColumnHandlers {
@@ -45,13 +46,7 @@ export const ordersColumns = (
     cell: ({ row }) => {
       const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString("vi-VN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        return formatVietnamDate(date, "dd/MM/yyyy HH:mm");
       };
 
       return (
