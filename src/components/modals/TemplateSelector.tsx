@@ -147,10 +147,10 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       <div className="max-w-7xl mx-auto h-full bg-opacity-50 z-50">
         <div className="bg-white rounded-lg w-full p-6">
           <BannerWithOverlay
-            videoSrc="https://res.cloudinary.com/dpo0ad3aq/video/upload/Scene_02_-_4K_3840x2160_gdzuhl.mp4"
+            videoSrc="https://hxjigovnfjyaepkgvamd.supabase.co/storage/v1/object/public/planbook/Scene%2003%20-%204K%20(3840x2160)%20(1).mp4"
             onSearch={handleClose}
             height="h-80"
-            title=""
+            title="Mẫu Slide Hệ Thống Planbook"
             grid={10}
             mouse={0.1}
             strength={0.15}

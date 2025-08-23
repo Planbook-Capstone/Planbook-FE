@@ -159,7 +159,7 @@ export default function Home() {
       <div data-tour="banner">
         <BannerOverlay
           imageSrc="/images/background/abstract-bg.svg"
-          videoSrc="https://res.cloudinary.com/dpo0ad3aq/video/upload/Scene_03_-_4K_3840x2160_h0awgk.mp4"
+          videoSrc="https://hxjigovnfjyaepkgvamd.supabase.co/storage/v1/object/public/planbook/Scene%2003%20-%204K%20(3840x2160)%20(1).mp4"
           title={"Chào mừng " + displayName || "Chào mừng Người dùng ẩn danh"}
           onSearch={(query) => setSearchQuery(query)}
           height="h-80"
