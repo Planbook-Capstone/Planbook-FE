@@ -28,6 +28,7 @@ import { useLessonPlanUndoRedo } from "./hooks/useLessonPlanUndoRedo";
 // Types and constants
 import { getComponentPalette } from "./constants";
 import { DemoNode } from "./types";
+import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 interface LessonPlanTemplateProps {
   mode?: "create" | "edit";
@@ -84,6 +85,8 @@ function LessonPlanTemplate({
     lessonId,
     updateFinalData,
     convertLessonPlanToDemoNode,
+
+    isLoadingChidren,
   } = useLessonPlanData({ mode, existingData });
 
   // Use custom hooks for actions
@@ -557,7 +560,7 @@ function LessonPlanTemplate({
           {/* Main Canvas Area */}
           <div className="flex-1 flex flex-col min-h-0 relative">
             {/* Toolbar - Hide when nodes are loading (both create and edit mode) */}
-            {!isLoading && loadingNodes.size === 0 && (
+            {isLoadingChidren || !isLoading && loadingNodes.size === 0 && (
               <div
                 className={`absolute ${
                   mode === "edit" ? "right-2 -top-17" : "right-0 -top-16"
@@ -580,6 +583,16 @@ function LessonPlanTemplate({
                   isGenerating={isGenerating || isEstimating}
                   currentNodeCount={currentNodeCount}
                   mode={mode}
+                />
+              </div>
+            )}
+
+            {isLoadingChidren && (
+              <div className="p-5">
+                <GridSkeleton
+                  count={4}
+                  height={200}
+                  cols="grid-cols-1 lg:grid-cols-1"
                 />
               </div>
             )}
