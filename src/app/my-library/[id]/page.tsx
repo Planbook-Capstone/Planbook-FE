@@ -27,6 +27,7 @@ import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import InternalMaterial from "@/components/templates/internal-material";
+import { useRecentFilesWithHelpers } from "@/store/recentFilesHelpers";
 interface Props {
   params: Promise<{
     id: string;
@@ -85,6 +86,27 @@ function MyLibraryDetail({ params }: Props) {
   const { mutate: deleteExamTemplate, isPending: isDeletingTemplate } =
     useDeleteExamTemplateService();
 
+  // Recent files store
+  const { closeFile } = useRecentFilesWithHelpers();
+
+  // Helper function to generate file ID for recent files
+  const getRecentFileId = (item: any) => {
+    if (id === "QUIZ") {
+      return `exam-${item.id}`;
+    } else {
+      // Determine file type based on item.type
+      let fileType = "other";
+      if (item.type === "EXAM") {
+        fileType = "exam";
+      } else if (item.type === "LESSON_PLAN") {
+        fileType = "lesson-plan";
+      } else if (item.type === "SLIDE") {
+        fileType = "slide";
+      }
+      return `${fileType}-${item.id}`;
+    }
+  };
+
   const handlePageChange = (page: number) => {
     // Update current page state - this will trigger refetch automatically
     setCurrentPage(page);
@@ -103,6 +125,10 @@ function MyLibraryDetail({ params }: Props) {
         // Delete exam template
         deleteExamTemplate(itemToDelete.id, {
           onSuccess: () => {
+            // Remove from recent files if exists
+            const recentFileId = getRecentFileId(itemToDelete);
+            closeFile(recentFileId);
+
             // Close modal and reset state
             setShowConfirmModal(false);
             setItemToDelete(null);
@@ -122,6 +148,10 @@ function MyLibraryDetail({ params }: Props) {
         // Delete tool result
         deleteToolResult(itemToDelete.id, {
           onSuccess: () => {
+            // Remove from recent files if exists
+            const recentFileId = getRecentFileId(itemToDelete);
+            closeFile(recentFileId);
+
             // Close modal and reset state
             setShowConfirmModal(false);
             setItemToDelete(null);
