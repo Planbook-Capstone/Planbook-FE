@@ -26,10 +26,11 @@ function FileDetailPage({ params }: Props) {
     if (isError || error) {
       notFound();
     }
-    // if (data?.data?.status !== "ARCHIVED ") {
-    //   notFound();
-    // }
-  }, [isError, error, router]);
+    // Check if status is not ARCHIVED and redirect to not found
+    if (data?.data && data.data.status !== "ARCHIVED") {
+      notFound();
+    }
+  }, [isError, error, data?.data?.status, router]);
 
   const lessonQueries = useLessonsByIdsService(data?.data?.lessonIds || []);
 
