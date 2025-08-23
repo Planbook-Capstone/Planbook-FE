@@ -19,14 +19,12 @@ import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "sonner";
-import {
-  validateMatrixForm,
-  calculateRowTotal,
-  calculateColumnTotals,
-  type MatrixRow,
-  type DistributionLevel,
-  type FormData,
-} from "./validation";
+// Local types for dynamic matrix
+type MatrixRow = {
+  lessonID: string;
+  distribution: any; // Dynamic structure based on template
+  total: number;
+};
 
 import { useTaskStatusService } from "@/services/progressTaskServices";
 import {
@@ -48,6 +46,7 @@ import { DowloadIcon } from "@/constants/icon";
 import { generateExamDocx } from "@/utils/docxGeneratorExam";
 import LoadingRealtimeExamMatrix from "./LoadingRealtimeExamMatrix";
 import { DIFFICULTY_LEVEL } from "@/constants/enum";
+import { useMatrixTemplateActiveService } from "@/services/matrixTemplateServices";
 
 export default function MatrixTemplate2() {
   const router = useRouter();
@@ -62,7 +61,64 @@ export default function MatrixTemplate2() {
   const searchParams = useSearchParams();
   const [resultId, setResultId] = useState<string | null>(null);
   const query = searchParams.get("bookTypeId");
+  const { data: matrixTemplates } = useMatrixTemplateActiveService();
 
+  // Get the first active template (assuming we use the first one)
+  const activeTemplate = matrixTemplates?.data?.[0];
+  const templateParts = activeTemplate?.matrixJson?.parts || [];
+
+  // Utility: Merge API distribution with template structure to ensure all parts/levels exist
+  const mergeDistribution = (apiDistribution: any) => {
+    const base = createInitialDistribution();
+    if (apiDistribution) {
+      Object.keys(apiDistribution).forEach((partKey) => {
+        if (base[partKey]) {
+          Object.assign(base[partKey], apiDistribution[partKey]);
+        }
+      });
+    }
+    return base;
+  };
+
+  // Function to calculate row total dynamically (safe access)
+  const calculateDynamicRowTotal = (row: any): number => {
+    let total = 0;
+    templateParts.forEach((part: any, index: number) => {
+      const partKey = `part${index + 1}`;
+      if (row.distribution && row.distribution[partKey]) {
+        part.difficultyLevels?.forEach((level: any) => {
+          const value = row.distribution?.[partKey]?.[level.id] ?? 0;
+          total += (typeof value === 'number' && !isNaN(value)) ? value : 0;
+        });
+      }
+    });
+    return total;
+  };
+
+  // Function to calculate column totals dynamically
+  const calculateDynamicColumnTotals = (matrix: any[]) => {
+    const totals: any = {};
+    let grandTotal = 0;
+
+    templateParts.forEach((part: any, index: number) => {
+      const partKey = `part${index + 1}`;
+      totals[partKey] = 0;
+
+      matrix.forEach((row) => {
+        if (row.distribution && row.distribution[partKey]) {
+          part.difficultyLevels?.forEach((level: any) => {
+            const value = row.distribution[partKey][level.id];
+            totals[partKey] += (typeof value === 'number' && !isNaN(value)) ? value : 0;
+          });
+        }
+      });
+
+      grandTotal += totals[partKey];
+    });
+
+    totals.grandTotal = grandTotal;
+    return totals;
+  };
   const { data: bookType } = useBookTypeByIdService(query || "");
 
   const { mutate: executeTool, isPending: isGenerating } =
@@ -88,7 +144,7 @@ export default function MatrixTemplate2() {
 
   // States for modals
   const [showIframe, setShowIframe] = useState(false);
-  const [iframeUrl, setIframeUrl] = useState("");
+
   const [showConfirmSaveResult, setShowConfirmSaveResult] = useState(false);
 
   // Ref for questions container and tracking
@@ -112,9 +168,6 @@ export default function MatrixTemplate2() {
 
   // Handler functions for document actions
   const handleViewDocument = () => {
-    if (finalData?.online_links?.view) {
-      setIframeUrl(finalData.online_links.view);
-    }
     setShowIframe(true);
   };
 
@@ -292,18 +345,45 @@ export default function MatrixTemplate2() {
     .flatMap((query) => query.data.data.content)
     .filter((lesson: any) => lesson && lesson.id && lesson.name);
 
+  // Function to create initial distribution based on template
+  const createInitialDistribution = () => {
+    const distribution: any = {};
+    templateParts?.forEach((part: any, index: number) => {
+      const partKey = `part${index + 1}`;
+      distribution[partKey] = {};
+      part.difficultyLevels?.forEach((level: any) => {
+        distribution[partKey][level.id] = 0;
+      });
+    });
+    return distribution;
+  };
+
   // State cho bảng matrix
-  const [matrix, setMatrix] = useState<MatrixRow[]>([
-    {
-      lessonID: "",
-      distribution: {
-        part1: { biet: 0, hieu: 0, vd: 0 },
-        part2: { biet: 0, hieu: 0, vd: 0 },
-        part3: { biet: 0, hieu: 0, vd: 0 },
-      },
-      total: 0,
-    },
-  ]);
+  const [matrix, setMatrix] = useState<MatrixRow[]>([]);
+
+  // Initialize matrix when template data is available
+  useEffect(() => {
+    if (templateParts.length > 0 && matrix.length === 0) {
+      setMatrix([
+        {
+          lessonID: "",
+          distribution: createInitialDistribution(),
+          total: 0,
+        },
+      ]);
+    }
+  }, [templateParts, matrix.length]);
+
+  // If you load matrix data from API, merge distribution for each row to ensure all parts/levels exist
+  // Example: (Uncomment and use this logic where you set matrix from API)
+  // useEffect(() => {
+  //   if (apiMatrixData) {
+  //     setMatrix(apiMatrixData.map(row => ({
+  //       ...row,
+  //       distribution: mergeDistribution(row.distribution)
+  //     })));
+  //   }
+  // }, [apiMatrixData, templateParts]);
 
   // Xử lý thay đổi matrix
   const handleMatrixChange = (
@@ -318,8 +398,8 @@ export default function MatrixTemplate2() {
 
   const handleDistributionChange = (
     rowIdx: number,
-    part: "part1" | "part2" | "part3",
-    level: keyof DistributionLevel,
+    part: string,
+    level: string,
     value: number
   ) => {
     // Update matrix state
@@ -330,7 +410,7 @@ export default function MatrixTemplate2() {
             distribution: {
               ...row.distribution,
               [part]: {
-                ...row.distribution[part],
+                ...row?.distribution[part],
                 [level]: value,
               },
             },
@@ -347,26 +427,11 @@ export default function MatrixTemplate2() {
     if (errors[totalErrorKey]) {
       // Calculate new total to check if error should be cleared
       const updatedRow = updatedMatrix[rowIdx];
-      const newTotal = calculateRowTotal(updatedRow);
+      const newTotal = calculateDynamicRowTotal(updatedRow);
 
       if (newTotal >= 1) {
         newErrors[totalErrorKey] = "";
       }
-    }
-
-    // Clear part total errors when user changes values and totals become valid
-    // Calculate new column totals with the updated matrix
-    const newColumnTotals = calculateColumnTotals(updatedMatrix);
-
-    // Clear part total errors if they become valid
-    if (errors.part1Total && newColumnTotals.part1Total <= 40) {
-      newErrors.part1Total = "";
-    }
-    if (errors.part2Total && newColumnTotals.part2Total <= 64) {
-      newErrors.part2Total = "";
-    }
-    if (errors.part3Total && newColumnTotals.part3Total <= 6) {
-      newErrors.part3Total = "";
     }
 
     // Update errors state
@@ -378,11 +443,7 @@ export default function MatrixTemplate2() {
       ...matrix,
       {
         lessonID: "",
-        distribution: {
-          part1: { biet: 0, hieu: 0, vd: 0 },
-          part2: { biet: 0, hieu: 0, vd: 0 },
-          part3: { biet: 0, hieu: 0, vd: 0 },
-        },
+        distribution: createInitialDistribution(),
         total: 0,
       },
     ]);
@@ -395,63 +456,118 @@ export default function MatrixTemplate2() {
   // Map ra JSON đúng format
   function mapToBackend() {
     return {
-      totalCount: calculateColumnTotals(matrix).grandTotal,
+      totalCount: calculateDynamicColumnTotals(matrix).grandTotal,
       school: school || "Trường THPT Nguyễn Huệ",
       // grade: selectedGrade ? parseInt(selectedGrade) : null,
       grade: 12,
-      subject: selectedSubject || "Hoa_hoc",
+      subject: selectedSubject || "Hóa học",
       examTitle,
-      examCode: "1234",
+      examCode: "0001",
       duration: Number(duration),
       outputFormat: "docx",
       outputLink: "online",
       isExportDocx: false,
       matrix: matrix.map((row) => ({
         lessonId: row.lessonID.toString(),
-        totalQuestions: calculateRowTotal(row),
-        parts: [
-          {
-            part: 1,
-            objectives: {
-              [DIFFICULTY_LEVEL.KNOWLEDGE]: row.distribution.part1.biet,
-              [DIFFICULTY_LEVEL.COMPREHENSION]: row.distribution.part1.hieu,
-              [DIFFICULTY_LEVEL.APPLICATION]: row.distribution.part1.vd,
-            },
-          },
-          {
-            part: 2,
-            objectives: {
-              [DIFFICULTY_LEVEL.KNOWLEDGE]: row.distribution.part2.biet,
-              [DIFFICULTY_LEVEL.COMPREHENSION]: row.distribution.part2.hieu,
-              [DIFFICULTY_LEVEL.APPLICATION]: row.distribution.part2.vd,
-            },
-          },
-          {
-            part: 3,
-            objectives: {
-              [DIFFICULTY_LEVEL.KNOWLEDGE]: row.distribution.part3.biet,
-              [DIFFICULTY_LEVEL.COMPREHENSION]: row.distribution.part3.hieu,
-              [DIFFICULTY_LEVEL.APPLICATION]: row.distribution.part3.vd,
-            },
-          },
-        ],
+        totalQuestions: calculateDynamicRowTotal(row),
+        parts: templateParts.map((part: any, index: number) => {
+          const partKey = `part${index + 1}`;
+          const objectives: any = {};
+
+          // Map difficulty levels to objectives
+          part?.difficultyLevels?.forEach((level: any) => {
+            // Map level IDs to DIFFICULTY_LEVEL constants
+            if (level.id === "nb") {
+              objectives[DIFFICULTY_LEVEL.KNOWLEDGE] =
+                row?.distribution[partKey]?.[level.id] || 0;
+            } else if (level.id === "th") {
+              objectives[DIFFICULTY_LEVEL.COMPREHENSION] =
+                row?.distribution[partKey]?.[level.id] || 0;
+            } else if (level.id === "vd") {
+              objectives[DIFFICULTY_LEVEL.APPLICATION] =
+                row?.distribution[partKey]?.[level.id] || 0;
+            }
+          });
+
+          return {
+            part: index + 1,
+            objectives,
+          };
+        }),
       })),
     };
   }
+
+  // Dynamic validation function
+  const validateDynamicForm = () => {
+    const validationErrors: string[] = [];
+    const fieldErrors: { [key: string]: string } = {};
+
+    // Validate school name
+    if (!school.trim()) {
+      validationErrors.push("Tên trường không được để trống");
+      fieldErrors.school = "Tên trường không được để trống";
+    }
+
+    // Validate exam title
+    if (!examTitle.trim()) {
+      validationErrors.push("Tên đề kiểm tra không được để trống");
+      fieldErrors.examTitle = "Tên đề kiểm tra không được để trống";
+    }
+
+    // Validate duration
+    if (!duration || duration < 15) {
+      validationErrors.push("Thời gian làm bài phải ít nhất 15 phút");
+      fieldErrors.duration = "Thời gian làm bài phải ít nhất 15 phút";
+    }
+
+    // Validate matrix rows
+    matrix.forEach((row, index) => {
+      if (!row.lessonID) {
+        validationErrors.push(`Dòng ${index + 1}: Chưa chọn bài học`);
+        fieldErrors[`matrix_${index}_lesson`] = "Chưa chọn bài học";
+      }
+
+      // Validate individual input fields - chỉ kiểm tra số âm
+      templateParts.forEach((part: any, partIndex: number) => {
+        const partKey = `part${partIndex + 1}`;
+        part.difficultyLevels?.forEach((level: any) => {
+          const value = row.distribution[partKey]?.[level.id] || 0;
+          const fieldKey = `matrix_${index}_${partKey}_${level.id}`;
+
+          // Check for negative values only
+          if (value < 0) {
+            validationErrors.push(
+              `Dòng ${index + 1}: Số câu hỏi không được âm`
+            );
+            fieldErrors[fieldKey] = "Không được âm";
+          }
+        });
+      });
+
+      // Validate tổng số câu của hàng phải >= 1
+      const rowTotal = calculateDynamicRowTotal(row);
+      if (rowTotal < 1) {
+        validationErrors.push(
+          `Dòng ${index + 1}: Tổng số câu phải ít nhất 1 câu`
+        );
+        fieldErrors[`matrix_${index}_total`] = "Tổng số câu phải >= 1";
+      }
+    });
+
+    return {
+      isValid: validationErrors.length === 0,
+      errors: validationErrors,
+      fieldErrors,
+    };
+  };
 
   // Validation function using the extracted validation module
   const validateForm = () => {
     // Clear previous errors
     setErrors({});
 
-    const formData: FormData = {
-      school,
-      examTitle,
-      duration,
-      matrix,
-    };
-
-    const validationResult = validateMatrixForm(formData);
+    const validationResult = validateDynamicForm();
 
     // Set field errors for UI feedback
     setErrors(validationResult.fieldErrors);
@@ -618,6 +734,9 @@ export default function MatrixTemplate2() {
           onDownloadDocument={handleDownloadDocument}
           onSaveResult={() => setShowConfirmSaveResult(true)}
           onSaveDraft={handleSaveDraft}
+          calculateRowTotal={calculateDynamicRowTotal}
+          calculateColumnTotals={calculateDynamicColumnTotals}
+          templateParts={templateParts}
         />
 
         <ConfirmSaveResult
@@ -745,27 +864,29 @@ export default function MatrixTemplate2() {
           vận dụng
         </h3>
       </div>
-      <table className="w-full text-center rounded-md border mb-4">
+
+      {/* Show loading or table based on template data availability */}
+      {templateParts.length === 0 ? (
+        <div className="w-full text-center py-8">
+          <p className="text-gray-500">Đang tải template...</p>
+        </div>
+      ) : (
+        <>
+        <table className="w-full text-center rounded-md border mb-4">
         <thead className="font-calsans text-base">
           <tr>
             <th className="border px-2 py-4 align-middle" rowSpan={2}>
               <span className="font-normal">Bài học</span>
             </th>
-            <th
-              className="border px-2 py-4 align-middle bg-amber-50"
-              colSpan={3}
-            >
-              <span className="font-normal">Phần 1</span>
-            </th>
-            <th
-              className="border px-2 py-4 align-middle bg-emerald-50"
-              colSpan={3}
-            >
-              <span className="font-normal">Phần 2</span>
-            </th>
-            <th className="border px-2 py-4 align-middle bg-sky-50" colSpan={3}>
-              <span className="font-normal">Phần 3</span>
-            </th>
+            {templateParts.map((part, index) => (
+              <th
+                key={part.id}
+                className={`border px-2 py-4 align-middle ${part.color}`}
+                colSpan={part.difficultyLevels?.length || 3}
+              >
+                <span className="font-normal">{part.name}</span>
+              </th>
+            ))}
             <th className="border px-2 py-4 align-middle" rowSpan={2}>
               <span className="font-normal">Tổng số câu</span>
             </th>
@@ -774,17 +895,15 @@ export default function MatrixTemplate2() {
             </th>
           </tr>
           <tr>
-            {[1, 2, 3].map(() => (
-              <React.Fragment key={Math.random()}>
-                <th className="border px-2 py-2">
-                  <span className="font-normal">NB</span>
-                </th>
-                <th className="border px-2 py-2">
-                  <span className="font-normal">TH</span>
-                </th>
-                <th className="border px-2 py-2">
-                  <span className="font-normal">VD</span>
-                </th>
+            {templateParts?.map((part) => (
+              <React.Fragment key={`${part.id}-levels`}>
+                {part?.difficultyLevels?.map((level) => (
+                  <th key={level.id} className="border px-2 py-2">
+                    <span className={`font-normal ${level.color}`}>
+                      {level?.name}
+                    </span>
+                  </th>
+                ))}
               </React.Fragment>
             ))}
           </tr>
@@ -862,17 +981,22 @@ export default function MatrixTemplate2() {
                   )}
                 </div>
               </td>
-              {(["part1", "part2", "part3"] as const).map((part) =>
-                (["biet", "hieu", "vd"] as const).map((level) => {
-                  const fieldKey = `matrix_${rowIdx}_${part}_${level}`;
+              {templateParts.map((part: any, partIndex: number) => {
+                const partKey = `part${partIndex + 1}`;
+                return part.difficultyLevels?.map((level: any) => {
+                  const fieldKey = `matrix_${rowIdx}_${partKey}_${level.id}`;
                   return (
-                    <td className="border px-2 py-1" key={part + level}>
+                    <td className="border px-2 py-1" key={partKey + level.id}>
                       <div className="flex flex-col">
                         <Input
                           type="number"
                           min={0}
                           step="1"
-                          value={row.distribution[part][level]}
+                          value={(() => {
+                            // Always safe access
+                            const value = row.distribution?.[partKey]?.[level.id] ?? 0;
+                            return (typeof value === 'number' && !isNaN(value)) ? value : 0;
+                          })()}
                           onChange={
                             resultId
                               ? undefined
@@ -889,8 +1013,8 @@ export default function MatrixTemplate2() {
                                         : parseInt(inputValue, 10);
                                     handleDistributionChange(
                                       rowIdx,
-                                      part,
-                                      level,
+                                      partKey,
+                                      level.id,
                                       value
                                     );
                                     // Clear error when user enters a non-negative value
@@ -904,10 +1028,10 @@ export default function MatrixTemplate2() {
                                 }
                           }
                           readOnly={!!resultId}
-                          placeholder={level.toUpperCase()}
-                          className={`${
+                          placeholder={level.name}
+                          className={`$
                             resultId ? "bg-gray-100 cursor-not-allowed" : ""
-                          } ${
+                          } $
                             errors[fieldKey]
                               ? "border-red-500 focus:border-red-500"
                               : ""
@@ -921,13 +1045,13 @@ export default function MatrixTemplate2() {
                       </div>
                     </td>
                   );
-                })
-              )}
+                });
+              })}
               <td className="border px-2 py-1">
                 <div className="flex flex-col">
                   <Input
                     type="number"
-                    value={calculateRowTotal(row)}
+                    value={calculateDynamicRowTotal(row)}
                     readOnly
                     className={`bg-gray-100 cursor-not-allowed text-center font-medium ${
                       errors[`matrix_${rowIdx}_total`] ? "border-red-500" : ""
@@ -975,76 +1099,41 @@ export default function MatrixTemplate2() {
             <td className="border px-2 py-3 text-center bg-violet-50 ">
               <span className="font-calsans ">TỔNG</span>
             </td>
-            {/* Tổng phần 1 (NB+TH+VD) */}
-            <td
-              className={`border px-2 py-3 text-center ${
-                errors.part1Total ? "bg-red-100" : ""
-              }`}
-              colSpan={3}
-            >
-              <div className="flex flex-col">
-                <span
-                  className={`font-medium font-questrial ${
-                    errors.part1Total ? "text-red-700" : ""
+            {templateParts.map((part: any, index: number) => {
+              const partKey = `part${index + 1}`;
+              const partTotal =
+                calculateDynamicColumnTotals(matrix)[partKey] || 0;
+              const errorKey = `${partKey}Total`;
+
+              return (
+                <td
+                  key={partKey}
+                  className={`border px-2 py-3 text-center ${
+                    errors[errorKey] ? "bg-red-100" : ""
                   }`}
+                  colSpan={part.difficultyLevels?.length || 3}
                 >
-                  {calculateColumnTotals(matrix).part1Total}/40
-                </span>
-                {errors.part1Total && (
-                  <span className="text-red-500 font-questrial text-xs mt-1">
-                    {errors.part1Total}
-                  </span>
-                )}
-              </div>
-            </td>
-            {/* Tổng phần 2 (NB+TH+VD) */}
-            <td
-              className={`border px-2 py-3 text-center ${
-                errors.part2Total ? "bg-red-100" : ""
-              }`}
-              colSpan={3}
-            >
-              <div className="flex flex-col">
-                <span
-                  className={`font-medium font-questrial ${
-                    errors.part2Total ? "text-red-700" : ""
-                  }`}
-                >
-                  {calculateColumnTotals(matrix).part2Total}/8
-                </span>
-                {errors.part2Total && (
-                  <span className="text-red-500 font-questrial text-xs mt-1">
-                    {errors.part2Total}
-                  </span>
-                )}
-              </div>
-            </td>
-            {/* Tổng phần 3 (NB+TH+VD) */}
-            <td
-              className={`border px-2 py-3 text-center ${
-                errors.part3Total ? "bg-red-100" : ""
-              }`}
-              colSpan={3}
-            >
-              <div className="flex flex-col">
-                <span
-                  className={`font-medium font-questrial ${
-                    errors.part3Total ? "text-red-700" : ""
-                  }`}
-                >
-                  {calculateColumnTotals(matrix).part3Total}/6
-                </span>
-                {errors.part3Total && (
-                  <span className="text-red-500 font-questrial text-xs mt-1">
-                    {errors.part3Total}
-                  </span>
-                )}
-              </div>
-            </td>
+                  <div className="flex flex-col">
+                    <span
+                      className={`font-medium font-questrial ${
+                        errors[errorKey] ? "text-red-700" : ""
+                      }`}
+                    >
+                      {partTotal}
+                    </span>
+                    {errors[errorKey] && (
+                      <span className="text-red-500 font-questrial text-xs mt-1">
+                        {errors[errorKey]}
+                      </span>
+                    )}
+                  </div>
+                </td>
+              );
+            })}
             {/* Tổng tổng */}
             <td className="border px-2 py-3 text-center">
               <span className=" font-bold font-questrial">
-                {calculateColumnTotals(matrix).grandTotal}
+                {calculateDynamicColumnTotals(matrix).grandTotal}
               </span>
             </td>
             {/* Cột thao tác trống */}
@@ -1065,6 +1154,8 @@ export default function MatrixTemplate2() {
         >
           Thêm dòng mới +
         </Button>
+      )}
+      </>
       )}
 
       {/* Create Exam Button */}

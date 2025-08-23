@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
 import { Edit, Save } from "lucide-react";
 import Image from "next/image";
-import {
-  calculateRowTotal,
-  calculateColumnTotals,
-  type MatrixRow,
-} from "./validation";
+// Local types for dynamic matrix
+type MatrixRow = {
+  lessonID: string;
+  distribution: any; // Dynamic structure based on template
+  total: number;
+};
 import TemplatePreview from "@/components/organisms/template-preview";
 import { DowloadIcon } from "@/constants/icon";
 import { getDifficultyText } from "@/constants";
@@ -44,6 +45,9 @@ interface LoadingRealtimeExamMatrixProps {
   onSaveResult: () => void;
   onEditResult?: () => void;
   onSaveDraft?: (callback?: () => void) => void;
+  calculateRowTotal?: (row: any) => number;
+  calculateColumnTotals?: (matrix: any[]) => any;
+  templateParts?: any[];
 }
 
 const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
@@ -59,9 +63,59 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
   onSaveResult,
   onEditResult,
   onSaveDraft,
+  calculateRowTotal,
+  calculateColumnTotals,
+  templateParts = [],
 }) => {
   const router = useRouter();
   const questionsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Fallback calculation functions for dynamic matrix
+  const calculateRowTotalFallback = (row: any): number => {
+    if (calculateRowTotal) {
+      return calculateRowTotal(row);
+    }
+    // Dynamic calculation as fallback
+    let total = 0;
+    templateParts.forEach((part: any, index: number) => {
+      const partKey = `part${index + 1}`;
+      if (row.distribution && row.distribution[partKey]) {
+        part.difficultyLevels?.forEach((level: any) => {
+          const value = row.distribution[partKey][level.id];
+          total += (typeof value === 'number' && !isNaN(value)) ? value : 0;
+        });
+      }
+    });
+    return total;
+  };
+
+  const calculateColumnTotalsFallback = (matrix: any[]) => {
+    if (calculateColumnTotals) {
+      return calculateColumnTotals(matrix);
+    }
+    // Dynamic calculation as fallback
+    const totals: any = {};
+    let grandTotal = 0;
+
+    templateParts.forEach((part: any, index: number) => {
+      const partKey = `part${index + 1}`;
+      totals[partKey] = 0;
+
+      matrix.forEach((row) => {
+        if (row.distribution && row.distribution[partKey]) {
+          part.difficultyLevels?.forEach((level: any) => {
+            const value = row.distribution[partKey][level.id];
+            totals[partKey] += (typeof value === 'number' && !isNaN(value)) ? value : 0;
+          });
+        }
+      });
+
+      grandTotal += totals[partKey];
+    });
+
+    totals.grandTotal = grandTotal;
+    return totals;
+  };
 
   // Handle edit result - save as draft first, then navigate to edit page
   const handleEditResult = () => {
@@ -166,40 +220,29 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
                     <th className="border px-2 py-3 align-middle" rowSpan={2}>
                       <span className="font-normal">Bài học</span>
                     </th>
-                    <th
-                      className="border px-2 py-3 align-middle bg-amber-50"
-                      colSpan={3}
-                    >
-                      <span className="font-normal">Phần 1</span>
-                    </th>
-                    <th
-                      className="border px-2 py-3 align-middle bg-green-50"
-                      colSpan={3}
-                    >
-                      <span className="font-normal">Phần 2</span>
-                    </th>
-                    <th
-                      className="border px-2 py-3 align-middle bg-sky-50"
-                      colSpan={3}
-                    >
-                      <span className="font-normal">Phần 3</span>
-                    </th>
+                    {templateParts.map((part: any, idx: number) => (
+                      <th
+                        key={part.id || idx}
+                        className={`border px-2 py-3 align-middle ${part.color || ''}`}
+                        colSpan={part.difficultyLevels?.length || 3}
+                      >
+                        <span className="font-normal">{part.name || `Phần ${idx + 1}`}</span>
+                      </th>
+                    ))}
                     <th className="border px-2 py-3 align-middle" rowSpan={2}>
                       <span className="font-normal">Tổng số câu</span>
                     </th>
                   </tr>
                   <tr>
-                    {[1, 2, 3].map(() => (
-                      <React.Fragment key={Math.random()}>
-                        <th className="border px-2 py-2">
-                          <span className="font-normal">NB</span>
-                        </th>
-                        <th className="border px-2 py-2">
-                          <span className="font-normal">TH</span>
-                        </th>
-                        <th className="border px-2 py-2">
-                          <span className="font-normal">VD</span>
-                        </th>
+                    {templateParts.map((part: any, idx: number) => (
+                      <React.Fragment key={part.id || idx + '-levels'}>
+                        {part.difficultyLevels?.map((level: any) => (
+                          <th key={level.id} className="border px-2 py-2">
+                            <span className={`font-normal ${level.color || ''}`}>
+                              {level.name || level.id}
+                            </span>
+                          </th>
+                        ))}
                       </React.Fragment>
                     ))}
                   </tr>
@@ -218,25 +261,26 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
                           className="w-full min-h-[38px] bg-gray-100 cursor-not-allowed"
                         />
                       </td>
-                      {(["part1", "part2", "part3"] as const).map((part) =>
-                        (["biet", "hieu", "vd"] as const).map((level) => (
-                          <td className="border px-1 py-1" key={part + level}>
+                      {templateParts.map((part: any, partIdx: number) => {
+                        const partKey = `part${partIdx + 1}`;
+                        return part.difficultyLevels?.map((level: any) => (
+                          <td className="border px-1 py-1" key={partKey + level.id}>
                             <Input
                               type="number"
                               min={0}
                               step="1"
-                              value={row.distribution[part][level]}
+                              value={row.distribution?.[partKey]?.[level.id] ?? 0}
                               readOnly
-                              placeholder={level.toUpperCase()}
+                              placeholder={level.name?.toUpperCase() || level.id}
                               className="bg-gray-100 cursor-not-allowed text-sm w-16 h-10 text-center"
                             />
                           </td>
-                        ))
-                      )}
+                        ));
+                      })}
                       <td className="border px-1 py-1">
                         <Input
                           type="number"
-                          value={calculateRowTotal(row)}
+                          value={calculateRowTotalFallback(row)}
                           readOnly
                           className="bg-gray-100 cursor-not-allowed text-center font-medium text-sm w-16 h-10"
                           placeholder="Tổng"
@@ -244,29 +288,31 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
                       </td>
                     </tr>
                   ))}
-                  {/* Hàng tổng */}
+                  {/* Hàng tổng động theo templateParts */}
                   <tr className="font-bold">
                     <td className="border px-2 py-3 text-center bg-violet-50">
                       <span className="font-calsans">TỔNG</span>
                     </td>
-                    <td className="border px-2 py-3 text-center" colSpan={3}>
-                      <span className="font-medium font-questrial">
-                        {calculateColumnTotals(matrix).part1Total}/40
-                      </span>
-                    </td>
-                    <td className="border px-2 py-3 text-center" colSpan={3}>
-                      <span className="font-medium font-questrial">
-                        {calculateColumnTotals(matrix).part2Total}/8
-                      </span>
-                    </td>
-                    <td className="border px-2 py-3 text-center" colSpan={3}>
-                      <span className="font-medium font-questrial">
-                        {calculateColumnTotals(matrix).part3Total}/6
-                      </span>
-                    </td>
+                    {templateParts.map((part: any, idx: number) => {
+                      const partKey = `part${idx + 1}`;
+                      const colSpan = part.difficultyLevels?.length || 3;
+                      // Optional: lấy max value cho mỗi part nếu muốn show /max
+                      // const max = part.maxQuestions || '';
+                      return (
+                        <td
+                          key={partKey}
+                          className="border px-2 py-3 text-center"
+                          colSpan={colSpan}
+                        >
+                          <span className="font-medium font-questrial">
+                            {calculateColumnTotalsFallback(matrix)[partKey] || 0}
+                          </span>
+                        </td>
+                      );
+                    })}
                     <td className="border px-2 py-3 text-center">
                       <span className="font-bold font-questrial">
-                        {calculateColumnTotals(matrix).grandTotal}
+                        {calculateColumnTotalsFallback(matrix).grandTotal || 0}
                       </span>
                     </td>
                   </tr>
