@@ -45,6 +45,9 @@ export const metadata: Metadata = {
     "giáo viên",
     "học sinh",
     "giáo dục thông minh",
+    "THPT",
+    "thpt",
+    "AI",
   ],
   authors: [{ name: "PlanBook Team" }],
   creator: "PlanBook",
@@ -68,20 +71,12 @@ export const metadata: Metadata = {
     siteName: "PlanBook",
     images: [
       {
-        url: "/images/og-image.png",
+        url: "/images/logo/logoDark.svg",
         width: 1200,
         height: 630,
         alt: "PlanBook - Hệ thống quản lý giáo án thông minh",
       },
     ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "PlanBook - Hệ thống quản lý giáo án thông minh",
-    description:
-      "PlanBook là hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.",
-    images: ["/images/twitter-image.png"],
-    creator: "@planbook_vn",
   },
   robots: {
     index: true,
@@ -102,7 +97,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
