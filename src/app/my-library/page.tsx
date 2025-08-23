@@ -192,16 +192,16 @@ function MyLibrary() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
             {recentFiles?.slice(0, 10)?.map((file) => (
-              <div
-                key={file.id}
-                className="group cursor-pointer"
-                onClick={() => {
-                  // Handle file click - có thể navigate đến file detail hoặc mở preview
-                  // console.log("Opening file:", file);
-                  router.push(`/my-library/file/${file?.data?.id}`);
-                }}
-              >
-                <FileThumbnailPreview file={file} width={180} height={220} />
+              <div key={file.id} className="group">
+                <FileThumbnailPreview
+                  file={file}
+                  width={180}
+                  height={220}
+                  onClick={() => {
+                    // Handle file click - navigate đến file detail
+                    router.push(`/my-library/file/${file?.data?.id}`);
+                  }}
+                />
 
                 {/* File info below thumbnail */}
                 <div className="mt-2 px-1">

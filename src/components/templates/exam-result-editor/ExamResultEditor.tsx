@@ -197,41 +197,44 @@ function ExamResultEditorTemplate({ examResult }: Props) {
   }, [examResult, localExamResult]);
 
   // Function to update answer states for newly added questions
-  const updateAnswerStatesForNewQuestion = useCallback((question: any, partIndex: number, questionNumber: number) => {
-    const questionKey = `part${partIndex + 1}-${questionNumber}`;
+  const updateAnswerStatesForNewQuestion = useCallback(
+    (question: any, partIndex: number, questionNumber: number) => {
+      const questionKey = `part${partIndex + 1}-${questionNumber}`;
 
-    if (partIndex === 0 && question?.answer) {
-      // Part 1 - Multiple choice
-      setCorrectAnswers(prev => ({
-        ...prev,
-        [questionKey]: question.answer
-      }));
-      console.log("🔍 Updated correctAnswers for new PART_I question:", {
-        questionKey,
-        answer: question.answer
-      });
-    } else if (partIndex === 1 && question?.statements) {
-      // Part 2 - True/False
-      const statements: Record<string, boolean> = {};
-      Object.entries(question.statements).forEach(
-        ([key, value]: [string, any]) => {
-          if (typeof value === 'object' && value !== null) {
-            statements[key] = Boolean(value.answer);
-          } else {
-            statements[key] = Boolean(value);
+      if (partIndex === 0 && question?.answer) {
+        // Part 1 - Multiple choice
+        setCorrectAnswers((prev) => ({
+          ...prev,
+          [questionKey]: question.answer,
+        }));
+        console.log("🔍 Updated correctAnswers for new PART_I question:", {
+          questionKey,
+          answer: question.answer,
+        });
+      } else if (partIndex === 1 && question?.statements) {
+        // Part 2 - True/False
+        const statements: Record<string, boolean> = {};
+        Object.entries(question.statements).forEach(
+          ([key, value]: [string, any]) => {
+            if (typeof value === "object" && value !== null) {
+              statements[key] = Boolean(value.answer);
+            } else {
+              statements[key] = Boolean(value);
+            }
           }
-        }
-      );
-      setTrueFalseAnswers(prev => ({
-        ...prev,
-        [questionKey]: statements
-      }));
-      console.log("🔍 Updated trueFalseAnswers for new PART_II question:", {
-        questionKey,
-        statements
-      });
-    }
-  }, []);
+        );
+        setTrueFalseAnswers((prev) => ({
+          ...prev,
+          [questionKey]: statements,
+        }));
+        console.log("🔍 Updated trueFalseAnswers for new PART_II question:", {
+          questionKey,
+          statements,
+        });
+      }
+    },
+    []
+  );
 
   // Use the new hook for exam result editor with local state
   const { addQuestionFromBankByType, deleteQuestion, addEmptyQuestion } =
@@ -240,9 +243,9 @@ function ExamResultEditorTemplate({ examResult }: Props) {
       onDataChange: (updatedData) => {
         // Update local state when data changes
         setLocalExamResult(updatedData);
-        setQuestionContents(prev => ({ ...prev }));
+        setQuestionContents((prev) => ({ ...prev }));
       },
-      onQuestionAdded: updateAnswerStatesForNewQuestion
+      onQuestionAdded: updateAnswerStatesForNewQuestion,
     });
   const [imageUploadStates, setImageUploadStates] = useState<
     Record<string, boolean>
@@ -305,7 +308,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             console.log("🔍 Initializing correctAnswers for PART_I:", {
               questionKey,
               questionAnswer: question.answer,
-              questionOptions: question.options
+              questionOptions: question.options,
             });
           } else if (partIndex === 1 && question?.statements) {
             // Part 2 - True/False
@@ -313,7 +316,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             Object.entries(question.statements).forEach(
               ([key, value]: [string, any]) => {
                 // Handle both formats: { text: string, answer: boolean } and boolean directly
-                if (typeof value === 'object' && value !== null) {
+                if (typeof value === "object" && value !== null) {
                   statements[key] = Boolean(value.answer);
                 } else {
                   statements[key] = Boolean(value);
@@ -326,16 +329,18 @@ function ExamResultEditorTemplate({ examResult }: Props) {
       });
 
       // Merge with existing states instead of replacing completely
-      setCorrectAnswers(prev => ({ ...prev, ...newCorrectAnswers }));
-      setTrueFalseAnswers(prev => ({ ...prev, ...newTrueFalseAnswers }));
-      setImageUploadStates(prev => ({ ...prev, ...newImageUploadStates }));
-      setQuestionImages(prev => ({ ...prev, ...newQuestionImages }));
+      setCorrectAnswers((prev) => ({ ...prev, ...newCorrectAnswers }));
+      setTrueFalseAnswers((prev) => ({ ...prev, ...newTrueFalseAnswers }));
+      setImageUploadStates((prev) => ({ ...prev, ...newImageUploadStates }));
+      setQuestionImages((prev) => ({ ...prev, ...newQuestionImages }));
 
       console.log("🔍 Updated all states:", {
         newCorrectAnswers,
         newTrueFalseAnswers,
-        totalQuestions: localExamResult.data.parts.reduce((total: number, part: any) =>
-          total + (part.questions?.length || 0), 0)
+        totalQuestions: localExamResult.data.parts.reduce(
+          (total: number, part: any) => total + (part.questions?.length || 0),
+          0
+        ),
       });
     }
   }, [localExamResult]);
@@ -461,7 +466,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
               if (q.statements) {
                 // Get all statement keys and normalize them to a, b, c, d format
                 const statementKeys = Object.keys(q.statements);
-                const targetKeys = ['a', 'b', 'c', 'd'];
+                const targetKeys = ["a", "b", "c", "d"];
 
                 // Map original keys to target keys (a, b, c, d)
                 targetKeys.forEach((targetKey, index) => {
@@ -483,7 +488,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                 });
               } else {
                 // Fallback: create empty statements
-                ['a', 'b', 'c', 'd'].forEach(key => {
+                ["a", "b", "c", "d"].forEach((key) => {
                   finalStatements[key] = { text: "" };
                 });
               }
@@ -528,7 +533,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
         // Debug: Log converted data to check format
         console.log("🔍 Converted data for DOCX:", {
           yesNoQuestions: convertedData.yesNoQuestions,
-          totalYesNoQuestions: convertedData.yesNoQuestions.length
+          totalYesNoQuestions: convertedData.yesNoQuestions.length,
         });
 
         // Gọi hàm generator docx để tạo và download file
@@ -629,7 +634,6 @@ function ExamResultEditorTemplate({ examResult }: Props) {
       name: formData.name,
       description: formData.description || "",
       data: updatedExamResult.data,
-      status: "ARCHIVED",
     };
 
     updateToolResult(
@@ -707,7 +711,9 @@ function ExamResultEditorTemplate({ examResult }: Props) {
           </div>
         </div>
         <div className="flex">
-          <ExamResultEditorProvider onAddQuestionFromBank={addQuestionFromBankByType}>
+          <ExamResultEditorProvider
+            onAddQuestionFromBank={addQuestionFromBankByType}
+          >
             <ToolExamPanel />
           </ExamResultEditorProvider>
           <div className="flex-1 space-y-10 p-5 col-span-4 border-l min-h-screen ">

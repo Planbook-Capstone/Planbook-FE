@@ -58,6 +58,10 @@ export default function ExamPage({ params }: ExamPageProps) {
     error: examError,
   } = useExamByCodeService(resolvedParams.code);
 
+  if (examResponse?.data?.status === "COMPLETED") {
+    router.push(`/exam/${resolvedParams.code}/result`);
+  }
+
   const { mutate: submitExam } = useSubmitExamService(resolvedParams.code);
 
   const examData = examResponse?.data as ExamContentData;

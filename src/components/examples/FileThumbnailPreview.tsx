@@ -3,6 +3,7 @@
 import React from "react";
 import { ExamData, LessonPlanData } from "@/store";
 import { getLibraryTypeName } from "@/constants";
+import { useRecentFilesWithHelpers } from "@/store/recentFilesHelpers";
 
 // Component tạo thumbnail preview nhỏ gọn như Google Drive
 export const FileThumbnailPreview: React.FC<{
@@ -10,7 +11,19 @@ export const FileThumbnailPreview: React.FC<{
   width?: number;
   height?: number;
   onDelete?: (fileId: string) => void;
-}> = ({ file, width = 200, height = 260, onDelete }) => {
+  onClick?: (file: any) => void;
+}> = ({ file, width = 200, height = 260, onDelete, onClick }) => {
+  const { addFileFromApiResponse } = useRecentFilesWithHelpers();
+
+  const handleFileClick = () => {
+    // Cập nhật recent files store khi click mở file
+    // Nếu trùng key (id) thì sẽ cập nhật data mới
+    addFileFromApiResponse(file.data, file.type);
+
+    // Gọi callback onClick nếu có
+    onClick?.(file);
+  };
+
   const renderThumbnailContent = () => {
     if (file.type === "exam") {
       return <ExamThumbnail data={file.data} />;
@@ -25,13 +38,17 @@ export const FileThumbnailPreview: React.FC<{
 
   return (
     <div
-      className="bg-white border border-gray-200  overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group relative"
+      className="bg-white border border-gray-200  overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group relative cursor-pointer"
       style={{ width: `${width}px`, height: `${height}px` }}
+      onClick={handleFileClick}
     >
       {/* Delete Button */}
       {onDelete && (
         <button
-          onClick={() => onDelete(file.id)}
+          onClick={(e) => {
+            e.stopPropagation(); // Ngăn event bubbling
+            onDelete(file.id);
+          }}
           className="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           title="Xóa file"
         >
@@ -98,11 +115,11 @@ const ExamThumbnail: React.FC<{ data: ExamData }> = ({ data }) => {
       <div key={partIndex} className="mb-1">
         {/* Part Title - 6px */}
         <div className="flex justify-start items-end gap-0.5 py-1">
-          <h5 className="font-semibold text-[6px] text-blue-700">
+          <h5 className="font-semibold text-[5px] text-blue-700">
             {part.part}
           </h5>
           {part.title && (
-            <p className="text-[6px] text-blue-600 ">{part.title}</p>
+            <p className="text-[5px] text-blue-600 ">{part.title}</p>
           )}
         </div>
 
@@ -114,12 +131,42 @@ const ExamThumbnail: React.FC<{ data: ExamData }> = ({ data }) => {
           >
             <div className="flex items-start gap-1">
               <div className="flex-1 min-w-0">
-                <p className="text-[4px] text-gray-800  mb-0.5">
-                  <span className="font-bold">
+                <div className="text-[4px] text-gray-800 mb-0.5 flex gap-0.5">
+                  <p className="font-bold text-nowrap">
                     Câu {question.questionNumber}:
-                  </span>{" "}
-                  {question.question}
-                </p>
+                  </p>{" "}
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: question.question || "",
+                    }}
+                  />
+                </div>
+                {question.illustrationImage && (
+                  <div className="mb-0.5">
+                    <img
+                      src={question.illustrationImage}
+                      alt="Hình minh họa"
+                      className="max-w-full h-auto rounded border"
+                      style={{ maxHeight: "3rem" }}
+                      onError={() => {
+                        console.error(
+                          "Failed to load question image:",
+                          question.illustrationImage
+                        );
+                      }}
+                    />
+                  </div>
+                )}
+                {question?.image && (
+                  <div className="mb-0.5 flex justify-center">
+                    <img
+                      src={question.image}
+                      alt="Hình minh họa"
+                      className="max-w-full h-4 object rounded border"
+                      style={{ maxHeight: "3rem" }}
+                    />
+                  </div>
+                )}
 
                 {/* Show all options for Part 1, first 2 for other parts */}
                 {question.options && (
@@ -131,9 +178,12 @@ const ExamThumbnail: React.FC<{ data: ExamData }> = ({ data }) => {
                           <span className="text-[4px] font-medium text-gray-600">
                             {key}.
                           </span>
-                          <span className="text-[4px] text-gray-600 ">
-                            {String(value)}
-                          </span>
+                          <span
+                            className="text-[4px] text-gray-600"
+                            dangerouslySetInnerHTML={{
+                              __html: String(value),
+                            }}
+                          />
                         </div>
                       ))}
                     {/* Chỉ hiển thị "..." cho Part 2+ khi có nhiều hơn 2 đáp án */}
@@ -189,7 +239,7 @@ const ExamThumbnail: React.FC<{ data: ExamData }> = ({ data }) => {
         </div>
 
         <div style={{ width: "28%" }}>
-          <div className="border border-black px-0.5 py-0.5 flex items-center justify-center">
+          <div className="border px-0.5 py-0.5 flex items-center justify-center">
             <p className="text-[3px] text-center font-medium">Mã: 001</p>
           </div>
         </div>
@@ -279,6 +329,76 @@ const LessonPlanThumbnail: React.FC<{ data: LessonPlanData }> = ({ data }) => {
                 {node.content}
               </p>
             )}
+          </div>
+        )}
+
+        {node.type === "IMAGE" && (
+          <div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <p className="text-gray-700 font-medium" style={getTextSize(0)}>
+                {node.title || "Hình ảnh"}
+              </p>
+            </div>
+            {node.content && (
+              <div className="ml-2 p-0.5 overflow-hidden">
+                {/* Kiểm tra xem content có phải là URL hình ảnh không */}
+                {node.content.match(/\.(jpeg|jpg|gif|png|svg|webp)$/i) ||
+                node.content.startsWith("http") ||
+                node.content.startsWith("data:image") ? (
+                  <div className="relative w-full h-5  rounded overflow-hidden">
+                    <img
+                      src={node.content}
+                      alt={node.title || "Hình ảnh"}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        // Fallback nếu không load được ảnh
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `<div class="flex items-center justify-center h-full text-gray-500 text-[3px]">❌ Không thể tải ảnh</div>`;
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p
+                    className="text-gray-600 text-center italic"
+                    style={getTextSize(1)}
+                  >
+                    [Hình ảnh:{" "}
+                    {node.content.length > 20
+                      ? node.content.substring(0, 20) + "..."
+                      : node.content}
+                    ]
+                  </p>
+                )}
+              </div>
+            )}
+            {node.description && (
+              <p className="text-gray-600 mt-0.5 ml-2" style={getTextSize(1)}>
+                {node.description}
+              </p>
+            )}
+          </div>
+        )}
+
+        {node.type === "TABLE" && (
+          <div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="text-purple-600" style={getTextSize(0)}></span>
+              <p className="text-gray-700 font-medium" style={getTextSize(0)}>
+                {node.title || "Bảng"}
+              </p>
+            </div>
+            <div
+              className="ml-2 bg-gray-100 rounded p-0.5"
+              style={getTextSize(1)}
+            >
+              <p className="text-gray-600 text-center italic">
+                [Bảng - Chưa hỗ trợ render]
+              </p>
+            </div>
           </div>
         )}
 
