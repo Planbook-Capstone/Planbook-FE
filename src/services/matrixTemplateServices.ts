@@ -25,6 +25,7 @@ export interface MatrixPart {
   name: string;
   label: string;
   color: string;
+  maximum?: number;
   difficultyLevels: DifficultyLevel[];
 }
 
@@ -136,6 +137,10 @@ export const validateMatrixTemplate = (
 
     if (!part.name?.trim()) {
       errors.push(`Phần ${index + 1}: Tên không được để trống`);
+    }
+
+    if (part.maximum !== undefined && (part.maximum < 0 || !Number.isInteger(part.maximum))) {
+      errors.push(`Phần ${index + 1}: Số câu tối đa phải là số nguyên không âm`);
     }
 
     if (!part.difficultyLevels || part.difficultyLevels.length === 0) {

@@ -246,6 +246,25 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
                       </React.Fragment>
                     ))}
                   </tr>
+                  {/* Tổng số câu của từng part ngay dưới header */}
+                  <tr>
+                    {templateParts?.map((part: any, idx: number) => {
+                      const partKey = `part${idx + 1}`;
+                      const colSpan = part.difficultyLevels?.length || 3;
+                      const max = part.maximum || part.maxQuestions;
+                      return (
+                        <th
+                          key={partKey + '-sum'}
+                          className="border px-2 py-2 text-center bg-gray-50 font-questrial"
+                          colSpan={colSpan}
+                        >
+                          Tổng: {calculateColumnTotalsFallback(matrix)[partKey] ?? 0}
+                          {typeof max !== 'undefined' && max !== null ? ` / ${max}` : ''}
+                        </th>
+                      );
+                    })}
+                    <th className="border px-2 py-2 bg-gray-50"></th>
+                  </tr>
                 </thead>
                 <tbody>
                   {matrix.map((row, rowIdx) => (
@@ -296,8 +315,7 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
                     {templateParts.map((part: any, idx: number) => {
                       const partKey = `part${idx + 1}`;
                       const colSpan = part.difficultyLevels?.length || 3;
-                      // Optional: lấy max value cho mỗi part nếu muốn show /max
-                      // const max = part.maxQuestions || '';
+                      const max = part.maximum || part.maxQuestions;
                       return (
                         <td
                           key={partKey}
@@ -306,6 +324,7 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
                         >
                           <span className="font-medium font-questrial">
                             {calculateColumnTotalsFallback(matrix)[partKey] || 0}
+                            {max ? ` / ${max}` : ''}
                           </span>
                         </td>
                       );

@@ -111,7 +111,12 @@ function EditMatrixTemplatePage() {
         ? {
             ...prev,
             parts: prev.parts.map((part, index) =>
-              index === partIndex ? { ...part, [field]: value } : part
+              index === partIndex
+                ? {
+                    ...part,
+                    [field]: field === "maximum" ? (value === "" ? undefined : parseInt(value)) : value
+                  }
+                : part
             ),
           }
         : null
@@ -158,6 +163,7 @@ function EditMatrixTemplatePage() {
       name: `Phần ${config.parts.length + 1}`,
       label: "",
       color: "bg-gray-50",
+      maximum: 0,
       difficultyLevels: [
         { id: "", name: "NB", label: "Nhận biết", color: "text-gray-700" },
         { id: "", name: "TH", label: "Thông hiểu", color: "text-gray-700" },
@@ -421,7 +427,7 @@ function EditMatrixTemplatePage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <FormField label="Loại" htmlFor={`part-id-${partIndex}`}>
                       <Select
                         value={part.id}
@@ -467,6 +473,24 @@ function EditMatrixTemplatePage() {
                           handlePartChange(partIndex, "label", e.target.value)
                         }
                         placeholder="Trắc nghiệm"
+                        className="font-questrial"
+                      />
+                    </FormField>
+
+                    <FormField
+                      label="Số câu tối đa"
+                      htmlFor={`part-maximum-${partIndex}`}
+                    >
+                      <Input
+                        id={`part-maximum-${partIndex}`}
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={part.maximum || ""}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handlePartChange(partIndex, "maximum", e.target.value)
+                        }
+                        placeholder="20"
                         className="font-questrial"
                       />
                     </FormField>

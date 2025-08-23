@@ -555,6 +555,26 @@ export default function MatrixTemplate2() {
       }
     });
 
+    // Validate tổng số câu của từng part không vượt quá maximum (nếu có)
+    templateParts.forEach((part: any, partIdx: number) => {
+      const partKey = `part${partIdx + 1}`;
+      const max = part.maximum || part.maxQuestions;
+      if (max && !isNaN(Number(max))) {
+        // Tính tổng số câu của part này trên toàn bộ matrix
+        let partTotal = 0;
+        matrix.forEach((row) => {
+          part.difficultyLevels?.forEach((level: any) => {
+            const value = row.distribution?.[partKey]?.[level.id] || 0;
+            partTotal += (typeof value === 'number' && !isNaN(value)) ? value : 0;
+          });
+        });
+        if (partTotal > Number(max)) {
+          validationErrors.push(`Tổng số câu của ${part.name || partKey} vượt quá tối đa (${max})`);
+          fieldErrors[`${partKey}Total`] = `Tối đa ${max} câu`;
+        }
+      }
+    });
+
     return {
       isValid: validationErrors.length === 0,
       errors: validationErrors,
@@ -1101,10 +1121,9 @@ export default function MatrixTemplate2() {
             </td>
             {templateParts.map((part: any, index: number) => {
               const partKey = `part${index + 1}`;
-              const partTotal =
-                calculateDynamicColumnTotals(matrix)[partKey] || 0;
+              const partTotal = calculateDynamicColumnTotals(matrix)[partKey] || 0;
               const errorKey = `${partKey}Total`;
-
+              const max = part.maximum || part.maxQuestions;
               return (
                 <td
                   key={partKey}
@@ -1120,6 +1139,7 @@ export default function MatrixTemplate2() {
                       }`}
                     >
                       {partTotal}
+                      {typeof max !== 'undefined' && max !== null ? ` / ${max}` : ''}
                     </span>
                     {errors[errorKey] && (
                       <span className="text-red-500 font-questrial text-xs mt-1">
