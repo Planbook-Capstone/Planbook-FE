@@ -463,6 +463,24 @@ export default function NodeRenderer({
         node.content !== "Nhập câu hỏi của bạn ở đây..." &&
         node.content !== "............................................";
 
+
+      // SECTION/SUBSECTION: nếu không có content, không có children, và đang loading thì render SkeletonInput
+      if (
+        (node.type === "SECTION" || node.type === "SUBSECTION") &&
+        !hasContent &&
+        (!node.children || node.children.length === 0) &&
+        isNodeLoading &&
+        isNodeLoading(node.id)
+      ) {
+        console.log(
+          "� Showing skeleton for SECTION/SUBSECTION (no content, no children):",
+          node.id,
+          node.type
+        );
+        return <SkeletonInput lines={2} className="w-full" />;
+      }
+
+      // Các loại node khác: render skeleton nếu không có content và đang loading
       if (
         !hasContent &&
         isNodeLoading &&
@@ -487,20 +505,6 @@ export default function NodeRenderer({
           default:
             return <SkeletonInput lines={2} className="w-full" />;
         }
-      }
-
-      // Log when skeleton is skipped for SECTION/SUBSECTION
-      if (
-        !hasContent &&
-        isNodeLoading &&
-        isNodeLoading(node.id) &&
-        (node.type === "SECTION" || node.type === "SUBSECTION")
-      ) {
-        console.log(
-          "🚫 Skipping skeleton for SECTION/SUBSECTION content:",
-          node.id,
-          node.type
-        );
       }
 
       // Log when node has content and skeleton is hidden
