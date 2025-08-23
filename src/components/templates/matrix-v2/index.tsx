@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { useDistributeMaximumAcrossDifficulties } from "./useDistributeMaximumAcrossDifficulties";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
 import BookSelector from "@/components/molecules/book-selector";
@@ -345,11 +346,21 @@ export default function MatrixTemplate2() {
     .flatMap((query) => query.data.data.content)
     .filter((lesson: any) => lesson && lesson.id && lesson.name);
 
-  // Function to create initial distribution based on template
-  const createInitialDistribution = () => {
+  // Hook phân bổ tự động
+  const distributeMaximumAcrossDifficulties = useDistributeMaximumAcrossDifficulties();
+
+  // Function to create initial distribution based on template and rowCount
+  const createInitialDistribution = (rowCount = 1) => {
     const distribution: any = {};
     templateParts?.forEach((part: any, index: number) => {
       const partKey = `part${index + 1}`;
+      const maximum = Number(part.maximum || part.maxQuestions) || 0;
+      const numLevels = part.difficultyLevels?.length || 1;
+      // Chia đều tổng max cho số hàng, rồi chia đều cho số level
+      const perRow = rowCount > 0 ? Math.floor(maximum / rowCount) : 0;
+      const remainderRow = rowCount > 0 ? maximum % rowCount : 0;
+      // Tính số câu cho hàng này (ưu tiên các hàng đầu nhận thêm 1 nếu dư)
+      // (Chỉ dùng khi tạo lại toàn bộ matrix)
       distribution[partKey] = {};
       part.difficultyLevels?.forEach((level: any) => {
         distribution[partKey][level.id] = 0;
@@ -438,19 +449,132 @@ export default function MatrixTemplate2() {
     setErrors(newErrors);
   };
 
+  // Khi thêm hàng (bài học), phân bổ lại đều cho tất cả các hàng
   const addMatrixRow = () => {
-    setMatrix([
-      ...matrix,
-      {
-        lessonID: "",
-        distribution: createInitialDistribution(),
+    const newRowCount = matrix.length + 1;
+    // Tạo lại distribution cho tất cả các hàng dựa trên số hàng mới
+    const newMatrix = Array.from({ length: newRowCount }, (_, idx) => {
+      const distribution: any = {};
+      templateParts?.forEach((part: any, partIdx: number) => {
+        const partKey = `part${partIdx + 1}`;
+        const maximum = Number(part.maximum || part.maxQuestions) || 0;
+        const numLevels = part.difficultyLevels?.length || 1;
+        // Chia đều tổng max cho số hàng, rồi chia đều cho số level
+        const perRow = newRowCount > 0 ? Math.floor(maximum / newRowCount) : 0;
+        const remainderRow = newRowCount > 0 ? maximum % newRowCount : 0;
+        // Hàng đầu nhận thêm 1 nếu dư
+        const thisRowMax = perRow + (idx < remainderRow ? 1 : 0);
+        // Chia đều cho các mức độ khó: nếu dư thì dồn hết cho VD, NB và TH chia đều
+        distribution[partKey] = {};
+        if (numLevels === 3) {
+          // NB: 'nb', TH: 'th', VD: 'vd'
+          const nb_th = numLevels > 0 ? Math.floor(thisRowMax / 3) : 0;
+          const remainder = numLevels > 0 ? thisRowMax % 3 : 0;
+          distribution[partKey]['nb'] = nb_th;
+          distribution[partKey]['th'] = nb_th;
+          distribution[partKey]['vd'] = nb_th + remainder;
+        } else {
+          // fallback: chia đều như cũ
+          const perLevel = numLevels > 0 ? Math.floor(thisRowMax / numLevels) : 0;
+          const remainderLevel = numLevels > 0 ? thisRowMax % numLevels : 0;
+          const levelOrder = part.difficultyLevels?.map((l: any) => l.id) || [];
+          part.difficultyLevels?.forEach((level: any) => {
+            distribution[partKey][level.id] = perLevel;
+          });
+          // Dồn dư cho level cuối cùng
+          if (levelOrder.length > 0) {
+            distribution[partKey][levelOrder[levelOrder.length - 1]] += remainderLevel;
+          }
+        }
+      });
+      return {
+        lessonID: matrix[idx]?.lessonID || "",
+        distribution,
         total: 0,
-      },
-    ]);
+      };
+    });
+    setMatrix(newMatrix);
+    toast.info("Đã thêm hàng mới với phân bổ tự động theo maximum!");
   };
 
   const removeMatrixRow = (idx: number) => {
     setMatrix(matrix.filter((_, i) => i !== idx));
+  };
+
+  // Function to calculate how many lessons are selected for each part
+  const calculateLessonsPerPart = () => {
+    const lessonsPerPart: { [key: string]: number } = {};
+
+    templateParts.forEach((part: any, partIndex: number) => {
+      const partKey = `part${partIndex + 1}`;
+      // Count how many rows have lessons selected (non-empty lessonID)
+      const lessonsCount = matrix.filter(row => row.lessonID && row.lessonID.trim() !== '').length;
+      lessonsPerPart[partKey] = Math.max(1, lessonsCount); // At least 1 to avoid division by zero
+    });
+
+    return lessonsPerPart;
+  };
+
+  // Function to auto-distribute maximum values for a specific row
+  const autoDistributeRow = (rowIdx: number) => {
+    const lessonsPerPart = calculateLessonsPerPart();
+
+    const updatedMatrix = matrix.map((row, i) => {
+      if (i === rowIdx) {
+        const newDistribution = { ...row.distribution };
+
+        templateParts.forEach((part: any, partIndex: number) => {
+          const partKey = `part${partIndex + 1}`;
+          const maximum = part.maximum || part.maxQuestions || 0;
+          const lessonsCount = lessonsPerPart[partKey];
+
+          if (maximum > 0 && part.difficultyLevels && lessonsCount > 0) {
+            // Calculate maximum per lesson (divide total maximum by number of lessons)
+            const maximumPerLesson = Math.floor(maximum / lessonsCount);
+            const remainder = maximum % lessonsCount;
+
+            // For this specific row, check if it should get extra from remainder
+            const currentRowIndex = matrix.filter((r, idx) => idx <= rowIdx && r.lessonID && r.lessonID.trim() !== '').length - 1;
+            const extraForThisRow = currentRowIndex < remainder ? 1 : 0;
+            const finalMaximumForThisRow = maximumPerLesson + extraForThisRow;
+
+            // Auto-distribute this lesson's share across difficulty levels
+            const distributedValues = distributeMaximumAcrossDifficulties(finalMaximumForThisRow, part.difficultyLevels);
+            newDistribution[partKey] = { ...distributedValues };
+          }
+        });
+
+        return {
+          ...row,
+          distribution: newDistribution,
+        };
+      }
+      return row;
+    });
+
+    setMatrix(updatedMatrix);
+
+    // Clear any validation errors for this row
+    const newErrors = { ...errors };
+    templateParts.forEach((part: any, partIndex: number) => {
+      const partKey = `part${partIndex + 1}`;
+      part.difficultyLevels?.forEach((level: any) => {
+        const fieldKey = `matrix_${rowIdx}_${partKey}_${level.id}`;
+        if (newErrors[fieldKey]) {
+          newErrors[fieldKey] = "";
+        }
+      });
+    });
+
+    const totalErrorKey = `matrix_${rowIdx}_total`;
+    if (newErrors[totalErrorKey]) {
+      newErrors[totalErrorKey] = "";
+    }
+
+    setErrors(newErrors);
+
+    // Show success message
+    toast.success("Đã phân bổ tự động thành công!");
   };
 
   // Map ra JSON đúng format
@@ -1087,29 +1211,87 @@ export default function MatrixTemplate2() {
               </td>
               {/* Thao tác */}
               <td className="border px-2 py-1">
-                <Button
-                  size="sm"
-                  type="button"
-                  className={`px-0 py-5 bg-transparent shadow-none hover:bg-transparent hover:shadow-none group transition-colors duration-200 ${
-                    matrix.length <= 1 || resultId
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }`}
-                  onClick={() => {
-                    if (matrix.length > 1 && !resultId) {
-                      removeMatrixRow(rowIdx);
+                <div className="flex flex-col gap-1">
+                  {/* Nút phân bổ tự động */}
+                  {(() => {
+                    // Kiểm tra nếu hàng đã được phân bổ (tổng value > 0)
+                    const isDistributed = calculateDynamicRowTotal(row) > 0;
+                    if (isDistributed) {
+                      // Nút Reset: set toàn bộ value của hàng về 0
+                      return (
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                          className={`px-2 py-1 text-xs ${resultId ? "opacity-50 cursor-not-allowed" : ""}`}
+                          onClick={() => {
+                            if (!resultId) {
+                              // Reset value về 0 cho hàng này
+                              const resetDistribution: any = {};
+                              templateParts.forEach((part: any, partIndex: number) => {
+                                const partKey = `part${partIndex + 1}`;
+                                resetDistribution[partKey] = {};
+                                part.difficultyLevels?.forEach((level: any) => {
+                                  resetDistribution[partKey][level.id] = 0;
+                                });
+                              });
+                              setMatrix(prev => prev.map((r, i) => i === rowIdx ? { ...r, distribution: resetDistribution } : r));
+                              toast.info("Đã reset giá trị hàng này về 0!");
+                            }
+                          }}
+                          disabled={!!resultId}
+                          title="Reset tất cả giá trị của hàng này về 0"
+                        >
+                          Reset
+                        </Button>
+                      );
+                    } else {
+                      // Nút Phân bổ
+                      return (
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                          className={`px-2 py-1 text-xs ${resultId ? "opacity-50 cursor-not-allowed" : ""}`}
+                          onClick={() => {
+                            if (!resultId) {
+                              autoDistributeRow(rowIdx);
+                            }
+                          }}
+                          disabled={!!resultId}
+                          title="Phân bổ tự động theo maximum của từng phần"
+                        >
+                          Phân bổ
+                        </Button>
+                      );
                     }
-                  }}
-                  disabled={matrix.length <= 1 || !!resultId}
-                >
-                  <TrashIcon
-                    className={`${
+                  })()}
+
+                  {/* Nút xóa */}
+                  <Button
+                    size="sm"
+                    type="button"
+                    className={`px-0 py-2 bg-transparent shadow-none hover:bg-transparent hover:shadow-none group transition-colors duration-200 ${
                       matrix.length <= 1 || resultId
-                        ? "text-neutral-400"
-                        : "text-neutral-600 group-hover:text-red-500"
-                    } transition-colors duration-200`}
-                  />
-                </Button>
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      if (matrix.length > 1 && !resultId) {
+                        removeMatrixRow(rowIdx);
+                      }
+                    }}
+                    disabled={matrix.length <= 1 || !!resultId}
+                  >
+                    <TrashIcon
+                      className={`${
+                        matrix.length <= 1 || resultId
+                          ? "text-neutral-400"
+                          : "text-neutral-600 group-hover:text-red-500"
+                      } transition-colors duration-200`}
+                    />
+                  </Button>
+                </div>
               </td>
             </tr>
           ))}
@@ -1162,18 +1344,88 @@ export default function MatrixTemplate2() {
         </tbody>
       </table>
 
+      {/* Chú thích phân bổ tự động */}
       {finalData ? null : (
-        <Button
-          variant="dash"
-          type="button"
-          className={`mt-4 rounded-md w-full ${
-            resultId ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          onClick={resultId ? undefined : addMatrixRow}
-          disabled={!!resultId}
-        >
-          Thêm dòng mới +
-        </Button>
+        <div className="mb-2 text-sm text-gray-600 font-questrial">
+          <p>
+            <strong>Phân bổ tự động:</strong> Chia đều số câu maximum của mỗi phần cho tất cả các bài học đã chọn,
+            sau đó chia đều cho các mức độ khó (NB, TH, VD).
+            Khi có số lẻ, mức Nhận biết (NB) và Thông hiểu (TH) sẽ được ưu tiên hơn Vận dụng (VD).
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Ví dụ: Phần có maximum 30 câu, 3 bài học → mỗi bài 10 câu → NB: 4, TH: 3, VD: 3
+          </p>
+        </div>
+      )}
+
+      {finalData ? null : (
+        <div className="flex gap-2 mt-4">
+          <Button
+            variant="dash"
+            type="button"
+            className={`rounded-md flex-1 ${
+              resultId ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={resultId ? undefined : addMatrixRow}
+            disabled={!!resultId}
+          >
+            Thêm dòng mới +
+          </Button>
+
+          <Button
+            variant="outline"
+            type="button"
+            className={`rounded-md px-6 ${
+              resultId ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={resultId ? undefined : () => {
+              // Auto-distribute for all rows at once
+              const lessonsPerPart = calculateLessonsPerPart();
+
+              const updatedMatrix = matrix.map((row, rowIndex) => {
+                const newDistribution = { ...row.distribution };
+
+                templateParts.forEach((part: any, partIndex: number) => {
+                  const partKey = `part${partIndex + 1}`;
+                  const maximum = part.maximum || part.maxQuestions || 0;
+                  const lessonsCount = lessonsPerPart[partKey];
+
+                  if (maximum > 0 && part.difficultyLevels && lessonsCount > 0) {
+                    // Calculate maximum per lesson (divide total maximum by number of lessons)
+                    const maximumPerLesson = Math.floor(maximum / lessonsCount);
+                    const remainder = maximum % lessonsCount;
+
+                    // For this specific row, check if it should get extra from remainder
+                    const currentRowIndex = matrix.filter((r, idx) => idx <= rowIndex && r.lessonID && r.lessonID.trim() !== '').length - 1;
+                    const extraForThisRow = currentRowIndex < remainder ? 1 : 0;
+                    const finalMaximumForThisRow = maximumPerLesson + extraForThisRow;
+
+                    // Auto-distribute this lesson's share across difficulty levels
+                    const distributedValues = distributeMaximumAcrossDifficulties(finalMaximumForThisRow, part.difficultyLevels);
+                    newDistribution[partKey] = { ...distributedValues };
+                  }
+                });
+
+                return {
+                  ...row,
+                  distribution: newDistribution,
+                };
+              });
+
+              setMatrix(updatedMatrix);
+
+              // Clear all validation errors
+              setErrors({});
+
+              // Show success message
+              toast.success("Đã phân bổ tự động cho tất cả các hàng thành công!");
+            }}
+            disabled={!!resultId}
+            title="Phân bổ tự động cho tất cả các hàng theo maximum của từng phần"
+          >
+            Phân bổ tự động tất cả
+          </Button>
+        </div>
       )}
       </>
       )}
