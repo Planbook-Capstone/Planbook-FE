@@ -20,10 +20,13 @@ function FileDetailPage({ params }: Props) {
   const { data, isError, error, isLoading } = useToolResultByIdService(fileId);
   const { addFileFromApiResponse } = useRecentFilesWithHelpers();
   const router = useRouter();
-  console.log(isError, error, "tran");
+  console.log(data?.data?.status, "tran");
 
   useEffect(() => {
     if (isError || error) {
+      notFound();
+    }
+    if (data?.data?.status !== "ARCHIVED ") {
       notFound();
     }
   }, [isError, error, router]);
@@ -35,8 +38,6 @@ function FileDetailPage({ params }: Props) {
     .filter((query: any) => query.data)
     .map((query: any) => query.data?.data)
     .filter(Boolean);
-
-  console.log(lessons[0]?.name);
 
   // Thêm file vào recent files (chỉ chạy 1 lần khi có data)
   React.useEffect(() => {

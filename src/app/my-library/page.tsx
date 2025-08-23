@@ -7,6 +7,7 @@ import FolderCard from "@/components/molecules/folder-card";
 import CreateFolderModal from "@/components/organisms/create-folder-modal";
 import ItemSection from "@/components/organisms/item-section";
 import FallingText from "@/components/ui/FallingText";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { useRecentFiles } from "@/store";
 import FileThumbnailPreview from "@/components/examples/FileThumbnailPreview";
 import { FileText } from "lucide-react";
@@ -166,6 +167,7 @@ function MyLibrary() {
       </div>
       <h1 className="font-calsans text-xl py-2">Phân loại tài liệu</h1>
       {/* <ItemSection title="Phân loại tài liệu" action={<CreateFolderModal />} /> */}
+
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8  mx-auto">
         {myFolder?.map((f) => (
           <div onClick={() => router.push(`/my-library/${f.type}`)}>
@@ -189,30 +191,35 @@ function MyLibrary() {
               ({recentFiles.length}/10)
             </span>
           </div>
-
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-            {recentFiles?.slice(0, 10)?.map((file) => (
-              <div key={file.id} className="group">
-                <FileThumbnailPreview
-                  file={file}
-                  width={180}
-                  height={220}
-                  onClick={() => {
-                    // Handle file click - navigate đến file detail
-                    router.push(`/my-library/file/${file?.data?.id}`);
-                  }}
-                />
+            {recentFiles?.slice(0, 10)?.map((file, index) => (
+              <AnimatedSection
+                key={file.id}
+                animation="fadeIn"
+                delay={100 + (index * 100)} // File gần nhất (index 0) có delay nhỏ nhất
+                duration={600}
+              >
+                <div className="group">
+                  <FileThumbnailPreview
+                    file={file}
+                    width={180}
+                    height={220}
+                    onClick={() => {
+                      // Handle file click - navigate đến file detail
+                      router.push(`/my-library/file/${file?.data?.id}`);
+                    }}
+                  />
 
-                {/* File info below thumbnail */}
-                <div className="mt-2 px-1">
-                  <h3 className="text-sm font-medium text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                    {file.name}
-                  </h3>
+                  {/* File info below thumbnail */}
+                  <div className="mt-2 px-1">
+                    <h3 className="text-sm font-medium text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                      {file.name}
+                    </h3>
+                  </div>
                 </div>
-              </div>
+              </AnimatedSection>
             ))}
           </div>
-
           {recentFiles.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
