@@ -21,9 +21,9 @@ export const useLessonPlanData = ({
   const [demoData, setDemoData] = useState<DemoNode[]>([]);
   const [trashData, setTrashData] = useState<DemoNode[]>([]);
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
-  const [activeTab, setActiveTab] = useState<"components" | "images" | "upload" | "trash">(
-    "components"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "components" | "images" | "upload" | "trash"
+  >("components");
   const [showPreview, setShowPreview] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -93,7 +93,9 @@ export const useLessonPlanData = ({
 
       // In edit mode, don't set finalData to avoid conflicts with getAllFinalData
       // The getAllFinalData function will use demoData directly
-      console.log("🔄 Edit mode: Using demoData directly, not setting finalData");
+      console.log(
+        "🔄 Edit mode: Using demoData directly, not setting finalData"
+      );
       console.log("🔍 Edit mode demoData count:", convertedData.length);
     }
   }, [mode, existingData?.data]); // ✅ Watch for changes in existingData.data specifically
@@ -112,6 +114,8 @@ export const useLessonPlanData = ({
   )();
 
   const apiData = childrenQuery?.data?.data;
+
+  const isLoadingChidren = childrenQuery.isLoading;
 
   // Helper function to update finalData when demoData changes
   const updateFinalData = useCallback(
@@ -225,7 +229,9 @@ export const useLessonPlanData = ({
   useEffect(() => {
     // Skip this effect when in edit mode and existing data is already loaded
     if (mode === "edit" && existingData?.data) {
-      console.log("🔄 Skipping API data load in edit mode - using existing data");
+      console.log(
+        "🔄 Skipping API data load in edit mode - using existing data"
+      );
       return;
     }
 
@@ -289,6 +295,9 @@ export const useLessonPlanData = ({
     setCurrentStep,
     finalData,
     setFinalData,
+
+    //loading
+    isLoadingChidren,
 
     // API data
     items,
