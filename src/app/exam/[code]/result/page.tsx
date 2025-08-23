@@ -8,6 +8,7 @@ import {
 import { formatVietnamDate } from "@/utils/dateUtils";
 import { Button } from "@/components/ui/Button";
 import { Download } from "lucide-react";
+import QuestionRender from "@/components/organisms/question-render";
 
 interface ResultExamPageProps {
   params: Promise<{
@@ -59,8 +60,8 @@ function ResultExamPage({ params }: ResultExamPageProps) {
   }
 
   return (
-    <div className="grid grid-cols-3">
-      <aside className={`w-full px-6 py-6 space-y-6 `}>
+    <div className="grid grid-cols-1 md:grid-cols-3">
+      <aside className={`w-full px-6 py-6 space-y-6 sticky top-0 h-screen`}>
         <div className="space-y-2">
           <div className="grid grid-cols-[1fr_2fr] gap-5 text-base">
             <div className="font-calsans text-nowrap ">Tên bài kiểm tra</div>
@@ -143,12 +144,13 @@ function ResultExamPage({ params }: ResultExamPageProps) {
         </div>
 
         <Button className="w-full bg-gray-800 hover:bg-gray-700 text-white text-xs py-3">
-          <Download className="h-3 w-3 mr-2" />
-          In phiếu trả lời trắc nghiệm
+          Nhập mã code của bạn để xem kết quả
         </Button>
       </aside>
-      <div className="grid grid-cols-2">
-        
+      <div className="col-span-2 px-6 py-6">
+        {examData?.contentJson?.parts && (
+          <QuestionRender parts={examData.contentJson.parts} />
+        )}
       </div>
     </div>
   );
