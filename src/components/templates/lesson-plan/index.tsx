@@ -10,14 +10,12 @@ import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
 import LoadingAI from "@/components/molecules/loading";
 import TokenConfirmModal from "@/components/modals/TokenConfirmModal";
 import { toast } from "sonner";
-import { Eye, Save, ArrowLeft, Edit3, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import {
   useUpdateToolResultService,
   useToolResultByIdService,
 } from "@/services/toolResultService";
-import { useQuestionBanksWithParamsService } from "@/services/questionBankServices";
 
 // Custom hooks
 import { useLessonPlanData } from "./hooks/useLessonPlanData";
@@ -418,7 +416,7 @@ function LessonPlanTemplate({
         name: formData.name,
         description: formData.description || "",
         data: getAllFinalData(),
-        status: "ARCHIVED",
+        ...(mode === "create" && { status: "ARCHIVED" }),
       };
 
       updateToolResult(
