@@ -26,9 +26,9 @@ function FileDetailPage({ params }: Props) {
     if (isError || error) {
       notFound();
     }
-    if (data?.data?.status !== "ARCHIVED ") {
-      notFound();
-    }
+    // if (data?.data?.status !== "ARCHIVED ") {
+    //   notFound();
+    // }
   }, [isError, error, router]);
 
   const lessonQueries = useLessonsByIdsService(data?.data?.lessonIds || []);
