@@ -7,8 +7,6 @@ import {
 } from "@/services/studentExamServices";
 import { formatVietnamDate } from "@/utils/dateUtils";
 import { Button } from "@/components/ui/Button";
-import { Dialog } from "@/components/ui/dialog";
-
 import QuestionRender from "@/components/organisms/question-render";
 import { useSubmissionById } from "@/services/examInstanceServices";
 import { Modal } from "@/components/ui/modal";
@@ -34,7 +32,11 @@ function ResultExamPage({ params }: ResultExamPageProps) {
   const [open, setOpen] = useState(false);
   const [submissionCode, setSubmissionCode] = useState("");
   const [error, setError] = useState("");
-  const { data, refetch, isFetching } = useSubmissionById(submissionCode, {
+  const {
+    data: studentResult,
+    refetch,
+    isFetching,
+  } = useSubmissionById(submissionCode, {
     enabled: false, // Không fetch khi render
   });
   const handleOpen = () => {
@@ -58,7 +60,6 @@ function ResultExamPage({ params }: ResultExamPageProps) {
 
     setError("");
 
- 
     const result = await refetch();
 
     if (result.data) {
@@ -98,6 +99,8 @@ function ResultExamPage({ params }: ResultExamPageProps) {
       </div>
     );
   }
+
+  console.log(studentResult?.data?.resultDetails, "tran");
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 ">
@@ -225,7 +228,10 @@ function ResultExamPage({ params }: ResultExamPageProps) {
       </aside>
       <div className="col-span-2 px-6 py-6">
         {examData?.contentJson?.parts && (
-          <QuestionRender parts={examData.contentJson.parts} />
+          <QuestionRender
+            parts={examData.contentJson.parts}
+            studentResult={studentResult?.data?.resultDetails || []}
+          />
         )}
       </div>
     </div>
