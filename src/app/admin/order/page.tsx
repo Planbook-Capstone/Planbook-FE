@@ -43,7 +43,7 @@ function OrderManagementPage() {
     } // pagination params
   );
 
-  console.log(ordersData);
+
   return (
     <div>
       <OrderTable

@@ -6,6 +6,7 @@ import {
   useUpdateMaterialService,
   useMaterialByIdService,
   useDeleteMaterialService,
+  useMaterialsExternalWithParamsService,
 } from "@/services/materialServices";
 import { useTagService } from "@/services/tagServices";
 import { TagResponse } from "@/types";
@@ -17,7 +18,16 @@ import EditMaterialModal from "@/components/organisms/edit-material-modal";
 import { EditMaterialFormData } from "@/schemas/material.schema";
 import { toast } from "sonner";
 import DeleteConfirmDialog from "@/components/organisms/delete-confirm-dialog";
-
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 function MaterialContent() {
   const { data: tag } = useTagService();
   const [activeTabId, setActiveTabId] = useState<string>("");
@@ -27,10 +37,12 @@ function MaterialContent() {
   const [materialToDelete, setMaterialToDelete] = useState<any>(null);
 
   const { mutate, isPending } = useUpdateMaterialService();
-  const { mutate: deleteMaterial, isPending: isDeleting } = useDeleteMaterialService();
+  const { mutate: deleteMaterial, isPending: isDeleting } =
+    useDeleteMaterialService();
 
   // Get current material data to preserve existing values
-  const { data: currentMaterialData } = useMaterialByIdService(selectedMaterialId);
+  const { data: currentMaterialData } =
+    useMaterialByIdService(selectedMaterialId);
 
   useEffect(() => {
     if (tag?.data?.length > 0 && !activeTabId) {
@@ -38,8 +50,29 @@ function MaterialContent() {
     }
   }, [tag?.data, activeTabId]);
 
-  const { data: materials, refetch: refetchMaterials } =
-    useMaterialSearchService(activeTabId);
+  // const { data: materials, refetch: refetchMaterials } =
+  //   useMaterialSearchService(activeTabId);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const {
+    data: materials,
+    refetch: refetchMaterials,
+    isLoading,
+  } = useMaterialsExternalWithParamsService(
+    [currentPage, pageSize, activeTabId],
+    { retry: 1, staleTime: 0 }, // options
+    {
+      page: currentPage,
+      pageSize: pageSize,
+      sortBy: "CREATED_AT",
+      sortDirection: "DESC",
+      tagIds: activeTabId,
+      visibility: "EXTERNAL",
+    } // pagination params
+  );
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleTabChange = (key: string) => {
     setActiveTabId(key);
@@ -95,7 +128,8 @@ function MaterialContent() {
           onError: (error: any) => {
             console.error("Error updating material:", error);
             toast.error(
-              error?.response?.data?.message || "Có lỗi xảy ra khi cập nhật học liệu!"
+              error?.response?.data?.message ||
+                "Có lỗi xảy ra khi cập nhật học liệu!"
             );
           },
         }
@@ -150,6 +184,16 @@ function MaterialContent() {
         }
       />
 
+      {isLoading && (
+        <div>
+          <GridSkeleton
+            count={6}
+            height={130}
+            cols="grid-cols-3 lg:grid-cols-4"
+          />
+        </div>
+      )}
+
       <div className="mt-4 grid grid-cols-5 gap-2 ">
         {/* Đang chọn tag ID: <strong>{activeTabId}</strong> */}
         {materials?.data?.content?.map((item: any, idx: any) => {
@@ -198,6 +242,139 @@ function MaterialContent() {
           }
         })}
       </div>
+
+      {materials?.data && materials.data.totalPages > 1 && (
+        <div className="float-end mt-5 space-y-4">
+          <Pagination>
+            <PaginationContent>
+              {/* Previous Button */}
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                      handlePageChange(currentPage - 1);
+                    }
+                  }}
+                  className={
+                    currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                  }
+                />
+              </PaginationItem>
+
+              {/* Page Numbers */}
+              {(() => {
+                const totalPages = materials.data.totalPages;
+                const pages = [];
+
+                // Show first page
+                if (totalPages > 0) {
+                  pages.push(
+                    <PaginationItem key={1}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === 1}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage !== 1) {
+                            handlePageChange(1);
+                          }
+                        }}
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                // Show ellipsis if needed
+                if (currentPage > 3) {
+                  pages.push(
+                    <PaginationItem key="ellipsis-start">
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                // Show pages around current page
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+
+                for (let i = start; i <= end; i++) {
+                  if (i !== 1 && i !== totalPages) {
+                    pages.push(
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === i}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage !== i) {
+                              handlePageChange(i);
+                            }
+                          }}
+                        >
+                          {i}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+                }
+
+                // Show ellipsis if needed
+                if (currentPage < totalPages - 2) {
+                  pages.push(
+                    <PaginationItem key="ellipsis-end">
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+
+                // Show last page (if different from first)
+                if (totalPages > 1) {
+                  pages.push(
+                    <PaginationItem key={totalPages}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === totalPages}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage !== totalPages) {
+                            handlePageChange(totalPages);
+                          }
+                        }}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+
+                return pages;
+              })()}
+
+              {/* Next Button */}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < materials.data.totalPages) {
+                      handlePageChange(currentPage + 1);
+                    }
+                  }}
+                  className={
+                    currentPage >= materials.data.totalPages
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       {/* Edit Material Modal */}
       {selectedMaterialId && (
