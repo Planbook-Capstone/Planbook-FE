@@ -199,3 +199,8 @@ export const useDownloadExcelReportService = (instanceId: string) => {
       }),
   });
 };
+
+export const useSubmissionById = createQueryWithPathParamHook(
+  "student",
+  `${EXAM_INSTANCES_ENDPOINT}/submission`
+);

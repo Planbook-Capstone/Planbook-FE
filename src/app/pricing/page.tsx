@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 
 function PricingPage() {
   const { data: subscriptions, isLoading } = useSubscriptionsService();
-  const { mutate } = useCreateOrderService();
+  const { mutate,isPending } = useCreateOrderService();
   const router = useRouter();
 
   const handleOrder = (packageId: string) => {
@@ -71,6 +71,7 @@ function PricingPage() {
                   id={subscription.id}
                   features={subscription.features}
                   onOrder={handleOrder}
+                  isPending={isPending}
                 />
               ))
           )}

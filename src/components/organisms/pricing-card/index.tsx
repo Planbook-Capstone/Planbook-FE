@@ -10,6 +10,7 @@ interface PricingCardProps {
   highlight?: boolean;
   tokenAmount?: number;
   onOrder?: (packageId: string) => void;
+  isPending?: boolean;
 }
 
 const PricingCard = ({
@@ -21,6 +22,7 @@ const PricingCard = ({
   highlight,
   tokenAmount,
   onOrder,
+  isPending,
 }: PricingCardProps) => {
   const handleOrder = () => {
     if (onOrder && id) {
@@ -91,6 +93,7 @@ const PricingCard = ({
           }
         `}
           onClick={handleOrder}
+          disabled={isPending}
         >
           Trải nghiệm ngay
         </Button>
