@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Edit } from "lucide-react";
 import EditLessonPlanNodeModal from "@/components/organisms/edit-lesson-plan-node-modal";
+import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 interface LessonPlanNode {
   id: number;
@@ -139,7 +140,9 @@ const NodeRenderer = ({
 
 function EditLessonPlanTemplatePage() {
   const { id } = useParams();
-  const { data: allNode } = useLessonPlanAllNodeService(id?.toString() || "")();
+  const { data: allNode, isLoading } = useLessonPlanAllNodeService(
+    id?.toString() || ""
+  )();
   const [editingNode, setEditingNode] = useState<LessonPlanNode | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -154,6 +157,18 @@ function EditLessonPlanTemplatePage() {
       setEditingNode(null);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div>
+        <GridSkeleton
+          count={4}
+          height={140}
+          cols="grid-cols-1 lg:grid-cols-1"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 mx-auto">
