@@ -27,6 +27,12 @@ export const useMaterialSearchService = (tagIds?: string) => {
   )(searchParams);
 };
 
+// Service with pagination params
+export const useMaterialsExternalWithParamsService = createDynamicQueryHook(
+  "materials",
+  API_ENDPOINTS.ACADEMIC_RESOURCE_SEARCH
+);
+
 export const useCreateMaterialService = createMutationHook(
   "materials",
   API_ENDPOINTS.ACADEMIC_RESOURCE_UPLOAD

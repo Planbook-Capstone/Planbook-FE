@@ -87,7 +87,7 @@ export default function StaffUsersManagementPage() {
   };
 
   const handleToggleUserStatus = (user: UserWithWalletResponse) => {
-    const newStatus = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    const newStatus = user.status === "ACTIVE" ? "DELETED" : "ACTIVE";
 
     // Show loading toast
     const loadingToast = toast.loading(
@@ -104,7 +104,7 @@ export default function StaffUsersManagementPage() {
           toast.dismiss(loadingToast);
           toast.success(
             `${
-              newStatus === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"
+              newStatus !== "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"
             } người dùng thành công!`
           );
         },
