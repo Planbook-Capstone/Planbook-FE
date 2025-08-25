@@ -260,7 +260,7 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         // Tự động finish tour khi đến step cuối
         handleTourClose();
       }
-    }, 2000); // 2 giây
+    }, 3000); // 3 giây
 
     return () => clearTimeout(timer);
   }, [open, current]);
@@ -314,11 +314,12 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         type="primary"
         arrow={true}
         placement="bottom"
-        mask={{
-          style: {
-            boxShadow: "inset 0 0 15px #333",
-          },
-        }}
+        mask={true}
+        // mask={{
+        //   style: {
+        //     boxShadow: "inset 0 0 15px #333",
+        //   },
+        // }}
         zIndex={1001}
       />
     </>
