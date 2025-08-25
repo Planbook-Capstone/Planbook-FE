@@ -3,6 +3,7 @@ import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 import TemplatePreview from "@/components/organisms/template-preview";
 import PreviewModal from "@/components/PreviewModalv2";
 import { SlidePreview } from "@/components/ui/SlidePreview";
+import { useAuth } from "@/hooks/useAuth";
 import { useLessonsByIdsService } from "@/services/lessonServices";
 import { useToolResultByIdService } from "@/services/toolResultService";
 import { useRecentFilesWithHelpers } from "@/store";
@@ -20,14 +21,17 @@ function FileDetailPage({ params }: Props) {
   const { data, isError, error, isLoading } = useToolResultByIdService(fileId);
   const { addFileFromApiResponse } = useRecentFilesWithHelpers();
   const router = useRouter();
-  console.log(data?.data?.status, "tran");
-
+  console.log(data?.data?.userId, "tran");
+  const { user } = useAuth();
   useEffect(() => {
     if (isError || error) {
       notFound();
     }
     // Check if status is not ARCHIVED and redirect to not found
-    if (data?.data && data.data.status !== "ARCHIVED") {
+    if (
+      (data?.data && data.data.status !== "ARCHIVED") ||
+      (data?.data && data?.data?.userId !== user?.id)
+    ) {
       notFound();
     }
   }, [isError, error, data?.data?.status, router]);
