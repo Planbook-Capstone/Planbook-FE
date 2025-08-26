@@ -17,7 +17,7 @@ export const LandingPageFooter = () => {
             playsInline
             className="absolute inset-0 w-full h-screen object-cover"
           >
-            <source src="/videos/demo.mp4" />
+            <source src="/videos/demo_1.mp4" />
           </video>
 
           {/* Content */}
