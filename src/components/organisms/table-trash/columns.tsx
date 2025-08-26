@@ -36,7 +36,7 @@ export const trashsColumns = (
       accessorKey: "name",
       header: "Tên ",
       cell: ({ row }) => (
-        <div className="font-medium text-gray-900 font-questrial">
+        <div className="font-medium text-gray-900 font-questrial truncate max-w-[200px]">
           {row.original.name}
         </div>
       ),
@@ -45,8 +45,10 @@ export const trashsColumns = (
       accessorKey: "description",
       header: "Mô tả",
       cell: ({ row }) => (
-        <div className="font-medium text-gray-900 font-questrial">
-          {row.original.description}
+        <div className="max-w-[300px]">
+          <span className="block font-medium whitespace-normal break-words line-clamp-2">
+            {row.original.description}
+          </span>
         </div>
       ),
     },
