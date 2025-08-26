@@ -634,6 +634,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
       name: formData.name,
       description: formData.description || "",
       data: updatedExamResult.data,
+      ...(localExamResult?.status === "DRAFT" ? { status: "ARCHIVED" } : {}),
     };
 
     updateToolResult(
