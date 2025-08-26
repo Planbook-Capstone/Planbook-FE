@@ -20,6 +20,7 @@ import {
   useDeleteLessonPlanService,
   useLessonPlanByIdService,
   useLessonPlanService,
+  useUpdateLessonPlanStatus,
 } from "@/services/lessonPlanServices";
 import {
   useCreateLessonPlanNodeService,
@@ -195,14 +196,25 @@ export default function LessonPlanPage() {
     });
   };
 
+  const { mutate: updateLessonPlanStatus } = useUpdateLessonPlanStatus();
+
   const handleActivateTemplate = (templateId: string) => {
-    setTemplates((prev) =>
-      prev.map((template) => ({
-        ...template,
-        isActive: template.id === templateId,
-      }))
+    updateLessonPlanStatus(
+      {
+        id: templateId,
+        field: "status",
+        queryParams: { status: "ACTIVE" },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Đã kích hoạt mẫu thành công!");
+          refetch();
+        },
+        onError: (error) => {
+          toast.error("Có lỗi xảy ra khi kích hoạt mẫu!");
+        },
+      }
     );
-    toast.success("Đã kích hoạt mẫu!");
   };
 
   // File management functions
