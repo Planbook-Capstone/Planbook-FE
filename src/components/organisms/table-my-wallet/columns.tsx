@@ -66,14 +66,16 @@ export const walletColumns: ColumnDef<WalletTransaction>[] = [
     cell: ({ row }) => {
       const tokenChange = row.getValue("tokenChange") as number;
       const type = row.getValue("type") as string;
-      const isToolUsage = type !== "RECHARGE"; // "Sử dụng tool"
+      const isRefund = type === "REFUND";
+      const isRecharge = type === "RECHARGE";
+      const isToolUsage = !isRecharge && !isRefund; // Chỉ là tool usage nếu không phải recharge/refund
 
       // For tool usage, always show negative and red
-      // For recharge, show positive and green
+      // For recharge/refund, show positive and green
       const displayValue = isToolUsage
         ? -Math.abs(tokenChange)
         : Math.abs(tokenChange);
-      const isPositive = !isToolUsage && tokenChange > 0;
+      const isPositive = (isRecharge || isRefund) && tokenChange > 0;
 
       return (
         <div
@@ -98,12 +100,18 @@ export const walletColumns: ColumnDef<WalletTransaction>[] = [
       const tokenBefore = row.getValue("tokenBefore") as number;
       const tokenChange = row.getValue("tokenChange") as number;
       const type = row.getValue("type") as string;
-      const isToolUsage = type !== "RECHARGE"; // "Sử dụng tool"
+      const isRefund = type === "REFUND";
+      const isRecharge = type === "RECHARGE";
+      const isToolUsage = !isRecharge && !isRefund;
 
-      // For tool usage, subtract the token change; for recharge, add it
-      const tokenAfter = isToolUsage
-        ? tokenBefore - Math.abs(tokenChange)
-        : tokenBefore + Math.abs(tokenChange);
+      // For tool usage, subtract; for recharge/refund, add
+      let tokenAfter;
+      if (isToolUsage) {
+        tokenAfter = tokenBefore - Math.abs(tokenChange);
+      } else {
+        // RECHARGE hoặc REFUND đều cộng
+        tokenAfter = tokenBefore + Math.abs(tokenChange);
+      }
 
       return (
         <div className="text-right font-mono text-sm font-bold">

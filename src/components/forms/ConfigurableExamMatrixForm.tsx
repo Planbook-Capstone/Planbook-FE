@@ -15,6 +15,7 @@ interface MatrixPart {
   name: string;
   label: string;
   color: string;
+  maximum?: number;
   difficultyLevels: DifficultyLevel[];
 }
 
@@ -126,6 +127,11 @@ const ConfigurableExamMatrixForm: React.FC<ConfigurableExamMatrixFormProps> = ({
                       ({part.label})
                     </div>
                   )}
+                  {part.maximum !== undefined && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      Tối đa: {part.maximum} câu
+                    </div>
+                  )}
                 </span>
               </th>
             ))}
@@ -177,17 +183,36 @@ const ConfigurableExamMatrixForm: React.FC<ConfigurableExamMatrixFormProps> = ({
 
           {/* Hàng tổng theo phần */}
           <tr className="bg-gray-50">
-            {config.parts.map((part) => (
-              <td
-                key={`${part.id}-total`}
-                className="border px-2 py-3 text-center"
-                colSpan={part.difficultyLevels.length}
-              >
-                <span className={`font-calsans ${part.color.replace('bg-', 'text-').replace('-50', '-700')}`}>
-                  {getTotalByPart(part.id)}
-                </span>
-              </td>
-            ))}
+            {config.parts.map((part) => {
+              const partTotal = getTotalByPart(part.id);
+              const isOverLimit = part.maximum !== undefined && partTotal > part.maximum;
+
+              return (
+                <td
+                  key={`${part.id}-total`}
+                  className="border px-2 py-3 text-center"
+                  colSpan={part.difficultyLevels.length}
+                >
+                  <span className={`font-calsans ${
+                    isOverLimit
+                      ? 'text-red-600'
+                      : part.color.replace('bg-', 'text-').replace('-50', '-700')
+                  }`}>
+                    {partTotal}
+                    {part.maximum !== undefined && (
+                      <span className="text-xs ml-1">
+                        / {part.maximum}
+                      </span>
+                    )}
+                  </span>
+                  {isOverLimit && (
+                    <div className="text-xs text-red-500 mt-1">
+                      Vượt quá giới hạn!
+                    </div>
+                  )}
+                </td>
+              );
+            })}
             <td className="border px-2 py-3 text-center">
               <span className="font-bold font-questrial text-blue-700">
                 {getGrandTotal()}

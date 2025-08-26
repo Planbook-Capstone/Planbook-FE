@@ -70,6 +70,7 @@ function CreateMatrixTemplatePage() {
         name: "Phần 1",
         label: "Trắc nghiệm",
         color: "bg-amber-50",
+        maximum: 20,
         difficultyLevels: [
           { id: "nb", name: "NB", label: "Nhận biết", color: "text-amber-700" },
           {
@@ -86,6 +87,7 @@ function CreateMatrixTemplatePage() {
         name: "Phần 2",
         label: "Đúng/Sai",
         color: "bg-green-50",
+        maximum: 5,
         difficultyLevels: [
           { id: "nb", name: "NB", label: "Nhận biết", color: "text-green-700" },
           {
@@ -102,6 +104,7 @@ function CreateMatrixTemplatePage() {
         name: "Phần 3",
         label: "Tự luận",
         color: "bg-sky-50",
+        maximum: 3,
         difficultyLevels: [
           { id: "nb", name: "NB", label: "Nhận biết", color: "text-sky-700" },
           { id: "th", name: "TH", label: "Thông hiểu", color: "text-sky-700" },
@@ -134,7 +137,12 @@ function CreateMatrixTemplatePage() {
     setConfig((prev) => ({
       ...prev,
       parts: prev.parts.map((part, index) =>
-        index === partIndex ? { ...part, [field]: value } : part
+        index === partIndex
+          ? {
+              ...part,
+              [field]: field === "maximum" ? (value === "" ? undefined : parseInt(value)) : value
+            }
+          : part
       ),
     }));
   };
@@ -223,6 +231,7 @@ function CreateMatrixTemplatePage() {
       name: nextPart.name,
       label: nextPart.label,
       color: nextPart.color,
+      maximum: nextPart.id === "part1" ? 20 : nextPart.id === "part2" ? 5 : 3,
       difficultyLevels: [
         {
           id: "nb",
@@ -456,7 +465,7 @@ function CreateMatrixTemplatePage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <FormField label="Loại" htmlFor={`part-id-${partIndex}`}>
                       <Input
                         id={`part-id-${partIndex}`}
@@ -493,6 +502,24 @@ function CreateMatrixTemplatePage() {
                           handlePartChange(partIndex, "label", e.target.value)
                         }
                         placeholder="Trắc nghiệm"
+                        className="font-questrial"
+                      />
+                    </FormField>
+
+                    <FormField
+                      label="Số câu tối đa"
+                      htmlFor={`part-maximum-${partIndex}`}
+                    >
+                      <Input
+                        id={`part-maximum-${partIndex}`}
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={part.maximum || ""}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handlePartChange(partIndex, "maximum", e.target.value)
+                        }
+                        placeholder="20"
                         className="font-questrial"
                       />
                     </FormField>
@@ -666,7 +693,7 @@ function CreateMatrixTemplatePage() {
               <div>
                 <strong>2. Thiết lập các phần:</strong> Các phần sẽ được thêm
                 theo thứ tự cố định (Trắc nghiệm → Đúng/Sai → Tự luận). Loại
-                được tự động xác định, tên và nhãn có thể tùy chỉnh.
+                được tự động xác định, tên, nhãn và số câu tối đa có thể tùy chỉnh.
               </div>
               <div>
                 <strong>3. Định nghĩa mức độ khó:</strong> Chọn mức độ khó từ
@@ -687,6 +714,7 @@ function CreateMatrixTemplatePage() {
                   <li>ID không được để trống và không được trùng lặp</li>
                   <li>ID nên sử dụng ký tự không dấu, không khoảng trắng</li>
                   <li>Ví dụ ID hợp lệ: part1, nb, th, vd</li>
+                  <li>Số câu tối đa giúp kiểm soát giới hạn câu hỏi cho mỗi phần</li>
                 </ul>
               </div>
             </CardContent>
