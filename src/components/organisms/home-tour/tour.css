@@ -35,6 +35,149 @@
   font-family: var(--font-questrial) !important;
 }
 
+/* Mobile responsive styles */
+@media (max-width: 767px) {
+  .ant-tour {
+    max-width: 90vw !important;
+    font-size: 14px !important;
+  }
+
+  .ant-tour .ant-tour-content {
+    max-width: 85vw !important;
+    padding: 12px !important;
+  }
+
+  .ant-tour .ant-tour-title {
+    font-size: 16px !important;
+    margin-bottom: 8px !important;
+    line-height: 1.3 !important;
+  }
+
+  .ant-tour .ant-tour-description {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+
+  .ant-tour .ant-tour-description p {
+    margin-bottom: 8px !important;
+    font-size: 14px !important;
+  }
+
+  .ant-tour .ant-tour-description ul {
+    margin: 8px 0 !important;
+    padding-left: 16px !important;
+  }
+
+  .ant-tour .ant-tour-description li {
+    font-size: 14px !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Tour buttons on mobile */
+  .ant-tour .ant-tour-buttons {
+    margin-top: 12px !important;
+    gap: 8px !important;
+  }
+
+  .ant-tour .ant-tour-buttons .ant-btn {
+    font-size: 14px !important;
+    height: 36px !important;
+    padding: 0 12px !important;
+    border-radius: 6px !important;
+  }
+
+  /* Help button positioning for mobile */
+  .tour-help-button {
+    bottom: 80px !important;
+    right: 16px !important;
+    width: 45px !important;
+    height: 45px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  /* Tour mask on mobile - less opacity for better visibility */
+  .ant-tour-mask {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Tour arrow adjustments for mobile */
+  .ant-tour .ant-tour-arrow {
+    display: block !important;
+  }
+
+  /* Ensure tour is always visible on mobile */
+  .ant-tour .ant-tour-content {
+    z-index: 1002 !important;
+  }
+
+  /* Better positioning for mobile tour */
+  .ant-tour[data-placement="top"] .ant-tour-content {
+    margin-bottom: 8px !important;
+  }
+
+  .ant-tour[data-placement="bottom"] .ant-tour-content {
+    margin-top: 8px !important;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .ant-tour {
+    max-width: 95vw !important;
+  }
+
+  .ant-tour .ant-tour-content {
+    max-width: 90vw !important;
+    padding: 10px !important;
+  }
+
+  .ant-tour .ant-tour-title {
+    font-size: 15px !important;
+  }
+
+  .ant-tour .ant-tour-description {
+    font-size: 13px !important;
+  }
+
+  .ant-tour .ant-tour-description p {
+    font-size: 13px !important;
+  }
+
+  .tour-help-button {
+    bottom: 70px !important;
+    right: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* Tablet responsive styles */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .ant-tour {
+    max-width: 400px !important;
+  }
+
+  .ant-tour .ant-tour-content {
+    max-width: 380px !important;
+  }
+
+  .tour-help-button {
+    bottom: 24px !important;
+    right: 24px !important;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1025px) {
+  .ant-tour {
+    max-width: 450px !important;
+  }
+
+  .ant-tour .ant-tour-content {
+    max-width: 430px !important;
+  }
+}
+
 .ant-tour .ant-tour-buttons {
   font-family: var(--font-questrial) !important;
 }
