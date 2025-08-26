@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Tour, Button } from "antd";
 import type { TourProps } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
+import { useIsMobile } from "@/hooks/use-mobile";
 import "./tour.css";
 import { BookTypeResponse } from "@/types";
 
@@ -15,6 +16,21 @@ interface HomeTourProps {
 const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState(0);
+  const isMobile = useIsMobile();
+
+  // Kiểm tra element có visible và accessible trên mobile không
+  const isElementAccessible = (selector: string) => {
+    const element = document.querySelector(selector);
+    if (!element) return false;
+
+    const rect = element.getBoundingClientRect();
+    const isVisible = rect.width > 0 && rect.height > 0;
+    const isInViewport = rect.top >= 0 && rect.left >= 0 &&
+                        rect.bottom <= window.innerHeight &&
+                        rect.right <= window.innerWidth;
+
+    return isVisible && (isMobile ? true : isInViewport); // Trên mobile không cần check viewport
+  };
 
   // Tạo nội dung động cho các chức năng từ API
   const generateFeaturesDescription = () => {
@@ -45,35 +61,40 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
 
     const sortedFeatures = bookTypes
       .sort((a, b) => (a.priority || 0) - (b.priority || 0))
-      .slice(0, 8); // Giới hạn số lượng để không làm tour quá dài
+      .slice(0, isMobile ? 4 : 8); // Giới hạn số lượng cho mobile
 
-    return sortedFeatures.map((feature) => ({
-      title: `${feature.name}`,
-      description: (
-        <div>
-          <p><strong>Mô tả:</strong> {feature.description || "Chức năng hỗ trợ giảng dạy"}</p>
-          {(feature.tokenCostPerQuery === 0 || !feature.tokenCostPerQuery) && (
-            <p>
-              <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Dùng thử miễn phí</span>
-            </p>
-          )}
-          <p>Click vào thẻ này để bắt đầu sử dụng chức năng!</p>
-        </div>
-      ),
-      target: () => document.querySelector(`[data-tour="feature-${feature.id}"]`) as HTMLElement,
-    }));
+    return sortedFeatures
+      .filter((feature) => isElementAccessible(`[data-tour="feature-${feature.id}"]`))
+      .map((feature) => ({
+        title: `${feature.name}`,
+        description: (
+          <div>
+            <p><strong>Mô tả:</strong> {feature.description || "Chức năng hỗ trợ giảng dạy"}</p>
+            {(feature.tokenCostPerQuery === 0 || !feature.tokenCostPerQuery) && (
+              <p>
+                <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Dùng thử miễn phí</span>
+              </p>
+            )}
+            <p>{isMobile ? "Chạm vào thẻ này để sử dụng!" : "Click vào thẻ này để bắt đầu sử dụng chức năng!"}</p>
+          </div>
+        ),
+        target: () => document.querySelector(`[data-tour="feature-${feature.id}"]`) as HTMLElement,
+      }));
   };
 
-  const steps: TourProps["steps"] = [
+  // Tạo tất cả steps và filter những cái phù hợp
+  const allSteps: TourProps["steps"] = [
     {
       title: "Chào mừng đến với PlanBook!",
       description: (
         <div>
           <p>
-            Chúng tôi sẽ hướng dẫn bạn khám phá các tính năng chính của trang
-            chủ.
+            {isMobile
+              ? "Chúng tôi sẽ hướng dẫn bạn khám phá các tính năng chính trên điện thoại."
+              : "Chúng tôi sẽ hướng dẫn bạn khám phá các tính năng chính của trang chủ."
+            }
           </p>
-          <p>Hãy cùng bắt đầu tour hướng dẫn nhé!</p>
+          <p>{isMobile ? "Hãy cùng bắt đầu nhé!" : "Hãy cùng bắt đầu tour hướng dẫn nhé!"}</p>
         </div>
       ),
       target: null, // Tour bắt đầu ở giữa màn hình
@@ -83,7 +104,7 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
       description: (
         <div>
           <p>
-            <strong>Logo PlanBook:</strong> Click vào logo để quay về trang chủ
+            <strong>Logo PlanBook:</strong> {isMobile ? "Chạm vào logo" : "Click vào logo"} để quay về trang chủ
             bất cứ lúc nào.
           </p>
           <p>Đây là điểm khởi đầu cho tất cả các hoạt động của bạn.</p>
@@ -91,7 +112,8 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
       ),
       target: () => document.querySelector('[data-tour="logo"]') as HTMLElement,
     },
-    {
+    // Navigation step - chỉ hiển thị trên desktop vì mobile có hamburger menu
+    ...(isMobile ? [] : [{
       title: "Menu Điều hướng",
       description: (
         <div>
@@ -107,41 +129,72 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         </div>
       ),
       target: () => document.querySelector('[data-tour="navigation"]') as HTMLElement,
-    },
-    {
-      title: "Năm học",
+    }]),
+
+    // Mobile hamburger menu step - chỉ hiển thị trên mobile
+    ...(isMobile ? [{
+      title: "Menu Điều hướng",
       description: (
         <div>
-          <p>Chọn năm học hiện tại để làm việc.</p>
-          <p>Tất cả dữ liệu sẽ được lọc theo năm học được chọn.</p>
+          <p>
+            <strong>Menu hamburger:</strong> Chạm vào biểu tượng 3 gạch để mở menu điều hướng.
+          </p>
+          <p>Từ đây bạn có thể truy cập:</p>
+          <p>• Trợ lý AI • Kho tài liệu • Gói dịch vụ</p>
         </div>
       ),
-      target: () => document.querySelector('[data-tour="academic-year"]') as HTMLElement,
-    },
-    {
-      title: "Số dư token",
-      description: (
-        <div>
-          <p>Hiển thị số dư token hiện tại trong tài khoản của bạn.</p>
-          <p>Click để xem chi tiết và nạp thêm token.</p>
-        </div>
-      ),
-      target: () => document.querySelector('[data-tour="wallet"]') as HTMLElement,
-    },
-    {
+      target: () => document.querySelector('.md\\:hidden button') as HTMLElement, // Hamburger button
+    }] : []),
+
+    // Mobile user info step - hướng dẫn truy cập thông tin user trên mobile
+    ...(isMobile ? [{
       title: "Thông tin cá nhân",
       description: (
         <div>
-          <p>Click vào avatar để:</p>
-          <ul>
-            <li>Xem thông tin cá nhân</li>
-            <li>Chỉnh sửa hồ sơ</li>
-            <li>Đăng xuất</li>
-          </ul>
+          <p>Trên mobile, thông tin cá nhân và cài đặt được đặt trong menu hamburger.</p>
+          <p>Chạm vào menu để truy cập:</p>
+          <p>• Thông tin tài khoản • Cài đặt • Đăng xuất</p>
         </div>
       ),
-      target: () => document.querySelector('[data-tour="user-menu"]') as HTMLElement,
-    },
+      target: () => document.querySelector('.md\\:hidden button') as HTMLElement, // Hamburger button
+    }] : []),
+    // User-related steps - chỉ hiển thị trên desktop vì mobile ẩn UserButton
+    ...(isMobile ? [] : [
+      {
+        title: "Năm học",
+        description: (
+          <div>
+            <p>Chọn năm học hiện tại để làm việc.</p>
+            <p>Tất cả dữ liệu sẽ được lọc theo năm học được chọn.</p>
+          </div>
+        ),
+        target: () => document.querySelector('[data-tour="academic-year"]') as HTMLElement,
+      },
+      {
+        title: "Số dư token",
+        description: (
+          <div>
+            <p>Hiển thị số dư token hiện tại trong tài khoản của bạn.</p>
+            <p>Click để xem chi tiết và nạp thêm token.</p>
+          </div>
+        ),
+        target: () => document.querySelector('[data-tour="wallet"]') as HTMLElement,
+      },
+      {
+        title: "Thông tin cá nhân",
+        description: (
+          <div>
+            <p>Click vào avatar để:</p>
+            <ul>
+              <li>Xem thông tin cá nhân</li>
+              <li>Chỉnh sửa hồ sơ</li>
+              <li>Đăng xuất</li>
+            </ul>
+          </div>
+        ),
+        target: () => document.querySelector('[data-tour="user-menu"]') as HTMLElement,
+      },
+    ]),
     // {
     //   title: "Banner Chào mừng 🌟",
     //   description: (
@@ -153,7 +206,7 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
     //   target: () => document.querySelector('[data-tour="banner"]'),
     // },
     {
-      title: "Các Chức năng chính của hệ thống",
+      title: isMobile ? "Các Chức năng chính" : "Các Chức năng chính của hệ thống",
       description: generateFeaturesDescription(),
       target: () => document.querySelector('[data-tour="features"]') as HTMLElement,
     },
@@ -178,12 +231,16 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
       description: (
         <div>
           <p>Xem lại tất cả các hoạt động đã thực hiện:</p>
-          <ul>
-            <li>Giáo án đã tạo</li>
-            <li>Đề thi đã tạo</li>
-            <li>Slide đã tạo</li>
-            <li>Các tài liệu khác</li>
-          </ul>
+          {isMobile ? (
+            <p>• Giáo án, đề thi, slide và tài liệu khác</p>
+          ) : (
+            <ul>
+              <li>Giáo án đã tạo</li>
+              <li>Đề thi đã tạo</li>
+              <li>Slide đã tạo</li>
+              <li>Các tài liệu khác</li>
+            </ul>
+          )}
         </div>
       ),
       target: () => document.querySelector('[data-tour="history"]') as HTMLElement,
@@ -215,7 +272,7 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
       description: (
         <div>
           <p>ChatBox là nơi bạn có thể trò chuyện với AI Assistant.</p>
-          <p>Bạn có thể hỏi bất kỳ câu hỏi nào về giảng dạy.</p>
+          <p>{isMobile ? "Hỏi bất kỳ câu hỏi nào về giảng dạy." : "Bạn có thể hỏi bất kỳ câu hỏi nào về giảng dạy."}</p>
         </div>
       ),
       target: () => document.querySelector('[data-tour="chat-box"]') as HTMLElement,
@@ -226,8 +283,10 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         <div>
           <p>Bạn đã hoàn thành tour hướng dẫn!</p>
           <p>
-            Bây giờ bạn có thể bắt đầu sử dụng PlanBook để tạo ra những tài liệu
-            giảng dạy tuyệt vời.
+            {isMobile
+              ? "Bây giờ bạn có thể bắt đầu sử dụng PlanBook trên điện thoại để tạo tài liệu giảng dạy."
+              : "Bây giờ bạn có thể bắt đầu sử dụng PlanBook để tạo ra những tài liệu giảng dạy tuyệt vời."
+            }
           </p>
           <p>
             <strong>Chúc bạn có trải nghiệm tốt! </strong>
@@ -238,20 +297,48 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
     },
   ];
 
+  // Filter steps dựa trên mobile và element accessibility
+  const steps: TourProps["steps"] = allSteps.filter((step) => {
+    // Luôn giữ step đầu và cuối (không có target)
+    if (!step.target) return true;
+
+    // Kiểm tra element có accessible không
+    try {
+      const target = typeof step.target === 'function' ? step.target() : step.target;
+      if (!target) return false;
+
+      // Kiểm tra element có visible không
+      const rect = target.getBoundingClientRect();
+      const isVisible = rect.width > 0 && rect.height > 0;
+
+      // Kiểm tra element không bị ẩn bởi CSS
+      const computedStyle = window.getComputedStyle(target);
+      const isDisplayed = computedStyle.display !== 'none' &&
+                         computedStyle.visibility !== 'hidden' &&
+                         computedStyle.opacity !== '0';
+
+      return isVisible && isDisplayed;
+    } catch (error) {
+      // Nếu có lỗi khi query element, skip step này
+      console.warn('Tour step target not found:', error);
+      return false;
+    }
+  });
+
   // Kiểm tra xem user đã xem tour chưa
   useEffect(() => {
     const hasSeenTour = localStorage.getItem("home-tour-completed");
     if (!hasSeenTour) {
-      // Delay một chút để đảm bảo DOM đã render
+      // Delay lâu hơn trên mobile để đảm bảo DOM đã render hoàn toàn
       setTimeout(() => {
         setOpen(true);
-      }, 1000);
+      }, isMobile ? 1500 : 1000);
     }
-  }, []);
+  }, [isMobile]);
 
-  // Auto-advance tour steps every 2 seconds
+  // Auto-advance tour steps - faster on mobile
   useEffect(() => {
-    if (!open) return;
+    if (!open || steps.length === 0) return;
 
     const timer = setTimeout(() => {
       if (current < steps.length - 1) {
@@ -260,15 +347,20 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         // Tự động finish tour khi đến step cuối
         handleTourClose();
       }
-    }, 3000); // 3 giây
+    }, isMobile ? 2500 : 3000); // Nhanh hơn trên mobile
 
     return () => clearTimeout(timer);
-  }, [open, current]);
+  }, [open, current, isMobile, steps.length]);
 
   const handleTourClose = () => {
     setOpen(false);
     localStorage.setItem("home-tour-completed", "true");
     onTourComplete?.();
+
+    // Trên mobile, scroll về top sau khi hoàn thành tour
+    if (isMobile) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const resetTour = () => {
@@ -287,12 +379,12 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         className="tour-help-button"
         style={{
           position: "fixed",
-          bottom: "20px",
-          right: "20px",
+          bottom: isMobile ? "80px" : "20px", // Tránh bottom navigation trên mobile
+          right: isMobile ? "16px" : "20px",
           zIndex: 1000,
           borderRadius: "50%",
-          width: "50px",
-          height: "50px",
+          width: isMobile ? "45px" : "50px",
+          height: isMobile ? "45px" : "50px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -313,7 +405,7 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         // )}
         type="primary"
         arrow={true}
-        placement="bottom"
+        placement={isMobile ? "top" : "bottom"} // Placement khác nhau cho mobile
         mask={true}
         // mask={{
         //   style: {
