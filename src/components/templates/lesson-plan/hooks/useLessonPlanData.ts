@@ -8,6 +8,7 @@ import {
 import { useLessonByIdService } from "@/services/lessonServices";
 import { DemoNode, LessonPlanState } from "../types";
 import { LESSON_PLAN_CONFIG } from "../constants";
+import { useLessonPlanActiveService } from "@/services/lessonPlanServices";
 
 interface UseLessonPlanDataProps {
   mode?: "create" | "edit";
@@ -56,16 +57,13 @@ export const useLessonPlanData = ({
     },
     []
   );
+  const { data: lessonPlanTemplate } = useLessonPlanActiveService();
 
   // API hooks
   const { data: treeData } = useLessonPlanNodeTreeService(
-    LESSON_PLAN_CONFIG.defaultLessonPlanId
+    lessonPlanTemplate?.data?.content[0]?.id
   )();
   const { data: lessonById } = useLessonByIdService(lessonId || "");
-
-  // Debug raw treeData first
-  console.log("🔍 Raw treeData:", treeData);
-  console.log("🔍 Raw treeData.data:", treeData?.data);
 
   const items = treeData?.data?.map((item: any) => {
     console.log("🔍 Mapping item:", item);
@@ -75,9 +73,6 @@ export const useLessonPlanData = ({
       description: item?.content || item?.description || "",
     };
   });
-
-  // Debug final items
-  console.log("🔍 Final items:", items);
 
   // Load existing data when in edit mode
   useEffect(() => {
