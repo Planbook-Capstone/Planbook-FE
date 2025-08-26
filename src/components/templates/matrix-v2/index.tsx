@@ -89,7 +89,7 @@ export default function MatrixTemplate2() {
       if (row.distribution && row.distribution[partKey]) {
         part.difficultyLevels?.forEach((level: any) => {
           const value = row.distribution?.[partKey]?.[level.id] ?? 0;
-          total += (typeof value === 'number' && !isNaN(value)) ? value : 0;
+          total += typeof value === "number" && !isNaN(value) ? value : 0;
         });
       }
     });
@@ -109,7 +109,8 @@ export default function MatrixTemplate2() {
         if (row.distribution && row.distribution[partKey]) {
           part.difficultyLevels?.forEach((level: any) => {
             const value = row.distribution[partKey][level.id];
-            totals[partKey] += (typeof value === 'number' && !isNaN(value)) ? value : 0;
+            totals[partKey] +=
+              typeof value === "number" && !isNaN(value) ? value : 0;
           });
         }
       });
@@ -347,7 +348,8 @@ export default function MatrixTemplate2() {
     .filter((lesson: any) => lesson && lesson.id && lesson.name);
 
   // Hook phân bổ tự động
-  const distributeMaximumAcrossDifficulties = useDistributeMaximumAcrossDifficulties();
+  const distributeMaximumAcrossDifficulties =
+    useDistributeMaximumAcrossDifficulties();
 
   // Function to create initial distribution based on template and rowCount
   const createInitialDistribution = (rowCount = 1) => {
@@ -470,12 +472,13 @@ export default function MatrixTemplate2() {
           // NB: 'nb', TH: 'th', VD: 'vd'
           const nb_th = numLevels > 0 ? Math.floor(thisRowMax / 3) : 0;
           const remainder = numLevels > 0 ? thisRowMax % 3 : 0;
-          distribution[partKey]['nb'] = nb_th;
-          distribution[partKey]['th'] = nb_th;
-          distribution[partKey]['vd'] = nb_th + remainder;
+          distribution[partKey]["nb"] = nb_th;
+          distribution[partKey]["th"] = nb_th;
+          distribution[partKey]["vd"] = nb_th + remainder;
         } else {
           // fallback: chia đều như cũ
-          const perLevel = numLevels > 0 ? Math.floor(thisRowMax / numLevels) : 0;
+          const perLevel =
+            numLevels > 0 ? Math.floor(thisRowMax / numLevels) : 0;
           const remainderLevel = numLevels > 0 ? thisRowMax % numLevels : 0;
           const levelOrder = part.difficultyLevels?.map((l: any) => l.id) || [];
           part.difficultyLevels?.forEach((level: any) => {
@@ -483,7 +486,8 @@ export default function MatrixTemplate2() {
           });
           // Dồn dư cho level cuối cùng
           if (levelOrder.length > 0) {
-            distribution[partKey][levelOrder[levelOrder.length - 1]] += remainderLevel;
+            distribution[partKey][levelOrder[levelOrder.length - 1]] +=
+              remainderLevel;
           }
         }
       });
@@ -508,7 +512,9 @@ export default function MatrixTemplate2() {
     templateParts.forEach((part: any, partIndex: number) => {
       const partKey = `part${partIndex + 1}`;
       // Count how many rows have lessons selected (non-empty lessonID)
-      const lessonsCount = matrix.filter(row => row.lessonID && row.lessonID.trim() !== '').length;
+      const lessonsCount = matrix.filter(
+        (row) => row.lessonID && row.lessonID.trim() !== ""
+      ).length;
       lessonsPerPart[partKey] = Math.max(1, lessonsCount); // At least 1 to avoid division by zero
     });
 
@@ -534,12 +540,19 @@ export default function MatrixTemplate2() {
             const remainder = maximum % lessonsCount;
 
             // For this specific row, check if it should get extra from remainder
-            const currentRowIndex = matrix.filter((r, idx) => idx <= rowIdx && r.lessonID && r.lessonID.trim() !== '').length - 1;
+            const currentRowIndex =
+              matrix.filter(
+                (r, idx) =>
+                  idx <= rowIdx && r.lessonID && r.lessonID.trim() !== ""
+              ).length - 1;
             const extraForThisRow = currentRowIndex < remainder ? 1 : 0;
             const finalMaximumForThisRow = maximumPerLesson + extraForThisRow;
 
             // Auto-distribute this lesson's share across difficulty levels
-            const distributedValues = distributeMaximumAcrossDifficulties(finalMaximumForThisRow, part.difficultyLevels);
+            const distributedValues = distributeMaximumAcrossDifficulties(
+              finalMaximumForThisRow,
+              part.difficultyLevels
+            );
             newDistribution[partKey] = { ...distributedValues };
           }
         });
@@ -689,11 +702,13 @@ export default function MatrixTemplate2() {
         matrix.forEach((row) => {
           part.difficultyLevels?.forEach((level: any) => {
             const value = row.distribution?.[partKey]?.[level.id] || 0;
-            partTotal += (typeof value === 'number' && !isNaN(value)) ? value : 0;
+            partTotal += typeof value === "number" && !isNaN(value) ? value : 0;
           });
         });
         if (partTotal > Number(max)) {
-          validationErrors.push(`Tổng số câu của ${part.name || partKey} vượt quá tối đa (${max})`);
+          validationErrors.push(
+            `Tổng số câu của ${part.name || partKey} vượt quá tối đa (${max})`
+          );
           fieldErrors[`${partKey}Total`] = `Tối đa ${max} câu`;
         }
       }
@@ -739,6 +754,7 @@ export default function MatrixTemplate2() {
       lesson_id: "4",
       input: examData,
       academicYearId: 1,
+      templateId: matrixTemplates?.data[0]?.id,
       // Note: No result_id for estimation
     };
 
@@ -1016,418 +1032,480 @@ export default function MatrixTemplate2() {
         </div>
       ) : (
         <>
-        <table className="w-full text-center rounded-md border mb-4">
-        <thead className="font-calsans text-base">
-          <tr>
-            <th className="border px-2 py-4 align-middle" rowSpan={2}>
-              <span className="font-normal">Bài học</span>
-            </th>
-            {templateParts.map((part, index) => (
-              <th
-                key={part.id}
-                className={`border px-2 py-4 align-middle ${part.color}`}
-                colSpan={part.difficultyLevels?.length || 3}
-              >
-                <span className="font-normal">{part.name}</span>
-              </th>
-            ))}
-            <th className="border px-2 py-4 align-middle" rowSpan={2}>
-              <span className="font-normal">Tổng số câu</span>
-            </th>
-            <th className="border px-2 py-4 align-middle" rowSpan={2}>
-              <span className="font-normal">Thao tác</span>
-            </th>
-          </tr>
-          <tr>
-            {templateParts?.map((part) => (
-              <React.Fragment key={`${part.id}-levels`}>
-                {part?.difficultyLevels?.map((level) => (
-                  <th key={level.id} className="border px-2 py-2">
-                    <span className={`font-normal ${level.color}`}>
-                      {level?.name}
-                    </span>
+          <table className="w-full text-center rounded-md border mb-4">
+            <thead className="font-calsans text-base">
+              <tr>
+                <th className="border px-2 py-4 align-middle" rowSpan={2}>
+                  <span className="font-normal">Bài học</span>
+                </th>
+                {templateParts.map((part, index) => (
+                  <th
+                    key={part.id}
+                    className={`border px-2 py-4 align-middle ${part.color}`}
+                    colSpan={part.difficultyLevels?.length || 3}
+                  >
+                    <span className="font-normal">{part.name}</span>
                   </th>
                 ))}
-              </React.Fragment>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {matrix.map((row, rowIdx) => (
-            <tr key={rowIdx} className="font-questrial">
-              <td className="border px-2 py-1 min-w-[180px]">
-                <div className="flex flex-col">
-                  {resultId ? (
-                    <Input
-                      value={
-                        allLessons.find(
-                          (lesson: any) => lesson.id === row.lessonID
-                        )?.name || "Chọn bài học"
-                      }
-                      readOnly
-                      className="w-full min-h-[40px] bg-gray-100 cursor-not-allowed"
-                    />
-                  ) : (
-                    <Select
-                      key={`lesson-select-${rowIdx}`}
-                      value={row.lessonID || "CLEAR_SELECTION"}
-                      onValueChange={(val) => {
-                        // Handle clear selection
-                        const actualValue =
-                          val === "CLEAR_SELECTION" ? "" : val;
-                        handleMatrixChange(rowIdx, "lessonID", actualValue);
-                        // Clear error when user selects a lesson
-                        if (errors[`matrix_${rowIdx}_lesson`]) {
-                          setErrors((prev) => ({
-                            ...prev,
-                            [`matrix_${rowIdx}_lesson`]: "",
-                          }));
-                        }
-                      }}
-                    >
-                      <SelectTrigger
-                        className={`w-full min-h-[40px] bg-transparent focus:ring-0 focus:outline-none ${
-                          errors[`matrix_${rowIdx}_lesson`]
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      >
-                        <SelectValue placeholder="Chọn bài học" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CLEAR_SELECTION">
-                          <span className="text-gray-500 italic">
-                            -- Chọn bài học --
-                          </span>
-                        </SelectItem>
-                        {allLessons
-                          .filter((item: any) => {
-                            // Lọc ra các bài học đã được chọn ở các hàng khác
-                            const selectedLessons = matrix
-                              .map((row, index) =>
-                                index !== rowIdx ? row.lessonID : null
-                              )
-                              .filter(Boolean);
-                            return !selectedLessons.includes(item.id);
-                          })
-                          .map((item: any) => (
-                            <SelectItem key={item.id} value={item.id}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  {errors[`matrix_${rowIdx}_lesson`] && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors[`matrix_${rowIdx}_lesson`]}
-                    </p>
-                  )}
-                </div>
-              </td>
-              {templateParts.map((part: any, partIndex: number) => {
-                const partKey = `part${partIndex + 1}`;
-                return part.difficultyLevels?.map((level: any) => {
-                  const fieldKey = `matrix_${rowIdx}_${partKey}_${level.id}`;
-                  return (
-                    <td className="border px-2 py-1" key={partKey + level.id}>
-                      <div className="flex flex-col">
+                <th className="border px-2 py-4 align-middle" rowSpan={2}>
+                  <span className="font-normal">Tổng số câu</span>
+                </th>
+                <th className="border px-2 py-4 align-middle" rowSpan={2}>
+                  <span className="font-normal">Thao tác</span>
+                </th>
+              </tr>
+              <tr>
+                {templateParts?.map((part) => (
+                  <React.Fragment key={`${part.id}-levels`}>
+                    {part?.difficultyLevels?.map((level) => (
+                      <th key={level.id} className="border px-2 py-2">
+                        <span className={`font-normal ${level.color}`}>
+                          {level?.name}
+                        </span>
+                      </th>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {matrix.map((row, rowIdx) => (
+                <tr key={rowIdx} className="font-questrial">
+                  <td className="border px-2 py-1 min-w-[180px]">
+                    <div className="flex flex-col">
+                      {resultId ? (
                         <Input
-                          type="number"
-                          min={0}
-                          step="1"
-                          value={(() => {
-                            // Always safe access
-                            const value = row.distribution?.[partKey]?.[level.id] ?? 0;
-                            return (typeof value === 'number' && !isNaN(value)) ? value : 0;
-                          })()}
-                          onChange={
-                            resultId
-                              ? undefined
-                              : (e: any) => {
-                                  const inputValue = e.target.value;
-                                  // Only allow empty string or positive integers
-                                  if (
-                                    inputValue === "" ||
-                                    /^[0-9]+$/.test(inputValue)
-                                  ) {
-                                    const value =
-                                      inputValue === ""
-                                        ? 0
-                                        : parseInt(inputValue, 10);
-                                    handleDistributionChange(
-                                      rowIdx,
-                                      partKey,
-                                      level.id,
-                                      value
-                                    );
-                                    // Clear error when user enters a non-negative value
-                                    if (errors[fieldKey] && value >= 0) {
-                                      setErrors((prev) => ({
-                                        ...prev,
-                                        [fieldKey]: "",
-                                      }));
-                                    }
-                                  }
-                                }
+                          value={
+                            allLessons.find(
+                              (lesson: any) => lesson.id === row.lessonID
+                            )?.name || "Chọn bài học"
                           }
-                          readOnly={!!resultId}
-                          placeholder={level.name}
-                          className={`$
+                          readOnly
+                          className="w-full min-h-[40px] bg-gray-100 cursor-not-allowed"
+                        />
+                      ) : (
+                        <Select
+                          key={`lesson-select-${rowIdx}`}
+                          value={row.lessonID || "CLEAR_SELECTION"}
+                          onValueChange={(val) => {
+                            // Handle clear selection
+                            const actualValue =
+                              val === "CLEAR_SELECTION" ? "" : val;
+                            handleMatrixChange(rowIdx, "lessonID", actualValue);
+                            // Clear error when user selects a lesson
+                            if (errors[`matrix_${rowIdx}_lesson`]) {
+                              setErrors((prev) => ({
+                                ...prev,
+                                [`matrix_${rowIdx}_lesson`]: "",
+                              }));
+                            }
+                          }}
+                        >
+                          <SelectTrigger
+                            className={`w-full min-h-[40px] bg-transparent focus:ring-0 focus:outline-none ${
+                              errors[`matrix_${rowIdx}_lesson`]
+                                ? "border-red-500"
+                                : ""
+                            }`}
+                          >
+                            <SelectValue placeholder="Chọn bài học" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CLEAR_SELECTION">
+                              <span className="text-gray-500 italic">
+                                -- Chọn bài học --
+                              </span>
+                            </SelectItem>
+                            {allLessons
+                              .filter((item: any) => {
+                                // Lọc ra các bài học đã được chọn ở các hàng khác
+                                const selectedLessons = matrix
+                                  .map((row, index) =>
+                                    index !== rowIdx ? row.lessonID : null
+                                  )
+                                  .filter(Boolean);
+                                return !selectedLessons.includes(item.id);
+                              })
+                              .map((item: any) => (
+                                <SelectItem key={item.id} value={item.id}>
+                                  {item.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {errors[`matrix_${rowIdx}_lesson`] && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors[`matrix_${rowIdx}_lesson`]}
+                        </p>
+                      )}
+                    </div>
+                  </td>
+                  {templateParts.map((part: any, partIndex: number) => {
+                    const partKey = `part${partIndex + 1}`;
+                    return part.difficultyLevels?.map((level: any) => {
+                      const fieldKey = `matrix_${rowIdx}_${partKey}_${level.id}`;
+                      return (
+                        <td
+                          className="border px-2 py-1"
+                          key={partKey + level.id}
+                        >
+                          <div className="flex flex-col">
+                            <Input
+                              type="number"
+                              min={0}
+                              step="1"
+                              value={(() => {
+                                // Always safe access
+                                const value =
+                                  row.distribution?.[partKey]?.[level.id] ?? 0;
+                                return typeof value === "number" &&
+                                  !isNaN(value)
+                                  ? value
+                                  : 0;
+                              })()}
+                              onChange={
+                                resultId
+                                  ? undefined
+                                  : (e: any) => {
+                                      const inputValue = e.target.value;
+                                      // Only allow empty string or positive integers
+                                      if (
+                                        inputValue === "" ||
+                                        /^[0-9]+$/.test(inputValue)
+                                      ) {
+                                        const value =
+                                          inputValue === ""
+                                            ? 0
+                                            : parseInt(inputValue, 10);
+                                        handleDistributionChange(
+                                          rowIdx,
+                                          partKey,
+                                          level.id,
+                                          value
+                                        );
+                                        // Clear error when user enters a non-negative value
+                                        if (errors[fieldKey] && value >= 0) {
+                                          setErrors((prev) => ({
+                                            ...prev,
+                                            [fieldKey]: "",
+                                          }));
+                                        }
+                                      }
+                                    }
+                              }
+                              readOnly={!!resultId}
+                              placeholder={level.name}
+                              className={`$
                             resultId ? "bg-gray-100 cursor-not-allowed" : ""
                           } $
                             errors[fieldKey]
                               ? "border-red-500 focus:border-red-500"
                               : ""
                           }`}
+                            />
+                            {errors[fieldKey] && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {errors[fieldKey]}
+                              </p>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    });
+                  })}
+                  <td className="border px-2 py-1">
+                    <div className="flex flex-col">
+                      <Input
+                        type="number"
+                        value={calculateDynamicRowTotal(row)}
+                        readOnly
+                        className={`bg-gray-100 cursor-not-allowed text-center font-medium ${
+                          errors[`matrix_${rowIdx}_total`]
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                        placeholder="Tổng số câu"
+                      />
+                      {errors[`matrix_${rowIdx}_total`] && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors[`matrix_${rowIdx}_total`]}
+                        </p>
+                      )}
+                    </div>
+                  </td>
+                  {/* Thao tác */}
+                  <td className="border px-2 py-1">
+                    <div className="flex flex-col gap-1">
+                      {/* Nút phân bổ tự động */}
+                      {(() => {
+                        // Kiểm tra nếu hàng đã được phân bổ (tổng value > 0)
+                        const isDistributed = calculateDynamicRowTotal(row) > 0;
+                        if (isDistributed) {
+                          // Nút Reset: set toàn bộ value của hàng về 0
+                          return (
+                            <Button
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                              className={`px-2 py-1 text-xs ${
+                                resultId ? "opacity-50 cursor-not-allowed" : ""
+                              }`}
+                              onClick={() => {
+                                if (!resultId) {
+                                  // Reset value về 0 cho hàng này
+                                  const resetDistribution: any = {};
+                                  templateParts.forEach(
+                                    (part: any, partIndex: number) => {
+                                      const partKey = `part${partIndex + 1}`;
+                                      resetDistribution[partKey] = {};
+                                      part.difficultyLevels?.forEach(
+                                        (level: any) => {
+                                          resetDistribution[partKey][
+                                            level.id
+                                          ] = 0;
+                                        }
+                                      );
+                                    }
+                                  );
+                                  setMatrix((prev) =>
+                                    prev.map((r, i) =>
+                                      i === rowIdx
+                                        ? {
+                                            ...r,
+                                            distribution: resetDistribution,
+                                          }
+                                        : r
+                                    )
+                                  );
+                                  toast.info("Đã reset giá trị hàng này về 0!");
+                                }
+                              }}
+                              disabled={!!resultId}
+                              title="Reset tất cả giá trị của hàng này về 0"
+                            >
+                              Reset
+                            </Button>
+                          );
+                        } else {
+                          // Nút Phân bổ
+                          return (
+                            <Button
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                              className={`px-2 py-1 text-xs ${
+                                resultId ? "opacity-50 cursor-not-allowed" : ""
+                              }`}
+                              onClick={() => {
+                                if (!resultId) {
+                                  autoDistributeRow(rowIdx);
+                                }
+                              }}
+                              disabled={!!resultId}
+                              title="Phân bổ tự động theo maximum của từng phần"
+                            >
+                              Phân bổ
+                            </Button>
+                          );
+                        }
+                      })()}
+
+                      {/* Nút xóa */}
+                      <Button
+                        size="sm"
+                        type="button"
+                        className={`px-0 py-2 bg-transparent shadow-none hover:bg-transparent hover:shadow-none group transition-colors duration-200 ${
+                          matrix.length <= 1 || resultId
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        onClick={() => {
+                          if (matrix.length > 1 && !resultId) {
+                            removeMatrixRow(rowIdx);
+                          }
+                        }}
+                        disabled={matrix.length <= 1 || !!resultId}
+                      >
+                        <TrashIcon
+                          className={`${
+                            matrix.length <= 1 || resultId
+                              ? "text-neutral-400"
+                              : "text-neutral-600 group-hover:text-red-500"
+                          } transition-colors duration-200`}
                         />
-                        {errors[fieldKey] && (
-                          <p className="text-red-500 text-xs mt-1">
-                            {errors[fieldKey]}
-                          </p>
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+              {/* Hàng tổng */}
+              <tr className="font-bold">
+                <td className="border px-2 py-3 text-center bg-violet-50 ">
+                  <span className="font-calsans ">TỔNG</span>
+                </td>
+                {templateParts.map((part: any, index: number) => {
+                  const partKey = `part${index + 1}`;
+                  const partTotal =
+                    calculateDynamicColumnTotals(matrix)[partKey] || 0;
+                  const errorKey = `${partKey}Total`;
+                  const max = part.maximum || part.maxQuestions;
+                  return (
+                    <td
+                      key={partKey}
+                      className={`border px-2 py-3 text-center ${
+                        errors[errorKey] ? "bg-red-100" : ""
+                      }`}
+                      colSpan={part.difficultyLevels?.length || 3}
+                    >
+                      <div className="flex flex-col">
+                        <span
+                          className={`font-medium font-questrial ${
+                            errors[errorKey] ? "text-red-700" : ""
+                          }`}
+                        >
+                          {partTotal}
+                          {typeof max !== "undefined" && max !== null
+                            ? ` / ${max}`
+                            : ""}
+                        </span>
+                        {errors[errorKey] && (
+                          <span className="text-red-500 font-questrial text-xs mt-1">
+                            {errors[errorKey]}
+                          </span>
                         )}
                       </div>
                     </td>
                   );
-                });
-              })}
-              <td className="border px-2 py-1">
-                <div className="flex flex-col">
-                  <Input
-                    type="number"
-                    value={calculateDynamicRowTotal(row)}
-                    readOnly
-                    className={`bg-gray-100 cursor-not-allowed text-center font-medium ${
-                      errors[`matrix_${rowIdx}_total`] ? "border-red-500" : ""
-                    }`}
-                    placeholder="Tổng số câu"
-                  />
-                  {errors[`matrix_${rowIdx}_total`] && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors[`matrix_${rowIdx}_total`]}
-                    </p>
-                  )}
-                </div>
-              </td>
-              {/* Thao tác */}
-              <td className="border px-2 py-1">
-                <div className="flex flex-col gap-1">
-                  {/* Nút phân bổ tự động */}
-                  {(() => {
-                    // Kiểm tra nếu hàng đã được phân bổ (tổng value > 0)
-                    const isDistributed = calculateDynamicRowTotal(row) > 0;
-                    if (isDistributed) {
-                      // Nút Reset: set toàn bộ value của hàng về 0
-                      return (
-                        <Button
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                          className={`px-2 py-1 text-xs ${resultId ? "opacity-50 cursor-not-allowed" : ""}`}
-                          onClick={() => {
-                            if (!resultId) {
-                              // Reset value về 0 cho hàng này
-                              const resetDistribution: any = {};
-                              templateParts.forEach((part: any, partIndex: number) => {
-                                const partKey = `part${partIndex + 1}`;
-                                resetDistribution[partKey] = {};
-                                part.difficultyLevels?.forEach((level: any) => {
-                                  resetDistribution[partKey][level.id] = 0;
-                                });
-                              });
-                              setMatrix(prev => prev.map((r, i) => i === rowIdx ? { ...r, distribution: resetDistribution } : r));
-                              toast.info("Đã reset giá trị hàng này về 0!");
-                            }
-                          }}
-                          disabled={!!resultId}
-                          title="Reset tất cả giá trị của hàng này về 0"
-                        >
-                          Reset
-                        </Button>
-                      );
-                    } else {
-                      // Nút Phân bổ
-                      return (
-                        <Button
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                          className={`px-2 py-1 text-xs ${resultId ? "opacity-50 cursor-not-allowed" : ""}`}
-                          onClick={() => {
-                            if (!resultId) {
-                              autoDistributeRow(rowIdx);
-                            }
-                          }}
-                          disabled={!!resultId}
-                          title="Phân bổ tự động theo maximum của từng phần"
-                        >
-                          Phân bổ
-                        </Button>
-                      );
-                    }
-                  })()}
-
-                  {/* Nút xóa */}
-                  <Button
-                    size="sm"
-                    type="button"
-                    className={`px-0 py-2 bg-transparent shadow-none hover:bg-transparent hover:shadow-none group transition-colors duration-200 ${
-                      matrix.length <= 1 || resultId
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      if (matrix.length > 1 && !resultId) {
-                        removeMatrixRow(rowIdx);
-                      }
-                    }}
-                    disabled={matrix.length <= 1 || !!resultId}
-                  >
-                    <TrashIcon
-                      className={`${
-                        matrix.length <= 1 || resultId
-                          ? "text-neutral-400"
-                          : "text-neutral-600 group-hover:text-red-500"
-                      } transition-colors duration-200`}
-                    />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          ))}
-
-          {/* Hàng tổng */}
-          <tr className="font-bold">
-            <td className="border px-2 py-3 text-center bg-violet-50 ">
-              <span className="font-calsans ">TỔNG</span>
-            </td>
-            {templateParts.map((part: any, index: number) => {
-              const partKey = `part${index + 1}`;
-              const partTotal = calculateDynamicColumnTotals(matrix)[partKey] || 0;
-              const errorKey = `${partKey}Total`;
-              const max = part.maximum || part.maxQuestions;
-              return (
-                <td
-                  key={partKey}
-                  className={`border px-2 py-3 text-center ${
-                    errors[errorKey] ? "bg-red-100" : ""
-                  }`}
-                  colSpan={part.difficultyLevels?.length || 3}
-                >
-                  <div className="flex flex-col">
-                    <span
-                      className={`font-medium font-questrial ${
-                        errors[errorKey] ? "text-red-700" : ""
-                      }`}
-                    >
-                      {partTotal}
-                      {typeof max !== 'undefined' && max !== null ? ` / ${max}` : ''}
-                    </span>
-                    {errors[errorKey] && (
-                      <span className="text-red-500 font-questrial text-xs mt-1">
-                        {errors[errorKey]}
-                      </span>
-                    )}
-                  </div>
+                })}
+                {/* Tổng tổng */}
+                <td className="border px-2 py-3 text-center">
+                  <span className=" font-bold font-questrial">
+                    {calculateDynamicColumnTotals(matrix).grandTotal}
+                  </span>
                 </td>
-              );
-            })}
-            {/* Tổng tổng */}
-            <td className="border px-2 py-3 text-center">
-              <span className=" font-bold font-questrial">
-                {calculateDynamicColumnTotals(matrix).grandTotal}
-              </span>
-            </td>
-            {/* Cột thao tác trống */}
-            <td className="border px-2 py-3"></td>
-          </tr>
-        </tbody>
-      </table>
+                {/* Cột thao tác trống */}
+                <td className="border px-2 py-3"></td>
+              </tr>
+            </tbody>
+          </table>
 
-      {/* Chú thích phân bổ tự động */}
-      {finalData ? null : (
-        <div className="mb-2 text-sm text-gray-600 font-questrial">
-          <p>
-            <strong>Phân bổ tự động:</strong> Chia đều số câu maximum của mỗi phần cho tất cả các bài học đã chọn,
-            sau đó chia đều cho các mức độ khó (NB, TH, VD).
-            Khi có số lẻ, mức Nhận biết (NB) và Thông hiểu (TH) sẽ được ưu tiên hơn Vận dụng (VD).
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
-            Ví dụ: Phần có maximum 30 câu, 3 bài học → mỗi bài 10 câu → NB: 4, TH: 3, VD: 3
-          </p>
-        </div>
-      )}
+          {/* Chú thích phân bổ tự động */}
+          {finalData ? null : (
+            <div className="mb-2 text-sm text-gray-600 font-questrial">
+              <p>
+                <strong>Phân bổ tự động:</strong> Chia đều số câu maximum của
+                mỗi phần cho tất cả các bài học đã chọn, sau đó chia đều cho các
+                mức độ khó (NB, TH, VD). Khi có số lẻ, mức Nhận biết (NB) và
+                Thông hiểu (TH) sẽ được ưu tiên hơn Vận dụng (VD).
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Ví dụ: Phần có maximum 30 câu, 3 bài học → mỗi bài 10 câu → NB:
+                4, TH: 3, VD: 3
+              </p>
+            </div>
+          )}
 
-      {finalData ? null : (
-        <div className="flex gap-2 mt-4">
-          <Button
-            variant="dash"
-            type="button"
-            className={`rounded-md flex-1 ${
-              resultId ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            onClick={resultId ? undefined : addMatrixRow}
-            disabled={!!resultId}
-          >
-            Thêm dòng mới +
-          </Button>
+          {finalData ? null : (
+            <div className="flex gap-2 mt-4">
+              <Button
+                variant="dash"
+                type="button"
+                className={`rounded-md flex-1 ${
+                  resultId ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={resultId ? undefined : addMatrixRow}
+                disabled={!!resultId}
+              >
+                Thêm dòng mới +
+              </Button>
 
-          <Button
-            variant="outline"
-            type="button"
-            className={`rounded-md px-6 ${
-              resultId ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            onClick={resultId ? undefined : () => {
-              // Auto-distribute for all rows at once
-              const lessonsPerPart = calculateLessonsPerPart();
+              <Button
+                variant="outline"
+                type="button"
+                className={`rounded-md px-6 ${
+                  resultId ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={
+                  resultId
+                    ? undefined
+                    : () => {
+                        // Auto-distribute for all rows at once
+                        const lessonsPerPart = calculateLessonsPerPart();
 
-              const updatedMatrix = matrix.map((row, rowIndex) => {
-                const newDistribution = { ...row.distribution };
+                        const updatedMatrix = matrix.map((row, rowIndex) => {
+                          const newDistribution = { ...row.distribution };
 
-                templateParts.forEach((part: any, partIndex: number) => {
-                  const partKey = `part${partIndex + 1}`;
-                  const maximum = part.maximum || part.maxQuestions || 0;
-                  const lessonsCount = lessonsPerPart[partKey];
+                          templateParts.forEach(
+                            (part: any, partIndex: number) => {
+                              const partKey = `part${partIndex + 1}`;
+                              const maximum =
+                                part.maximum || part.maxQuestions || 0;
+                              const lessonsCount = lessonsPerPart[partKey];
 
-                  if (maximum > 0 && part.difficultyLevels && lessonsCount > 0) {
-                    // Calculate maximum per lesson (divide total maximum by number of lessons)
-                    const maximumPerLesson = Math.floor(maximum / lessonsCount);
-                    const remainder = maximum % lessonsCount;
+                              if (
+                                maximum > 0 &&
+                                part.difficultyLevels &&
+                                lessonsCount > 0
+                              ) {
+                                // Calculate maximum per lesson (divide total maximum by number of lessons)
+                                const maximumPerLesson = Math.floor(
+                                  maximum / lessonsCount
+                                );
+                                const remainder = maximum % lessonsCount;
 
-                    // For this specific row, check if it should get extra from remainder
-                    const currentRowIndex = matrix.filter((r, idx) => idx <= rowIndex && r.lessonID && r.lessonID.trim() !== '').length - 1;
-                    const extraForThisRow = currentRowIndex < remainder ? 1 : 0;
-                    const finalMaximumForThisRow = maximumPerLesson + extraForThisRow;
+                                // For this specific row, check if it should get extra from remainder
+                                const currentRowIndex =
+                                  matrix.filter(
+                                    (r, idx) =>
+                                      idx <= rowIndex &&
+                                      r.lessonID &&
+                                      r.lessonID.trim() !== ""
+                                  ).length - 1;
+                                const extraForThisRow =
+                                  currentRowIndex < remainder ? 1 : 0;
+                                const finalMaximumForThisRow =
+                                  maximumPerLesson + extraForThisRow;
 
-                    // Auto-distribute this lesson's share across difficulty levels
-                    const distributedValues = distributeMaximumAcrossDifficulties(finalMaximumForThisRow, part.difficultyLevels);
-                    newDistribution[partKey] = { ...distributedValues };
-                  }
-                });
+                                // Auto-distribute this lesson's share across difficulty levels
+                                const distributedValues =
+                                  distributeMaximumAcrossDifficulties(
+                                    finalMaximumForThisRow,
+                                    part.difficultyLevels
+                                  );
+                                newDistribution[partKey] = {
+                                  ...distributedValues,
+                                };
+                              }
+                            }
+                          );
 
-                return {
-                  ...row,
-                  distribution: newDistribution,
-                };
-              });
+                          return {
+                            ...row,
+                            distribution: newDistribution,
+                          };
+                        });
 
-              setMatrix(updatedMatrix);
+                        setMatrix(updatedMatrix);
 
-              // Clear all validation errors
-              setErrors({});
+                        // Clear all validation errors
+                        setErrors({});
 
-              // Show success message
-              toast.success("Đã phân bổ tự động cho tất cả các hàng thành công!");
-            }}
-            disabled={!!resultId}
-            title="Phân bổ tự động cho tất cả các hàng theo maximum của từng phần"
-          >
-            Phân bổ tự động tất cả
-          </Button>
-        </div>
-      )}
-      </>
+                        // Show success message
+                        toast.success(
+                          "Đã phân bổ tự động cho tất cả các hàng thành công!"
+                        );
+                      }
+                }
+                disabled={!!resultId}
+                title="Phân bổ tự động cho tất cả các hàng theo maximum của từng phần"
+              >
+                Phân bổ tự động tất cả
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Create Exam Button */}

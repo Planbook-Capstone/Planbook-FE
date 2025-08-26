@@ -21,7 +21,7 @@ function FileDetailPage({ params }: Props) {
   const { data, isError, error, isLoading } = useToolResultByIdService(fileId);
   const { addFileFromApiResponse } = useRecentFilesWithHelpers();
   const router = useRouter();
-  console.log(data?.data?.userId, "tran");
+ 
   const { user } = useAuth();
   useEffect(() => {
     if (isError || error) {
