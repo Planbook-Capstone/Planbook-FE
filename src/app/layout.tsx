@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     siteName: "PlanBook",
     images: [
       {
-        url: "/images/logo/logoDark.svg",
+        url: "/images/logoPlanbook",
         width: 1200,
         height: 630,
         alt: "PlanBook - Hệ thống quản lý giáo án thông minh",
@@ -110,7 +110,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/images/logo/planbook-192.png" />
+        <link rel="apple-touch-icon" href="/images/logoPlanbook.png" />
         <meta name="theme-color" content="#2563eb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
