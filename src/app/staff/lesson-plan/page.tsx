@@ -17,6 +17,7 @@ import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { toast } from "sonner";
 import {
   useCreateLessonPlanService,
+  useDeleteLessonPlanService,
   useLessonPlanByIdService,
   useLessonPlanService,
 } from "@/services/lessonPlanServices";
@@ -25,6 +26,7 @@ import {
   useLessonPlanAllNodeService,
 } from "@/services/lessonPlanNodeServices";
 import { useRouter } from "next/navigation";
+import { formatVietnamDate } from "@/utils/dateUtils";
 
 // Interface for uploaded files
 interface UploadedFile {
@@ -42,7 +44,7 @@ export default function LessonPlanPage() {
   const { mutate: lessonPlan } = useCreateLessonPlanService();
   const { mutate: lessonPlanNode } = useCreateLessonPlanNodeService();
 
-  const { data: lessonPlanData } = useLessonPlanService();
+  const { data: lessonPlanData, refetch } = useLessonPlanService();
 
   const [selected, setSelected] = useState<LessonPlanTemplate>();
   const { data: lessonPlanById } = useLessonPlanByIdService(selected?.id || "");
@@ -180,14 +182,17 @@ export default function LessonPlanPage() {
     // setCurrentTemplate(template);
     setShowBuilder(true);
   };
-
+  const { mutate: deleteLessonPlan } = useDeleteLessonPlanService();
   const handleDeleteTemplate = (templateId: string) => {
-    if (templates.length <= 1) {
-      toast.error("Không thể xóa mẫu cuối cùng!");
-      return;
-    }
-    setTemplates((prev) => prev.filter((t) => t.id !== templateId));
-    toast.success("Đã xóa mẫu!");
+    deleteLessonPlan(templateId, {
+      onSuccess: () => {
+        toast.success("Đã xóa mẫu thành công!");
+        refetch();
+      },
+      onError: (error) => {
+        toast.error("Có lỗi xảy ra khi xóa mẫu!");
+      },
+    });
   };
 
   const handleActivateTemplate = (templateId: string) => {
@@ -354,9 +359,6 @@ export default function LessonPlanPage() {
             <TabsTrigger value="template" className="rounded-full">
               Cấu hình Mẫu
             </TabsTrigger>
-            <TabsTrigger value="references" className="rounded-full">
-              Tài liệu tham khảo
-            </TabsTrigger>
           </TabsList>
 
           {/* Search Box */}
@@ -441,19 +443,22 @@ export default function LessonPlanPage() {
                           Kích hoạt
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteTemplate(template.id)}
-                        className="text-red-600"
-                      >
-                        Xóa
-                      </DropdownMenuItem>
+                      {template?.status !== "ACTIVE" || (
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteTemplate(template.id)}
+                          className="text-red-600"
+                        >
+                          Xóa
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="text-xs opacity-75">
-                    {template.steps?.length || 0} bước
+                    Cập nhật lần cuối:{" "}
+                    {formatVietnamDate(template?.updatedAt) || 0}
                   </div>
                   {template.isActive && (
                     <span className="px-2 py-1 rounded-full text-xs bg-white/20 text-white">
@@ -464,84 +469,6 @@ export default function LessonPlanPage() {
               </div>
             ))}
           </div>
-        </TabsContent>
-
-        <TabsContent value="references" className="mt-3">
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-
-          {/* File List */}
-          {uploadedFiles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {uploadedFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer relative"
-                  onClick={() => handleViewFile(file)}
-                >
-                  {/* Thumbnail - only show if available */}
-                  {file.thumbnail && (
-                    <div className="w-full h-32 mb-3 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
-                      <img
-                        src={file.thumbnail}
-                        alt={file.name}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  )}
-
-                  {/* Three dots menu */}
-                  <div className="absolute top-2 right-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteFile(file.id);
-                          }}
-                          className="text-red-600"
-                        >
-                          Xóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* File Info */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 text-sm mb-1 truncate">
-                      {file.name}
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      {formatFileSize(file.size)} •{" "}
-                      {new Date(file.uploadDate).toLocaleDateString("vi-VN")}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500">
-              <p>Chưa có tài liệu nào. Nhấn "Upload File" để thêm tài liệu.</p>
-            </div>
-          )}
         </TabsContent>
       </Tabs>
     </div>

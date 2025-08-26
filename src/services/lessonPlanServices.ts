@@ -2,6 +2,7 @@ import {
   createMutationHook,
   createQueryHook,
   createQueryWithPathParamHook,
+  deleteMutationHook,
   updateMutationHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
@@ -36,4 +37,14 @@ export const useLessonPlanByIdService = createQueryWithPathParamHook(
 export const useCreateLessonPlanService = createMutationHook(
   "lesson-plan",
   API_ENDPOINTS.LESSON_PLANS.BASE
+);
+
+export const useDeleteLessonPlanService = deleteMutationHook(
+  "lesson-plan",
+  API_ENDPOINTS.LESSON_PLANS.BASE
+);
+
+export const useLessonPlanActiveService = createQueryHook(
+  "lesson-plan",
+  `${API_ENDPOINTS.LESSON_PLANS.BASE}?status=ACTIVE`
 );
