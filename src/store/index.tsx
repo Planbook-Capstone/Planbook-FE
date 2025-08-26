@@ -98,3 +98,6 @@ export function useAppState() {
 // Export recent files store
 export * from './recentFilesStore';
 export * from './recentFilesHelpers';
+
+// Export input history store
+export * from './inputHistoryStore';

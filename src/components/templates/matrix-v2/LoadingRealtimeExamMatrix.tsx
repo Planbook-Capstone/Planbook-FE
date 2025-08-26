@@ -247,7 +247,7 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
                     ))}
                   </tr>
                   {/* Tổng số câu của từng part ngay dưới header */}
-                  <tr>
+                  {/* <tr>
                     {templateParts?.map((part: any, idx: number) => {
                       const partKey = `part${idx + 1}`;
                       const colSpan = part.difficultyLevels?.length || 3;
@@ -264,18 +264,22 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
                       );
                     })}
                     <th className="border px-2 py-2 bg-gray-50"></th>
-                  </tr>
+                  </tr> */}
                 </thead>
                 <tbody>
                   {matrix.map((row, rowIdx) => (
                     <tr key={rowIdx} className="font-questrial">
                       <td className="border px-2 py-1 min-w-[160px]">
                         <Input
-                          value={
-                            allLessons.find(
-                              (lesson: any) => lesson.id === row.lessonID
-                            )?.name || "Chọn bài học"
-                          }
+                          value={(() => {
+                            if (!row.lessonID || row.lessonID.trim() === "") {
+                              return "Chọn bài học";
+                            }
+                            const foundLesson = allLessons.find(
+                              (lesson: any) => String(lesson.id) === String(row.lessonID)
+                            );
+                            return foundLesson?.name || `Bài học ID: ${row.lessonID}`;
+                          })()}
                           readOnly
                           className="w-full min-h-[38px] bg-gray-100 cursor-not-allowed"
                         />

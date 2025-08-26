@@ -20,6 +20,7 @@ import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "sonner";
+import { useInputHistoryStore, createLessonMatrixData } from "@/store/inputHistoryStore";
 // Local types for dynamic matrix
 type MatrixRow = {
   lessonID: string;
@@ -351,6 +352,14 @@ export default function MatrixTemplate2() {
   const distributeMaximumAcrossDifficulties =
     useDistributeMaximumAcrossDifficulties();
 
+  // Hook input history store
+  const {
+    saveLessonInput,
+    getLessonInput,
+    hasLessonHistory,
+    getHistoryCount,
+  } = useInputHistoryStore();
+
   // Function to create initial distribution based on template and rowCount
   const createInitialDistribution = (rowCount = 1) => {
     const distribution: any = {};
@@ -373,6 +382,9 @@ export default function MatrixTemplate2() {
 
   // State cho bảng matrix
   const [matrix, setMatrix] = useState<MatrixRow[]>([]);
+
+  // State để track những hàng được khôi phục từ lịch sử
+  const [restoredFromHistory, setRestoredFromHistory] = useState<Set<number>>(new Set());
 
   // Initialize matrix when template data is available
   useEffect(() => {
@@ -451,54 +463,100 @@ export default function MatrixTemplate2() {
     setErrors(newErrors);
   };
 
-  // Khi thêm hàng (bài học), phân bổ lại đều cho tất cả các hàng
+  // Khi thêm hàng (bài học), chỉ chia lại cho những hàng không phải từ history
   const addMatrixRow = () => {
-    const newRowCount = matrix.length + 1;
-    // Tạo lại distribution cho tất cả các hàng dựa trên số hàng mới
-    const newMatrix = Array.from({ length: newRowCount }, (_, idx) => {
-      const distribution: any = {};
+    // Tính toán số câu còn lại sau khi trừ đi những hàng từ history
+    const remainingPerPart: { [key: string]: number } = {};
+    const nonHistoryRowCount = matrix.filter((_, idx) => !restoredFromHistory.has(idx)).length + 1; // +1 for new row
+
+    templateParts?.forEach((part: any, partIdx: number) => {
+      const partKey = `part${partIdx + 1}`;
+      const maximum = Number(part.maximum || part.maxQuestions) || 0;
+
+      // Tính tổng đã sử dụng bởi các hàng từ history
+      let usedByHistory = 0;
+      matrix.forEach((row, idx) => {
+        if (restoredFromHistory.has(idx)) {
+          part.difficultyLevels?.forEach((level: any) => {
+            const value = Number(row.distribution[partKey]?.[level.id]) || 0;
+            usedByHistory += value;
+          });
+        }
+      });
+
+      remainingPerPart[partKey] = Math.max(0, maximum - usedByHistory);
+    });
+
+    // Tạo matrix mới
+    const newMatrix = [...matrix];
+
+    // Thêm hàng mới với distribution rỗng
+    const newRowDistribution: any = {};
+    templateParts?.forEach((part: any, partIdx: number) => {
+      const partKey = `part${partIdx + 1}`;
+      newRowDistribution[partKey] = {};
+      part.difficultyLevels?.forEach((level: any) => {
+        newRowDistribution[partKey][level.id] = 0;
+      });
+    });
+
+    newMatrix.push({
+      lessonID: "",
+      distribution: newRowDistribution,
+      total: 0,
+    });
+
+    // Chia lại cho những hàng không phải từ history (bao gồm hàng mới)
+    const updatedMatrix = newMatrix.map((row, idx) => {
+      // Giữ nguyên hàng từ history
+      if (restoredFromHistory.has(idx)) {
+        return row;
+      }
+
+      // Chia lại cho hàng không phải từ history
+      const newDistribution: any = {};
       templateParts?.forEach((part: any, partIdx: number) => {
         const partKey = `part${partIdx + 1}`;
-        const maximum = Number(part.maximum || part.maxQuestions) || 0;
+        const remaining = remainingPerPart[partKey] || 0;
         const numLevels = part.difficultyLevels?.length || 1;
-        // Chia đều tổng max cho số hàng, rồi chia đều cho số level
-        const perRow = newRowCount > 0 ? Math.floor(maximum / newRowCount) : 0;
-        const remainderRow = newRowCount > 0 ? maximum % newRowCount : 0;
-        // Hàng đầu nhận thêm 1 nếu dư
-        const thisRowMax = perRow + (idx < remainderRow ? 1 : 0);
-        // Chia đều cho các mức độ khó: nếu dư thì dồn hết cho VD, NB và TH chia đều
-        distribution[partKey] = {};
+
+        // Chia đều số còn lại cho các hàng không phải từ history
+        const perRow = nonHistoryRowCount > 0 ? Math.floor(remaining / nonHistoryRowCount) : 0;
+        const remainderRow = nonHistoryRowCount > 0 ? remaining % nonHistoryRowCount : 0;
+
+        // Tính index của hàng này trong danh sách non-history
+        const nonHistoryIndex = newMatrix.filter((_, i) => i <= idx && !restoredFromHistory.has(i)).length - 1;
+        const thisRowMax = perRow + (nonHistoryIndex < remainderRow ? 1 : 0);
+
+        newDistribution[partKey] = {};
         if (numLevels === 3) {
-          // NB: 'nb', TH: 'th', VD: 'vd'
-          const nb_th = numLevels > 0 ? Math.floor(thisRowMax / 3) : 0;
-          const remainder = numLevels > 0 ? thisRowMax % 3 : 0;
-          distribution[partKey]["nb"] = nb_th;
-          distribution[partKey]["th"] = nb_th;
-          distribution[partKey]["vd"] = nb_th + remainder;
+          const nb_th = Math.floor(thisRowMax / 3);
+          const remainder = thisRowMax % 3;
+          newDistribution[partKey]["nb"] = nb_th;
+          newDistribution[partKey]["th"] = nb_th;
+          newDistribution[partKey]["vd"] = nb_th + remainder;
         } else {
-          // fallback: chia đều như cũ
-          const perLevel =
-            numLevels > 0 ? Math.floor(thisRowMax / numLevels) : 0;
-          const remainderLevel = numLevels > 0 ? thisRowMax % numLevels : 0;
+          const perLevel = Math.floor(thisRowMax / numLevels);
+          const remainderLevel = thisRowMax % numLevels;
           const levelOrder = part.difficultyLevels?.map((l: any) => l.id) || [];
           part.difficultyLevels?.forEach((level: any) => {
-            distribution[partKey][level.id] = perLevel;
+            newDistribution[partKey][level.id] = perLevel;
           });
-          // Dồn dư cho level cuối cùng
           if (levelOrder.length > 0) {
-            distribution[partKey][levelOrder[levelOrder.length - 1]] +=
-              remainderLevel;
+            newDistribution[partKey][levelOrder[levelOrder.length - 1]] += remainderLevel;
           }
         }
       });
+
       return {
-        lessonID: matrix[idx]?.lessonID || "",
-        distribution,
+        ...row,
+        distribution: newDistribution,
         total: 0,
       };
     });
-    setMatrix(newMatrix);
-    toast.info("Đã thêm hàng mới với phân bổ tự động theo maximum!");
+
+    setMatrix(updatedMatrix);
+    toast.info("Đã thêm hàng mới và chia lại cho các hàng chưa có dữ liệu!");
   };
 
   const removeMatrixRow = (idx: number) => {
@@ -521,39 +579,198 @@ export default function MatrixTemplate2() {
     return lessonsPerPart;
   };
 
-  // Function to auto-distribute maximum values for a specific row
-  const autoDistributeRow = (rowIdx: number) => {
-    const lessonsPerPart = calculateLessonsPerPart();
 
+
+  // Function to calculate remaining questions for each part
+  const calculateRemainingQuestionsPerPart = () => {
+    const remainingPerPart: { [key: string]: number } = {};
+
+    templateParts.forEach((part: any, partIndex: number) => {
+      const partKey = `part${partIndex + 1}`;
+      const maximum = Number(part.maximum || part.maxQuestions) || 0;
+
+      // Calculate total questions already distributed for this part
+      let totalDistributed = 0;
+      matrix.forEach((row) => {
+        if (row.lessonID && row.lessonID.trim() !== "") {
+          part.difficultyLevels?.forEach((level: any) => {
+            const value = Number(row.distribution[partKey]?.[level.id]) || 0;
+            totalDistributed += value;
+          });
+        }
+      });
+
+      remainingPerPart[partKey] = Math.max(0, maximum - totalDistributed);
+    });
+
+    return remainingPerPart;
+  };
+
+  // Function to handle lesson selection and check for existing history
+  const handleLessonChange = (rowIdx: number, lessonId: string) => {
     const updatedMatrix = matrix.map((row, i) => {
       if (i === rowIdx) {
+        // Ensure lessonId is a string
+        const cleanLessonId = String(lessonId || "").trim();
+
+        // Check if this lesson has history
+        if (cleanLessonId && hasLessonHistory(cleanLessonId)) {
+          const historyData = getLessonInput(cleanLessonId);
+          if (historyData) {
+            // Mark this row as restored from history
+            setRestoredFromHistory(prev => new Set(prev).add(rowIdx));
+            toast.info(`Đã khôi phục dữ liệu đã nhập cho bài "${historyData.lessonID}"`);
+            return {
+              ...row,
+              lessonID: cleanLessonId,
+              distribution: historyData.distribution,
+              total: historyData.total,
+            };
+          }
+        }
+
+        // Remove from restored set if no history
+        setRestoredFromHistory(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(rowIdx);
+          return newSet;
+        });
+
+        // If no history, just update lessonID and keep existing distribution
+        // Only reset if the row has no distribution values at all
+        let newDistribution = row.distribution;
+
+        // Check if the row has any distribution values > 0
+        let hasAnyValues = false;
+        if (row.distribution) {
+          templateParts.forEach((part: any, partIndex: number) => {
+            const partKey = `part${partIndex + 1}`;
+            if (row.distribution[partKey]) {
+              part.difficultyLevels?.forEach((level: any) => {
+                const value = Number(row.distribution[partKey][level.id]) || 0;
+                if (value > 0) {
+                  hasAnyValues = true;
+                }
+              });
+            }
+          });
+        }
+
+        // Only initialize distribution if the row has no values at all
+        if (!hasAnyValues) {
+          newDistribution = {};
+          templateParts.forEach((part: any, partIndex: number) => {
+            const partKey = `part${partIndex + 1}`;
+            newDistribution[partKey] = {};
+            part.difficultyLevels?.forEach((level: any) => {
+              newDistribution[partKey][level.id] = 0;
+            });
+          });
+        }
+
+        return {
+          ...row,
+          lessonID: cleanLessonId,
+          distribution: newDistribution,
+          total: calculateDynamicRowTotal({ ...row, distribution: newDistribution }),
+        };
+      }
+      return row;
+    });
+
+    setMatrix(updatedMatrix);
+  };
+
+  // Function to save current matrix data to history when user makes changes
+  const saveCurrentMatrixToHistory = () => {
+    matrix.forEach((row) => {
+      // Ensure lessonID is a string and not empty
+      const lessonId = String(row.lessonID || "").trim();
+      if (lessonId !== "") {
+        // Check if this row has any distribution values > 0
+        let hasValues = false;
+        templateParts.forEach((part: any, partIndex: number) => {
+          const partKey = `part${partIndex + 1}`;
+          part.difficultyLevels?.forEach((level: any) => {
+            const value = Number(row.distribution[partKey]?.[level.id]) || 0;
+            if (value > 0) {
+              hasValues = true;
+            }
+          });
+        });
+
+        if (hasValues) {
+          const matrixData = createLessonMatrixData(
+            lessonId,
+            row.distribution,
+            row.total
+          );
+          saveLessonInput(lessonId, matrixData);
+        }
+      }
+    });
+  };
+
+  // Function to auto-distribute maximum values for a specific row
+  const autoDistributeRow = (rowIdx: number) => {
+    const updatedMatrix = matrix.map((row, i) => {
+      if (i === rowIdx) {
+        // Skip if this row is from history
+        if (restoredFromHistory.has(rowIdx)) {
+          toast.warning("Không thể phân bổ lại cho hàng từ lịch sử!");
+          return row;
+        }
+
+        // Skip if no lesson selected
+        if (!row.lessonID || row.lessonID.trim() === "") {
+          toast.warning("Vui lòng chọn bài học trước khi phân bổ!");
+          return row;
+        }
+
         const newDistribution = { ...row.distribution };
 
         templateParts.forEach((part: any, partIndex: number) => {
           const partKey = `part${partIndex + 1}`;
-          const maximum = part.maximum || part.maxQuestions || 0;
-          const lessonsCount = lessonsPerPart[partKey];
+          const maximum = Number(part.maximum || part.maxQuestions) || 0;
 
-          if (maximum > 0 && part.difficultyLevels && lessonsCount > 0) {
-            // Calculate maximum per lesson (divide total maximum by number of lessons)
-            const maximumPerLesson = Math.floor(maximum / lessonsCount);
-            const remainder = maximum % lessonsCount;
+          // Calculate total used by history rows for this part
+          let usedByHistory = 0;
+          matrix.forEach((r, idx) => {
+            if (restoredFromHistory.has(idx)) {
+              part.difficultyLevels?.forEach((level: any) => {
+                const value = Number(r.distribution[partKey]?.[level.id]) || 0;
+                usedByHistory += value;
+              });
+            }
+          });
 
-            // For this specific row, check if it should get extra from remainder
-            const currentRowIndex =
-              matrix.filter(
-                (r, idx) =>
-                  idx <= rowIdx && r.lessonID && r.lessonID.trim() !== ""
-              ).length - 1;
-            const extraForThisRow = currentRowIndex < remainder ? 1 : 0;
-            const finalMaximumForThisRow = maximumPerLesson + extraForThisRow;
+          // Calculate total used by other non-history rows (excluding current row)
+          let usedByOthers = 0;
+          matrix.forEach((r, idx) => {
+            if (idx !== rowIdx && !restoredFromHistory.has(idx) && r.lessonID && r.lessonID.trim() !== "") {
+              part.difficultyLevels?.forEach((level: any) => {
+                const value = Number(r.distribution[partKey]?.[level.id]) || 0;
+                usedByOthers += value;
+              });
+            }
+          });
 
-            // Auto-distribute this lesson's share across difficulty levels
+          // Calculate remaining for this row
+          const remainingForThisRow = Math.max(0, maximum - usedByHistory - usedByOthers);
+
+          if (remainingForThisRow > 0 && part.difficultyLevels) {
+            // Auto-distribute remaining across difficulty levels
             const distributedValues = distributeMaximumAcrossDifficulties(
-              finalMaximumForThisRow,
+              remainingForThisRow,
               part.difficultyLevels
             );
             newDistribution[partKey] = { ...distributedValues };
+          } else {
+            // No remaining questions, set to 0
+            newDistribution[partKey] = {};
+            part.difficultyLevels?.forEach((level: any) => {
+              newDistribution[partKey][level.id] = 0;
+            });
           }
         });
 
@@ -796,6 +1013,10 @@ export default function MatrixTemplate2() {
         setShowTokenConfirmModal(false);
         setPendingPayload(null);
         setEstimatedTokens(null);
+
+        // Save to history only after successful API call
+        saveCurrentMatrixToHistory();
+        toast.info("Đã lưu lịch sử nhập liệu cho các bài học!");
       },
       onError: (error) => {
         toast.error(
@@ -1086,12 +1307,12 @@ export default function MatrixTemplate2() {
                       ) : (
                         <Select
                           key={`lesson-select-${rowIdx}`}
-                          value={row.lessonID || "CLEAR_SELECTION"}
+                          value={String(row.lessonID || "CLEAR_SELECTION")}
                           onValueChange={(val) => {
                             // Handle clear selection
                             const actualValue =
                               val === "CLEAR_SELECTION" ? "" : val;
-                            handleMatrixChange(rowIdx, "lessonID", actualValue);
+                            handleLessonChange(rowIdx, actualValue);
                             // Clear error when user selects a lesson
                             if (errors[`matrix_${rowIdx}_lesson`]) {
                               setErrors((prev) => ({
@@ -1121,13 +1342,13 @@ export default function MatrixTemplate2() {
                                 // Lọc ra các bài học đã được chọn ở các hàng khác
                                 const selectedLessons = matrix
                                   .map((row, index) =>
-                                    index !== rowIdx ? row.lessonID : null
+                                    index !== rowIdx ? String(row.lessonID || "") : null
                                   )
                                   .filter(Boolean);
-                                return !selectedLessons.includes(item.id);
+                                return !selectedLessons.includes(String(item.id));
                               })
                               .map((item: any) => (
-                                <SelectItem key={item.id} value={item.id}>
+                                <SelectItem key={item.id} value={String(item.id)}>
                                   {item.name}
                                 </SelectItem>
                               ))}
@@ -1138,6 +1359,14 @@ export default function MatrixTemplate2() {
                         <p className="text-red-500 text-xs mt-1">
                           {errors[`matrix_${rowIdx}_lesson`]}
                         </p>
+                      )}
+                      {/* Badge gợi ý từ ghi nhớ */}
+                      {restoredFromHistory.has(rowIdx) && (
+                        <div className="mt-1">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                            💡 Gợi ý từ ghi nhớ
+                          </span>
+                        </div>
                       )}
                     </div>
                   </td>
@@ -1274,10 +1503,17 @@ export default function MatrixTemplate2() {
                                         ? {
                                             ...r,
                                             distribution: resetDistribution,
+                                            total: 0,
                                           }
                                         : r
                                     )
                                   );
+                                  // Remove from restored history when reset
+                                  setRestoredFromHistory(prev => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(rowIdx);
+                                    return newSet;
+                                  });
                                   toast.info("Đã reset giá trị hàng này về 0!");
                                 }
                               }}
@@ -1404,6 +1640,10 @@ export default function MatrixTemplate2() {
                 Ví dụ: Phần có maximum 30 câu, 3 bài học → mỗi bài 10 câu → NB:
                 4, TH: 3, VD: 3
               </p>
+              {/* <p className="mt-1 text-xs text-blue-600">
+                📝 Lịch sử nhập liệu: {getHistoryCount()}/20 bài học đã lưu
+                {getHistoryCount() >= 20 && " (Đã đầy, sẽ tự động xóa bài cũ nhất khi thêm mới)"}
+              </p> */}
             </div>
           )}
 
@@ -1419,89 +1659,6 @@ export default function MatrixTemplate2() {
                 disabled={!!resultId}
               >
                 Thêm dòng mới +
-              </Button>
-
-              <Button
-                variant="outline"
-                type="button"
-                className={`rounded-md px-6 ${
-                  resultId ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                onClick={
-                  resultId
-                    ? undefined
-                    : () => {
-                        // Auto-distribute for all rows at once
-                        const lessonsPerPart = calculateLessonsPerPart();
-
-                        const updatedMatrix = matrix.map((row, rowIndex) => {
-                          const newDistribution = { ...row.distribution };
-
-                          templateParts.forEach(
-                            (part: any, partIndex: number) => {
-                              const partKey = `part${partIndex + 1}`;
-                              const maximum =
-                                part.maximum || part.maxQuestions || 0;
-                              const lessonsCount = lessonsPerPart[partKey];
-
-                              if (
-                                maximum > 0 &&
-                                part.difficultyLevels &&
-                                lessonsCount > 0
-                              ) {
-                                // Calculate maximum per lesson (divide total maximum by number of lessons)
-                                const maximumPerLesson = Math.floor(
-                                  maximum / lessonsCount
-                                );
-                                const remainder = maximum % lessonsCount;
-
-                                // For this specific row, check if it should get extra from remainder
-                                const currentRowIndex =
-                                  matrix.filter(
-                                    (r, idx) =>
-                                      idx <= rowIndex &&
-                                      r.lessonID &&
-                                      r.lessonID.trim() !== ""
-                                  ).length - 1;
-                                const extraForThisRow =
-                                  currentRowIndex < remainder ? 1 : 0;
-                                const finalMaximumForThisRow =
-                                  maximumPerLesson + extraForThisRow;
-
-                                // Auto-distribute this lesson's share across difficulty levels
-                                const distributedValues =
-                                  distributeMaximumAcrossDifficulties(
-                                    finalMaximumForThisRow,
-                                    part.difficultyLevels
-                                  );
-                                newDistribution[partKey] = {
-                                  ...distributedValues,
-                                };
-                              }
-                            }
-                          );
-
-                          return {
-                            ...row,
-                            distribution: newDistribution,
-                          };
-                        });
-
-                        setMatrix(updatedMatrix);
-
-                        // Clear all validation errors
-                        setErrors({});
-
-                        // Show success message
-                        toast.success(
-                          "Đã phân bổ tự động cho tất cả các hàng thành công!"
-                        );
-                      }
-                }
-                disabled={!!resultId}
-                title="Phân bổ tự động cho tất cả các hàng theo maximum của từng phần"
-              >
-                Phân bổ tự động tất cả
               </Button>
             </div>
           )}
