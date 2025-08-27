@@ -22,7 +22,13 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useExternalToolsService } from "@/services/externalToolsServices";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCancelPaymentService } from "@/services/orderServices";
 
 import { toast } from "sonner";
@@ -31,7 +37,9 @@ import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 export default function Home() {
   const searchParams = useSearchParams();
-  // const view = searchParams.get("view") || "grid";
+  const [selectedBookType, setSelectedBookType] = useState<string | undefined>(
+    "all"
+  );
   const orderCode = searchParams.get("orderCode");
   const { data: bookTypes, isLoading } = useBookTypesService();
   const {
@@ -56,19 +64,25 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
 
+  // Reset currentPage to 0 when selectedBookType changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [selectedBookType]);
+
   // Use the paginated service
   const {
     data: toolLogs,
     refetch,
     isLoading: isLoadingToolLogs,
   } = useToolLogsWithParamsService(
-    [currentPage, pageSize], // dependencies for query key
+    [currentPage, pageSize, selectedBookType], // dependencies for query key
     { retry: 1, staleTime: 0 }, // options
     {
       userId: user?.id,
       offset: currentPage,
       pageSize: pageSize,
       sort: "createdAt,desc",
+      ...(selectedBookType !== "all" ? { toolId: selectedBookType } : {}),
     } // pagination params
   );
 
@@ -259,6 +273,22 @@ export default function Home() {
             {HistoryIcon}
             Lịch sử
           </h1>
+          <Select
+            value={selectedBookType}
+            onValueChange={(value) => setSelectedBookType(value)}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Tất cả" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              {bookTypes?.data?.content?.map((bt: any) => (
+                <SelectItem key={bt.id} value={bt.id}>
+                  {bt.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
