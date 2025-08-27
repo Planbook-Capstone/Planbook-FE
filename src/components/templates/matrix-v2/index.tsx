@@ -1152,7 +1152,7 @@ export default function MatrixTemplate2() {
               onBookChange={setSelectedBook}
             />
           </div>
-          <div className="grid grid-cols-3 gap-4 mb-6 font-questrial">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 font-questrial">
             <div className="flex flex-col">
               <FormField label="Tên trường" htmlFor="school-input">
                 <Input
@@ -1253,7 +1253,7 @@ export default function MatrixTemplate2() {
         </div>
       ) : (
         <>
-          <table className="w-full text-center rounded-md border mb-4">
+          <table className="min-w-[900px] text-center rounded-md border mb-4">
             <thead className="font-calsans text-base">
               <tr>
                 <th className="border px-2 py-4 align-middle" rowSpan={2}>

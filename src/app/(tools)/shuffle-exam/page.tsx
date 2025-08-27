@@ -325,8 +325,8 @@ function ShuffleExamPage() {
         );
       case 3:
         return (
-          <div className="grid grid-cols-3 gap-5 h-screen ">
-            <div className="sticky top-0 p-4 w-full h-fit max-h-screen col-span-1 flex flex-col">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 h-screen ">
+            <div className="md:sticky md:top-0 p-4 w-full h-fit max-h-screen col-span-1 flex flex-col">
               <h1 className="font-calsans w-full text-base lg:text-xl mb-4">
                 Mã đề
               </h1>

@@ -60,7 +60,7 @@ const ExamMatrixForm: React.FC<ExamMatrixFormProps> = ({
   };
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-x-auto min-w-[620px]">
       <table className="w-full text-center rounded-md border mb-4">
         <thead className="font-calsans text-base">
           <tr>
