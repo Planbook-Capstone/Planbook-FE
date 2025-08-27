@@ -34,10 +34,14 @@ const LoginPage = () => {
   const { setUser } = useAppStore();
 
   // Get token from URL params
-  const token = searchParams.get('token');
+  const token = searchParams.get("token");
 
   // Use verify service with token
-  const { data: verifyData, isLoading: isVerifyLoading, error: verifyError } = useVerifyUserService(token || undefined);
+  const {
+    data: verifyData,
+    isLoading: isVerifyLoading,
+    error: verifyError,
+  } = useVerifyUserService(token || undefined);
 
   // Set verifying state when token exists
   React.useEffect(() => {
@@ -49,20 +53,24 @@ const LoginPage = () => {
   // Handle verification result
   React.useEffect(() => {
     if (verifyData && token) {
-      toast.success("Xác thực tài khoản thành công! Bạn có thể đăng nhập ngay.");
+      toast.success(
+        "Xác thực tài khoản thành công! Bạn có thể đăng nhập ngay."
+      );
       // Remove token from URL
       const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+      window.history.replaceState({}, "", newUrl);
       setIsVerifying(false);
     }
   }, [verifyData, token]);
 
   React.useEffect(() => {
     if (verifyError && token) {
-      toast.error("Xác thực tài khoản thất bại. Vui lòng thử lại hoặc liên hệ hỗ trợ.");
+      toast.error(
+        "Xác thực tài khoản thất bại. Vui lòng thử lại hoặc liên hệ hỗ trợ."
+      );
       // Remove token from URL
       const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+      window.history.replaceState({}, "", newUrl);
       setIsVerifying(false);
     }
   }, [verifyError, token]);
@@ -216,7 +224,10 @@ const LoginPage = () => {
           />
         </div>
         <div className="absolute bottom-[2rem] right-[3rem] z-0">
-          <div className="flex gap-3 pb-10">
+          <div
+            className="flex gap-3 pb-10 cursor-pointer"
+            onClick={() => router.back()}
+          >
             <div className="relative w-15 h-15">
               <Image
                 src="/images/logo/logoDark.svg"
@@ -249,7 +260,9 @@ const LoginPage = () => {
                 {isVerifying ? (
                   <>
                     Đang xác thực{" "}
-                    <span className="font-calsans text-gray-900">tài khoản</span>
+                    <span className="font-calsans text-gray-900">
+                      tài khoản
+                    </span>
                   </>
                 ) : showRegisterOptions ? (
                   <>
@@ -284,7 +297,7 @@ const LoginPage = () => {
                   ? "Điền thông tin để tạo tài khoản mới."
                   : showForgotPassword
                   ? "Nhập email để nhận liên kết khôi phục mật khẩu."
-                  : "Nhập username và mật khẩu để đăng nhập vào tài khoản."}
+                  : "Nhập tên đăng nhập và mật khẩu để đăng nhập vào tài khoản."}
               </p>
             </div>
 
@@ -465,7 +478,7 @@ const LoginPage = () => {
                   rules={[{ required: true, message: "Vui lòng nhập email!" }]}
                 >
                   <Input
-                    placeholder="Username"
+                    placeholder="Tên đăng nhập"
                     size="large"
                     className="input-base input-secondary"
                   />
@@ -499,33 +512,39 @@ const LoginPage = () => {
                 </Form.Item>
               </Form>
             )}
-            {!isRegister && !showRegisterOptions && !showForgotPassword && !isVerifying && (
-              <Button
-                onClick={loginGG}
-                block
-                size="large"
-                className="btn-base btn-secondary flex !justify-between !pl-4 !border-[#E4EBF3] !border-1 !hover:bg-gray-100"
-              >
-                <div className="flex items-center gap-2">
-                  Tiếp tục với Google
-                </div>
-                <div className="w-14 h-full flex justify-center items-center bg-[#E4EBF3] text-[#AABBCF]">
-                  <ArrowRight />
-                </div>
-              </Button>
-            )}
-
-            {!isRegister && !showRegisterOptions && !showForgotPassword && !isVerifying && (
-              <div className="text-sm font-questrial mt-2">
-                <button
-                  type="button"
-                  onClick={handleShowForgotPassword}
-                  className="text-cyan-500 hover:underline bg-transparent border-none cursor-pointer"
+            {!isRegister &&
+              !showRegisterOptions &&
+              !showForgotPassword &&
+              !isVerifying && (
+                <Button
+                  onClick={loginGG}
+                  block
+                  size="large"
+                  className="btn-base btn-secondary flex !justify-between !pl-4 !border-[#E4EBF3] !border-1 !hover:bg-gray-100"
                 >
-                  Quên mật khẩu
-                </button>
-              </div>
-            )}
+                  <div className="flex items-center gap-2">
+                    Tiếp tục với Google
+                  </div>
+                  <div className="w-14 h-full flex justify-center items-center bg-[#E4EBF3] text-[#AABBCF]">
+                    <ArrowRight />
+                  </div>
+                </Button>
+              )}
+
+            {!isRegister &&
+              !showRegisterOptions &&
+              !showForgotPassword &&
+              !isVerifying && (
+                <div className="text-sm font-questrial mt-2">
+                  <button
+                    type="button"
+                    onClick={handleShowForgotPassword}
+                    className="text-cyan-500 hover:underline bg-transparent border-none cursor-pointer"
+                  >
+                    Quên mật khẩu
+                  </button>
+                </div>
+              )}
 
             {!isVerifying && (
               <>
@@ -589,7 +608,8 @@ const LoginPage = () => {
                 src="/images/logo/logoLight.svg"
                 alt="PlanBook Logo Light"
                 fill
-                className="object-contain"
+                onClick={() => router.back()}
+                className="object-contain cursor-pointer"
               />
             </div>
             <div className="w-[1px] h-72 bg-white opacity-40"></div>

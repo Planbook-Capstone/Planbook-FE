@@ -6,10 +6,11 @@ import { useSubscriptionsService } from "@/services/subscriptionServices";
 import { useCreateOrderService } from "@/services/orderServices";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { LandingPageHeader } from "@/components/organisms/header/LandingPageHeader";
 
 function PricingPage() {
   const { data: subscriptions, isLoading } = useSubscriptionsService();
-  const { mutate,isPending } = useCreateOrderService();
+  const { mutate, isPending } = useCreateOrderService();
   const router = useRouter();
 
   const handleOrder = (packageId: string) => {
@@ -36,14 +37,21 @@ function PricingPage() {
 
   return (
     <div className=" flex-1 justify-center items-center min-h-screen p-10">
-      <div className="sticky top-0 left-0 bg-white z-50  py-2">
+      {/* <div className="sticky top-0 left-0 bg-white z-50  py-2">
         <button
           onClick={() => router.back()}
           className="text-sm font-questrial text-blue-600 hover:underline cursor-pointer"
         >
           Quay lại
         </button>
-      </div>
+      </div> */}
+
+      <LandingPageHeader
+        onClickLogo={() => router.back()}
+        isHiddenLoginBtn={true}
+        className={"relative! mb-16"}
+        isPricingPage={true}
+      />
 
       <div className="flex flex-col justify-center items-center gap-1.5 h-full">
         <h1 className="text-3xl font-calsans">Chọn gói phù hợp dành cho bạn</h1>
