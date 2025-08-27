@@ -44,7 +44,7 @@ function ExamInfoForm({ examInfo, onExamInfoChange }: ExamInfoFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {/* Grade */}
         <div className="space-y-2">
           <Label htmlFor="grade">Khối lớp</Label>

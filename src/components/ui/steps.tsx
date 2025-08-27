@@ -78,7 +78,12 @@ export function Steps({ current, items, onChange, className }: StepsProps) {
   };
 
   return (
-    <div className={cn("flex items-center w-full", className)}>
+    <div
+      className={cn(
+        "flex flex-col md:flex-row items-stretch md:items-center w-full",
+        className
+      )}
+    >
       {items.map((item, index) => {
         const status = getStepStatus(index);
         const isClickable = !!onChange;
@@ -106,7 +111,10 @@ export function Steps({ current, items, onChange, className }: StepsProps) {
             </div>
 
             {index < items.length - 1 && (
-              <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 mx-1" />
+              <>
+                <ChevronRight className="w-4 h-4 hidden md:block text-gray-400 flex-shrink-0 mx-1" />
+                <div className="w-px h-4 bg-gray-300 block md:hidden flex-shrink-0 ml-5 mt-1" />
+              </>
             )}
           </React.Fragment>
         );
