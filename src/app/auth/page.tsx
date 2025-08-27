@@ -297,7 +297,7 @@ const LoginPage = () => {
                   ? "Điền thông tin để tạo tài khoản mới."
                   : showForgotPassword
                   ? "Nhập email để nhận liên kết khôi phục mật khẩu."
-                  : "Nhập username và mật khẩu để đăng nhập vào tài khoản."}
+                  : "Nhập tên đăng nhập và mật khẩu để đăng nhập vào tài khoản."}
               </p>
             </div>
 
@@ -478,7 +478,7 @@ const LoginPage = () => {
                   rules={[{ required: true, message: "Vui lòng nhập email!" }]}
                 >
                   <Input
-                    placeholder="Username"
+                    placeholder="Tên đăng nhập"
                     size="large"
                     className="input-base input-secondary"
                   />
