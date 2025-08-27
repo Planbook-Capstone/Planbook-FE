@@ -262,9 +262,9 @@ export default function Home() {
       {isLoadingToolLogs ? (
         <div>
           <GridSkeleton
-            count={6}
-            height={140}
-            cols="grid-cols-3 lg:grid-cols-4"
+            count={1}
+            height={340}
+            cols="grid-cols-1 lg:grid-cols-1"
           />
         </div>
       ) : (

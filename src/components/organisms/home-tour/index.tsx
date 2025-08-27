@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Tour, Button } from "antd";
 import type { TourProps } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
@@ -18,18 +18,62 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
   const [current, setCurrent] = useState(0);
   const isMobile = useIsMobile();
 
-  // Kiểm tra element có visible và accessible trên mobile không
+  // Debug function để kiểm tra ChatBox
+  const debugChatBox = () => {
+    const chatBoxElement = document.querySelector('[data-tour="chat-box"]');
+    const allChatBoxElements = document.querySelectorAll('[data-tour="chat-box"]');
+    // console.log('=== ChatBox Debug ===');
+    // console.log('isMobile:', isMobile);
+    // console.log('ChatBox element:', chatBoxElement);
+    // console.log('All ChatBox elements:', allChatBoxElements);
+    // console.log('ChatBox elements count:', allChatBoxElements.length);
+
+    if (chatBoxElement) {
+      const rect = chatBoxElement.getBoundingClientRect();
+      const computedStyle = window.getComputedStyle(chatBoxElement);
+      // console.log('ChatBox rect:', rect);
+      // console.log('ChatBox computed style:', {
+      //   display: computedStyle.display,
+      //   visibility: computedStyle.visibility,
+      //   opacity: computedStyle.opacity,
+      //   zIndex: computedStyle.zIndex,
+      //   position: computedStyle.position
+      // });
+    }
+    console.log('===================');
+  };
+
+  // Kiểm tra element có visible và accessible không
   const isElementAccessible = (selector: string) => {
     const element = document.querySelector(selector);
-    if (!element) return false;
+    if (!element) {
+      // console.log(`Element not found: ${selector}`);
+      return false;
+    }
 
     const rect = element.getBoundingClientRect();
     const isVisible = rect.width > 0 && rect.height > 0;
-    const isInViewport = rect.top >= 0 && rect.left >= 0 &&
-                        rect.bottom <= window.innerHeight &&
-                        rect.right <= window.innerWidth;
 
-    return isVisible && (isMobile ? true : isInViewport); // Trên mobile không cần check viewport
+    // Đối với fixed positioned elements như ChatBox, không cần check viewport strict
+    // Chỉ cần check element có visible và không bị ẩn
+    const computedStyle = window.getComputedStyle(element);
+    const isDisplayed = computedStyle.display !== 'none' &&
+                       computedStyle.visibility !== 'hidden' &&
+                       computedStyle.opacity !== '0';
+
+    // console.log(`Element ${selector}:`, {
+    //   found: !!element,
+    //   isVisible,
+    //   isDisplayed,
+    //   rect: { width: rect.width, height: rect.height },
+    //   computedStyle: {
+    //     display: computedStyle.display,
+    //     visibility: computedStyle.visibility,
+    //     opacity: computedStyle.opacity
+    //   }
+    // });
+
+    return isVisible && isDisplayed;
   };
 
   // Tạo nội dung động cho các chức năng từ API
@@ -249,8 +293,8 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
       title: "Danh sách lịch sử",
       description: (
         <div>
-          <p>Các tài liệu được hiển thị dưới dạng thẻ.</p>
-          <p>Click vào bất kỳ thẻ nào để xem chi tiết hoặc chỉnh sửa.</p>
+          <p>Các tài liệu được hiển thị dưới dạng bảng.</p>
+          <p>Click vào bất kỳ hàng nào để xem chi tiết.</p>
         </div>
       ),
       target: () => document.querySelector('[data-tour="history-list"]') as HTMLElement,
@@ -275,7 +319,11 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
           <p>{isMobile ? "Hỏi bất kỳ câu hỏi nào về giảng dạy." : "Bạn có thể hỏi bất kỳ câu hỏi nào về giảng dạy."}</p>
         </div>
       ),
-      target: () => document.querySelector('[data-tour="chat-box"]') as HTMLElement,
+      target: () => {
+        const element = document.querySelector('[data-tour="chat-box"]') as HTMLElement;
+        // console.log('ChatBox target element:', element);
+        return element;
+      },
     },
     {
       title: "Hoàn thành!",
@@ -297,44 +345,64 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
     },
   ];
 
-  // Filter steps dựa trên mobile và element accessibility
-  const steps: TourProps["steps"] = allSteps.filter((step) => {
-    // Luôn giữ step đầu và cuối (không có target)
-    if (!step.target) return true;
+  // Filter steps dựa trên element accessibility - chỉ filter khi tour đang mở
+  const steps: TourProps["steps"] = useMemo(() => {
+    if (!open) return allSteps; // Không filter khi tour chưa mở
 
-    // Kiểm tra element có accessible không
-    try {
-      const target = typeof step.target === 'function' ? step.target() : step.target;
-      if (!target) return false;
+    return allSteps.filter((step) => {
+      // Luôn giữ step đầu và cuối (không có target)
+      if (!step.target) return true;
 
-      // Kiểm tra element có visible không
-      const rect = target.getBoundingClientRect();
-      const isVisible = rect.width > 0 && rect.height > 0;
+      // Kiểm tra element có accessible không
+      try {
+        const target = typeof step.target === 'function' ? step.target() : step.target;
+        if (!target) {
+          // console.warn(`Tour step target not found for step: ${step.title}`);
+          return false;
+        }
 
-      // Kiểm tra element không bị ẩn bởi CSS
-      const computedStyle = window.getComputedStyle(target);
-      const isDisplayed = computedStyle.display !== 'none' &&
-                         computedStyle.visibility !== 'hidden' &&
-                         computedStyle.opacity !== '0';
+        // Kiểm tra element có visible không
+        const rect = target.getBoundingClientRect();
+        const isVisible = rect.width > 0 && rect.height > 0;
 
-      return isVisible && isDisplayed;
-    } catch (error) {
-      // Nếu có lỗi khi query element, skip step này
-      console.warn('Tour step target not found:', error);
-      return false;
-    }
-  });
+        // Kiểm tra element không bị ẩn bởi CSS
+        const computedStyle = window.getComputedStyle(target);
+        const isDisplayed = computedStyle.display !== 'none' &&
+                           computedStyle.visibility !== 'hidden' &&
+                           computedStyle.opacity !== '0';
+
+        const isAccessible = isVisible && isDisplayed;
+        // console.log(`Tour step "${step.title}":`, { isVisible, isDisplayed, isAccessible });
+
+        return isAccessible;
+      } catch (error) {
+        // Nếu có lỗi khi query element, skip step này
+        // console.warn(`Tour step target error for "${step.title}":`, error);
+        return false;
+      }
+    });
+  }, [allSteps, open]);
+
+  // Debug ChatBox ngay khi component mount
+  useEffect(() => {
+    setTimeout(() => {
+      debugChatBox();
+    }, 500);
+  }, [debugChatBox]);
 
   // Kiểm tra xem user đã xem tour chưa
   useEffect(() => {
     const hasSeenTour = localStorage.getItem("home-tour-completed");
     if (!hasSeenTour) {
-      // Delay lâu hơn trên mobile để đảm bảo DOM đã render hoàn toàn
+      // Delay để đảm bảo DOM đã render hoàn toàn, đặc biệt là ChatBox
+      const delay = isMobile ? 1500 : 2000; // Tăng delay cho desktop
       setTimeout(() => {
+        // Debug ChatBox trước khi bắt đầu tour
+        debugChatBox();
         setOpen(true);
-      }, isMobile ? 1500 : 1000);
+      }, delay);
     }
-  }, [isMobile]);
+  }, [isMobile, debugChatBox]);
 
   // Auto-advance tour steps - faster on mobile
   useEffect(() => {
@@ -391,6 +459,21 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         }}
         title="Xem lại hướng dẫn"
       />
+
+      {/* Debug button để test ChatBox */}
+      {/* <Button
+        type="default"
+        onClick={debugChatBox}
+        style={{
+          position: "fixed",
+          bottom: isMobile ? "140px" : "80px",
+          right: isMobile ? "16px" : "20px",
+          zIndex: 1000,
+        }}
+        title="Debug ChatBox"
+      >
+        Debug
+      </Button> */}
 
       <Tour
         open={open}
