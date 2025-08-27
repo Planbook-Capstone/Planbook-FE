@@ -67,7 +67,7 @@ export const LandingPageHeader = ({
                 onClick={onClickLogo}
                 className="text-neutral-800 cursor-pointer"
               >
-                Trang chủ
+                Trợ lý
               </a>
               <a href="/my-library" className="text-neutral-600 cursor-pointer">
                 Kho tài liệu
