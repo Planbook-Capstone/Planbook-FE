@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import MainLayout from "@/components/layout/MainLayout";
 import CardFeature from "@/components/organisms/card-feature";
@@ -11,7 +11,7 @@ import HistoryList from "@/components/organisms/history-list";
 import { useSearchParams } from "next/navigation";
 import { useBookTypesService } from "@/services/bookTypeServices";
 import BannerOverlay from "@/components/organisms/banner/BannerWithOverlay";
-import SpotlightCard from "@/components/ui/SpotlightCard";
+import InfiniteCarousel from "@/components/molecules/infinite-carousel";
 import { useAuth } from "@/hooks/useAuth";
 import { useToolLogsWithParamsService } from "@/services/toolLogServices";
 import {
@@ -26,7 +26,7 @@ import {
 import { useExternalToolsService } from "@/services/externalToolsServices";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCancelPaymentService } from "@/services/orderServices";
-import { useEffect } from "react";
+
 import { toast } from "sonner";
 import HomeTour from "@/components/organisms/home-tour";
 import { GridSkeleton } from "@/components/molecules/grid-skeleton";
@@ -212,38 +212,37 @@ export default function Home() {
           ))} */}
       </section>
 
-      <section
-        data-tour="illustrations"
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5"
-      >
-        <SpotlightCard
-          className="!p-0 !bg-transparent !border-0 w-full aspect-[4/3] rounded-lg overflow-hidden"
-          spotlightColor="rgba(59, 130, 246, 0.3)"
-        >
-          <img
-            src="/images/background/LessonPlanCreation.svg"
-            className="w-full h-full object-cover"
-          />
-        </SpotlightCard>
-        <SpotlightCard
-          className="!p-0 !bg-transparent !border-0 w-full aspect-[4/3] rounded-lg overflow-hidden"
-          spotlightColor="rgba(34, 197, 94, 0.3)"
-        >
-          <img
-            src="/images/background/ExamCreation.svg"
-            className="w-full h-full object-cover"
-          />
-        </SpotlightCard>
-        <SpotlightCard
-          className="!p-0 !bg-transparent !border-0 w-full aspect-[4/3] rounded-lg overflow-hidden"
-          spotlightColor="rgba(168, 85, 247, 0.3)"
-        >
-          <img
-            src="/images/background/SlideCreation.svg"
-            className="w-full h-full object-cover"
-          />
-        </SpotlightCard>
-      </section>
+      <InfiniteCarousel
+        items={[
+          {
+            id: "lesson-plan",
+            src: "/images/background/LessonPlanCreation.svg",
+            spotlightColor: "rgba(59, 130, 246, 0.3)",
+          },
+          {
+            id: "exam-creation",
+            src: "/images/background/ExamCreation.svg",
+            spotlightColor: "rgba(34, 197, 94, 0.3)",
+          },
+          {
+            id: "slide-creation",
+            src: "/images/background/SlideCreation.svg",
+            spotlightColor: "rgba(168, 85, 247, 0.3)",
+          },
+          {
+            id: "practice",
+            src: "/images/background/practice.svg",
+            spotlightColor: "rgba(168, 85, 247, 0.3)",
+          },
+          {
+            id: "shuffle",
+            src: "/images/background/shuffle.svg",
+            spotlightColor: "rgba(168, 85, 247, 0.3)",
+          },
+        ]}
+        autoPlaySpeed={1000}
+        className="mb-8"
+      />
 
       <div data-tour="history">
         <ItemSection
