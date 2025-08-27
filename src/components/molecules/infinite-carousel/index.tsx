@@ -7,6 +7,7 @@ interface CarouselItem {
   id: string;
   src: string;
   spotlightColor: string;
+  isFree?: boolean;
 }
 
 interface InfiniteCarouselProps {
@@ -89,6 +90,11 @@ const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
                 alt={`Carousel item ${item.id}`}
                 className="w-full h-full object-cover"
               />
+              {item.isFree && (
+                <div className="absolute px-2 top-4 right-0 rounded-l-xs bg-rose-700 text-white">
+                  <span>Miễn phí</span>
+                </div>
+              )}
             </SpotlightCard>
           </div>
         ))}

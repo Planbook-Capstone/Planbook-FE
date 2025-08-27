@@ -188,6 +188,7 @@ export default function Home() {
           ?.sort((a: any, b: any) => a.priority - b.priority)
           ?.map((feature: any) => (
             <CardFeature
+              isFree={feature.tokenCostPerQuery === 0}
               id={feature.id}
               key={feature.id}
               icon={feature.icon}
@@ -231,11 +232,13 @@ export default function Home() {
             id: "practice",
             src: "/images/background/practice.svg",
             spotlightColor: "rgba(168, 85, 247, 0.3)",
+            isFree: true,
           },
           {
             id: "shuffle",
             src: "/images/background/shuffle.svg",
             spotlightColor: "rgba(168, 85, 247, 0.3)",
+            isFree: true,
           },
         ]}
         autoPlaySpeed={1000}
