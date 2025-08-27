@@ -129,7 +129,7 @@ export default function InternalMaterial({
   return (
     <div className="flex-1 flex flex-col px-4 min-h-0 overflow-y-scroll">
       <Tabs defaultValue="images" className="w-full flex flex-col flex-1">
-        <TabsList className="grid w-1/3 grid-cols-2">
+        <TabsList className="grid md:w-1/3 grid-cols-2">
           <TabsTrigger value="images">
             Ảnh ({filteredImages.length})
           </TabsTrigger>
@@ -143,7 +143,7 @@ export default function InternalMaterial({
             {filteredImages.length > 0 ? (
               <div className="space-y-4">
                 {/* Simple Grid Layout */}
-                <div className="grid grid-cols-8 gap-3">
+                <div className="grid grid-cols-3 md:grid-cols-8 gap-3">
                   {filteredImages.map((image) => (
                     <div
                       key={image.id}
@@ -335,7 +335,7 @@ export default function InternalMaterial({
         </TabsContent>
 
         <TabsContent value="videos" className="flex-1">
-          <div className="grid grid-cols-3">
+          <div className="grid grid-cols-1 md:grid-cols-3">
             <div className="p-4">
               {filteredVideos.length > 0 ? (
                 <div className="space-y-3">

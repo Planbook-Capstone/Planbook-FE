@@ -419,7 +419,7 @@ function DocumentSourceSelector({
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6 ">
         {/* Left column - Folders */}
         <div className="w-full col-span-2">
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {folders?.map((f) => (
               <div key={f.folderId} onClick={() => onFolderSelect(f.folderId)}>
                 <FolderCard
@@ -430,7 +430,7 @@ function DocumentSourceSelector({
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-2 gap-4 py-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3">
             {getSelectedFolderData()?.type === "EXAM" &&
               toolResults?.data?.content?.map((toolResult: any) => (
                 <div
