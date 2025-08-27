@@ -5,13 +5,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { X, Menu } from "lucide-react";
+import clsx from "clsx";
 
-export const LandingPageHeader = () => {
+interface LandingPageHeaderProps {
+  className?: string;
+  onClickLogo?: () => void;
+  isHiddenLoginBtn?: boolean;
+  isPricingPage?: boolean;
+}
+
+export const LandingPageHeader = ({
+  className,
+  onClickLogo,
+  isHiddenLoginBtn = false,
+  isPricingPage = false,
+}: LandingPageHeaderProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <header
-      className="fixed z-50 w-full"
+      className={clsx([className, "fixed z-50 w-full"])}
       style={{
         backdropFilter: "blur(5px)",
         WebkitBackdropFilter: "blur(8px)",
@@ -27,27 +40,54 @@ export const LandingPageHeader = () => {
             alt="PlanBook Logo"
             width={130}
             height={35}
-            className="object-contain"
+            className="object-contain cursor-pointer"
+            onClick={onClickLogo}
           />
         </div>
 
         <div className="flex items-center gap-12">
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex gap-6 text-md text-muted-foreground">
-            <a href="#" className="font-calsans text-neutral-800">
-              Trang chủ
-            </a>
-            <a href="#" className="text-neutral-600">
-              Trợ giúp
-            </a>
-            <a href="#" className="text-neutral-600">
-              Liên hệ
-            </a>
-          </nav>
+          {!isPricingPage && (
+            <nav className="hidden md:flex gap-6 text-md text-muted-foreground">
+              <a href="#" className="font-calsans text-neutral-800">
+                Trang chủ
+              </a>
+              <a href="#" className="text-neutral-600">
+                Trợ giúp
+              </a>
+              <a href="#" className="text-neutral-600">
+                Liên hệ
+              </a>
+            </nav>
+          )}
+
+          {isPricingPage && (
+            <nav className="hidden md:flex gap-6 text-md text-muted-foreground">
+              <a
+                onClick={onClickLogo}
+                className="text-neutral-800 cursor-pointer"
+              >
+                Trang chủ
+              </a>
+              <a href="/my-library" className="text-neutral-600 cursor-pointer">
+                Kho tài liệu
+              </a>
+              <a
+                href="/my-library"
+                className="font-calsans text-neutral-600 cursor-pointer"
+              >
+                Gói dịch vụ
+              </a>
+            </nav>
+          )}
 
           {/* Desktop Buttons */}
-          <div className="hidden md:flex gap-2">
-            <Button className="rounded-full bg-lime-300 text-black">
+          <div
+            className={
+              "hidden md:flex gap-2 " + (isHiddenLoginBtn && "md:hidden")
+            }
+          >
+            <Button className={"rounded-full bg-lime-300 text-black"}>
               <Link href="/auth">Đăng ký</Link>
             </Button>
           </div>
