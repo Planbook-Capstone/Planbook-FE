@@ -271,7 +271,7 @@ function MyLibraryDetail({ params }: Props) {
   if (currentIsLoading) {
     return (
       <>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
           {[...Array(7)].map((_, index) => (
             <Skeleton
               key={index}
@@ -296,9 +296,9 @@ function MyLibraryDetail({ params }: Props) {
       {/* Filter Controls */}
       <div className="mb-6 space-y-4">
         {/* Search and Sort Row */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex flex-col  md:flex-row gap-4 items-start sm:items-center justify-between">
           {/* Search Input */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 md:max-w-md min-w-64 w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Tìm kiếm theo tên..."
@@ -309,64 +309,69 @@ function MyLibraryDetail({ params }: Props) {
           </div>
 
           {/* Sort and View Controls */}
-          <div className="flex justify-end items-center gap-2.5 w-full sm:w-1/2">
-            {/* Filter Button */}
-            <Button
-              variant="outline"
-              size="default"
-              onClick={() => setShowFilterModal(true)}
-              className="flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              Bộ lọc
-              {activeFilters.lessonIds.length > 0 && (
-                <span className="bg-red-500 text-white text-xs px-[7px] py-0.5 rounded-full">
-                  {activeFilters.lessonIds.length}
-                </span>
-              )}
-            </Button>
+          <div className="flex flex-col md:flex-row justify-end items-stretch md:items-center gap-2.5 w-full md:w-auto">
+            <div className="flex gap-2">
+              {/* Filter Button */}
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => setShowFilterModal(true)}
+                className="flex items-center justify-center gap-2 flex-1 md:flex-none md:w-auto"
+              >
+                <Filter className="h-4 w-4" />
+                <span className="hidden xs:inline">Bộ lọc theo bài</span>
+                <span className="xs:hidden">Lọc</span>
+                {activeFilters.lessonIds.length > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-[7px] py-0.5 rounded-full">
+                    {activeFilters.lessonIds.length}
+                  </span>
+                )}
+              </Button>
 
-            {/* Sort Dropdown */}
-            <Select
-              value={sortBy}
-              onValueChange={(value: "newest" | "oldest") => setSortBy(value)}
-            >
-              <SelectTrigger className="min-w-[120px] w-fit rounded-full">
-                <SelectValue placeholder="Sắp xếp" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Mới nhất</SelectItem>
-                <SelectItem value="oldest">Cũ nhất</SelectItem>
-              </SelectContent>
-            </Select>
+              {/* Sort Dropdown */}
+              <Select
+                value={sortBy}
+                onValueChange={(value: "newest" | "oldest") => setSortBy(value)}
+              >
+                <SelectTrigger className="min-w-[100px] flex-1 md:flex-none md:w-auto rounded-sm">
+                  <SelectValue placeholder="Sắp xếp" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Mới nhất</SelectItem>
+                  <SelectItem value="oldest">Cũ nhất</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* View Toggle */}
-            <div className="flex items-center bg-white border rounded-full p-1">
+            <div className="flex items-center bg-white border rounded-full p-1 w-full md:w-auto">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setView("grid")}
-                className={`rounded-full px-3 py-1 text-sm font-medium transition-all ${
+                className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all flex-1 md:flex-none ${
                   view === "grid"
                     ? "bg-white text-black border border-gray-200 shadow-sm"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 <Grid3X3 className="h-4 w-4 mr-1" />
-                Hàng lưới
+                <span className="hidden xs:inline">Hàng lưới</span>
+                <span className="xs:hidden">Lưới</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setView("list")}
-                className={`rounded-full px-3 py-1 text-sm font-medium transition-all ${
+                className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium transition-all flex-1 md:flex-none ${
                   view === "list"
                     ? "bg-white text-black border border-gray-200 shadow-sm"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 <List className="h-4 w-4 mr-1" />
-                Danh sách
+                <span className="hidden xs:inline">Danh sách</span>
+                <span className="xs:hidden">Danh sách</span>
               </Button>
             </div>
           </div>
@@ -433,7 +438,7 @@ function MyLibraryDetail({ params }: Props) {
         />
       ) : (
         /* Grid View */
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
           {filteredData.map((data: any, index: number) => (
             <div key={index} className="col-span-1 cursor-pointer">
               <DocumentItem
