@@ -17,6 +17,8 @@ import {
   downloadAnswerKeyAsDocx,
   downloadAllAnswerKeysAsTableDocx,
 } from "@/utils/examDownloadUtils";
+import { useSearchParams } from "next/navigation";
+import { useBookTypeByIdService } from "@/services/bookTypeServices";
 
 interface ExamMatrixData {
   part1: { nb: number; th: number; vd: number };
@@ -25,6 +27,9 @@ interface ExamMatrixData {
 }
 
 function ShuffleExamPage() {
+  const searchParams = useSearchParams();
+  const query = searchParams.get("bookTypeId");
+  const { data: bookType } = useBookTypeByIdService(query || "");
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedFolder, setSelectedFolder] = useState<number>(1); // Khởi tạo với folder đầu tiên
 
@@ -225,7 +230,7 @@ function ShuffleExamPage() {
 
       // Prepare the API request payload
       const apiPayload = {
-        toolId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        toolId: bookType?.data?.id,
         academicYearId: 1,
         grade: examInfo.grade,
         subject: examInfo.subject,
@@ -421,8 +426,7 @@ function ShuffleExamPage() {
                   />
                 ) : (
                   <AnswerKeyTable
-                    answerData={examResult?.[selectedExamIndex]?.answerOnly
-}
+                    answerData={examResult?.[selectedExamIndex]?.answerOnly}
                   />
                 )}
               </div>

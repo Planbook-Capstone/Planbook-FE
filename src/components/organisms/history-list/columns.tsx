@@ -1,17 +1,30 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MoreVertical } from "lucide-react";
+import { Eye } from "lucide-react";
 import { getToolActionName } from "@/constants";
 import LessonNamesCell from "./LessonNamesCell";
+import { Button } from "@/components/ui/Button";
+import { useState } from "react";
+import HistoryDetailModal from "./HistoryDetailModal";
 
 export type HistoryItem = {
   id: number;
   code: string;
-  description: string;
+  description?: string;
   updatedAt: string;
-  sources: string;
-  lessonIds: string;
+  sources?: string;
+  lessonIds: string | number[];
   tokenUsed: number;
+  input?: any;
+  output?: any;
+  userId?: string;
+  toolId?: string;
+  academicYearId?: number;
+  resultId?: number | null;
+  templateId?: number | null;
+  status?: string;
+  toolType?: string;
+  createdAt?: string;
 };
 
 export const historyColumns: ColumnDef<HistoryItem>[] = [
@@ -53,14 +66,17 @@ export const historyColumns: ColumnDef<HistoryItem>[] = [
       let lessonIds: string[] | number[] = [];
       const originalLessonIds = row.original?.lessonIds;
 
-      if (typeof originalLessonIds === 'string') {
+      if (typeof originalLessonIds === "string") {
         try {
           // Try to parse as JSON array
           const parsed = JSON.parse(originalLessonIds);
           lessonIds = Array.isArray(parsed) ? parsed : [parsed];
         } catch {
           // If parsing fails, treat as comma-separated string
-          lessonIds = originalLessonIds.split(',').map(id => id.trim()).filter(Boolean);
+          lessonIds = originalLessonIds
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean);
         }
       } else if (Array.isArray(originalLessonIds)) {
         lessonIds = originalLessonIds;
@@ -86,7 +102,7 @@ export const historyColumns: ColumnDef<HistoryItem>[] = [
           minute: "2-digit",
           hour12: false, // để dùng định dạng 24h thay vì AM/PM
         })}
-      </span> 
+      </span>
     ),
   },
   {
@@ -97,10 +113,26 @@ export const historyColumns: ColumnDef<HistoryItem>[] = [
   {
     id: "actions",
     header: "",
-    cell: () => (
-      <div className="flex justify-end">
-        <MoreVertical className="w-4 h-4 text-muted-foreground" />
-      </div>
-    ),
+    cell: ({ row }) => {
+      const [isModalOpen, setIsModalOpen] = useState(false);
+
+      return (
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-1"
+          >
+            Chi tiết
+          </Button>
+          <HistoryDetailModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            historyItem={row.original}
+          />
+        </div>
+      );
+    },
   },
 ];
