@@ -28,6 +28,22 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import InternalMaterial from "@/components/templates/internal-material";
 import { useRecentFilesWithHelpers } from "@/store/recentFilesHelpers";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/Button";
+import { Grid3X3, List, Search, Filter } from "lucide-react";
+import { useMemo } from "react";
+import LibraryList from "@/components/organisms/library-list";
+import LibraryFilterModal, {
+  FilterData,
+} from "@/components/organisms/library-filter-modal";
+
 interface Props {
   params: Promise<{
     id: string;
@@ -48,6 +64,15 @@ function MyLibraryDetail({ params }: Props) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<any>(null);
 
+  // Filter and view state
+  const [view, setView] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterData>({
+    lessonIds: [],
+  });
+
   // Reset currentPage to 0 when id (type) changes
   useEffect(() => {
     setCurrentPage(0);
@@ -59,15 +84,21 @@ function MyLibraryDetail({ params }: Props) {
     refetch,
     isLoading,
   } = useToolResultsWithParamsService(
-    [id, currentPage, pageSize], // dependencies for query key
+    [id, currentPage, pageSize, sortBy, activeFilters], // dependencies for query key
     { retry: 1, staleTime: 0, enabled: id !== "QUIZ" }, // options - disable for QUIZ
     {
       userId: user?.id,
       page: currentPage + 1,
       size: pageSize,
-      sort: "createdAt,desc",
+      sortBy: "CREATED_AT",
+      sortDirection: sortBy === "newest" ? "DESC" : "ASC",
       type: id,
       status: "ARCHIVED",
+      source: "AI",
+      // Filter parameters - convert array to comma-separated string
+      ...(activeFilters.lessonIds.length > 0 && {
+        lessonIds: activeFilters.lessonIds.map((id) => parseInt(id)).join(","),
+      }),
     }
   );
 
@@ -88,6 +119,36 @@ function MyLibraryDetail({ params }: Props) {
 
   // Recent files store
   const { closeFile } = useRecentFilesWithHelpers();
+
+  // Filter data based on search query
+  // Client-side filtering for search by name (faster than server-side)
+  const filteredData = useMemo(() => {
+    if (id === "QUIZ") {
+      const data = templates?.data || [];
+      if (!searchQuery) return data;
+      return data.filter(
+        (item: any) =>
+          item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } else {
+      const data = toolResults?.data?.content || [];
+      if (!searchQuery) return data;
+      return data.filter(
+        (item: any) =>
+          item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+  }, [id, templates?.data, toolResults?.data?.content, searchQuery]);
+
+  // Handle filter apply
+  const handleApplyFilter = (filters: FilterData) => {
+    setActiveFilters(filters);
+    // Reset to first page when applying filters
+    setCurrentPage(0);
+  };
 
   // Helper function to generate file ID for recent files
   const getRecentFileId = (item: any) => {
@@ -232,6 +293,117 @@ function MyLibraryDetail({ params }: Props) {
 
   return (
     <div>
+      {/* Filter Controls */}
+      <div className="mb-6 space-y-4">
+        {/* Search and Sort Row */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Tìm kiếm theo tên..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Sort and View Controls */}
+          <div className="flex justify-end items-center gap-2.5 w-full sm:w-1/2">
+            {/* Filter Button */}
+            <Button
+              variant="outline"
+              size="default"
+              onClick={() => setShowFilterModal(true)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Bộ lọc
+              {activeFilters.lessonIds.length > 0 && (
+                <span className="bg-red-500 text-white text-xs px-[7px] py-0.5 rounded-full">
+                  {activeFilters.lessonIds.length}
+                </span>
+              )}
+            </Button>
+
+            {/* Sort Dropdown */}
+            <Select
+              value={sortBy}
+              onValueChange={(value: "newest" | "oldest") => setSortBy(value)}
+            >
+              <SelectTrigger className="min-w-[120px] w-fit rounded-full">
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Mới nhất</SelectItem>
+                <SelectItem value="oldest">Cũ nhất</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* View Toggle */}
+            <div className="flex items-center bg-white border rounded-full p-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setView("grid")}
+                className={`rounded-full px-3 py-1 text-sm font-medium transition-all ${
+                  view === "grid"
+                    ? "bg-white text-black border border-gray-200 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <Grid3X3 className="h-4 w-4 mr-1" />
+                Hàng lưới
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setView("list")}
+                className={`rounded-full px-3 py-1 text-sm font-medium transition-all ${
+                  view === "list"
+                    ? "bg-white text-black border border-gray-200 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <List className="h-4 w-4 mr-1" />
+                Danh sách
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Filters Display */}
+        {(activeFilters.lessonIds.length > 0 || searchQuery) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-calsans text-gray-600">
+              Đang lọc:
+            </span>
+            {activeFilters.lessonIds.length > 0 && (
+              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                {activeFilters.lessonIds.length} bài học
+              </span>
+            )}
+            {searchQuery && (
+              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                Tìm kiếm: "{searchQuery}"
+              </span>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setActiveFilters({ lessonIds: [] });
+                setSearchQuery("");
+                setCurrentPage(0);
+              }}
+              className="text-red-500 hover:text-red-700 text-xs"
+            >
+              Xóa bộ lọc
+            </Button>
+          </div>
+        )}
+      </div>
+
       {/* Handle empty state for both data sources */}
       {((id === "QUIZ" && (!templates?.data || templates.data.length === 0)) ||
         (id !== "QUIZ" &&
@@ -247,53 +419,54 @@ function MyLibraryDetail({ params }: Props) {
           </h3>
         </div>
       )}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-        {/* Render data based on the type */}
-        {id === "QUIZ"
-          ? templates?.data?.map((data: any, index: number) => (
-              <div key={index} className="col-span-1 cursor-pointer">
-                <DocumentItem
-                  type="DOCX"
-                  name={data?.name}
-                  description={data?.subject || data?.description}
-                  lastModifiedTime={new Date(
-                    data?.updatedAt || data?.createdAt
-                  ).toLocaleString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                  })}
-                  onRemove={() => handleRemoveClick(data)}
-                  onClick={() => handleItemClick(data)}
-                />
-              </div>
-            ))
-          : toolResults?.data?.content?.map((data: any, index: number) => (
-              <div key={index} className="col-span-1 cursor-pointer">
-                <DocumentItem
-                  type={data?.type == "SLIDE" ? "PPTX" : "DOCX"}
-                  name={data?.name}
-                  description={data?.description}
-                  lastModifiedTime={new Date(data?.updatedAt).toLocaleString(
-                    "vi-VN",
-                    {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    }
-                  )}
-                  onRemove={() => handleRemoveClick(data)}
-                  onClick={() => handleItemClick(data)}
-                />
-              </div>
-            ))}
-      </div>
+      {/* Data Display */}
+      {view === "list" ? (
+        /* List View - Using LibraryList component */
+        <LibraryList
+          data={filteredData.map((item: any) => ({
+            ...item,
+            itemType: id,
+          }))}
+          onItemClick={handleItemClick}
+          onRemoveClick={handleRemoveClick}
+          type={id}
+        />
+      ) : (
+        /* Grid View */
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+          {filteredData.map((data: any, index: number) => (
+            <div key={index} className="col-span-1 cursor-pointer">
+              <DocumentItem
+                type={
+                  id === "QUIZ"
+                    ? "DOCX"
+                    : data?.type === "SLIDE"
+                    ? "PPTX"
+                    : "DOCX"
+                }
+                name={data?.name}
+                description={
+                  id === "QUIZ"
+                    ? data?.subject || data?.description
+                    : data?.description
+                }
+                lastModifiedTime={new Date(
+                  data?.updatedAt || data?.createdAt
+                ).toLocaleString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}
+                onRemove={() => handleRemoveClick(data)}
+                onClick={() => handleItemClick(data)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
       {/* Pagination using shadcn/ui - only show for toolResults, not for templates */}
       {id !== "QUIZ" &&
         toolResults?.data &&
@@ -444,6 +617,14 @@ function MyLibraryDetail({ params }: Props) {
         title="Xác nhận xóa tài liệu"
         itemName={itemToDelete?.name}
         isLoading={id === "QUIZ" ? isDeletingTemplate : isDeleting}
+      />
+
+      {/* Filter Modal */}
+      <LibraryFilterModal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApplyFilter={handleApplyFilter}
+        initialFilters={activeFilters}
       />
     </div>
   );

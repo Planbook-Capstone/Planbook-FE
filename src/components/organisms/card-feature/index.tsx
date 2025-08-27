@@ -12,6 +12,7 @@ interface CardFeatureProps {
   description?: string;
   href?: string;
   id?: string;
+  isFree?: boolean;
 }
 
 const CardFeature = ({
@@ -20,6 +21,7 @@ const CardFeature = ({
   title,
   description,
   href = "/",
+  isFree = false,
 }: CardFeatureProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -66,7 +68,7 @@ const CardFeature = ({
   return (
     <div
       onClick={handleClick}
-      className="w-full flex justify-between items-center gap-1 border border-[#DFDFDF]  rounded-2xl cursor-pointer  hover:bg-[#FAFAFA] "
+      className="relative w-full flex justify-between items-center gap-1 border border-[#DFDFDF]  rounded-2xl cursor-pointer  hover:bg-[#FAFAFA] "
       data-tour={id ? `feature-${id}` : undefined}
     >
       <SpotlightCard
@@ -81,6 +83,11 @@ const CardFeature = ({
           <p className="text-sm truncate w-4/5">{description}</p>
         </div>
       </SpotlightCard>
+      {isFree && (
+        <div className="absolute px-2 rounded-full -top-3 -right-3 bg-lime-300 text-black">
+          <span className="text-sm">Miễn phí</span>
+        </div>
+      )}
     </div>
   );
 };
