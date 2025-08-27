@@ -551,3 +551,22 @@ export interface SlideData {
   elements: SlideElement[];
   background?: string;
 }
+
+// Interface for tool log data (matching API response)
+export interface ToolLog {
+  id: number;
+  userId: string;
+  toolId: string;
+  lessonIds: string[];
+  academicYearId: number;
+  resultId: string | null;
+  templateId: string | null;
+  code: string;
+  status: "SUCCESS" | "FAILED" | "PENDING";
+  toolType: "EXTERNAL" | "INTERNAL";
+  tokenUsed: number;
+  input: any;
+  output: any;
+  createdAt: string;
+  updatedAt: string;
+}

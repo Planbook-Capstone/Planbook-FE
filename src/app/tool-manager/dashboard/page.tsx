@@ -13,11 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/FormField";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  ExternalToolConfig,
-  mockExternalToolConfigs,
-  mockRevenueData,
-} from "@/data/tools";
+import { ExternalToolConfig, mockExternalToolConfigs } from "@/data/tools";
 import { Plus, Eye, Edit, Trash2, BarChart3 } from "lucide-react";
 import {
   LineChart,
@@ -37,6 +33,8 @@ import {
   useUpdateExternalToolService,
   useDeleteExternalToolService,
 } from "@/services/externalToolsServices";
+import { useToolLogsWithParamsService } from "@/services/toolLogServices";
+import { calculateTokenUsage } from "@/utils/tokenUsageCalculation";
 
 // Mock current user (tool-manager)
 const CURRENT_USER_ID = "uuid-4"; // Phạm Thị Tool Manager
@@ -109,67 +107,46 @@ export default function ToolManagerDashboardPage() {
     }
   }, [externalToolsData, apiError, isLoadingTools]);
 
-  // Revenue data for current user's tools
-  const userRevenueData = useMemo(() => {
-    const userToolIds = tools.map((tool) => tool.id);
-    return mockRevenueData.filter((revenue) =>
-      userToolIds.includes(revenue.toolId)
-    );
-  }, [tools]);
+  // Fetch tool logs using existing service
+  const {
+    data: toolLogsResponse,
+    isLoading: isLoadingToolLogs,
+    error: toolLogsError,
+  } = useToolLogsWithParamsService(
+    [tools.length], // dependency for query key
+    { retry: 1, staleTime: 5 * 60 * 1000 }, // options
+    {
+      toolType: "EXTERNAL",
+      status: "SUCCESS",
+      pageSize: 1000,
+      sortBy: "createdAt",
+      sortDirection: "desc",
+    } // params
+  );
 
-  // Calculate total revenue
-  const totalRevenue = useMemo(() => {
-    return userRevenueData.reduce((sum, record) => sum + record.amount, 0);
-  }, [userRevenueData]);
+  // Calculate token usage from tool logs
+  const tokenUsageCalculation = useMemo(() => {
+    const toolLogsData = toolLogsResponse?.data?.content || [];
+    return calculateTokenUsage(tools, toolLogsData);
+  }, [tools, toolLogsResponse]);
 
-  // Calculate monthly revenue for current month
-  const currentMonthRevenue = useMemo(() => {
-    const currentMonth = "2025-05"; // Mock current month
-    return userRevenueData
-      .filter((record) => record.month === currentMonth)
-      .reduce((sum, record) => sum + record.amount, 0);
-  }, [userRevenueData]);
+  // Extract token usage data
+  const {
+    totalTokens,
+    currentMonthTokens,
+    monthlyChartData,
+    toolUsageData,
+    userToolLogs,
+  } = tokenUsageCalculation;
 
-  // Prepare chart data
-  const monthlyChartData = useMemo(() => {
-    const monthlyData: Record<string, number> = {};
-    userRevenueData.forEach((record) => {
-      monthlyData[record.month] =
-        (monthlyData[record.month] || 0) + record.amount;
-    });
-
-    return Object.entries(monthlyData)
-      .map(([month, amount]) => ({
-        month: month.replace("2025-", "T"),
-        amount,
-        formattedAmount: new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-          notation: "compact",
-        }).format(amount),
-      }))
-      .sort((a, b) => a.month.localeCompare(b.month));
-  }, [userRevenueData]);
-
-  const toolRevenueData = useMemo(() => {
-    const toolData: Record<string, number> = {};
-    userRevenueData.forEach((record) => {
-      const tool = tools.find((t) => t.id === record.toolId);
-      if (tool) {
-        toolData[tool.name] = (toolData[tool.name] || 0) + record.amount;
-      }
-    });
-
-    return Object.entries(toolData).map(([name, amount]) => ({
-      name,
-      amount,
-      formattedAmount: new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-        notation: "compact",
-      }).format(amount),
-    }));
-  }, [userRevenueData, tools]);
+  // Log for debugging
+  console.log("Token usage calculation:", {
+    totalTokens,
+    currentMonthTokens,
+    toolLogsCount: userToolLogs.length,
+    isLoadingToolLogs,
+    toolLogsError,
+  });
 
   // Validation functions
   const validateUrl = (url: string): boolean => {
@@ -238,7 +215,7 @@ export default function ToolManagerDashboardPage() {
       clientSecret: formData.clientSecret.trim(),
       description: formData.description.trim(),
       tokenCostPerQuery: formData.tokenCostPerQuery,
-      inputJson: formData.inputJson.trim(),
+      inputJson: JSON.parse(formData.inputJson.trim()),
     };
 
     console.log("🚀 Creating tool:", newTool);
@@ -266,7 +243,7 @@ export default function ToolManagerDashboardPage() {
       clientSecret: formData.clientSecret.trim(),
       description: formData.description.trim(),
       tokenCostPerQuery: formData.tokenCostPerQuery,
-      inputJson: formData.inputJson.trim(),
+      inputJson: JSON.parse(formData.inputJson.trim()),
     };
 
     console.log("Updating tool:", updatedTool);
@@ -302,7 +279,7 @@ export default function ToolManagerDashboardPage() {
       clientSecret: tool.clientSecret,
       description: tool.description || "",
       tokenCostPerQuery: (tool as any).tokenCostPerQuery || 0,
-      inputJson: (tool as any).inputJson || "",
+      inputJson: JSON.stringify((tool as any).inputJson) || "",
     });
     setIsEditModalOpen(true);
   };
@@ -327,9 +304,9 @@ export default function ToolManagerDashboardPage() {
     setFormErrors({});
   };
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN").format(amount) + " VNĐ";
+  // Format token count
+  const formatTokenCount = (tokenCount: number) => {
+    return new Intl.NumberFormat("vi-VN").format(tokenCount) + " tokens";
   };
 
   // Table columns definition
@@ -395,15 +372,6 @@ export default function ToolManagerDashboardPage() {
             >
               <Edit size={16} />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleDeleteTool(tool)}
-              className="p-2 hover:bg-red-50 hover:text-red-600"
-              title="Xóa"
-            >
-              <Trash2 size={16} />
-            </Button>
           </div>
         );
       },
@@ -414,7 +382,7 @@ export default function ToolManagerDashboardPage() {
     <div className="bg-white">
       {/* Main Content */}
       <div className="w-full">
-        {/* Revenue Stats */}
+        {/* Token Usage Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Card đầu với background image */}
           <div
@@ -427,10 +395,10 @@ export default function ToolManagerDashboardPage() {
           >
             <div className="relative z-10">
               <h3 className="text-lg font-calsans text-white mb-2">
-                Tổng doanh thu
+                Tổng tokens đã sử dụng
               </h3>
               <p className="text-3xl font-calsans text-white">
-                {formatCurrency(totalRevenue)}
+                {formatTokenCount(totalTokens)}
               </p>
             </div>
           </div>
@@ -439,10 +407,10 @@ export default function ToolManagerDashboardPage() {
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div>
               <h3 className="text-lg font-calsans text-gray-900 mb-2">
-                Doanh thu tháng này
+                Tokens tháng này
               </h3>
               <p className="text-3xl font-calsans text-gray-900">
-                {formatCurrency(currentMonthRevenue)}
+                {formatTokenCount(currentMonthTokens)}
               </p>
             </div>
           </div>
@@ -460,23 +428,32 @@ export default function ToolManagerDashboardPage() {
           </div>
         </div>
 
-        {/* Revenue Charts */}
+        {/* Token Usage Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Monthly Revenue Line Chart */}
+          {/* Monthly Token Usage Line Chart */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h2 className="text-lg font-calsans text-gray-900 mb-4">
-              Doanh thu theo tháng
+              Tokens sử dụng theo tháng
             </h2>
             <div className="h-64">
-              {totalRevenue === 0 || monthlyChartData.length === 0 ? (
+              {isLoadingToolLogs ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="font-questrial text-sm">
+                      Đang tải dữ liệu doanh thu...
+                    </p>
+                  </div>
+                </div>
+              ) : totalTokens === 0 || monthlyChartData.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center text-gray-500">
                     <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                     <p className="font-questrial text-lg">
-                      Chưa có dữ liệu doanh thu
+                      Chưa có dữ liệu token usage
                     </p>
                     <p className="text-sm text-gray-400 mt-1">
-                      Doanh thu sẽ hiển thị khi có giao dịch
+                      Token usage sẽ hiển thị khi có giao dịch từ tool logs
                     </p>
                   </div>
                 </div>
@@ -491,11 +468,9 @@ export default function ToolManagerDashboardPage() {
                     <YAxis width={100} />
                     <Tooltip
                       formatter={(value: any) => [
-                        new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        }).format(value),
-                        "Doanh thu",
+                        new Intl.NumberFormat("vi-VN").format(value) +
+                          " tokens",
+                        "Token Usage",
                       ]}
                     />
                     <Line
@@ -511,28 +486,37 @@ export default function ToolManagerDashboardPage() {
             </div>
           </div>
 
-          {/* Tool Revenue Bar Chart */}
+          {/* Tool Usage Bar Chart */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h2 className="text-lg font-calsans text-gray-900 mb-4">
-              Doanh thu theo API
+              Token usage theo API
             </h2>
             <div className="h-64">
-              {totalRevenue === 0 || toolRevenueData.length === 0 ? (
+              {isLoadingToolLogs ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="font-questrial text-sm">
+                      Đang tải dữ liệu token usage...
+                    </p>
+                  </div>
+                </div>
+              ) : totalTokens === 0 || toolUsageData.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center text-gray-500">
                     <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                     <p className="font-questrial text-lg">
-                      Chưa có dữ liệu doanh thu
+                      Chưa có dữ liệu token usage
                     </p>
                     <p className="text-sm text-gray-400 mt-1">
-                      Doanh thu sẽ hiển thị khi có giao dịch
+                      Token usage sẽ hiển thị khi có giao dịch từ tool logs
                     </p>
                   </div>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={toolRevenueData}
+                    data={toolUsageData}
                     margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -540,11 +524,9 @@ export default function ToolManagerDashboardPage() {
                     <YAxis width={100} />
                     <Tooltip
                       formatter={(value: any) => [
-                        new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        }).format(value),
-                        "Doanh thu",
+                        new Intl.NumberFormat("vi-VN").format(value) +
+                          " tokens",
+                        "Token Usage",
                       ]}
                     />
                     <Bar dataKey="amount" fill="#330BA2" />
