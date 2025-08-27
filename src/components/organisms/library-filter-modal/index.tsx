@@ -156,7 +156,7 @@ export default function LibraryFilterModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-h-[85vh] transition-all duration-300"
+        className="max-h-[85vh] overflow-y-auto transition-all duration-300"
         style={{
           width: showSelectedLessons ? "min(95vw, 1280px)" : "min(95vw, 896px)",
           maxWidth: showSelectedLessons ? "1280px" : "896px",
@@ -184,7 +184,7 @@ export default function LibraryFilterModal({
         <div
           className={`flex ${
             showSelectedLessons ? "flex-col lg:flex-row" : "flex-col"
-          } gap-6 h-full overflow-hidden`}
+          } gap-6`}
         >
           {/* Main Filter Section */}
           <div
@@ -241,7 +241,7 @@ export default function LibraryFilterModal({
 
           {/* Selected Lessons Sidebar */}
           {showSelectedLessons && selectedLessons.length > 0 && (
-            <div className="w-full h-full lg:w-80 flex-shrink-0 lg:border-l lg:pl-6 border-t lg:border-t-0 pt-6 lg:pt-0">
+            <div className="w-full lg:w-80 flex-shrink-0 lg:border-l lg:pl-6 border-t lg:border-t-0 pt-6 lg:pt-0">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-calsans">Bài đã chọn</h3>
                 <Button
@@ -252,25 +252,25 @@ export default function LibraryFilterModal({
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="h-full overflow-y-auto">
-                <div className="space-y-2">
-                  {getSelectedLessonNames().map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded"
+              <div className="space-y-2">
+                {getSelectedLessonNames().map((lesson) => (
+                  <div
+                    key={lesson.id}
+                    className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                  >
+                    <span className="text-sm flex-1 mr-2 break-words">
+                      {lesson.name}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveLesson(lesson.id)}
+                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700 flex-shrink-0"
                     >
-                      <span className="text-sm">{lesson.name}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveLesson(lesson.id)}
-                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
