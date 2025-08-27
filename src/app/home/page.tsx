@@ -5,8 +5,6 @@ import { useMemo, useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import CardFeature from "@/components/organisms/card-feature";
 import { HistoryIcon } from "@/constants/icon";
-import ItemSection from "@/components/organisms/item-section";
-import HistoryCard from "@/components/organisms/history-card";
 import HistoryList from "@/components/organisms/history-list";
 import { useSearchParams } from "next/navigation";
 import { useBookTypesService } from "@/services/bookTypeServices";
@@ -33,7 +31,7 @@ import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 export default function Home() {
   const searchParams = useSearchParams();
-  const view = searchParams.get("view") || "grid";
+  // const view = searchParams.get("view") || "grid";
   const orderCode = searchParams.get("orderCode");
   const { data: bookTypes, isLoading } = useBookTypesService();
   const {
@@ -245,14 +243,20 @@ export default function Home() {
       />
 
       <div data-tour="history">
-        <ItemSection
+        {/* <ItemSection
           title={
             <>
               {HistoryIcon}
               Lịch sử
             </>
           }
-        />
+        /> */}
+        <div className="flex flex-col md:my-10 sm:flex-row sm:justify-between sm:items-center gap-4">
+          <h1 className="flex gap-1 items-center text-xl font-calsans">
+            {HistoryIcon}
+            Lịch sử
+          </h1>
+        </div>
       </div>
 
       {isLoadingToolLogs ? (
@@ -265,24 +269,9 @@ export default function Home() {
         </div>
       ) : (
         <>
-          {view === "list" ? (
-            <div data-tour="history-list">
-              <HistoryList data={toolLogs?.data?.content || []} />
-            </div>
-          ) : (
-            <section
-              data-tour="history-list"
-              className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5"
-            >
-              {toolLogs?.data?.content?.map((data: any, index: number) => (
-                <HistoryCard
-                  key={index}
-                  data={data}
-                  className={getRandomColorClass()}
-                />
-              ))}
-            </section>
-          )}
+          <div data-tour="history-list">
+            <HistoryList data={toolLogs?.data?.content || []} />
+          </div>
         </>
       )}
 
