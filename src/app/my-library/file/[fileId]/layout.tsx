@@ -103,8 +103,8 @@ export default function FileLayout({ children, params }: FileLayoutProps) {
       <div
         className={
           data?.data?.type === "SLIDE"
-            ? "grid grid-cols-5 p-5"
-            : "grid grid-cols-3 p-5"
+            ? "grid md:grid-cols-5 p-5"
+            : "grid md:grid-cols-3 p-5"
         }
       >
         <div className="h-full">
