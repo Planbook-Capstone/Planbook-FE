@@ -20,7 +20,10 @@ import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { FormField } from "@/components/ui/FormField";
 import { toast } from "sonner";
-import { useInputHistoryStore, createLessonMatrixData } from "@/store/inputHistoryStore";
+import {
+  useInputHistoryStore,
+  createLessonMatrixData,
+} from "@/store/inputHistoryStore";
 // Local types for dynamic matrix
 type MatrixRow = {
   lessonID: string;
@@ -353,12 +356,8 @@ export default function MatrixTemplate2() {
     useDistributeMaximumAcrossDifficulties();
 
   // Hook input history store
-  const {
-    saveLessonInput,
-    getLessonInput,
-    hasLessonHistory,
-    getHistoryCount,
-  } = useInputHistoryStore();
+  const { saveLessonInput, getLessonInput, hasLessonHistory, getHistoryCount } =
+    useInputHistoryStore();
 
   // Function to create initial distribution based on template and rowCount
   const createInitialDistribution = (rowCount = 1) => {
@@ -384,7 +383,9 @@ export default function MatrixTemplate2() {
   const [matrix, setMatrix] = useState<MatrixRow[]>([]);
 
   // State để track những hàng được khôi phục từ lịch sử
-  const [restoredFromHistory, setRestoredFromHistory] = useState<Set<number>>(new Set());
+  const [restoredFromHistory, setRestoredFromHistory] = useState<Set<number>>(
+    new Set()
+  );
 
   // Initialize matrix when template data is available
   useEffect(() => {
@@ -467,7 +468,8 @@ export default function MatrixTemplate2() {
   const addMatrixRow = () => {
     // Tính toán số câu còn lại sau khi trừ đi những hàng từ history
     const remainingPerPart: { [key: string]: number } = {};
-    const nonHistoryRowCount = matrix.filter((_, idx) => !restoredFromHistory.has(idx)).length + 1; // +1 for new row
+    const nonHistoryRowCount =
+      matrix.filter((_, idx) => !restoredFromHistory.has(idx)).length + 1; // +1 for new row
 
     templateParts?.forEach((part: any, partIdx: number) => {
       const partKey = `part${partIdx + 1}`;
@@ -521,11 +523,17 @@ export default function MatrixTemplate2() {
         const numLevels = part.difficultyLevels?.length || 1;
 
         // Chia đều số còn lại cho các hàng không phải từ history
-        const perRow = nonHistoryRowCount > 0 ? Math.floor(remaining / nonHistoryRowCount) : 0;
-        const remainderRow = nonHistoryRowCount > 0 ? remaining % nonHistoryRowCount : 0;
+        const perRow =
+          nonHistoryRowCount > 0
+            ? Math.floor(remaining / nonHistoryRowCount)
+            : 0;
+        const remainderRow =
+          nonHistoryRowCount > 0 ? remaining % nonHistoryRowCount : 0;
 
         // Tính index của hàng này trong danh sách non-history
-        const nonHistoryIndex = newMatrix.filter((_, i) => i <= idx && !restoredFromHistory.has(i)).length - 1;
+        const nonHistoryIndex =
+          newMatrix.filter((_, i) => i <= idx && !restoredFromHistory.has(i))
+            .length - 1;
         const thisRowMax = perRow + (nonHistoryIndex < remainderRow ? 1 : 0);
 
         newDistribution[partKey] = {};
@@ -543,7 +551,8 @@ export default function MatrixTemplate2() {
             newDistribution[partKey][level.id] = perLevel;
           });
           if (levelOrder.length > 0) {
-            newDistribution[partKey][levelOrder[levelOrder.length - 1]] += remainderLevel;
+            newDistribution[partKey][levelOrder[levelOrder.length - 1]] +=
+              remainderLevel;
           }
         }
       });
@@ -578,8 +587,6 @@ export default function MatrixTemplate2() {
 
     return lessonsPerPart;
   };
-
-
 
   // Function to calculate remaining questions for each part
   const calculateRemainingQuestionsPerPart = () => {
@@ -618,8 +625,10 @@ export default function MatrixTemplate2() {
           const historyData = getLessonInput(cleanLessonId);
           if (historyData) {
             // Mark this row as restored from history
-            setRestoredFromHistory(prev => new Set(prev).add(rowIdx));
-            toast.info(`Đã khôi phục dữ liệu đã nhập cho bài "${historyData.lessonID}"`);
+            setRestoredFromHistory((prev) => new Set(prev).add(rowIdx));
+            toast.info(
+              `Đã khôi phục dữ liệu đã nhập cho bài "${historyData.lessonID}"`
+            );
             return {
               ...row,
               lessonID: cleanLessonId,
@@ -630,7 +639,7 @@ export default function MatrixTemplate2() {
         }
 
         // Remove from restored set if no history
-        setRestoredFromHistory(prev => {
+        setRestoredFromHistory((prev) => {
           const newSet = new Set(prev);
           newSet.delete(rowIdx);
           return newSet;
@@ -672,7 +681,10 @@ export default function MatrixTemplate2() {
           ...row,
           lessonID: cleanLessonId,
           distribution: newDistribution,
-          total: calculateDynamicRowTotal({ ...row, distribution: newDistribution }),
+          total: calculateDynamicRowTotal({
+            ...row,
+            distribution: newDistribution,
+          }),
         };
       }
       return row;
@@ -747,7 +759,12 @@ export default function MatrixTemplate2() {
           // Calculate total used by other non-history rows (excluding current row)
           let usedByOthers = 0;
           matrix.forEach((r, idx) => {
-            if (idx !== rowIdx && !restoredFromHistory.has(idx) && r.lessonID && r.lessonID.trim() !== "") {
+            if (
+              idx !== rowIdx &&
+              !restoredFromHistory.has(idx) &&
+              r.lessonID &&
+              r.lessonID.trim() !== ""
+            ) {
               part.difficultyLevels?.forEach((level: any) => {
                 const value = Number(r.distribution[partKey]?.[level.id]) || 0;
                 usedByOthers += value;
@@ -756,7 +773,10 @@ export default function MatrixTemplate2() {
           });
 
           // Calculate remaining for this row
-          const remainingForThisRow = Math.max(0, maximum - usedByHistory - usedByOthers);
+          const remainingForThisRow = Math.max(
+            0,
+            maximum - usedByHistory - usedByOthers
+          );
 
           if (remainingForThisRow > 0 && part.difficultyLevels) {
             // Auto-distribute remaining across difficulty levels
@@ -1253,7 +1273,7 @@ export default function MatrixTemplate2() {
         </div>
       ) : (
         <>
-          <table className="min-w-[900px] text-center rounded-md border mb-4">
+          <table className="min-w-[1000px] text-center rounded-md border mb-4">
             <thead className="font-calsans text-base">
               <tr>
                 <th className="border px-2 py-4 align-middle" rowSpan={2}>
@@ -1342,13 +1362,20 @@ export default function MatrixTemplate2() {
                                 // Lọc ra các bài học đã được chọn ở các hàng khác
                                 const selectedLessons = matrix
                                   .map((row, index) =>
-                                    index !== rowIdx ? String(row.lessonID || "") : null
+                                    index !== rowIdx
+                                      ? String(row.lessonID || "")
+                                      : null
                                   )
                                   .filter(Boolean);
-                                return !selectedLessons.includes(String(item.id));
+                                return !selectedLessons.includes(
+                                  String(item.id)
+                                );
                               })
                               .map((item: any) => (
-                                <SelectItem key={item.id} value={String(item.id)}>
+                                <SelectItem
+                                  key={item.id}
+                                  value={String(item.id)}
+                                >
                                   {item.name}
                                 </SelectItem>
                               ))}
@@ -1509,7 +1536,7 @@ export default function MatrixTemplate2() {
                                     )
                                   );
                                   // Remove from restored history when reset
-                                  setRestoredFromHistory(prev => {
+                                  setRestoredFromHistory((prev) => {
                                     const newSet = new Set(prev);
                                     newSet.delete(rowIdx);
                                     return newSet;
@@ -1633,13 +1660,13 @@ export default function MatrixTemplate2() {
               <p>
                 <strong>Phân bổ tự động:</strong> Chia đều số câu maximum của
                 mỗi phần cho tất cả các bài học đã chọn, sau đó chia đều cho các
-                mức độ khó (NB, TH, VD). Khi có số lẻ, mức Nhận biết (NB) và
-                Thông hiểu (TH) sẽ được ưu tiên hơn Vận dụng (VD).
+                mức độ khó (NB, TH, VD).
               </p>
-              <p className="mt-1 text-xs text-gray-500">
-                Ví dụ: Phần có maximum 30 câu, 3 bài học → mỗi bài 10 câu → NB:
-                4, TH: 3, VD: 3
+              <p className="text-blue-500">
+                <strong> Chú thích:</strong> Nhận biết (NB) ,Thông hiểu (TH) và
+                Vận dụng (VD).
               </p>
+
               {/* <p className="mt-1 text-xs text-blue-600">
                 📝 Lịch sử nhập liệu: {getHistoryCount()}/20 bài học đã lưu
                 {getHistoryCount() >= 20 && " (Đã đầy, sẽ tự động xóa bài cũ nhất khi thêm mới)"}

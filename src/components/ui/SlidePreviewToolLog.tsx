@@ -225,8 +225,8 @@ export function SlidePreviewModal({ data }: SlidePreviewModalProps) {
             className="flex flex-col items-center space-y-2"
           >
             <div className="text-sm font-medium text-gray-700">
-              Slide {index + 1}:{" "}
-              {slide.title || slide.slideData?.title || "Untitled"}
+              Slide {index + 1}{" "}
+              {/* {slide.title || slide.slideData?.title || "Untitled"} */}
             </div>
             <SlideCanvasModal slide={slide} />
           </div>
