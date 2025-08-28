@@ -10,10 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HistoryItem } from "./columns";
 import { useLessonsByIdsService } from "@/services/lessonServices";
 import { useSlideTemplateByIdService } from "@/services/slideTemplateServices";
+import { useToolResultByIdService } from "@/services/toolResultService";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SlidePreviewModal } from "@/components/ui/SlidePreviewToolLog";
 import { getDifficultyText } from "@/constants";
 import { GridSkeleton } from "@/components/molecules/grid-skeleton";
+import { Button } from "@/components/ui/Button";
+import TemplatePreview from "@/components/organisms/template-preview";
 
 // Component để hiển thị ma trận cho EXAM_CREATOR
 const ExamCreatorMatrix = ({ matrix }: { matrix: any[] }) => {
@@ -551,8 +554,6 @@ const SlideGeneratorInput = ({ input }: { input: any }) => {
         </div>
       )}
 
-
-
       {/* Raw data fallback */}
       {!canShowSlidePreview() &&
         !input.data &&
@@ -615,19 +616,7 @@ const SlideGeneratorOutput = ({ output }: { output: any }) => {
         <div>
           <strong>Tổng số slide:</strong> {slides.length}
         </div>
-        <div>
-          <strong>Slides có nội dung:</strong>{" "}
-          {
-            slides.filter((slide: any) => {
-              const directElements =
-                slide.elements && slide.elements.length > 0;
-              const slideDataElements =
-                slide.slideData?.elements &&
-                slide.slideData.elements.length > 0;
-              return directElements || slideDataElements;
-            }).length
-          }
-        </div>
+        
         {!hasElements && (
           <div className="text-orange-600 text-xs">
             ⚠️ Các slide chưa có elements hoặc đang được tạo
@@ -698,20 +687,84 @@ const SlideGeneratorOutput = ({ output }: { output: any }) => {
   );
 };
 
+// Component để hiển thị thông tin exam từ sourceExamId
+const ExamDetailItem = ({ exam, index }: { exam: any; index: number }) => {
+  const {
+    data: examDetail,
+    isLoading,
+    isError,
+  } = useToolResultByIdService(exam.sourceExamId);
+
+  return (
+    <div className="border rounded p-3 bg-gray-50">
+      <div className="text-sm">
+        <strong>Đề {index + 1}:</strong>{" "}
+        {isLoading ? (
+          <span className="text-gray-500">Đang tải...</span>
+        ) : isError ? (
+          <span className="text-red-500">
+            Source Exam ID {exam.sourceExamId}
+          </span>
+        ) : (
+          <span>
+            {examDetail?.data?.input?.examTitle ||
+              examDetail?.data?.name ||
+              `Source Exam ID ${exam.sourceExamId}`}
+          </span>
+        )}
+      </div>
+
+      {/* Hiển thị mô tả nếu có */}
+      {!isLoading && !isError && examDetail?.data?.input?.description && (
+        <div className="text-xs text-gray-600 mt-1">
+          <strong>Mô tả:</strong> {examDetail.data.input.description}
+        </div>
+      )}
+
+      {/* Hiển thị thông tin bổ sung */}
+      {!isLoading && !isError && examDetail?.data?.input && (
+        <div className="text-xs text-gray-600 mt-1 space-y-1">
+          {examDetail.data.input.grade && (
+            <div>
+              <strong>Lớp:</strong> {examDetail.data.input.grade}
+            </div>
+          )}
+          {examDetail.data.input.subject && (
+            <div>
+              <strong>Môn:</strong> {examDetail.data.input.subject}
+            </div>
+          )}
+          {examDetail.data.input.duration && (
+            <div>
+              <strong>Thời gian:</strong> {examDetail.data.input.duration} phút
+            </div>
+          )}
+        </div>
+      )}
+
+      {exam.contentJson?.parts && (
+        <div className="text-xs text-gray-600 mt-1">
+          <strong>Số phần:</strong> {exam.contentJson.parts.length}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Component để hiển thị input cho MANUAL_EXAM_CREATOR
 const ManualExamCreatorInput = ({ input }: { input: any }) => {
   return (
     <div className="space-y-4">
       {/* Thông tin cơ bản */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-blue-50 p-3 rounded">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm bg-blue-50 p-3 rounded">
         <div>
           <strong>Tên đề:</strong> {input.examTitle}
         </div>
         <div>
-          <strong>Lớp:</strong> {input.grade}
+          <strong>Lớp:</strong> {input.grade || "N/A"}
         </div>
         <div>
-          <strong>Môn:</strong> {input.subject}
+          <strong>Môn:</strong> {input.subject || "N/A"}
         </div>
         <div>
           <strong>Thời gian:</strong> {input.duration} phút
@@ -722,11 +775,6 @@ const ManualExamCreatorInput = ({ input }: { input: any }) => {
         <div>
           <strong>Số đề:</strong> {input.numberOfExams}
         </div>
-        {input.bookType && (
-          <div>
-            <strong>Loại sách:</strong> {input.bookType}
-          </div>
-        )}
       </div>
 
       {/* Ma trận cấu hình - format mới */}
@@ -808,112 +856,92 @@ const ManualExamCreatorInput = ({ input }: { input: any }) => {
           </div>
         </div>
       )}
-
-      {/* Thông tin đề thi cá nhân */}
-      {input.personalExams && input.personalExams.length > 0 && (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Thông tin đề thi cá nhân */}
+        {input.personalExams && input.personalExams.length > 0 && (
+          <div>
+            <h5 className="font-medium mb-3">
+              Đề thi cá nhân ({input.personalExams.length}):
+            </h5>
+            <div className="space-y-2">
+              {input?.personalExams?.map((exam: any, index: number) => (
+                <ExamDetailItem key={index} exam={exam} index={index} />
+              ))}
+            </div>
+          </div>
+        )}
         <div>
           <h5 className="font-medium mb-3">
-            Đề thi cá nhân ({input.personalExams.length}):
+            Câu hỏi từ hệ thống ({input.systemQuestions.length}):
           </h5>
-          <div className="space-y-2">
-            {input.personalExams.map((exam: any, index: number) => (
-              <div key={index} className="border rounded p-3 bg-gray-50">
-                <div className="text-sm">
-                  <strong>Đề {index + 1}:</strong> Source Exam ID{" "}
-                  {exam.sourceExamId}
-                </div>
-                {exam.contentJson?.parts && (
-                  <div className="text-xs text-gray-600 mt-1">
-                    Số phần: {exam.contentJson.parts.length}
+          {input?.systemQuestions.length > 0 && (
+            <div className="space-y-5">
+              {input?.systemQuestions?.map((question: any, index: number) => (
+                <div key={index}>
+                  <div className="text-sm">
+                    <strong>
+                      Câu hỏi {index + 1}:[
+                      {getDifficultyText(question?.difficultyLevel)}]
+                    </strong>{" "}
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: question?.questionContent?.question || "",
+                      }}
+                    />
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
 // Component để hiển thị output cho MANUAL_EXAM_CREATOR
 const ManualExamCreatorOutput = ({ output }: { output: any }) => {
+  const [selectedExamIndex, setSelectedExamIndex] = useState(0);
+  const examResult = output?.results || [];
+
   return (
     <div className="space-y-4">
       {/* Thông tin tổng quan */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-green-50 p-3 rounded">
         <div>
-          <strong>Số đề đã tạo:</strong> {output.numberOfExams}
-        </div>
-        {output.bookType && (
-          <div>
-            <strong>Loại sách:</strong> {output.bookType}
-          </div>
-        )}
-        <div>
-          <strong>Thời gian:</strong> {output.duration} phút
-        </div>
-        <div>
-          <strong>Lớp:</strong> {output.grade}
+          <strong>Số đề đã tạo:</strong> {examResult.length}
         </div>
       </div>
 
-      {/* Danh sách đề thi đã tạo */}
-      {output.personalExams && output.personalExams.length > 0 && (
-        <div>
-          <h5 className="font-medium mb-3">Đề thi đã tạo:</h5>
-          <div className="space-y-4">
-            {output.personalExams.map((exam: any, examIndex: number) => (
-              <div key={examIndex} className="border rounded-lg p-4">
-                <h6 className="font-medium mb-3">Đề thi {examIndex + 1}</h6>
-
-                {exam.contentJson?.parts?.map(
-                  (part: any, partIndex: number) => (
-                    <div key={partIndex} className="mb-4">
-                      <h6 className="font-medium text-sm mb-2">
-                        {part.part}: {part.title}
-                      </h6>
-
-                      {part.questions && part.questions.length > 0 ? (
-                        <div className="space-y-2">
-                          {part.questions
-                            .slice(0, 3)
-                            .map((question: any, qIndex: number) => (
-                              <div
-                                key={qIndex}
-                                className="border-l-4 border-blue-200 pl-3 text-sm"
-                              >
-                                <div className="font-medium">
-                                  Câu {question.questionNumber}:{" "}
-                                  {question.question}
-                                </div>
-                                {question.options && (
-                                  <div className="mt-1 text-xs text-gray-600">
-                                    Đáp án: {question.answer} | Độ khó:{" "}
-                                    {getDifficultyText(
-                                      question.difficultyLevel
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          {part.questions.length > 3 && (
-                            <div className="text-xs text-gray-500 pl-3">
-                              ... và {part.questions.length - 3} câu hỏi khác
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-gray-500 text-sm">
-                          Không có câu hỏi
-                        </div>
-                      )}
-                    </div>
-                  )
-                )}
-              </div>
+      {/* Exam code buttons */}
+      {examResult.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {examResult.map((exam: any, index: number) => (
+              <Button
+                key={index}
+                variant={selectedExamIndex === index ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedExamIndex(index)}
+                className="min-w-[100px]"
+              >
+                Mã đề: {exam?.questionOnly?.examCode || `${index + 1}`}
+              </Button>
             ))}
           </div>
+
+          {/* Template Preview for selected exam */}
+          {examResult[selectedExamIndex]?.questionOnly && (
+            <div className="border rounded-lg p-4">
+              <h6 className="font-medium mb-3">
+                Xem trước đề thi - Mã đề:{" "}
+                {examResult[selectedExamIndex]?.questionOnly?.examCode}
+              </h6>
+              <TemplatePreview
+                data={examResult[selectedExamIndex]?.questionOnly}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

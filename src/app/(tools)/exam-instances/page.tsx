@@ -253,10 +253,10 @@ export default function ExamInstancesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-calsans text-gray-900">
+          <h1 className=" text-xl md:text-3xl font-calsans text-gray-900">
             Lịch sử phiên kiểm tra
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 mt-1">
             Tạo và quản lý các phiên kiểm tra (Được chọn từ kho đề)
           </p>
         </div>
@@ -264,7 +264,7 @@ export default function ExamInstancesPage() {
           onClick={() => router.push("/exam-templates")}
           className="flex items-center gap-2"
         >
-          Tổ chức phiên kiểm tra mới
+          Tạo phiên kiểm tra mới
         </Button>
       </div>
 
