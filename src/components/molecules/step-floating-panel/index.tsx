@@ -1,9 +1,9 @@
 "use client";
 
 import { Steps, StepsProps } from "antd";
-import { CSSProperties, useState } from "react";
+import { CSSProperties, useEffect, useRef } from "react";
 import clsx from "clsx";
-import { useDraggable } from "@/hooks/useDraggable";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { RotateCw } from "lucide-react";
 
 type StepFloatingPanelProps = Omit<StepsProps, "onChange"> & {
@@ -25,9 +25,87 @@ export const StepFloatingPanel = ({
   initialPosition = { x: 100, y: 200 },
   ...stepsProps
 }: StepFloatingPanelProps) => {
-  const dragRef = useDraggable();
-  const [direction, setDirection] = useState<"horizontal" | "vertical">(layout);
-  const [activeStep, setActiveStep] = useState<number>(Number(current));
+  // Sử dụng localStorage để lưu trữ direction
+  const [direction, setDirection] = useLocalStorage<"horizontal" | "vertical">(
+    "step-floating-panel-direction",
+    layout
+  );
+
+  // Sử dụng localStorage để lưu trữ activeStep
+  const [activeStep, setActiveStep] = useLocalStorage<number>(
+    "step-floating-panel-active-step",
+    Number(current)
+  );
+
+  // Sử dụng localStorage để lưu trữ position
+  const [savedPosition, setSavedPosition] = useLocalStorage<{ x: number; y: number }>(
+    "step-floating-panel-position",
+    initialPosition
+  );
+
+  // Custom draggable hook với localStorage support
+  const dragRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = dragRef.current;
+    if (!el) return;
+
+    let pos = { x: 0, y: 0 };
+    let isDragging = false;
+
+    const onMouseDown = (e: MouseEvent) => {
+      isDragging = true;
+      pos = {
+        x: e.clientX - el.offsetLeft,
+        y: e.clientY - el.offsetTop,
+      };
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const newLeft = e.clientX - pos.x;
+      const newTop = e.clientY - pos.y;
+
+      const maxX = window.innerWidth - el.offsetWidth;
+      const maxY = window.innerHeight - el.offsetHeight;
+
+      const finalLeft = Math.max(0, Math.min(newLeft, maxX));
+      const finalTop = Math.max(0, Math.min(newTop, maxY));
+
+      el.style.left = `${finalLeft}px`;
+      el.style.top = `${finalTop}px`;
+    };
+
+    const onMouseUp = () => {
+      if (isDragging) {
+        // Lưu position mới vào localStorage khi kết thúc drag
+        const finalPosition = {
+          x: parseInt(el.style.left) || savedPosition.x,
+          y: parseInt(el.style.top) || savedPosition.y,
+        };
+        setSavedPosition(finalPosition);
+      }
+      isDragging = false;
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    el.addEventListener("mousedown", onMouseDown);
+
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown);
+    };
+  }, [savedPosition, setSavedPosition]);
+
+  // Đồng bộ activeStep với current prop khi có thay đổi từ bên ngoài
+  useEffect(() => {
+    if (current !== undefined && current !== activeStep) {
+      setActiveStep(current);
+    }
+  }, [current, activeStep, setActiveStep]);
 
   if (!visible) return null;
 
@@ -45,8 +123,8 @@ export const StepFloatingPanel = ({
         className
       )}
       style={{
-        top: initialPosition.y,
-        left: initialPosition.x,
+        top: savedPosition.y,
+        left: savedPosition.x,
         position: "fixed",
         ...style,
       }}

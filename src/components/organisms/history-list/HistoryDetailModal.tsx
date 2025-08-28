@@ -13,6 +13,7 @@ import { useSlideTemplateByIdService } from "@/services/slideTemplateServices";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SlidePreviewModal } from "@/components/ui/SlidePreviewToolLog";
 import { getDifficultyText } from "@/constants";
+import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 // Component để hiển thị ma trận cho EXAM_CREATOR
 const ExamCreatorMatrix = ({ matrix }: { matrix: any[] }) => {
@@ -371,20 +372,18 @@ const LessonPlanOutput = ({ output }: { output: any }) => {
 
 // Component để hiển thị input cho SLIDE_GENERATOR
 const SlideGeneratorInput = ({ input }: { input: any }) => {
-  const [selectedThumbnailIndex, setSelectedThumbnailIndex] = useState<number>(0);
-
-  console.log(input?.data[0]?.slideTemplateId,"tran")
+  const [selectedThumbnailIndex, setSelectedThumbnailIndex] =
+    useState<number>(0);
 
   // Lấy slideTemplateId từ input
-  const slideTemplateId = input[0]?.slideTemplateId || input?.data[0]?.slideTemplateId;
+  const slideTemplateId =
+    input[0]?.slideTemplateId || input?.data[0]?.slideTemplateId;
 
   // Gọi API để lấy template data
-  const { data: selectedTemplate, isLoading: isLoadingTemplate } = useSlideTemplateByIdService(
-    slideTemplateId,
-    {
+  const { data: selectedTemplate, isLoading: isLoadingTemplate } =
+    useSlideTemplateByIdService(slideTemplateId, {
       enabled: !!slideTemplateId, // Chỉ gọi API khi có slideTemplateId
-    }
-  );
+    });
 
   // Kiểm tra xem có thể hiển thị slide preview không
   const canShowSlidePreview = () => {
@@ -446,35 +445,50 @@ const SlideGeneratorInput = ({ input }: { input: any }) => {
         {JSON.stringify(input, null, 2)}
       </pre> */}
 
-
       {/* Slide Template Preview từ API */}
       {slideTemplateId && selectedTemplate?.data && (
         <div>
-          <h5 className="font-medium mb-3">Preview Template Slides:</h5>
           <div className="bg-gray-50 border rounded p-3">
             {isLoadingTemplate ? (
-              <div className="text-sm text-gray-600">Đang tải template...</div>
+              <div>
+                <GridSkeleton
+                  count={1}
+                  height={340}
+                  cols="grid-cols-1 lg:grid-cols-1"
+                />
+              </div>
             ) : (
               <>
                 <div className="mb-2 text-sm text-gray-600">
                   <strong>Template:</strong> {selectedTemplate.data.name}
                 </div>
                 <div className="mb-3 text-sm text-gray-600">
-                  <strong>Số slide:</strong> {Object.keys(selectedTemplate.data.imageBlocks || {}).length || 1}
+                  <strong>Số slide:</strong>{" "}
+                  {Object.keys(selectedTemplate.data.imageBlocks || {})
+                    .length || 1}
                 </div>
 
                 {/* Main Slide Display */}
                 <div className="mb-4">
                   <div className="w-full aspect-[16/9] bg-white rounded border overflow-hidden">
-                    {selectedTemplate.data.imageBlocks && Object.values(selectedTemplate.data.imageBlocks)[selectedThumbnailIndex] ? (
+                    {selectedTemplate.data.imageBlocks &&
+                    Object.values(selectedTemplate.data.imageBlocks)[
+                      selectedThumbnailIndex
+                    ] ? (
                       <img
-                        src={Object.values(selectedTemplate.data.imageBlocks)[selectedThumbnailIndex] as string}
+                        src={
+                          Object.values(selectedTemplate.data.imageBlocks)[
+                            selectedThumbnailIndex
+                          ] as string
+                        }
                         alt={`Slide ${selectedThumbnailIndex + 1}`}
                         className="w-full h-full object-contain"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                        <span className="text-gray-400">Slide {selectedThumbnailIndex + 1}</span>
+                        <span className="text-gray-400">
+                          Slide {selectedThumbnailIndex + 1}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -511,7 +525,8 @@ const SlideGeneratorInput = ({ input }: { input: any }) => {
                   )}
                   {/* Show at least one thumbnail if no imageBlocks */}
                   {(!selectedTemplate.data.imageBlocks ||
-                    Object.keys(selectedTemplate.data.imageBlocks).length === 0) && (
+                    Object.keys(selectedTemplate.data.imageBlocks).length ===
+                      0) && (
                     <div className="flex-shrink-0 w-20 h-12 bg-white rounded border border-gray-200 flex items-center justify-center">
                       <span className="text-xs text-gray-400">1</span>
                     </div>
@@ -536,81 +551,7 @@ const SlideGeneratorInput = ({ input }: { input: any }) => {
         </div>
       )}
 
-      {/* Template data */}
-      {input.data && (
-        <div>
-          <h5 className="font-medium mb-3">Dữ liệu template:</h5>
-          <div className="bg-gray-50 border rounded p-3">
-            {input.data.name && (
-              <div className="mb-2">
-                <strong>Tên template:</strong> {input.data.name}
-              </div>
-            )}
-            {input.data.description && (
-              <div className="mb-2">
-                <strong>Mô tả:</strong> {input.data.description}
-              </div>
-            )}
 
-            {/* Slide templates */}
-            {input.data.slides && input.data.slides.length > 0 && (
-              <div className="mt-3">
-                <strong>Số slide template:</strong> {input.data.slides.length}
-                <div className="mt-2 space-y-2">
-                  {input.data.slides
-                    .slice(0, 3)
-                    .map((slide: any, index: number) => (
-                      <div
-                        key={index}
-                        className="border rounded p-2 bg-white text-xs"
-                      >
-                        <div className="font-medium">
-                          Slide {index + 1}: {slide.title || "Untitled"}
-                        </div>
-                        <div className="text-gray-600">
-                          Elements: {slide.elements?.length || 0}
-                        </div>
-                      </div>
-                    ))}
-                  {input.data.slides.length > 3 && (
-                    <div className="text-xs text-gray-500">
-                      ... và {input.data.slides.length - 3} slide khác
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Text blocks */}
-            {input.data.textBlocks &&
-              Object.keys(input.data.textBlocks).length > 0 && (
-                <div className="mt-3">
-                  <strong>Text blocks:</strong>{" "}
-                  {Object.keys(input.data.textBlocks).length} blocks
-                  <div className="mt-1 text-xs text-gray-600">
-                    Keys:{" "}
-                    {Object.keys(input.data.textBlocks).slice(0, 5).join(", ")}
-                    {Object.keys(input.data.textBlocks).length > 5 && "..."}
-                  </div>
-                </div>
-              )}
-
-            {/* Image blocks */}
-            {input.data.imageBlocks &&
-              Object.keys(input.data.imageBlocks).length > 0 && (
-                <div className="mt-3">
-                  <strong>Image blocks:</strong>{" "}
-                  {Object.keys(input.data.imageBlocks).length} blocks
-                  <div className="mt-1 text-xs text-gray-600">
-                    Keys:{" "}
-                    {Object.keys(input.data.imageBlocks).slice(0, 5).join(", ")}
-                    {Object.keys(input.data.imageBlocks).length > 5 && "..."}
-                  </div>
-                </div>
-              )}
-          </div>
-        </div>
-      )}
 
       {/* Raw data fallback */}
       {!canShowSlidePreview() &&

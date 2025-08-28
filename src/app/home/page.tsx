@@ -91,8 +91,6 @@ export default function Home() {
   // Handle orderCode parameter for payment cancellation
   useEffect(() => {
     if (orderCode) {
-      console.log("OrderCode found in URL:", orderCode);
-
       // Cancel payment with the orderCode
       cancelPayment(
         {
