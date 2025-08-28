@@ -218,12 +218,12 @@ export function InstanceDetails({
   };
 
   return (
-    <div className={cn("max-w-7xl mx-auto space-y-6", className)}>
+    <div className={cn("max-w-6xl mx-auto space-y-6", className)}>
       {/* Header với thông tin cơ bản */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-calsans text-gray-900">
+            <h1 className="text-2xl md:text-3xl font-calsans text-gray-900">
               Bài thi: {instance.templateName}
             </h1>
             <Badge className={cn("text-sm px-3 py-1", statusInfo.color)}>
@@ -329,7 +329,7 @@ export function InstanceDetails({
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
+      <div className="block md:flex justify-between items-center">
         <h4 className="font-calsans text-lg text-gray-900 mb-6">
           Danh sách kết quả chi tiết
         </h4>

@@ -2,18 +2,17 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/Button";
 
 import { SubmissionData } from "@/services/examInstanceServices";
-import { Badge } from "@/components/ui/badge";
 import { SubmissionDetailsSheet } from "@/components/organisms/submission-details-sheet";
 import { formatVietnamDate } from "@/utils/dateUtils";
 
 // Handler function types (keeping for backward compatibility)
-interface OrderColumnHandlers {
+interface SubmissionColumnHandlers {
   onViewDetail?: (examInstance: SubmissionData) => void;
   // onToggleUserStatus: (order: Order) => void;
 }
 
 export const ordersColumns = (
-  handlers?: OrderColumnHandlers
+  handlers?: SubmissionColumnHandlers
 ): ColumnDef<SubmissionData>[] => [
   {
     id: "index",

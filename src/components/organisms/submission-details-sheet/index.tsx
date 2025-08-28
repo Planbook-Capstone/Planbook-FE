@@ -138,7 +138,7 @@ const renderQuestionCard = (result: ResultDetail, idx: number) => (
         ) : (
           <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
         )}
-        <span className="font-semibold text-gray-800">
+        <span className="font-semibold text-gray-800 text-xs md:text-base">
           {formatQuestionDisplay(result)}
         </span>
       </div>
@@ -204,7 +204,7 @@ export function SubmissionDetailsSheet({
       <SheetTrigger asChild>{trigger || defaultTrigger}</SheetTrigger>
       <SheetContent
         side="left"
-        className="w-1/3 !max-w-none  sm:w-[500px] overflow-y-auto"
+        className="md:w-1/3 !max-w-none  sm:w-[500px] overflow-y-auto"
       >
         <SheetHeader className="space-y-4">
           <SheetTitle className="text-xl font-calsans font-normal">
@@ -218,7 +218,7 @@ export function SubmissionDetailsSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 p-10">
+        <div className="space-y-6 p-3 md:p-10">
           {/* Score Overview */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
             <div className="text-center">
