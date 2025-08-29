@@ -163,10 +163,7 @@ function UserButton() {
         </PopoverContent>
       </Popover>
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger
-          data-tour="user-menu"
-          className="outline-none relative"
-        >
+        <DropdownMenuTrigger data-tour="user-menu" className="outline-none relative">
           <Avatar className="size-9 rounded-full hover:opacity-75 transition border border-neutral-300">
             <AvatarImage
               src={avatarUrl || "/images/avatarLogo.png"}
