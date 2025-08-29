@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "@/components/ui/Button";
-import Image from "next/image";
 
 interface PricingCardProps {
   id?: string;
@@ -32,19 +31,12 @@ const PricingCard = ({
   };
   return (
     <div
-      className={`relative overflow-hidden flex flex-col justify-between gap-2 px-9 py-12 rounded-3xl ${
-        highlight ? "text-white" : "bg-white border"
+      className={`flex flex-col justify-between gap-2 px-9 py-12 rounded-3xl  ${
+        highlight
+          ? "bg-[url('/images/background/abstract-bg.png')] bg-[length:300%] bg-center text-white"
+          : "bg-white border"
       }`}
     >
-      {highlight && (
-        <Image
-          src="/images/background/abstract-bg.png"
-          alt="Background"
-          layout="fill"
-          objectFit="cover"
-          className="-z-10 scale-[3.0]"
-        />
-      )}
       <h1 className="font-calsans text-2xl lg:text-3xl">
         {title?.toUpperCase() || "Free".toUpperCase()}
       </h1>
@@ -93,7 +85,7 @@ const PricingCard = ({
         </p>
 
         <Button
-          className={`w-full h-12 text-base rounded-full font-medium transition-all  border border-white/30 backdrop-blur-sm
+          className={`w-full h-12 text-base rounded-full font-medium transition-all  border border-white/30 backdrop-blur-sm 
           ${
             highlight
               ? "bg-white/10 hover:bg-white/30 text-white"

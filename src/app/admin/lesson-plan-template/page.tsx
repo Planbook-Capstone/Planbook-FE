@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { LessonPlanTemplate } from "@/types";
-import Image from "next/image";
-
+import { getDefaultTemplate } from "@/data/lesson-plan-templates";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,21 +34,39 @@ interface UploadedFile {
   thumbnail?: string; // Base64 thumbnail for PDFs
 }
 
-// Utility function to format file size
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-};
-
 export default function LessonPlanTemplatePage() {
   const { data: lessonPlanData } = useLessonPlanService();
   const [selected, setSelected] = useState<LessonPlanTemplate>();
   const { data: lessonPlanById } = useLessonPlanByIdService(selected?.id || "");
   const { data: allNode } = useLessonPlanAllNodeService(selected?.id || "")();
 
+  const [templates, setTemplates] = useState<LessonPlanTemplate[]>([
+    { ...getDefaultTemplate(), isActive: true },
+    {
+      ...getDefaultTemplate(),
+      id: "template-2",
+      name: "Template Toán Học",
+      description:
+        "Template chuyên dụng cho các môn toán học với cấu trúc bài tập và ví dụ",
+      isActive: false,
+    },
+    {
+      ...getDefaultTemplate(),
+      id: "template-3",
+      name: "Template Ngữ Văn",
+      description:
+        "Template dành cho môn ngữ văn với phần phân tích văn bản và luyện tập",
+      isActive: false,
+    },
+  ]);
+  const [currentTemplate, setCurrentTemplate] = useState<
+    LessonPlanTemplate | undefined
+  >();
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    LessonPlanTemplate | undefined
+  >();
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("template");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,7 +74,7 @@ export default function LessonPlanTemplatePage() {
 
   // Filter templates based on search query
   const filteredTemplates = lessonPlanData?.data?.content?.filter(
-    (template: LessonPlanTemplate) =>
+    (template) =>
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -185,21 +202,15 @@ export default function LessonPlanTemplatePage() {
 
         <TabsContent value="template" className="mt-3">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTemplates?.map((template: LessonPlanTemplate) => (
+            {filteredTemplates?.map((template) => (
               <div
                 key={template.id}
-                className={`relative overflow-hidden rounded-lg p-4 hover:shadow-md transition-shadow ${
-                  template.isActive ? "text-white" : "bg-white border"
+                className={`rounded-lg p-4 hover:shadow-md transition-shadow ${
+                  template.isActive
+                    ? "bg-[url('/images/background/abstract-bg.png')] bg-[length:150%] bg-center text-white"
+                    : "bg-white border"
                 }`}
               >
-                {template.isActive && (
-                  <Image
-                    src="/images/background/abstract-bg.png"
-                    alt="Background"
-                    fill
-                    className="-z-10 scale-150 object-cover"
-                  />
-                )}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <h3
