@@ -42,6 +42,7 @@ export const LandingPageHeader = ({
             height={35}
             className="object-contain cursor-pointer"
             onClick={onClickLogo}
+            priority
           />
         </div>
 
