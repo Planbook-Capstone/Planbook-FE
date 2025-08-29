@@ -15,6 +15,7 @@ export const LandingPageFooter = () => {
             loop
             muted
             playsInline
+            aria-hidden="true"
             className="absolute inset-0 w-full h-screen object-cover"
           >
             <source src="/videos/demo_1.mp4" />
