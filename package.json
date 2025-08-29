@@ -128,5 +128,9 @@
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma"
-  }
+  },
+  "browserslist": [
+    "> 0.5%",
+    "not dead"
+  ]
 }
