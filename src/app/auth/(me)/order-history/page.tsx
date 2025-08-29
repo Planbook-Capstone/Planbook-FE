@@ -8,8 +8,9 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import OrderTable from "@/components/organisms/table-order-history";
 import { Order } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import OrderDetail from "@/components/molecules/order-detail";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -26,11 +27,9 @@ function OrderHistoryPage() {
   const [selected, setSelected] = useState<Order>();
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  // const {
-  //   data: ordersData,
-  //   isLoading,
-  //   error,
-  // } = useOrderByUserIdService(user?.id);
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("orderId");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const { mutate: changeStatusMutation } = useUpdateOrderStatus();
@@ -59,9 +58,24 @@ function OrderHistoryPage() {
     } // pagination params
   );
 
-
   // Use API data if available
   const orders = ordersData?.data?.content || [];
+
+  // Tự động mở chi tiết đơn hàng khi có orderId trong URL
+  useEffect(() => {
+    if (orderId && orders.length > 0) {
+      const targetOrder = orders.find((order: Order) => order.id === orderId);
+      if (targetOrder) {
+        setSelected(targetOrder);
+        setOpen(true);
+        // Xóa orderId khỏi URL sau khi đã mở
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete("orderId");
+        window.history.replaceState({}, "", newUrl.toString());
+      }
+    }
+  }, [orderId, orders]);
+
   const handleRetry = () => {
     changeStatusMutation(
       {
