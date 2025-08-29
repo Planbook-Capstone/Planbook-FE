@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     siteName: "PlanBook",
     images: [
       {
-        url: "/images/logoPlanbook",
+        url: "/images/logoPlanbook.png",
         width: 1200,
         height: 630,
         alt: "PlanBook - Hệ thống quản lý giáo án thông minh",

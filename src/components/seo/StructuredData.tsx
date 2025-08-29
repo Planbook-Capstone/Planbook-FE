@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import Script from 'next/script';
+import Script from "next/script";
 
 // Interface cho Organization Schema
 interface OrganizationSchema {
-  '@context': string;
-  '@type': string;
+  "@context": string;
+  "@type": string;
   name: string;
   url: string;
   logo: string;
   description: string;
   contactPoint: {
-    '@type': string;
+    "@type": string;
     telephone?: string;
     contactType: string;
     email?: string;
@@ -21,37 +21,37 @@ interface OrganizationSchema {
 
 // Interface cho WebSite Schema
 interface WebSiteSchema {
-  '@context': string;
-  '@type': string;
+  "@context": string;
+  "@type": string;
   name: string;
   url: string;
   description: string;
   potentialAction: {
-    '@type': string;
+    "@type": string;
     target: {
-      '@type': string;
+      "@type": string;
       urlTemplate: string;
     };
-    'query-input': string;
+    "query-input": string;
   };
 }
 
 // Interface cho SoftwareApplication Schema
 interface SoftwareApplicationSchema {
-  '@context': string;
-  '@type': string;
+  "@context": string;
+  "@type": string;
   name: string;
   description: string;
   url: string;
   applicationCategory: string;
   operatingSystem: string;
   offers: {
-    '@type': string;
+    "@type": string;
     price: string;
     priceCurrency: string;
   };
   aggregateRating?: {
-    '@type': string;
+    "@type": string;
     ratingValue: string;
     ratingCount: string;
   };
@@ -60,57 +60,59 @@ interface SoftwareApplicationSchema {
 // Component chính cho Structured Data
 export function StructuredData() {
   const organizationSchema: OrganizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'PlanBook',
-    url: 'https://planbook.vn',
-    logo: 'https://planbook.vn/images/logo/planbook-logo.png',
-    description: 'Hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.',
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "PlanBook",
+    url: "https://planbook.vn",
+    logo: "https://planbook.vn/images/logoPlanbook.png",
+    description:
+      "Hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả.",
     contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'customer service',
-      email: 'support@planbook.vn',
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      email: "support@planbook.vn",
     },
     sameAs: [
-      'https://facebook.com/planbook.vn',
-      'https://twitter.com/planbook_vn',
-      'https://linkedin.com/company/planbook',
+      "https://facebook.com/planbook.vn",
+      "https://twitter.com/planbook_vn",
+      "https://linkedin.com/company/planbook",
     ],
   };
 
   const websiteSchema: WebSiteSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'PlanBook',
-    url: 'https://planbook.vn',
-    description: 'Hệ thống quản lý giáo án thông minh',
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "PlanBook",
+    url: "https://planbook.vn",
+    description: "Hệ thống quản lý giáo án thông minh",
     potentialAction: {
-      '@type': 'SearchAction',
+      "@type": "SearchAction",
       target: {
-        '@type': 'EntryPoint',
-        urlTemplate: 'https://planbook.vn/search?q={search_term_string}',
+        "@type": "EntryPoint",
+        urlTemplate: "https://planbook.vn/search?q={search_term_string}",
       },
-      'query-input': 'required name=search_term_string',
+      "query-input": "required name=search_term_string",
     },
   };
 
   const softwareApplicationSchema: SoftwareApplicationSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'PlanBook',
-    description: 'Hệ thống quản lý giáo án thông minh với tính năng chấm điểm tự động và thi trực tuyến',
-    url: 'https://planbook.vn',
-    applicationCategory: 'EducationalApplication',
-    operatingSystem: 'Web Browser',
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "PlanBook",
+    description:
+      "Hệ thống quản lý giáo án thông minh với tính năng chấm điểm tự động và thi trực tuyến",
+    url: "https://planbook.vn",
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web Browser",
     offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'VND',
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "VND",
     },
     aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '150',
+      "@type": "AggregateRating",
+      ratingValue: "4.8",
+      ratingCount: "150",
     },
   };
 
@@ -167,32 +169,32 @@ export function ArticleStructuredData({
   url,
 }: ArticleSchemaProps) {
   const articleSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
+    "@context": "https://schema.org",
+    "@type": "Article",
     headline: title,
     description,
     author: {
-      '@type': 'Person',
+      "@type": "Person",
       name: author,
     },
     publisher: {
-      '@type': 'Organization',
-      name: 'PlanBook',
+      "@type": "Organization",
+      name: "PlanBook",
       logo: {
-        '@type': 'ImageObject',
-        url: 'https://planbook.vn/images/logo/planbook-logo.png',
+        "@type": "ImageObject",
+        url: "https://planbook.vn/images/logoPlanbook.png",
       },
     },
     datePublished: publishedDate,
     dateModified: modifiedDate || publishedDate,
     image: {
-      '@type': 'ImageObject',
+      "@type": "ImageObject",
       url: image,
     },
     url,
     mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': url,
+      "@type": "WebPage",
+      "@id": url,
     },
   };
 
@@ -224,18 +226,18 @@ export function CourseStructuredData({
   image,
 }: CourseSchemaProps) {
   const courseSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Course',
+    "@context": "https://schema.org",
+    "@type": "Course",
     name,
     description,
     provider: {
-      '@type': 'Organization',
+      "@type": "Organization",
       name: provider,
     },
     url,
     ...(image && {
       image: {
-        '@type': 'ImageObject',
+        "@type": "ImageObject",
         url: image,
       },
     }),
