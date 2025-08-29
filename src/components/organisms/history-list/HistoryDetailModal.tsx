@@ -616,7 +616,7 @@ const SlideGeneratorOutput = ({ output }: { output: any }) => {
         <div>
           <strong>Tổng số slide:</strong> {slides.length}
         </div>
-        
+
         {!hasElements && (
           <div className="text-orange-600 text-xs">
             ⚠️ Các slide chưa có elements hoặc đang được tạo
@@ -1054,7 +1054,7 @@ export default function HistoryDetailModal({
   if (!historyItem) return null;
 
   const renderContent = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-5">
       {/* Header Info */}
       <div className="border-b pb-4">
         <h3 className="font-calsans text-lg mb-2">
