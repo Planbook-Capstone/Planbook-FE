@@ -18,32 +18,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useWalletService } from "@/services/walletServices";
 import { useAcademicYearActiceService } from "@/services/academicYearServices";
-import { useEffect, useState } from "react";
 
 function UserButton() {
   const { user, logout, displayName, avatarUrl, initials, isAuthenticated } =
     useAuth();
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const { data: wallet, isLoading } = useWalletService("");
   const { data: academicYear } = useAcademicYearActiceService();
 
-  if (!isClient || !isAuthenticated) {
+  if (!isAuthenticated) {
     return null;
   }
 
   return (
-    <div className="flex justify-end items-center gap-2.5 ">
-      <Select defaultValue="2025">
-        <SelectTrigger
-          className="w-4/5 p-2 rounded-full"
-          data-tour="academic-year"
-        >
+    <div className="flex justify-end items-center gap-2.5">
+      <Select defaultValue="2025" >
+        <SelectTrigger className="w-4/5 p-2 rounded-full" data-tour="academic-year">
           <div className="flex gap-2 items-center">
             <p className="font-calsans border-r-2 px-1">Năm học </p>
             <SelectValue placeholder="Học kì" />
@@ -68,10 +59,7 @@ function UserButton() {
         {isLoading ? <>Loading...</> : wallet?.data?.balance || 0}
       </div>
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger
-          data-tour="user-menu"
-          className="outline-none relative"
-        >
+        <DropdownMenuTrigger data-tour="user-menu" className="outline-none relative">
           <Avatar className="size-9 rounded-full hover:opacity-75 transition border border-neutral-300">
             <AvatarImage
               src={avatarUrl || "/images/avatarLogo.png"}

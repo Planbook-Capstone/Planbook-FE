@@ -31,16 +31,12 @@ const MainHeader = (props: MainHeaderProps) => {
             width={30}
             height={30}
             className="object-contain"
-            style={{ width: "auto", height: "auto" }}
           />
           <h1 className="font-calsans text-xl sm:text-2xl">PlanBook</h1>
         </div>
 
         {/* Desktop Menu */}
-        <nav
-          data-tour="navigation"
-          className="hidden md:flex items-center gap-6"
-        >
+        <nav data-tour="navigation" className="hidden md:flex items-center gap-6">
           {userItems.map((item) => {
             const isActive = pathname === item.href;
             return (

@@ -4,7 +4,6 @@ import {
   PricingCard,
   PricingCardProps,
 } from "@/components/molecules/pricing-card";
-import Image from "next/image";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { useSubscriptionsService } from "@/services/subscriptionServices";
 import { sub } from "date-fns";
@@ -36,12 +35,12 @@ export const PricingSection = () => {
   return (
     <section className="relative mb-30 mt-20 text-white px-4 md:px-6 lg:px-8 pt-20 pb-40 overflow-hidden rounded-4xl">
       {/* Background Image */}
-      <Image
-        src="/images/background/abstract-bg.png"
-        alt="Background"
-        fill
-        className="absolute inset-0 object-cover"
-      />
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/images/background/abstract-bg.png')",
+        }}
+      ></div>
 
       <div className="relative z-10 xl:[200px] md:px-[75px] mx-auto">
         <AnimatedSection animation="fadeIn" delay={200}>
