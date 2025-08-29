@@ -40,7 +40,9 @@ export const LandingPageHeader = ({
             alt="PlanBook Logo"
             width={130}
             height={35}
+            priority
             className="object-contain cursor-pointer"
+            style={{ width: "auto", height: "auto" }}
             onClick={onClickLogo}
           />
         </div>

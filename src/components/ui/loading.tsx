@@ -9,7 +9,6 @@ const Loading = () => {
         width={1000}
         height={1000}
         src="/loading/loading.gif"
-        priority
         unoptimized
         className="object-contain"
       />

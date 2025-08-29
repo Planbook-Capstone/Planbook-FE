@@ -1,5 +1,5 @@
 "use client";
-import {  useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -9,10 +9,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 function AvatarButton() {
   const { user, logout, displayName, avatarUrl, initials, isAuthenticated } =
     useAuth();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger className="outline-none relative">
