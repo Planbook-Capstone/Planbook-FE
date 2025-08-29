@@ -14,6 +14,12 @@ export const HeroSectionV2 = () => {
         className="hidden md:block w-screen h-screen object-cover"
       >
         <source src="/videos/hero.mp4" type="video/mp4" />
+        <track
+          kind="captions"
+          srcLang="en"
+          label="English"
+          src="/videos/captions.vtt"
+        />
       </video>
 
       {/* Mobile Video */}
@@ -25,6 +31,12 @@ export const HeroSectionV2 = () => {
         className="block md:hidden w-screen h-screen object-cover"
       >
         <source src="/videos/hero-vertical.mp4" type="video/mp4" />
+        <track
+          kind="captions"
+          srcLang="en"
+          label="English"
+          src="/videos/captions.vtt"
+        />
       </video>
 
       {/* <div className="absolute top-[0px] w-screen h-[400px] bg-[url('/Planbook.svg')] bg-no-repeat bg-contain bg-center"></div> */}
