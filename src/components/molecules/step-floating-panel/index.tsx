@@ -128,7 +128,7 @@ export const StepFloatingPanel = ({
       )}
       style={
         disable
-          ? { ...style }
+          ? { width: "fit-content", ...style }
           : {
               top: savedPosition.y,
               left: savedPosition.x,

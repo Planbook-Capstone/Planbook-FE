@@ -616,7 +616,7 @@ function LessonPlanTemplate({
                           layout="vertical"
                           visible={true}
                           onStepChange={handleChangeStep}
-                          // style={{ width: 700, position: "static" }}
+                          style={{ width: 800, position: "static" }}
                           initialPosition={{ x: 0, y: 0 }}
                           disable={true}
                         />
