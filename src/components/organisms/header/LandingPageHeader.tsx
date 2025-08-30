@@ -93,7 +93,7 @@ export const LandingPageHeader = ({
               onClick={() => router.push("/auth")}
               className={"rounded-full bg-lime-300 text-black"}
             >
-              <Link href="/auth">Đăng ký</Link>
+              Đăng ký
             </Button>
           </div>
         </div>
@@ -131,12 +131,10 @@ export const LandingPageHeader = ({
           </nav>
 
           <div className="flex flex-col gap-3 mt-auto">
-            <Button variant="outline">
-              <Link href="/auth">Đăng nhập</Link>
+            <Button onClick={() => router.push("/auth")} variant="outline">
+              Đăng nhập
             </Button>
-            <Button>
-              <Link href="/auth">Đăng ký</Link>
-            </Button>
+            <Button onClick={() => router.push("/auth")}>Đăng ký</Button>
           </div>
         </div>
       )}
