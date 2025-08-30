@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { X, Menu } from "lucide-react";
 import clsx from "clsx";
+import { useRouter } from "next/navigation";
 
 interface LandingPageHeaderProps {
   className?: string;
@@ -21,7 +22,7 @@ export const LandingPageHeader = ({
   isPricingPage = false,
 }: LandingPageHeaderProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-
+  const router = useRouter();
   return (
     <header
       className={clsx([className, "fixed z-50 w-full"])}
@@ -88,7 +89,10 @@ export const LandingPageHeader = ({
               "hidden md:flex gap-2 " + (isHiddenLoginBtn && "md:hidden")
             }
           >
-            <Button className={"rounded-full bg-lime-300 text-black"}>
+            <Button
+              onClick={() => router.push("/auth")}
+              className={"rounded-full bg-lime-300 text-black"}
+            >
               <Link href="/auth">Đăng ký</Link>
             </Button>
           </div>
