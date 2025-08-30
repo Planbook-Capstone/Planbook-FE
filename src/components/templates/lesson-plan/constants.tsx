@@ -12,6 +12,14 @@ import { ComponentPaletteItem } from "./types";
 // Function to create component palette with fresh React elements
 export const getComponentPalette = (): ComponentPaletteItem[] => [
   {
+    id: "question-bank",
+    type: "QUESTION_BANK",
+    fieldType: "QUESTION_BANK",
+    title: "Ngân hàng câu hỏi",
+    icon: <HelpCircle />,
+    description: "Thêm ngân hàng câu hỏi",
+  },
+  {
     id: "section",
     type: "SECTION",
     fieldType: "INPUT",
@@ -59,14 +67,7 @@ export const getComponentPalette = (): ComponentPaletteItem[] => [
     icon: <Images />,
     description: "Thêm hình ảnh",
   },
-  {
-    id: "question-bank",
-    type: "QUESTION_BANK",
-    fieldType: "QUESTION_BANK",
-    title: "Ngân hàng câu hỏi",
-    icon: <HelpCircle />,
-    description: "Thêm ngân hàng câu hỏi",
-  },
+  
 ];
 
 // Keep the constant for backward compatibility but use function when possible

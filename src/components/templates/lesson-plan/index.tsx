@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
 import PreviewModal from "@/components/PreviewModal";
 import Sidebar from "@/components/demo/Sidebar";
@@ -12,6 +12,7 @@ import TokenConfirmModal from "@/components/modals/TokenConfirmModal";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import { ChevronUp } from "lucide-react";
 import {
   useUpdateToolResultService,
   useToolResultByIdService,
@@ -52,12 +53,134 @@ function LessonPlanTemplate({
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(existingData?.name || "");
 
+  // Scroll state for hiding/showing description and floating panel
+  const [isDescriptionHidden, setIsDescriptionHidden] = useState(false);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const [isStepPanelFloating, setIsStepPanelFloating] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastScrollTop = useRef(0);
+
+  // Draggable compact button state
+  const [compactButtonPosition, setCompactButtonPosition] = useState({ x: window.innerWidth / 2, y: 16, isInitial: true });
+  const compactButtonRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+
   // Update editedName when existingData changes
   useEffect(() => {
     if (existingData?.name) {
       setEditedName(existingData.name);
     }
   }, [existingData?.name]);
+
+  // Handle scroll events for hiding/showing description and scroll to top button
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      const scrollTop = scrollContainer.scrollTop;
+
+      // Show scroll to top button when scrolled down more than 200px
+      setShowScrollToTop(scrollTop > 200);
+
+      lastScrollTop.current = scrollTop;
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Toggle step panel collapse/expand
+  const toggleStepPanel = () => {
+    if (!isStepPanelFloating) {
+      // Collapsing
+      setIsStepPanelFloating(true);
+      setIsDescriptionHidden(true);
+    } else {
+      // Expanding: reset to initial position when opening
+      setIsStepPanelFloating(false);
+      setIsDescriptionHidden(false);
+      setCompactButtonPosition({ x: window.innerWidth / 2, y: 16, isInitial: true });
+    }
+  };
+
+  // Draggable compact button logic
+  useEffect(() => {
+    const compactButton = compactButtonRef.current;
+    if (!compactButton || !isStepPanelFloating) return;
+
+    let startPos = { x: 0, y: 0 };
+    let startButtonPos = { ...compactButtonPosition };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest('button')) return;
+
+      isDraggingRef.current = true;
+      startPos = { x: e.clientX, y: e.clientY };
+      startButtonPos = { ...compactButtonPosition };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      e.preventDefault();
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current || !compactButton) return;
+
+      const deltaX = e.clientX - startPos.x;
+      const deltaY = e.clientY - startPos.y;
+
+      const newX = startButtonPos.x + deltaX;
+      const newY = startButtonPos.y + deltaY;
+
+      const buttonRect = compactButton.getBoundingClientRect();
+      const buttonWidth = buttonRect.width;
+      const buttonHeight = buttonRect.height;
+
+      const maxX = window.innerWidth - buttonWidth;
+      const maxY = window.innerHeight - buttonHeight;
+
+      const constrainedX = Math.max(0, Math.min(newX, maxX));
+      const constrainedY = Math.max(0, Math.min(newY, maxY));
+
+      // Direct DOM manipulation for performance
+      compactButton.style.left = `${constrainedX}px`;
+      compactButton.style.top = `${constrainedY}px`;
+      compactButton.style.transform = 'none';
+    };
+
+    const handleMouseUp = () => {
+      if (!isDraggingRef.current || !compactButton) return;
+      isDraggingRef.current = false;
+
+      const finalX = parseInt(compactButton.style.left, 10);
+      const finalY = parseInt(compactButton.style.top, 10);
+
+      // Update React state once on mouse up
+      setCompactButtonPosition({ x: finalX, y: finalY, isInitial: false });
+
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    compactButton.addEventListener('mousedown', handleMouseDown);
+
+    return () => {
+      compactButton.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isStepPanelFloating, compactButtonPosition]);
 
   // Get component palette (creates fresh React elements each time)
   const componentPalette = getComponentPalette();
@@ -600,16 +723,17 @@ function LessonPlanTemplate({
               </div>
             )}
 
-            <div className="flex-1 overflow-auto">
-              {/* Step Title - only show in create mode */}
+            <div ref={scrollContainerRef} className="flex-1 overflow-auto relative">
+              {/* Step Title - only show in create mode and when not floating */}
               {mode !== "edit" &&
                 items &&
                 items.length > 0 &&
-                items[currentStep] && (
-                  <div className="bg-white border-b border-gray-200 px-6 py-4">
+                items[currentStep] &&
+                !isStepPanelFloating && (
+                  <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="flex justify-between items-start gap-6">
                       {/* Step Navigation Panel - Fixed position */}
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 ">
                         <StepFloatingPanel
                           items={items}
                           current={currentStep}
@@ -619,11 +743,90 @@ function LessonPlanTemplate({
                           style={{ width: 800, position: "static" }}
                           initialPosition={{ x: 0, y: 0 }}
                           disable={true}
+                          isDescriptionHidden={isDescriptionHidden}
+                          onToggleCollapse={toggleStepPanel}
+                          isCollapsed={isStepPanelFloating}
                         />
                       </div>
                     </div>
                   </div>
                 )}
+
+              {/* Compact Step Button - appears when scrolling */}
+              {mode !== "edit" &&
+                items &&
+                items.length > 0 &&
+                items[currentStep] &&
+                isStepPanelFloating && (
+                  <div
+                    ref={compactButtonRef}
+                    className="fixed z-50 cursor-grab"
+                    style={{
+                      left: compactButtonPosition.x,
+                      top: compactButtonPosition.y,
+                      transform: compactButtonPosition.isInitial ? 'translateX(-50%)' : 'none',
+                    }}
+                  >
+                    <div className="bg-white rounded-full shadow-lg border border-gray-200 px-4 py-2 flex items-center gap-3 hover:shadow-xl transition-shadow">
+                      {/* Current step indicator */}
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                          {currentStep + 1}
+                        </div>
+                        <span className="font-calsans text-sm text-gray-700 max-w-[200px] truncate">
+                          {items[currentStep]?.title}
+                        </span>
+                      </div>
+
+                      {/* Step navigation arrows */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleChangeStep(Math.max(0, currentStep - 1)); }}
+                          disabled={currentStep === 0}
+                          className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                          title="Previous step"
+                        >
+                          <ChevronUp className="w-3 h-3 transform -rotate-90" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleChangeStep(Math.min(items.length - 1, currentStep + 1)); }}
+                          disabled={currentStep === items.length - 1}
+                          className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                          title="Next step"
+                        >
+                          <ChevronUp className="w-3 h-3 transform rotate-90" />
+                        </button>
+                      </div>
+
+                      {/* Progress indicator */}
+                      <div className="text-xs text-gray-500 font-questrial">
+                        {currentStep + 1}/{items.length}
+                      </div>
+
+                      {/* Expand Button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleStepPanel(); }}
+                        className="w-6 h-6 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors ml-2"
+                        title="Mở rộng step panel"
+                      >
+                        <ChevronUp className="w-3 h-3 text-blue-600 transform rotate-180" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              {/* Scroll to Top Button */}
+              <button
+                onClick={scrollToTop}
+                className={`fixed bottom-6 right-6 z-50 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 ${
+                  showScrollToTop
+                    ? 'opacity-100 translate-y-0 pointer-events-auto'
+                    : 'opacity-0 translate-y-4 pointer-events-none'
+                }`}
+                title="Scroll to top"
+              >
+                <ChevronUp className="w-5 h-5" />
+              </button>
 
               {/* Canvas */}
 

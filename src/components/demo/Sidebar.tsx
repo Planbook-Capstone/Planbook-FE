@@ -160,7 +160,7 @@ export default function Sidebar({
         onValueChange={(value) =>
           setActiveTab(value as "components" | "images" | "upload" | "trash")
         }
-        className="flex flex-col flex-1 min-h-0 pb-20"
+        className="flex flex-col flex-1 min-h-0"
       >
         <div className="flex-shrink-0 p-2">
           <TabsList className="grid w-full grid-cols-4">
@@ -189,7 +189,7 @@ export default function Sidebar({
 
         <TabsContent
           value="components"
-          className="flex-1 min-h-0 overflow-y-auto"
+          className="flex-1 min-h-0 overflow-y-scroll"
         >
           <div className="px-4 pb-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">

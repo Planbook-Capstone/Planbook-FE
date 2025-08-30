@@ -93,6 +93,21 @@ export default function SlideEditorDemo() {
   });
   const [finalData, setFinalData] = useState<any>(null);
 
+  // Effect để xử lý beforeunload event khi đang tạo slide
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isGenerating) {
+        e.preventDefault();
+        const message = "Slide đang được tạo. Bạn có chắc muốn tải lại trang?";
+        (e as any).returnValue = message; // Cast to any to avoid TypeScript warning
+        return message;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isGenerating]);
+
   useEffect(() => {
     console.log("🔍 WebSocket data received:", websocketData);
     if (websocketData?.result_id) {
