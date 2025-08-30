@@ -11,6 +11,9 @@ export const HeroSectionV2 = () => {
         playsInline
         aria-hidden="true"
         className="hidden md:block w-screen h-screen object-cover"
+        onError={(e) => {
+          (e.target as HTMLVideoElement).style.display = "none";
+        }}
       >
         <source src="/videos/hero.mp4" type="video/mp4" />
       </video>
@@ -23,6 +26,9 @@ export const HeroSectionV2 = () => {
         playsInline
         aria-hidden="true"
         className="block md:hidden w-screen h-screen object-cover"
+        onError={(e) => {
+          (e.target as HTMLVideoElement).style.display = "none";
+        }}
       >
         <source src="/videos/hero-vertical.mp4" type="video/mp4" />
       </video>
