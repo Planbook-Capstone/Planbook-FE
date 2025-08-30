@@ -10,6 +10,7 @@ const Header: FC<HeaderProps> = ({ title }) => {
     <div className="flex items-center gap-2 pt-7">
       <div>
         <Image
+          priority
           src="/images/planbook.svg"
           alt="planbook"
           height="70"
