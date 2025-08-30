@@ -24,6 +24,7 @@ const MainHeader = () => {
           className="flex items-center gap-2 cursor-pointer"
         >
           <Image
+            fetchPriority="high"
             priority
             src="/images/logoPlanbook.png"
             alt="PlanBook Logo"

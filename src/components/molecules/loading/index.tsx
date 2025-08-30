@@ -16,6 +16,7 @@ function LoadingAI({ message, progress }: Props) {
         width={300}
         height={300}
         src="/loading/loading_AI.gif"
+        fetchPriority="high"
         priority
         unoptimized
       />

@@ -220,6 +220,7 @@ const LoginPage = () => {
             src="/images/background/loginBG.svg"
             alt="Login background"
             fill
+            fetchPriority="high"
             priority
             className="object-cover [object-position:right_bottom]"
           />
