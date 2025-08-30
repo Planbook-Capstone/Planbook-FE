@@ -4,7 +4,7 @@ import { Steps, StepsProps } from "antd";
 import { CSSProperties, useEffect, useRef } from "react";
 import clsx from "clsx";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { RotateCw } from "lucide-react";
+import { RotateCw, ChevronUp } from "lucide-react";
 
 type StepFloatingPanelProps = Omit<StepsProps, "onChange"> & {
   layout?: "horizontal" | "vertical";
@@ -14,6 +14,9 @@ type StepFloatingPanelProps = Omit<StepsProps, "onChange"> & {
   initialPosition: { x: number; y: number };
   onStepChange?: (index: number) => void;
   disable?: boolean;
+  isDescriptionHidden?: boolean;
+  onToggleCollapse?: () => void;
+  isCollapsed?: boolean;
 };
 
 export const StepFloatingPanel = ({
@@ -25,6 +28,9 @@ export const StepFloatingPanel = ({
   current = 0,
   initialPosition = { x: 100, y: 200 },
   disable = false,
+  isDescriptionHidden = false,
+  onToggleCollapse,
+  isCollapsed,
   ...stepsProps
 }: StepFloatingPanelProps) => {
   // Sử dụng localStorage để lưu trữ direction
@@ -142,28 +148,62 @@ export const StepFloatingPanel = ({
         <span className="font-calsans text-base text-gray-700">
           Danh sách các bước
         </span>
-        {!disable && (
-          <button
-            onClick={() =>
-              setDirection((prev) =>
-                prev === "horizontal" ? "vertical" : "horizontal"
-              )
-            }
-            className="text-xs flex items-center gap-1 text-gray-600 hover:text-black"
-            title="Toggle layout"
-          >
-            <RotateCw className="w-4 h-4" />
-            {direction === "horizontal" ? "Dọc" : "Ngang"}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {!disable && (
+            <button
+              onClick={() =>
+                setDirection((prev) =>
+                  prev === "horizontal" ? "vertical" : "horizontal"
+                )
+              }
+              className="text-xs flex items-center gap-1 text-gray-600 hover:text-black"
+              title="Toggle layout"
+            >
+              <RotateCw className="w-4 h-4" />
+              {direction === "horizontal" ? "Dọc" : "Ngang"}
+            </button>
+          )}
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className="p-1 rounded-full cursor-pointer bg-blue-100 hover:bg-gray-100 transition-colors"
+              title={isCollapsed ? "Mở rộng" : "Thu gọn"}
+            >
+              <ChevronUp
+                className={`w-4 h-4 text-blue-600 transition-transform duration-300 ${
+                  isCollapsed ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+          )}
+        </div>
       </div>
 
-      <Steps
-        direction={disable ? "horizontal" : direction}
-        current={activeStep}
-        onChange={handleChange}
-        {...stepsProps}
-      />
+      <div className="relative overflow-hidden">
+        <Steps
+          direction={disable ? "horizontal" : direction}
+          current={activeStep}
+          onChange={handleChange}
+          {...stepsProps}
+          items={stepsProps.items?.map(item => ({
+            ...item,
+            description: item.description ? (
+              <div
+                className={`transition-all duration-300 ease-in-out ${
+                  isDescriptionHidden
+                    ? 'opacity-0 max-h-0 transform -translate-y-2'
+                    : 'opacity-100 max-h-10 transform translate-y-0'
+                }`}
+                style={{ overflow: 'hidden' }}
+              >
+                <span className="font-questrial text-xs text-gray-500 truncate block">
+                  {item.description}
+                </span>
+              </div>
+            ) : undefined
+          }))}
+        />
+      </div>
     </div>
   );
 };
