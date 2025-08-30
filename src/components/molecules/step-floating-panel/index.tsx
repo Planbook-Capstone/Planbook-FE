@@ -13,6 +13,7 @@ type StepFloatingPanelProps = Omit<StepsProps, "onChange"> & {
   style?: CSSProperties;
   initialPosition: { x: number; y: number };
   onStepChange?: (index: number) => void;
+  disable?: boolean;
 };
 
 export const StepFloatingPanel = ({
@@ -23,6 +24,7 @@ export const StepFloatingPanel = ({
   onStepChange,
   current = 0,
   initialPosition = { x: 100, y: 200 },
+  disable = false,
   ...stepsProps
 }: StepFloatingPanelProps) => {
   // Sử dụng localStorage để lưu trữ direction
@@ -48,7 +50,7 @@ export const StepFloatingPanel = ({
 
   useEffect(() => {
     const el = dragRef.current;
-    if (!el) return;
+    if (!el || disable) return;
 
     let pos = { x: 0, y: 0 };
     let isDragging = false;
@@ -98,7 +100,7 @@ export const StepFloatingPanel = ({
     return () => {
       el.removeEventListener("mousedown", onMouseDown);
     };
-  }, [savedPosition, setSavedPosition]);
+  }, [savedPosition, setSavedPosition, disable]);
 
   // Đồng bộ activeStep với current prop khi có thay đổi từ bên ngoài
   useEffect(() => {
@@ -118,38 +120,46 @@ export const StepFloatingPanel = ({
     <div
       ref={dragRef}
       className={clsx(
-        "fixed z-50 bg-white p-6 rounded-lg shadow-lg border border-gray-200 cursor-move",
+        disable
+          ? "bg-white p-6 rounded-lg shadow-lg border border-gray-200 cursor-default"
+          : "fixed z-50 bg-white p-6 rounded-lg shadow-lg border border-gray-200 cursor-move",
         direction === "vertical" ? "min-w-[220px]" : "min-w-fit max-w-[90vw]",
         className
       )}
-      style={{
-        top: savedPosition.y,
-        left: savedPosition.x,
-        position: "fixed",
-        ...style,
-      }}
+      style={
+        disable
+          ? { ...style }
+          : {
+              top: savedPosition.y,
+              left: savedPosition.x,
+              position: "fixed",
+              ...style,
+            }
+      }
       id="steps-floating-panel"
     >
       <div className="flex justify-between items-center mb-3 gap-2">
         <span className="font-calsans text-base text-gray-700">
           Danh sách các bước
         </span>
-        <button
-          onClick={() =>
-            setDirection((prev) =>
-              prev === "horizontal" ? "vertical" : "horizontal"
-            )
-          }
-          className="text-xs flex items-center gap-1 text-gray-600 hover:text-black"
-          title="Toggle layout"
-        >
-          <RotateCw className="w-4 h-4" />
-          {direction === "horizontal" ? "Dọc" : "Ngang"}
-        </button>
+        {!disable && (
+          <button
+            onClick={() =>
+              setDirection((prev) =>
+                prev === "horizontal" ? "vertical" : "horizontal"
+              )
+            }
+            className="text-xs flex items-center gap-1 text-gray-600 hover:text-black"
+            title="Toggle layout"
+          >
+            <RotateCw className="w-4 h-4" />
+            {direction === "horizontal" ? "Dọc" : "Ngang"}
+          </button>
+        )}
       </div>
 
       <Steps
-        direction={direction}
+        direction={disable ? "horizontal" : direction}
         current={activeStep}
         onChange={handleChange}
         {...stepsProps}

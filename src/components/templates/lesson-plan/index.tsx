@@ -560,32 +560,35 @@ function LessonPlanTemplate({
           {/* Main Canvas Area */}
           <div className="flex-1 flex flex-col min-h-0 relative">
             {/* Toolbar - Hide when nodes are loading (both create and edit mode) */}
-            {isLoadingChidren || !isLoading && loadingNodes.size === 0 && (
-              <div
-                className={`absolute ${
-                  mode === "edit" ? "right-2 -top-17" : "right-0 -top-16"
-                } z-10`}
-              >
-                <Toolbar
-                  showDeleteButtons={showDeleteButtons}
-                  onToggleDeleteButtons={() =>
-                    setShowDeleteButtons(!showDeleteButtons)
-                  }
-                  onShowPreview={() => setShowPreview(true)}
-                  onExportJSON={handleEstimateToken}
-                  sidebarCollapsed={sidebarCollapsed}
-                  onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  canUndo={canUndo}
-                  canRedo={canRedo}
-                  onUndo={undo}
-                  onRedo={redo}
-                  hideAIButton={mode === "edit"}
-                  isGenerating={isGenerating || isEstimating}
-                  currentNodeCount={currentNodeCount}
-                  mode={mode}
-                />
-              </div>
-            )}
+            {isLoadingChidren ||
+              (!isLoading && loadingNodes.size === 0 && (
+                <div
+                  className={`absolute ${
+                    mode === "edit" ? "right-2 -top-17" : "right-0 -top-16"
+                  } z-10`}
+                >
+                  <Toolbar
+                    showDeleteButtons={showDeleteButtons}
+                    onToggleDeleteButtons={() =>
+                      setShowDeleteButtons(!showDeleteButtons)
+                    }
+                    onShowPreview={() => setShowPreview(true)}
+                    onExportJSON={handleEstimateToken}
+                    sidebarCollapsed={sidebarCollapsed}
+                    onToggleSidebar={() =>
+                      setSidebarCollapsed(!sidebarCollapsed)
+                    }
+                    canUndo={canUndo}
+                    canRedo={canRedo}
+                    onUndo={undo}
+                    onRedo={redo}
+                    hideAIButton={mode === "edit"}
+                    isGenerating={isGenerating || isEstimating}
+                    currentNodeCount={currentNodeCount}
+                    mode={mode}
+                  />
+                </div>
+              ))}
 
             {isLoadingChidren && (
               <div className="p-5">
@@ -604,29 +607,24 @@ function LessonPlanTemplate({
                 items.length > 0 &&
                 items[currentStep] && (
                   <div className="bg-white border-b border-gray-200 px-6 py-4">
-                    <h1 className="text-lg font-calsans text-gray-800">
-                      {items[currentStep].title}
-                    </h1>
-                    {items[currentStep].description && (
-                      <p className="text-gray-600 mt-2">
-                        {items[currentStep].description}
-                      </p>
-                    )}
+                    <div className="flex justify-between items-start gap-6">
+                      {/* Step Navigation Panel - Fixed position */}
+                      <div className="flex-shrink-0">
+                        <StepFloatingPanel
+                          items={items}
+                          current={currentStep}
+                          layout="vertical"
+                          visible={true}
+                          onStepChange={handleChangeStep}
+                          style={{ width: 300, position: "static" }}
+                          initialPosition={{ x: 0, y: 0 }}
+                          disable={true}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
 
-              {/* Only show StepFloatingPanel when NOT in edit mode */}
-              {mode !== "edit" && items && items.length > 0 && (
-                <StepFloatingPanel
-                  items={items}
-                  current={currentStep}
-                  layout="vertical"
-                  visible={true}
-                  onStepChange={handleChangeStep}
-                  style={{ width: 300 }}
-                  initialPosition={{ x: 500, y: 100 }}
-                />
-              )}
               {/* Canvas */}
 
               <Canvas

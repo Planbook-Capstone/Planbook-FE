@@ -65,9 +65,15 @@ export function ScoreDistributionChart({
 
     // Count submissions in each range
     const rangeCounts = ranges.map((range, index) => {
-      const count = submissions.filter(submission =>
-        submission.score >= range.min && submission.score <= range.max
-      ).length;
+      const count = submissions.filter(submission => {
+        // For the first range (index 0), include the minimum value
+        // For other ranges, exclude the minimum to avoid double counting
+        const minCondition = index === 0
+          ? submission.score >= range.min
+          : submission.score > range.min;
+
+        return minCondition && submission.score <= range.max;
+      }).length;
 
       return {
         range: range.label,
