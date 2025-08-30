@@ -420,12 +420,9 @@ export default function SlideEditorDemo() {
         },
         onError: (error: any) => {
           toast.error(
-            `Gửi dữ liệu thất bại: ${
-              error?.response?.data?.message ||
-              error?.message ||
-              "Có lỗi xảy ra khi xử lý"
-            }`
+            `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
           );
+          console.error(error);
           setIsAutoProcessing(false);
         },
       });
@@ -526,9 +523,7 @@ export default function SlideEditorDemo() {
         onError: (error: any) => {
           toast.error(
             `Lưu thất bại: ${
-              error?.response?.data ||
-              error?.message ||
-              "Có lỗi xảy ra"
+              error?.response?.data || error?.message || "Có lỗi xảy ra"
             }`
           );
         },
