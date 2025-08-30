@@ -82,6 +82,7 @@ export function AppSidebar() {
               className="cursor-pointer"
             >
               <Image
+                priority
                 src="/images/planbook.svg"
                 alt="planbook"
                 height="90"
