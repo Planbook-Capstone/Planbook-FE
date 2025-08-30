@@ -1,8 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@import "../styles/theme.css";
-@import "../styles/a4-preview.css";
+@import "../styles/components/input.css";
+@import "../styles/components/button.css";
+@import "../styles/components/step.css";
+@import "../styles/components/tabs.css";
+
 
 @custom-variant dark (&:is(.dark *));
 
