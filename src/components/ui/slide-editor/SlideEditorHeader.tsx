@@ -35,6 +35,7 @@ interface SlideEditorHeaderProps {
   showTemplateActions?: boolean;
   templateData?: SlideTemplateTempData;
   userRole?: string;
+  isGenerating?: boolean;
 }
 
 export default function SlideEditorHeader({
@@ -58,6 +59,7 @@ export default function SlideEditorHeader({
   hasLoadedData = false,
   showTemplateActions = false,
   userRole = "admin",
+  isGenerating = false,
 }: SlideEditorHeaderProps) {
   return (
     <header className="h-16 py-5 bg-white border-b border-gray-200 flex items-center justify-between px-6">
@@ -72,8 +74,8 @@ export default function SlideEditorHeader({
 
       {/* Right Section - File Actions */}
       <div className="flex items-center gap-2">
-        {/* Undo/Redo Buttons - Hidden for teachers */}
-        {userRole !== "TEACHER" && (
+        {/* Undo/Redo Buttons - Hidden for teachers and when generating */}
+        {userRole !== "TEACHER" && !isGenerating && (
           <div className="flex items-center gap-1 mr-2">
             <button
               onClick={onUndo}
@@ -102,8 +104,8 @@ export default function SlideEditorHeader({
           </div>
         )}
 
-        {/* Load Sample Data Button - Hidden for teachers */}
-        {userRole !== "TEACHER" && (
+        {/* Load Sample Data Button - Hidden for teachers and when generating */}
+        {userRole !== "TEACHER" && !isGenerating && (
           <button
             onClick={onLoadSampleData}
             disabled={isLoadingData}
@@ -123,8 +125,8 @@ export default function SlideEditorHeader({
           </button>
         )}
 
-        {/* Clear Data Button - Hidden for teachers */}
-        {userRole !== "TEACHER" && hasLoadedData && (
+        {/* Clear Data Button - Hidden for teachers and when generating */}
+        {userRole !== "TEACHER" && hasLoadedData && !isGenerating && (
           <button
             onClick={onClearData}
             className="px-4 py-2 bg-gray-500 text-white text-sm rounded-full hover:bg-gray-600 transition-colors flex items-center gap-2"
@@ -135,8 +137,8 @@ export default function SlideEditorHeader({
           </button>
         )}
 
-        {/* Import JSON Button - Hidden for teachers */}
-        {userRole !== "TEACHER" && (
+        {/* Import JSON Button - Hidden for teachers and when generating */}
+        {userRole !== "TEACHER" && !isGenerating && (
           <button
             onClick={onImport}
             className="px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 hover:bg-neutral-100"
@@ -147,25 +149,27 @@ export default function SlideEditorHeader({
           </button>
         )}
 
-        {/* Export PPTX Button - Always visible */}
-        <button
-          onClick={onExportPPTX}
-          disabled={isExporting}
-          className={`px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 ${
-            isExporting
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-neutral-100"
-          }`}
-          title="Export to PowerPoint"
-        >
-          <Download
-            className={`w-4 h-4 ${isExporting ? "animate-spin" : ""}`}
-          />
-          {isExporting ? "Đang xuất..." : "Tải PPTX"}
-        </button>
+        {/* Export PPTX Button - Hidden when generating */}
+        {!isGenerating && (
+          <button
+            onClick={onExportPPTX}
+            disabled={isExporting}
+            className={`px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 ${
+              isExporting
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-neutral-100"
+            }`}
+            title="Export to PowerPoint"
+          >
+            <Download
+              className={`w-4 h-4 ${isExporting ? "animate-spin" : ""}`}
+            />
+            {isExporting ? "Đang xuất..." : "Tải PPTX"}
+          </button>
+        )}
 
-        {/* Export JSON Button - Hidden for teachers */}
-        {userRole !== "TEACHER" && (
+        {/* Export JSON Button - Hidden for teachers and when generating */}
+        {userRole !== "TEACHER" && !isGenerating && (
           <button
             onClick={onExportJSON}
             className="px-4 py-2 bg-transparent border text-sm text-neutral-800 rounded-full transition-colors flex items-center gap-2 hover:bg-neutral-100"
@@ -189,8 +193,8 @@ export default function SlideEditorHeader({
         {/* Template Actions */}
         {showTemplateActions ? (
           <>
-            {/* Cancel button - Hidden for teachers */}
-            {userRole !== "TEACHER" && (
+            {/* Cancel button - Hidden for teachers and when generating */}
+            {userRole !== "TEACHER" && !isGenerating && (
               <button
                 onClick={onCancel}
                 className="px-4 py-2 bg-gray-500 text-white text-sm rounded-full hover:bg-gray-600 transition-colors flex items-center gap-2"
@@ -201,15 +205,17 @@ export default function SlideEditorHeader({
             )}
           </>
         ) : null}
-        {/* Save button - Available for all users */}
-        <button
-          onClick={onSave}
-          className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
-          title="Save Template"
-        >
-          <Save className="w-4 h-4" />
-          Lưu Template
-        </button>
+        {/* Save button - Hidden when generating */}
+        {!isGenerating && (
+          <button
+            onClick={onSave}
+            className="px-4 py-2 cursor-pointer text-sm bg-[linear-gradient(227deg,_#20DCDF_5.38%,_#25BEE5_16.58%,_#2C99EE_26.8%,_#368BEB_39.32%,_#3860D2_50.53%,_#3A39BB_60.74%,_#3714A2_73.92%)] text-white rounded-full transition-colors flex items-center gap-2"
+            title="Save Template"
+          >
+            <Save className="w-4 h-4" />
+            Lưu Template
+          </button>
+        )}
       </div>
     </header>
   );

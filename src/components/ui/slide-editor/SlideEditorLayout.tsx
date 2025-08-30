@@ -1798,6 +1798,7 @@ export default function SlideEditorLayout({
           hasLoadedData={hasLoadedData}
           showTemplateActions={!!(onSave && onCancel)}
           userRole={userRole}
+          isGenerating={isGenerating}
         />
 
         {/* Main Content */}
@@ -1807,39 +1808,94 @@ export default function SlideEditorLayout({
             menuItems={menuItems}
             activeTab={activeTab}
             onTabChange={handleTabChange}
+            isGenerating={isGenerating}
           />
 
           {/* Tools Sidebar - Conditional based on active tab */}
-          {activeTab === "text" && (
-            <SlideEditorSidebar
-              onAddText={handleAddText}
-              onAddHeading={handleAddHeading}
-              onAddSubheading={handleAddSubheading}
-              onAddBodyText={handleAddBodyText}
-            />
-          )}
+          <div className="relative">
+            {activeTab === "text" && (
+              <SlideEditorSidebar
+                onAddText={handleAddText}
+                onAddHeading={handleAddHeading}
+                onAddSubheading={handleAddSubheading}
+                onAddBodyText={handleAddBodyText}
+              />
+            )}
 
-          {activeTab === "shapes" && (
-            <ShapesSidebar onAddShape={handleAddShape} />
-          )}
+            {activeTab === "shapes" && (
+              <ShapesSidebar onAddShape={handleAddShape} />
+            )}
 
-          {activeTab === "materials" && (
-            <MaterialsLibrarySidebar
-              onAddImage={handleAddImageFromUrl}
-              onAddVideo={handleAddVideoFromUrl}
-            />
-          )}
+            {activeTab === "materials" && (
+              <MaterialsLibrarySidebar
+                onAddImage={handleAddImageFromUrl}
+                onAddVideo={handleAddVideoFromUrl}
+              />
+            )}
 
-          {activeTab === "exercises" && (
-            <ExerciseSidebar onAddExerciseSlides={handleAddExerciseSlides} />
-          )}
+            {/* Overlay loading khi đang tạo slide */}
+            {isGenerating && (
+              <div className="absolute inset-0 bg-white bg-opacity-70 z-50 flex items-center justify-center">
+                <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
+                  <div className="flex flex-col items-center gap-3">
+                    <img
+                      src="/loading/loading_AI.gif"
+                      alt="AI Loading"
+                      className="w-8 h-8"
+                    />
+                    <p className="text-sm text-gray-600">Đang tạo slide...</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
-          {activeTab === "background" && (
-            <BackgroundSidebar
-              currentBackground={currentSlide?.background || "#ffffff"}
-              onBackgroundChange={handleBackgroundChange}
-            />
-          )}
+          <div className="relative">
+            {activeTab === "exercises" && (
+              <ExerciseSidebar onAddExerciseSlides={handleAddExerciseSlides} />
+            )}
+
+            {/* Overlay loading khi đang tạo slide */}
+            {isGenerating && activeTab === "exercises" && (
+              <div className="absolute inset-0 bg-white bg-opacity-70 z-50 flex items-center justify-center">
+                <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
+                  <div className="flex flex-col items-center gap-3">
+                    <img
+                      src="/loading/loading_AI.gif"
+                      alt="AI Loading"
+                      className="w-8 h-8"
+                    />
+                    <p className="text-sm text-gray-600">Đang tạo slide...</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            {activeTab === "background" && (
+              <BackgroundSidebar
+                currentBackground={currentSlide?.background || "#ffffff"}
+                onBackgroundChange={handleBackgroundChange}
+              />
+            )}
+
+            {/* Overlay loading khi đang tạo slide */}
+            {isGenerating && activeTab === "background" && (
+              <div className="absolute inset-0 bg-white bg-opacity-70 z-50 flex items-center justify-center">
+                <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
+                  <div className="flex flex-col items-center gap-3">
+                    <img
+                      src="/loading/loading_AI.gif"
+                      alt="AI Loading"
+                      className="w-8 h-8"
+                    />
+                    <p className="text-sm text-gray-600">Đang tạo slide...</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col relative overflow-auto w-full">
