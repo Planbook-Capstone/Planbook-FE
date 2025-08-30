@@ -86,6 +86,11 @@ const GridDistortion = ({
       video.playsInline = true;
       video.crossOrigin = "anonymous";
 
+      video.onerror = () => {
+        console.error("Failed to load video:", videoSrc);
+        video.style.display = "none";
+      };
+
       video.addEventListener("loadedmetadata", () => {
         imageAspectRef.current = video.videoWidth / video.videoHeight;
         const videoTexture = new THREE.VideoTexture(video);
