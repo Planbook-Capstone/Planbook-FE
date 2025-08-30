@@ -2,10 +2,15 @@
 
 import SlideTemplatesList from "@/components/organisms/slide-templates-list";
 import { useRouter } from "next/navigation";
-import { useSlideTemplatesService } from "@/services/slideTemplateServices";
+import {
+  useSlideTemplatesService,
+  useUpdateSlideTemplateStatus,
+} from "@/services/slideTemplateServices";
 import { SlideTemplateResponse } from "@/types";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 export default function SlideTemplatesPage() {
   const router = useRouter();
@@ -13,6 +18,7 @@ export default function SlideTemplatesPage() {
     data: templates,
     isLoading: isLoadingTemplates,
     error,
+    refetch,
   } = useSlideTemplatesService(
     {
       retry: 1, // Only retry once
@@ -34,32 +40,62 @@ export default function SlideTemplatesPage() {
       console.error("Error loading templates:", error);
     }
   }, [templates, error]);
+  const { mutate: updateSlideTemplateStatus } = useUpdateSlideTemplateStatus();
 
   const handleEditTemplate = (template: SlideTemplateResponse) => {
-    console.log("Editing template:", template);
-    // Redirect to edit page with template ID
-    router.push(`/staff/slide-templates/edit/${template.id}`);
+    updateSlideTemplateStatus(
+      {
+        id: template?.id,
+        field: "status",
+        queryParams: { newStatus: "ACTIVE" },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Đã khôi phục mẫu thành công!");
+          refetch();
+        },
+        onError: (error) => {
+          toast.error("Có lỗi xảy ra khi khôi phục hoạt mẫu!");
+        },
+      }
+    );
   };
 
   const handleDeleteTemplate = (templateId: string) => {
-    console.log("Deleting template:", templateId);
-    // TODO: Call API to delete template
-    if (confirm("Bạn có chắc chắn muốn xóa template này?")) {
-      // Implement delete API call here
-      console.log("Template deleted:", templateId);
-    }
+    // console.log("Deleting template:", templateId);
+    // // TODO: Call API to delete template
+    // if (confirm("Bạn có chắc chắn muốn xóa template này?")) {
+    //   // Implement delete API call here
+    //   console.log("Template deleted:", templateId);
+    // }
+
+    updateSlideTemplateStatus(
+      {
+        id: templateId,
+        field: "status",
+        queryParams: { newStatus: "INACTIVE" },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Đã xoá mẫu thành công!");
+          refetch();
+        },
+        onError: (error) => {
+          toast.error("Có lỗi xảy ra khi xoá hoạt mẫu!");
+        },
+      }
+    );
   };
 
   if (isLoadingTemplates) {
     return (
       <>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {[...Array(7)].map((_, index) => (
-            <Skeleton
-              key={index}
-              className="h-[150px] w-full rounded-md bg-neutral-300"
-            />
-          ))}
+        <div>
+          <GridSkeleton
+            count={7}
+            height={150}
+            cols="grid-cols-2 lg:grid-cols-4"
+          />
         </div>
       </>
     );

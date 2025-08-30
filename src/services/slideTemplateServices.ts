@@ -94,3 +94,8 @@ export const useProcessJsonTemplateService = createSecondaryMutationHook(
   "processJsonTemplate",
   API_ENDPOINTS.SLIDE_PROCESS_JSON_TEMPLATE
 );
+
+export const useUpdateSlideTemplateStatus = patchMutationHook(
+  "slide-templates",
+  API_ENDPOINTS.SLIDE_TEMPLATES
+);

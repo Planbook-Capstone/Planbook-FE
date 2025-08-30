@@ -147,7 +147,7 @@ export default function SlideTemplatesList({
                 className="bg-white text-gray-900 hover:bg-gray-100"
               >
                 <Palette className="w-4 h-4 mr-1" />
-                Thiết kế
+                Chỉnh sửa
               </Button>
             </div>
           </div>
@@ -175,17 +175,21 @@ export default function SlideTemplatesList({
                   <Palette className="w-4 h-4 mr-2" />
                   Thiết kế slide
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(template)}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Chỉnh sửa
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleDeleteTemplate(template.id)}
-                  className="text-red-600"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Xóa
-                </DropdownMenuItem>
+
+                {template.status === "INACTIVE" ? (
+                  <DropdownMenuItem onClick={() => onEdit(template)}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Khôi phục
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={() => handleDeleteTemplate(template.id)}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Xóa
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
