@@ -593,8 +593,8 @@ function LessonPlanTemplate({
             {isLoadingChidren && (
               <div className="p-5">
                 <GridSkeleton
-                  count={4}
-                  height={200}
+                  count={3}
+                  height={180}
                   cols="grid-cols-1 lg:grid-cols-1"
                 />
               </div>
@@ -616,7 +616,7 @@ function LessonPlanTemplate({
                           layout="vertical"
                           visible={true}
                           onStepChange={handleChangeStep}
-                          style={{ width: 300, position: "static" }}
+                          // style={{ width: 700, position: "static" }}
                           initialPosition={{ x: 0, y: 0 }}
                           disable={true}
                         />
