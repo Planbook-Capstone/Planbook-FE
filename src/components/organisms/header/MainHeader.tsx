@@ -9,9 +9,7 @@ import UserButton from "../user-button";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
-type MainHeaderProps = {};
-
-const MainHeader = (props: MainHeaderProps) => {
+const MainHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -26,6 +24,7 @@ const MainHeader = (props: MainHeaderProps) => {
           className="flex items-center gap-2 cursor-pointer"
         >
           <Image
+            priority
             src="/images/logoPlanbook.png"
             alt="PlanBook Logo"
             width={30}
@@ -36,7 +35,10 @@ const MainHeader = (props: MainHeaderProps) => {
         </div>
 
         {/* Desktop Menu */}
-        <nav data-tour="navigation" className="hidden md:flex items-center gap-6">
+        <nav
+          data-tour="navigation"
+          className="hidden md:flex items-center gap-6"
+        >
           {userItems.map((item) => {
             const isActive = pathname === item.href;
             return (
