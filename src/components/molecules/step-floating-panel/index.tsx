@@ -166,9 +166,10 @@ export const StepFloatingPanel = ({
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              className="p-1 rounded-full cursor-pointer bg-blue-100 hover:bg-gray-100 transition-colors"
+              className="p-1 rounded-full flex items-center text-blue-700 cursor-pointer pr-2 pl-3 bg-blue-100 hover:bg-gray-100 transition-colors"
               title={isCollapsed ? "Mở rộng" : "Thu gọn"}
             >
+              Thu gọn
               <ChevronUp
                 className={`w-4 h-4 text-blue-600 transition-transform duration-300 ${
                   isCollapsed ? "rotate-180" : ""
