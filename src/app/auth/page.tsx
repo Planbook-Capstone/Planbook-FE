@@ -320,7 +320,7 @@ const LoginPage = () => {
               ) : showRegisterOptions ? (
                 <RegisterOptions
                   onRegisterWithCredentials={handleRegisterWithCredentials}
-                  onRegisterWithGoogle={handleRegisterWithGoogle}
+                  onRegisterWithGoogle={loginGG}
                   onBackToLogin={handleBackToLogin}
                 />
               ) : showForgotPassword ? (
