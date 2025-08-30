@@ -71,6 +71,21 @@ export default function EditorCanvas({
   const canvasDimensions = getCanvasDimensions();
 
   // Canvas dimensions calculated
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const canvasNode = canvasRef.current;
+    if (!canvasNode) return;
+
+    const observer = new ResizeObserver(() => {
+      const rect = canvasNode.getBoundingClientRect();
+      setScale(rect.width / canvasDimensions.width);
+    });
+
+    observer.observe(canvasNode);
+
+    return () => observer.disconnect();
+  }, [canvasDimensions.width]);
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
   const [contextMenu, setContextMenu] = useState<{
@@ -446,82 +461,76 @@ export default function EditorCanvas({
         onAlignBottom={handleAlignBottom}
       />
       {/* Canvas Container */}
-      <div
-        className="flex-1 flex items-center justify-center"
-        style={{
-          minHeight: 0,
-          maxWidth: "100%",
-          width: "100%",
-        }}
-      >
+      <div className="flex-1 flex items-center justify-center w-full p-4 md:p-6">
+        {/* Aspect Ratio Container */}
         <div
-          ref={canvasRef}
-          className={`relative bg-white shadow-lg overflow-hidden transition-colors ${
-            dragOver ? "bg-blue-50 border-2 border-blue-300 border-dashed" : ""
-          }`}
+          className="relative w-full shadow-lg"
           style={{
-            width: `${canvasDimensions.width}px`,
-            height: `${canvasDimensions.height}px`,
-            ...(dragOver
-              ? { backgroundColor: "#eff6ff" }
-              : getBackgroundStyle()),
+            aspectRatio: slideFormat === "4:3" ? "4 / 3" : "16 / 9",
+            maxWidth: `${canvasDimensions.width}px`, // Limits max size, but allows shrinking
           }}
-          onClick={handleCanvasClick}
-          onMouseDown={(e) => {
-            // Additional handler for mousedown to ensure deselection
-            if (e.target === e.currentTarget) {
-              handleCanvasClick();
-            }
-          }}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
         >
-          {/* Grid background (optional) */}
+          {/* Canvas Area - This is the main container that scales */}
           <div
-            className="absolute inset-0 opacity-5"
-            style={{
-              backgroundSize: "20px 20px",
+            ref={canvasRef}
+            className={`absolute inset-0 bg-white overflow-hidden transition-colors w-full h-full`}
+            style={getBackgroundStyle()}
+            onClick={handleCanvasClick}
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) handleCanvasClick();
             }}
-          />
+          >
+            <div
+              className="absolute top-0 left-0 w-full h-full"
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+                width: `${canvasDimensions.width}px`,
+                height: `${canvasDimensions.height}px`,
+              }}
+            >
+              {/* Grid background (optional) */}
+              <div
+                className="absolute inset-0 opacity-5"
+                style={{ backgroundSize: "20px 20px" }}
+              />
 
-          {/* Render all elements sorted by zIndex */}
-          {(() => {
-            const sortedElements = elements
-              .slice() // Create a copy to avoid mutating the original array
-              .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+              {/* Render all elements sorted by zIndex */}
+              {(() => {
+                const sortedElements = elements
+                  .slice()
+                  .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+                return sortedElements.map((element) => renderElement(element));
+              })()}
 
-            return sortedElements.map((element) => {
-              return renderElement(element);
-            });
-          })()}
+              {/* Alignment guides */}
+              <AlignmentGuides
+                guides={alignmentGuides}
+                canvasWidth={canvasDimensions.width}
+                canvasHeight={canvasDimensions.height}
+              />
+            </div>
 
-          {/* Alignment guides */}
-          <AlignmentGuides
-            guides={alignmentGuides}
-            canvasWidth={canvasDimensions.width}
-            canvasHeight={canvasDimensions.height}
-          />
-
-          {/* Context menu */}
-          {contextMenu && (
-            <ContextMenu
-              x={contextMenu.x}
-              y={contextMenu.y}
-              elementId={contextMenu.elementId}
-              onClose={handleCloseContextMenu}
-              onCopy={handleCopyElement}
-              onPaste={onPasteElement}
-              onDelete={onDeleteElement}
-              onBringToFront={handleBringToFront}
-              onSendToBack={handleSendToBack}
-              onBringForward={handleBringForward}
-              onSendBackward={handleSendBackward}
-              onRotateLeft={handleRotateLeft}
-              onRotateRight={handleRotateRight}
-              hasCopiedElement={hasCopiedElement}
-            />
-          )}
+            {/* Context menu is positioned relative to the viewport, so it stays outside */}
+            {contextMenu && (
+              <ContextMenu
+                x={contextMenu.x}
+                y={contextMenu.y}
+                elementId={contextMenu.elementId}
+                onClose={handleCloseContextMenu}
+                onCopy={handleCopyElement}
+                onPaste={onPasteElement}
+                onDelete={onDeleteElement}
+                onBringToFront={handleBringToFront}
+                onSendToBack={handleSendToBack}
+                onBringForward={handleBringForward}
+                onSendBackward={handleSendBackward}
+                onRotateLeft={handleRotateLeft}
+                onRotateRight={handleRotateRight}
+                hasCopiedElement={hasCopiedElement}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
