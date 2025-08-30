@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL("https://planbook.vn"),
   alternates: {
-    canonical: "/",
+    canonical: "https://planbook.vn/",
   },
   openGraph: {
     type: "website",
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
     title: "PlanBook - Hệ thống quản lý giáo án thông minh",
     description:
       "PlanBook là hệ thống quản lý giáo án thông minh, hỗ trợ giáo viên tạo, quản lý và chia sẻ giáo án hiệu quả. Tích hợp chấm điểm tự động và thi trực tuyến.",
-    siteName: "PlanBook",
+    siteName: "Planbook - AI Portal cho giáo viên cấp 3",
     images: [
       {
         url: "/images/logoPlanbook.png",
