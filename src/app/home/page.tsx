@@ -121,25 +121,6 @@ export default function Home() {
     }
   }, [orderCode, cancelPayment]);
 
-  const getRandomColorClass = () => {
-    const colorClasses = [
-      "text-teal-300",
-      "text-gray-600",
-      "text-green-300",
-      "text-blue-500",
-      "text-gray-600",
-      "text-violet-400",
-      "text-cyan-300",
-      "text-gray-600",
-      "text-gray-600",
-      "text-rose-700",
-      "text-pink-600",
-      "text-gray-600",
-    ];
-    const randomIndex = Math.floor(Math.random() * colorClasses.length);
-    return colorClasses[randomIndex];
-  };
-
   // Handle pagination change
   const handlePageChange = (page: number) => {
     console.log("Pagination onChange - Page data:", {

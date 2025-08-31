@@ -22,25 +22,14 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
   const debugChatBox = () => {
     const chatBoxElement = document.querySelector('[data-tour="chat-box"]');
     const allChatBoxElements = document.querySelectorAll('[data-tour="chat-box"]');
-    // console.log('=== ChatBox Debug ===');
-    // console.log('isMobile:', isMobile);
-    // console.log('ChatBox element:', chatBoxElement);
-    // console.log('All ChatBox elements:', allChatBoxElements);
-    // console.log('ChatBox elements count:', allChatBoxElements.length);
+
 
     if (chatBoxElement) {
       const rect = chatBoxElement.getBoundingClientRect();
       const computedStyle = window.getComputedStyle(chatBoxElement);
-      // console.log('ChatBox rect:', rect);
-      // console.log('ChatBox computed style:', {
-      //   display: computedStyle.display,
-      //   visibility: computedStyle.visibility,
-      //   opacity: computedStyle.opacity,
-      //   zIndex: computedStyle.zIndex,
-      //   position: computedStyle.position
-      // });
+
     }
-    console.log('===================');
+
   };
 
   // Kiểm tra element có visible và accessible không

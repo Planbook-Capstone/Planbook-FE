@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import { PiSparkleFill } from "react-icons/pi";
 
 interface MarqueeProps {

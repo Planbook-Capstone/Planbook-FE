@@ -24,7 +24,6 @@ function PricingPage() {
 
           // Redirect to payment page with order data
           if (res?.data?.data?.id) {
-            // router.push(`/payment/${res?.data?.data?.id}`);
             router.push(`${res?.data?.data?.checkoutUrl}`);
           }
         },
@@ -37,15 +36,6 @@ function PricingPage() {
 
   return (
     <div className=" flex-1 justify-center items-center min-h-screen p-10">
-      {/* <div className="sticky top-0 left-0 bg-white z-50  py-2">
-        <button
-          onClick={() => router.back()}
-          className="text-sm font-questrial text-blue-600 hover:underline cursor-pointer"
-        >
-          Quay lại
-        </button>
-      </div> */}
-
       <LandingPageHeader
         onClickLogo={() => router.back()}
         isHiddenLoginBtn={true}

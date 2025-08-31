@@ -8,7 +8,6 @@ import {
   ExamTemplateProvider,
   useExamTemplateContext,
 } from "@/contexts/ExamTemplateContext";
-import { useRouter } from "next/navigation";
 
 interface ExamTemplateDetailsProps {
   params: Promise<{

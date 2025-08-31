@@ -1,6 +1,5 @@
 "use client";
 
-import { Share2 } from "lucide-react";
 import { Button } from "./ui/Button";
 import { DowloadIcon } from "@/constants/icon";
 import { useUploadDocxToOnlineService } from "@/services/lessonPlanGenerationServices";

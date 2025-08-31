@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Plus, Image as ImageIcon, X } from "lucide-react";
 import { CoppyIcon, EditIcon } from "@/constants/icon";
-import { YesNoQuestion, YesNoQuestionItemProps, YesNoOption } from "./types";
+import { YesNoQuestionItemProps, YesNoOption } from "./types";
 import { AdvancedTextEditor } from "@/components/ui/advanced-text-editor";
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -251,7 +251,6 @@ export default function YesNoQuestionItem({
           ))}
 
           {/* Add new sub-question button */}
-    
         </div>
 
         {/* Illustration Image Section */}
