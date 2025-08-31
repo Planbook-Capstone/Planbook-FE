@@ -225,6 +225,16 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
         target: () => document.querySelector('[data-tour="wallet"]') as HTMLElement,
       },
       {
+        title: "Thông báo đơn hàng",
+        description: (
+          <div>
+            <p>Tại đây bạn sẽ thấy thông báo về các đơn hàng chưa thanh toán, thanh toán thất bại hoặc cần thanh toán lại. Hãy kiểm tra để đảm bảo quyền sử dụng dịch vụ không bị gián đoạn.</p>
+            <p>Click để xem chi tiết.</p>
+          </div>
+        ),
+        target: () => document.querySelector('[data-tour="notifications"]') as HTMLElement,
+      },
+      {
         title: "Thông tin cá nhân",
         description: (
           <div>

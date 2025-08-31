@@ -101,7 +101,7 @@ function UserButton() {
 
       {/* Notification Button */}
       <Popover>
-        <PopoverTrigger className="outline-none relative">
+        <PopoverTrigger data-tour="notifications" className="outline-none relative">
           <div className="cursor-pointer p-2 border rounded-full hover:bg-gray-50 transition-colors relative">
             {/* <Bell className="size-5 text-gray-600" /> */}
             <div className="w-[20px] h-[20px]">{NotificationIcon}</div>
