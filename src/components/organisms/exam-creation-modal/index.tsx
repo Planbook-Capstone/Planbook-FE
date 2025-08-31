@@ -221,7 +221,7 @@ export default function ExamCreationModal({
                   </p>
                 </div>
                 <div>
-                  <h1>Template mẫu</h1>
+                  <h1>Mẫu</h1>
                   <p>
                     <span
                       style={{ color: '#2563eb', textDecoration: 'underline', cursor: 'pointer' }}
@@ -235,7 +235,7 @@ export default function ExamCreationModal({
                         document.body.removeChild(link);
                       }}
                     >
-                      Click vào đây
+                      Click vào đây để tải về
                     </span>
                   </p>
                 </div>
