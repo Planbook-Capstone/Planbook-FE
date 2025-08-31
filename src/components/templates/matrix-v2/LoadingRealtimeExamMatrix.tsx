@@ -202,7 +202,7 @@ const LoadingRealtimeExamMatrix: React.FC<LoadingRealtimeExamMatrixProps> = ({
 
   return (
     <div className="max-w-full mx-auto px-12">
-      <div className="grid grid-cols-2 gap-8 h-screen">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-screen">
         {/* Ma trận bên trái */}
         <div className="flex flex-col min-w-0">
           <div className="sticky top-0 bg-white z-10">

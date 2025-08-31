@@ -145,7 +145,7 @@ export default function MatrixTemplate2() {
   });
   const [wsUrl] = useState(WEBSOCKET_CONFIG.url);
   const [topic] = useState(WEBSOCKET_CONFIG.topic);
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [finalData, setFinalData] = useState<any>(null);
 
   // States for modals
