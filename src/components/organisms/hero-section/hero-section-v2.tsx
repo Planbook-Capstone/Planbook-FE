@@ -16,7 +16,10 @@ export const HeroSectionV2 = () => {
           e.preventDefault();
         }}
       >
-        <source src="/videos/hero.mp4" type="video/mp4" />
+        <source
+          src="https://gdwgakooknyysyrltfmq.supabase.co/storage/v1/object/public/planbook/hero.mp4"
+          type="video/mp4"
+        />
       </video>
 
       {/* Mobile Video */}
