@@ -18,13 +18,7 @@
     },
     {
       "src": "/images/logoPlanbook.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/images/logoPlanbook.png",
-      "sizes": "512x512",
+      "sizes": "109x116",
       "type": "image/png",
       "purpose": "any maskable"
     }
@@ -36,13 +30,6 @@
       "type": "image/png",
       "form_factor": "wide",
       "label": "Trang chủ PlanBook trên desktop"
-    },
-    {
-      "src": "/images/screenshots/mobile-home.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Trang chủ PlanBook trên mobile"
     }
   ],
   "shortcuts": [
