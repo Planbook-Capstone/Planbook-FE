@@ -488,12 +488,12 @@ export default function NodeRenderer({
         node.type !== "SECTION" &&
         node.type !== "SUBSECTION"
       ) {
-        console.log(
-          "🔄 Showing skeleton for node:",
-          node.id,
-          "content:",
-          node.content
-        );
+        // console.log(
+        //   "🔄 Showing skeleton for node:",
+        //   node.id,
+        //   "content:",
+        //   node.content
+        // );
         switch (node.fieldType) {
           case "TABLE":
             return <SkeletonTable className="w-full" />;
@@ -508,14 +508,14 @@ export default function NodeRenderer({
       }
 
       // Log when node has content and skeleton is hidden
-      if (hasContent && isNodeLoading && isNodeLoading(node.id)) {
-        console.log(
-          "✅ Node has content, hiding skeleton:",
-          node.id,
-          "content preview:",
-          node.content.substring(0, 50) + "..."
-        );
-      }
+      // if (hasContent && isNodeLoading && isNodeLoading(node.id)) {
+      //   console.log(
+      //     "✅ Node has content, hiding skeleton:",
+      //     node.id,
+      //     "content preview:",
+      //     node.content.substring(0, 50) + "..."
+      //   );
+      // }
 
       // Check fieldType first for special cases like TABLE
       if (node.fieldType === "TABLE") {

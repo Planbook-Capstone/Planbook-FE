@@ -78,11 +78,6 @@ const CurriculumList = ({ bookId, onLessonSelect }: CurriculumListProps) => {
                         key={lesson.id}
                         className="ml-10 text-[15px] cursor-pointer list-none hover:text-blue-600 transition-colors text-lg py-1"
                         onClick={() => {
-                          console.log(
-                            "Lesson clicked:",
-                            lesson.id,
-                            lesson.name
-                          );
                           onLessonSelect?.(lesson.id.toString());
                         }}
                       >

@@ -66,7 +66,7 @@ export const useLessonPlanData = ({
   const { data: lessonById } = useLessonByIdService(lessonId || "");
 
   const items = treeData?.data?.map((item: any) => {
-    console.log("🔍 Mapping item:", item);
+    // console.log("🔍 Mapping item:", item);
     return {
       id: item?.id,
       title: item?.title,
@@ -140,11 +140,11 @@ export const useLessonPlanData = ({
       }
 
       const convertNode = (node: any, index: number = 0): DemoNode => {
-        console.log("🔍 Processing node:", {
-          id: node.id,
-          type: node.type,
-          title: node.title,
-        });
+        // console.log("🔍 Processing node:", {
+        //   id: node.id,
+        //   type: node.type,
+        //   title: node.title,
+        // });
 
         // Determine fieldType based on type
         let fieldType: "INPUT" | "TABLE" | "IMAGE" = "INPUT";
