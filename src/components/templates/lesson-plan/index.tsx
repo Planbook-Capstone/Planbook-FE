@@ -1,14 +1,19 @@
 "use client";
-
+import dynamic from "next/dynamic";
 import { useCallback, useState, useEffect, useRef } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
-import PreviewModal from "@/components/PreviewModal";
+
 import Sidebar from "@/components/demo/Sidebar";
 import Toolbar from "@/components/demo/Toolbar";
 import Canvas from "@/components/demo/Canvas";
 import { StepFloatingPanel } from "@/components/molecules/step-floating-panel";
-import LoadingAI from "@/components/molecules/loading";
-import TokenConfirmModal from "@/components/modals/TokenConfirmModal";
+const TokenConfirmModal = dynamic(
+  () => import("@/components/modals/TokenConfirmModal"),
+  {
+    ssr: false,
+    loading: () => <div className="p-6">Đang tải modal...</div>,
+  }
+);
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
@@ -30,7 +35,10 @@ import { useLessonPlanUndoRedo } from "./hooks/useLessonPlanUndoRedo";
 import { getComponentPalette } from "./constants";
 import { DemoNode } from "./types";
 import { GridSkeleton } from "@/components/molecules/grid-skeleton";
-
+const PreviewModal = dynamic(() => import("@/components/PreviewModal"), {
+  ssr: false,
+  loading: () => <div className="p-6">Đang tải xem trước...</div>,
+});
 interface LessonPlanTemplateProps {
   mode?: "create" | "edit";
   existingData?: any;
