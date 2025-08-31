@@ -23,7 +23,7 @@ export default function NotFoundPage() {
             <img
               src="/images/illustration/robot.svg"
               alt="Robot illustration"
-              className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 xl:w-80 xl:h-80 object-contain"
+             className="w-44 h-44 sm:w-52 sm:h-52 md:w-56 md:h-56 lg:w-60 lg:h-60 xl:w-60 xl:h-60 object-contain"
             />
           </div>
 

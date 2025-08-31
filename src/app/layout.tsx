@@ -24,10 +24,7 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-});
+
 
 const questrial = Questrial({
   weight: "400",
@@ -121,7 +118,7 @@ export default function RootLayout({
         <AsyncCss />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable} ${manrope.variable} ${calSans.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable}  ${calSans.variable} antialiased`}
       >
         <ReactQueryProvider>
           <Suspense fallback={<Loading />}>
