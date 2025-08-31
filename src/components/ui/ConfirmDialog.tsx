@@ -34,11 +34,18 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       case "remove":
         return {
           title: "Xác nhận xóa",
-          message: questionToRemove
-            ? `Bạn có chắc chắn muốn bỏ chọn câu hỏi "${questionToRemove.questionContent.question.substring(0, 50)}..."?`
-            : "Bạn có chắc chắn muốn thực hiện hành động này?",
+          message: questionToRemove ? (
+            <span
+              dangerouslySetInnerHTML={{
+                __html: `Bạn có chắc chắn muốn bỏ chọn câu hỏi: ${questionToRemove.questionContent.question}`,
+              }}
+            />
+          ) : (
+            "Bạn có chắc chắn muốn thực hiện hành động này?"
+          ),
           confirmText: "Bỏ chọn",
         };
+
       default:
         return {
           title: "Xác nhận",
