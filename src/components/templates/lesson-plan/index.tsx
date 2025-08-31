@@ -61,7 +61,11 @@ function LessonPlanTemplate({
   const lastScrollTop = useRef(0);
 
   // Draggable compact button state
-  const [compactButtonPosition, setCompactButtonPosition] = useState({ x: window.innerWidth / 2, y: 16, isInitial: true });
+  const [compactButtonPosition, setCompactButtonPosition] = useState({
+    x: window.innerWidth / 2,
+    y: 16,
+    isInitial: true,
+  });
   const compactButtonRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
 
@@ -86,8 +90,8 @@ function LessonPlanTemplate({
       lastScrollTop.current = scrollTop;
     };
 
-    scrollContainer.addEventListener('scroll', handleScroll);
-    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    scrollContainer.addEventListener("scroll", handleScroll);
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Scroll to top function
@@ -95,7 +99,7 @@ function LessonPlanTemplate({
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
@@ -110,7 +114,11 @@ function LessonPlanTemplate({
       // Expanding: reset to initial position when opening
       setIsStepPanelFloating(false);
       setIsDescriptionHidden(false);
-      setCompactButtonPosition({ x: window.innerWidth / 2, y: 16, isInitial: true });
+      setCompactButtonPosition({
+        x: window.innerWidth / 2,
+        y: 16,
+        isInitial: true,
+      });
     }
   };
 
@@ -123,14 +131,14 @@ function LessonPlanTemplate({
     let startButtonPos = { ...compactButtonPosition };
 
     const handleMouseDown = (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest('button')) return;
+      if ((e.target as HTMLElement).closest("button")) return;
 
       isDraggingRef.current = true;
       startPos = { x: e.clientX, y: e.clientY };
       startButtonPos = { ...compactButtonPosition };
 
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
       e.preventDefault();
     };
 
@@ -156,7 +164,7 @@ function LessonPlanTemplate({
       // Direct DOM manipulation for performance
       compactButton.style.left = `${constrainedX}px`;
       compactButton.style.top = `${constrainedY}px`;
-      compactButton.style.transform = 'none';
+      compactButton.style.transform = "none";
     };
 
     const handleMouseUp = () => {
@@ -169,16 +177,16 @@ function LessonPlanTemplate({
       // Update React state once on mouse up
       setCompactButtonPosition({ x: finalX, y: finalY, isInitial: false });
 
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
 
-    compactButton.addEventListener('mousedown', handleMouseDown);
+    compactButton.addEventListener("mousedown", handleMouseDown);
 
     return () => {
-      compactButton.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      compactButton.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isStepPanelFloating, compactButtonPosition]);
 
@@ -471,11 +479,6 @@ function LessonPlanTemplate({
   // Log toolbar visibility state
   useEffect(() => {
     const shouldShowToolbar = !isLoading && loadingNodes.size === 0;
-    console.log("🔧 Toolbar visibility:", {
-      isLoading,
-      loadingNodesCount: loadingNodes.size,
-      shouldShowToolbar,
-    });
   }, [isLoading, loadingNodes]);
 
   // Manual reset loading function for testing
@@ -553,7 +556,6 @@ function LessonPlanTemplate({
         {
           onSuccess: () => {
             toast.success("Lưu kết quả thành công!");
-          
           },
           onError: (error: any) => {
             console.error("Error saving result:", error);
@@ -724,7 +726,10 @@ function LessonPlanTemplate({
               </div>
             )}
 
-            <div ref={scrollContainerRef} className="flex-1 overflow-auto relative">
+            <div
+              ref={scrollContainerRef}
+              className="flex-1 overflow-auto relative"
+            >
               {/* Step Title - only show in create mode and when not floating */}
               {mode !== "edit" &&
                 items &&
@@ -765,7 +770,9 @@ function LessonPlanTemplate({
                     style={{
                       left: compactButtonPosition.x,
                       top: compactButtonPosition.y,
-                      transform: compactButtonPosition.isInitial ? 'translateX(-50%)' : 'none',
+                      transform: compactButtonPosition.isInitial
+                        ? "translateX(-50%)"
+                        : "none",
                     }}
                   >
                     <div className="bg-white rounded-full shadow-lg border border-gray-200 px-4 py-2 flex items-center gap-3 hover:shadow-xl transition-shadow">
@@ -782,7 +789,10 @@ function LessonPlanTemplate({
                       {/* Step navigation arrows */}
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleChangeStep(Math.max(0, currentStep - 1)); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleChangeStep(Math.max(0, currentStep - 1));
+                          }}
                           disabled={currentStep === 0}
                           className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                           title="Previous step"
@@ -790,7 +800,12 @@ function LessonPlanTemplate({
                           <ChevronUp className="w-3 h-3 transform -rotate-90" />
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleChangeStep(Math.min(items.length - 1, currentStep + 1)); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleChangeStep(
+                              Math.min(items.length - 1, currentStep + 1)
+                            );
+                          }}
                           disabled={currentStep === items.length - 1}
                           className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                           title="Next step"
@@ -806,7 +821,10 @@ function LessonPlanTemplate({
 
                       {/* Expand Button */}
                       <button
-                        onClick={(e) => { e.stopPropagation(); toggleStepPanel(); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleStepPanel();
+                        }}
                         className="w-6 h-6 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors ml-2"
                         title="Mở rộng step panel"
                       >
@@ -821,8 +839,8 @@ function LessonPlanTemplate({
                 onClick={scrollToTop}
                 className={`fixed bottom-6 right-6 z-50 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 ${
                   showScrollToTop
-                    ? 'opacity-100 translate-y-0 pointer-events-auto'
-                    : 'opacity-0 translate-y-4 pointer-events-none'
+                    ? "opacity-100 translate-y-0 pointer-events-auto"
+                    : "opacity-0 translate-y-4 pointer-events-none"
                 }`}
                 title="Scroll to top"
               >

@@ -115,7 +115,7 @@ export const useLessonPlanGeneration = ({
           // Merge into finalData instead of replace
           const mergedResult = mergeAIDataToFinalDataRef.current(convertedData);
           console.log("✅ Merged result:", mergedResult);
-          toast.success("Đã tạo thành công 1 mục nội dung");
+          toast.success(`Đã tạo thành công 1 mục nội dung. Tiến độ hiện tại là ${data?.progress}%`);
         } else {
           console.log("⚠️ No converted data to merge");
         }
