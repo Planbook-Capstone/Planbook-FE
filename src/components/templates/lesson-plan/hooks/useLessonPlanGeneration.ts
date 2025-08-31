@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useExecuteToolService, useEstimateTokenService } from "@/services/executeToolServices";
+import {
+  useExecuteToolService,
+  useEstimateTokenService,
+} from "@/services/executeToolServices";
 import { useSimpleWebSocket } from "@/hooks/useSimpleWebSocket";
 import { generateDocx } from "@/utils/docxGenerator";
 import { DemoNode, WebSocketData } from "../types";
@@ -53,7 +56,8 @@ export const useLessonPlanGeneration = ({
 
   const { data: bookType } = useBookTypeByIdService(query || "");
   const { mutate, isPending: isGenerating } = useExecuteToolService();
-  const { mutate: estimateToken, isPending: isEstimating } = useEstimateTokenService();
+  const { mutate: estimateToken, isPending: isEstimating } =
+    useEstimateTokenService();
 
   // Token estimation state
   const [showTokenConfirmModal, setShowTokenConfirmModal] = useState(false);
@@ -111,7 +115,7 @@ export const useLessonPlanGeneration = ({
           // Merge into finalData instead of replace
           const mergedResult = mergeAIDataToFinalDataRef.current(convertedData);
           console.log("✅ Merged result:", mergedResult);
-          toast.success("Đã tạo thành công giáo án");
+          toast.success("Đã tạo thành công 1 mục nội dung");
         } else {
           console.log("⚠️ No converted data to merge");
         }
@@ -161,12 +165,16 @@ export const useLessonPlanGeneration = ({
     estimateToken(payload, {
       onSuccess: (response: any) => {
         console.log("Token estimation response:", response?.data?.data);
-        setEstimatedTokens(response?.data?.data || response?.estimatedTokens || 0);
+        setEstimatedTokens(
+          response?.data?.data || response?.estimatedTokens || 0
+        );
         setShowTokenConfirmModal(true);
       },
       onError: (error) => {
         toast.error(
-          `${error?.response?.data?.message || "Có lỗi xảy ra khi ước tính token"}`
+          `${
+            error?.response?.data?.message || "Có lỗi xảy ra khi ước tính token"
+          }`
         );
         console.error("Token estimation error:", error);
       },
