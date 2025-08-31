@@ -1036,7 +1036,7 @@ export default function MatrixTemplate2() {
 
         // Save to history only after successful API call
         saveCurrentMatrixToHistory();
-        toast.info("Đã lưu lịch sử nhập liệu cho các bài học!");
+        // toast.info("Đã lưu lịch sử nhập liệu cho các bài học!");
       },
       onError: (error) => {
         toast.error(

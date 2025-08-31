@@ -3,6 +3,7 @@
 import SelectLesson from "@/components/templates/select-lesson";
 import { useRouter, useSearchParams } from "next/navigation";
 import LessonPlanTemplate from "@/components/templates/lesson-plan";
+import { useEffect } from "react";
 
 function LessonPlanPage() {
   const router = useRouter();
@@ -16,7 +17,21 @@ function LessonPlanPage() {
     newUrl.searchParams.set("lessonId", lessonId);
     router.push(newUrl.pathname + newUrl.search);
   };
-  
+
+  // Chặn reload/thoát trang khi đang chỉnh sửa lesson plan
+  useEffect(() => {
+    if (lessonId) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "Các thay đổi bạn đã thực hiện có thể chưa được lưu.";
+        return e.returnValue;
+      };
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () =>
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+    }
+  }, [lessonId]);
+
   if (lessonId) {
     return (
       <div>
