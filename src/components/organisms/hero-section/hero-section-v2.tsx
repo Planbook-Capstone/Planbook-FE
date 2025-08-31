@@ -12,7 +12,8 @@ export const HeroSectionV2 = () => {
         aria-hidden="true"
         className="hidden md:block w-screen h-screen object-cover"
         onError={(e) => {
-          (e.target as HTMLVideoElement).style.display = "none";
+          // Chặn error mặc định
+          e.preventDefault();
         }}
       >
         <source src="/videos/hero.mp4" type="video/mp4" />
@@ -27,7 +28,8 @@ export const HeroSectionV2 = () => {
         aria-hidden="true"
         className="block md:hidden w-screen h-screen object-cover"
         onError={(e) => {
-          (e.target as HTMLVideoElement).style.display = "none";
+          // Chặn error mặc định
+          e.preventDefault();
         }}
       >
         <source src="/videos/hero-vertical.mp4" type="video/mp4" />
