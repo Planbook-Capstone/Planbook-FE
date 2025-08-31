@@ -210,13 +210,35 @@ export default function ExamCreationModal({
           {/* Show file import interface when import mode is selected */}
           {selectedMode === "import" && (
             <div>
-              <div className="mb-6 mx-3">
-                <h3 className="text-xl font-calsans mb-2 text-gray-900">
-                  Import Template từ File DOCX
-                </h3>
-                <p className="text-gray-600 font-questrial">
-                  Tải lên file DOCX để tự động tạo template đề thi
-                </p>
+              <div className="flex justify-between items-center mb-6 mx-3">
+                <div>
+                  {" "}
+                  <h3 className="text-xl font-calsans mb-2 text-gray-900">
+                    Import Template từ File DOCX
+                  </h3>
+                  <p className="text-gray-600 font-questrial">
+                    Tải lên file DOCX để tự động tạo template đề thi
+                  </p>
+                </div>
+                <div>
+                  <h1>Template mẫu</h1>
+                  <p>
+                    <span
+                      style={{ color: '#2563eb', textDecoration: 'underline', cursor: 'pointer' }}
+                      onClick={() => {
+                        // Tải file docx về máy, không mở tab mới
+                        const link = document.createElement('a');
+                        link.href = 'https://docs.google.com/document/d/1BgfaPs088DnGtxtlvOBJL44xae8wKeSP/export?format=docx';
+                        link.download = 'template-mau.docx';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                    >
+                      Click vào đây
+                    </span>
+                  </p>
+                </div>
               </div>
 
               <ExamFileImport
