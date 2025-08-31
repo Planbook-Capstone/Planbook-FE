@@ -553,7 +553,7 @@ function LessonPlanTemplate({
         {
           onSuccess: () => {
             toast.success("Lưu kết quả thành công!");
-            router.push("/my-library/LESSON_PLAN")
+          
           },
           onError: (error: any) => {
             console.error("Error saving result:", error);
