@@ -7,7 +7,6 @@ import { StudentQuestion } from "@/components/organisms/student-question";
 import { QuestionNavigation } from "@/components/organisms/question-navigation";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   useExamByCodeService,
   useSubmitExamService,
@@ -15,7 +14,7 @@ import {
   StudentAnswer,
 } from "@/services/studentExamServices";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle, HelpCircle } from "lucide-react";
+import { AlertTriangle, HelpCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,

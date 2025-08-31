@@ -8,13 +8,6 @@ import {
 } from "@/services/examTemplateServices";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Plus, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -30,9 +23,7 @@ import {
 } from "@/services/examInstanceServices";
 import { useExamContext, ExamProvider } from "@/contexts/ExamContext";
 import { ExamTemplateProvider } from "@/contexts/ExamTemplateContext";
-import ExamTemplateCard, {
-  ExamTemplate,
-} from "@/components/molecules/exam-template-card";
+import { ExamTemplate } from "@/components/molecules/exam-template-card";
 import ExamTemplateTable from "@/components/organisms/table-exam-template";
 
 function ExamTemplatesPageContent() {
@@ -265,20 +256,6 @@ function ExamTemplatesPageContent() {
               }
             />
           </div>
-
-          {/* <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-            <SelectTrigger className="w-[200px] rounded-full">
-              <SelectValue placeholder="Tất cả môn học" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả môn học</SelectItem>
-              {uniqueSubjects.map((subject) => (
-                <SelectItem key={subject} value={subject}>
-                  {subject}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select> */}
         </div>
         <Button onClick={handleCreateTemplate} className="bg-neutral-900">
           <Plus className="h-4 w-4 mr-2" />

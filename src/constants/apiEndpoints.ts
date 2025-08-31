@@ -187,10 +187,7 @@ export const EXAM_ENDPOINTS = {
   MATRIX_CONFIGS: buildEndpoint(SERVICES.EXAM_SERVICE, "/matrix-configs"),
 } as const;
 
-export const LESSON_FRAMEWORK_ENDPOINTS = {
-  //UPLOAD LESON PLAN FRAMEWORK
-  LESSON_PLAN_FRAMEWORK: `/lesson/lesson-plan-framework`,
-} as const;
+
 
 // Combined endpoints for easy access
 export const ALL_API_ENDPOINTS = {

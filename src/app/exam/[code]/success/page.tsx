@@ -4,8 +4,6 @@ import React, { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
 import { SubmitExamResponse } from "@/services/studentExamServices";
 import { CoppyIcon } from "@/constants/icon";
 import { toast } from "sonner";

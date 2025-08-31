@@ -10,7 +10,6 @@ import {
   useDeleteExamTemplateService,
 } from "@/services/examTemplateServices";
 import DocumentItem from "@/components/molecules/document-item";
-import { getLibraryTypeName } from "@/constants";
 import {
   Pagination,
   PaginationContent,
