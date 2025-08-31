@@ -16,6 +16,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 
 interface ExamCreationModalProps {
   isOpen: boolean;
@@ -271,10 +272,12 @@ export default function ExamCreationModal({
 
               {/* Loading state */}
               {isLoadingLibrary && (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <Skeleton key={index} className="h-32 w-full rounded-lg" />
-                  ))}
+                <div>
+                  <GridSkeleton
+                    count={7}
+                    height={150}
+                    cols="grid-cols-2 lg:grid-cols-4"
+                  />
                 </div>
               )}
 

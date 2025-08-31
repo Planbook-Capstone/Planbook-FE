@@ -553,6 +553,7 @@ function LessonPlanTemplate({
         {
           onSuccess: () => {
             toast.success("Lưu kết quả thành công!");
+          
           },
           onError: (error: any) => {
             console.error("Error saving result:", error);
@@ -716,7 +717,7 @@ function LessonPlanTemplate({
             {isLoadingChidren && (
               <div className="p-5">
                 <GridSkeleton
-                  count={3}
+                  count={4}
                   height={180}
                   cols="grid-cols-1 lg:grid-cols-1"
                 />

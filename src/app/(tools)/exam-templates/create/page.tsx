@@ -30,8 +30,8 @@ function ExamCreationPageContent() {
 
       if (hasImportedData && basicExamInfo) {
         // Use data from imported exam
-        console.log("=== SETTING METADATA FROM IMPORTED DATA ===");
-        console.log("Basic Info:", basicExamInfo);
+        // console.log("=== SETTING METADATA FROM IMPORTED DATA ===");
+        // console.log("Basic Info:", basicExamInfo);
 
         setTemplateMetadata({
           name: `Template ${basicExamInfo.subject} - Lớp ${basicExamInfo.grade}`,

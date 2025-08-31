@@ -209,13 +209,7 @@ function ExamTemplatesPageContent() {
       onSuccess: (response) => {
         console.log("Exam import successful:", response?.data?.warnings);
         if (response?.data?.warnings.length > 0) {
-          toast.error(response?.data?.warnings, {
-            style: {
-              background: "#fca5a5", // đỏ Tailwind red-600
-              color: "black",
-              border: "1px solid #b91c1c",
-            },
-          });
+          toast.error(response?.data?.warnings);
         } else {
           toast.success("Import đề thi thành công!");
         }
