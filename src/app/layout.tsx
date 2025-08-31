@@ -13,7 +13,6 @@ import { Toaster } from "@/components/ui/sonner";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 import Loading from "@/components/ui/loading";
 import { StructuredData } from "@/components/seo/StructuredData";
-import AsyncCss from "@/components/common/AsyncCss";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +23,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
 
 const questrial = Questrial({
   weight: "400",
@@ -115,7 +113,6 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="PlanBook" />
-        <AsyncCss />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${questrial.variable}  ${calSans.variable} antialiased`}
