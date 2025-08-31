@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/select";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
-import { useBooksBySubjectService } from "@/services/bookServices";
+import { useBookActiveBySubjectService, useBooksBySubjectService } from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
 import {
   useLessonsByChaptersService,
@@ -126,9 +126,13 @@ function QuestionBankManagementPage() {
   const { data: subjects } = useSubjectsByGradeService(selectedGrade, {
     enabled: !!selectedGrade && selectedGrade !== "all",
   });
-  const { data: books } = useBooksBySubjectService(selectedSubject, {
-    enabled: !!selectedSubject && selectedSubject !== "all",
-  });
+  const { data: books } = useBookActiveBySubjectService(
+    selectedSubject,
+    "ACTIVE",
+    {
+      enabled: !!selectedSubject, // Only call when subject is selected
+    }
+  );
   const { data: chaptersResponse } = useChaptersByBookService(selectedBook, {
     enabled: !!selectedBook && selectedBook !== "all",
   });
