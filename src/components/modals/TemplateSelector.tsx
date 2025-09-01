@@ -29,7 +29,16 @@ import {
 import { SlideTemplateResponse } from "@/types";
 import { useSlideTemplatesService } from "@/services/slideTemplateServices";
 import { TemplateCard } from "@/components/ui/TemplateCard";
-import Loading from "../ui/loading";
+import { TemplateCardSkeleton } from "@/components/ui/TemplateCardSkeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import BannerWithOverlay from "../organisms/banner/BannerWithOverlay";
 
 interface TemplateSelectorProps {
@@ -47,12 +56,14 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   // State management
   const [searchValue, setSearchValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [selectedTemplate, setSelectedTemplate] =
     useState<SlideTemplateResponse | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedThumbnailIndex, setSelectedThumbnailIndex] =
     useState<number>(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(9);
 
   // Fetch templates
   const {
@@ -63,33 +74,32 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     {
       retry: 1,
       staleTime: 0,
+      queryKey: [
+        "slide-templates",
+        currentPage,
+        pageSize,
+        searchValue,
+        sortOrder,
+      ],
     },
     {
-      offset: 1,
-      pageSize: 50, // Get more templates
+      page: currentPage,
+      size: pageSize,
+      name: searchValue,
       sortBy: "createdAt",
-      sortDirection: "desc",
+      status: "ACTIVE",
+      sortDirection: sortOrder as "asc" | "desc",
     }
   );
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   // Filter and search logic
   const filteredTemplates = useMemo(() => {
-    const templateList = templates?.data?.content || [];
-    return templateList.filter((template: SlideTemplateResponse) => {
-      // Search filter
-      const searchMatch =
-        template.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        template.description?.toLowerCase().includes(searchValue.toLowerCase());
-
-      // Status filter
-      const statusMatch =
-        statusFilter === "all" ||
-        (statusFilter === "active" && template.status === "ACTIVE") ||
-        (statusFilter === "inactive" && template.status === "INACTIVE");
-
-      return searchMatch && statusMatch;
-    });
-  }, [templates?.data?.content, searchValue, statusFilter]);
+    return templates?.data?.content || [];
+  }, [templates?.data?.content]);
 
   // Handlers
   const handleViewTemplate = (template: SlideTemplateResponse) => {
@@ -122,7 +132,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
   const handleClose = () => {
     setSearchValue("");
-    setStatusFilter("all");
+
     setSelectedTemplate(null);
     setIsViewModalOpen(false);
     onClose();
@@ -145,27 +155,59 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     <>
       {/* Main Template Selector Modal */}
       <div className="max-w-7xl mx-auto h-full bg-opacity-50 z-50">
-        <div className="bg-white rounded-lg w-full p-6">
-          <BannerWithOverlay
-            videoSrc="https://hxjigovnfjyaepkgvamd.supabase.co/storage/v1/object/public/planbook/Scene%2003%20-%204K%20(3840x2160)%20(1).mp4"
-            onSearch={handleClose}
-            height="h-80"
-            title="Mẫu Slide Hệ Thống Planbook"
-            grid={10}
-            mouse={0.1}
-            strength={0.15}
-            relaxation={0.9}
-            className="mb-8 object-center"
-            searchClassName="absolute bottom-10"
-            quickActions={[]}
-          />
+        <div className="rounded-lg w-full p-6">
+          <div className="relative">
+            <BannerWithOverlay
+              // videoSrc="https://hxjigovnfjyaepkgvamd.supabase.co/storage/v1/object/public/planbook/Scene%2003%20-%204K%20(3840x2160)%20(1).mp4"
+              imageSrc="/images/banner/bannerSlide.png"
+              onSearch={handleClose}
+              height="h-80"
+              grid={10}
+              mouse={0.1}
+              strength={0.15}
+              relaxation={0.9}
+              className="mb-8 object-center"
+              searchClassName="absolute bottom-10"
+              quickActions={[]}
+              hideSearch={true}
+            />
+            <img
+              src="/images/logo/glassLogo.svg"
+              className="h-16 absolute bottom-5 left-10"
+            />
+          </div>
+          {/* Templates Grid */}
+          {/* Search and Filter Controls */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-full max-w-sm">
+              <Input
+                placeholder="Tìm kiếm theo tên, mô tả..."
+                value={searchValue}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearchValue(e.target.value)
+                }
+                className="pl-10"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            </div>
+            <Select value={sortOrder} onValueChange={setSortOrder}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">Mới nhất</SelectItem>
+                <SelectItem value="asc">Cũ nhất</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Templates Grid */}
-          <div className="mt-18">
+          <div className="mt-8">
             {isLoadingTemplates ? (
-              <div className="text-center py-12">
-                <Loading />
-                <p className="mt-2 text-gray-500">Đang tải templates...</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <TemplateCardSkeleton key={index} />
+                ))}
               </div>
             ) : filteredTemplates.length === 0 ? (
               <div className="text-center py-12">
@@ -173,15 +215,150 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 <h3 className="text-lg font-calsans text-gray-900 mb-2">
                   Không tìm thấy template
                 </h3>
+
                 <p className="text-gray-600 font-questrial">
                   Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredTemplates.map((template: SlideTemplateResponse) => (
-                  <TemplateItem key={template.id} template={template} />
-                ))}
+              <div className="flex flex-col">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredTemplates.map((template: SlideTemplateResponse) => (
+                    <TemplateItem key={template.id} template={template} />
+                  ))}
+                </div>
+                {/* Pagination */}
+                {templates?.data?.totalPages >= 1 && (
+                  <div className="mt-8 flex justify-end">
+                    <Pagination className="!text-black justify-end">
+                      <PaginationContent className="!text-black">
+                        {/* Previous Button */}
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage > 1)
+                                handlePageChange(currentPage - 1);
+                            }}
+                            className={
+                              currentPage === 1
+                                ? "!text-black pointer-events-none opacity-50"
+                                : "!text-black hover:!text-black"
+                            }
+                          />
+                        </PaginationItem>
+
+                        {/* Page Numbers (1-based) */}
+                        {(() => {
+                          const totalPages = templates.data.totalPages ?? 1;
+                          const pages: React.ReactNode[] = [];
+
+                          // luôn hiển thị trang 1
+                          if (totalPages >= 1) {
+                            pages.push(
+                              <PaginationItem key={1}>
+                                <PaginationLink
+                                  href="#"
+                                  isActive={currentPage === 1}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (currentPage !== 1) handlePageChange(1);
+                                  }}
+                                  className="!text-black hover:text-black"
+                                >
+                                  1
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          }
+
+                          // ellipsis đầu
+                          if (currentPage > 3) {
+                            pages.push(
+                              <PaginationItem key="ellipsis-start">
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            );
+                          }
+
+                          // các trang xung quanh current (cửa sổ ±1, bỏ trang 1 & cuối)
+                          const start = Math.max(2, currentPage - 1);
+                          const end = Math.min(totalPages - 1, currentPage + 1);
+
+                          for (let p = start; p <= end; p++) {
+                            pages.push(
+                              <PaginationItem key={p}>
+                                <PaginationLink
+                                  href="#"
+                                  isActive={currentPage === p}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (currentPage !== p) handlePageChange(p);
+                                  }}
+                                  className="!text-black hover:text-black"
+                                >
+                                  {p}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          }
+
+                          // ellipsis cuối
+                          if (currentPage < totalPages - 2) {
+                            pages.push(
+                              <PaginationItem key="ellipsis-end">
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            );
+                          }
+
+                          // luôn hiển thị trang cuối nếu > 1
+                          if (totalPages > 1) {
+                            pages.push(
+                              <PaginationItem key={totalPages}>
+                                <PaginationLink
+                                  href="#"
+                                  isActive={currentPage === totalPages}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (currentPage !== totalPages)
+                                      handlePageChange(totalPages);
+                                  }}
+                                  className="!text-black hover:text-black"
+                                >
+                                  {totalPages}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          }
+
+                          return pages;
+                        })()}
+
+                        {/* Next Button */}
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (
+                                currentPage < (templates.data.totalPages ?? 1)
+                              ) {
+                                handlePageChange(currentPage + 1);
+                              }
+                            }}
+                            className={
+                              currentPage >= (templates.data.totalPages ?? 1)
+                                ? "!text-black pointer-events-none opacity-50"
+                                : "!text-black hover:!text-black"
+                            }
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
               </div>
             )}
           </div>

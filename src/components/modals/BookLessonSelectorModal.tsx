@@ -19,6 +19,7 @@ import {
 } from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
+import { useRouter } from "next/navigation";
 
 interface BookLessonSelectorModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export const BookLessonSelectorModal: React.FC<
   const [selectedBook, setSelectedBook] = useState<string>("");
   const [selectedLesson, setSelectedLesson] = useState<string>("");
   const [userPrompt, setUserPrompt] = useState<string>("");
+  const router = useRouter();
 
   // Lấy data động từ API
   const { data: grades } = useGradesService();
@@ -70,17 +72,17 @@ export const BookLessonSelectorModal: React.FC<
   const handleConfirm = () => {
     if (selectedBook && selectedLesson) {
       onConfirm(selectedBook, selectedLesson, userPrompt.trim() || undefined);
-      handleClose();
+      setSelectedGrade("");
+      setSelectedSubject("");
+      setSelectedBook("");
+      setSelectedLesson("");
+      onClose();
     }
   };
 
   const handleClose = () => {
     // Reset selections when closing
-    setSelectedGrade("");
-    setSelectedSubject("");
-    setSelectedBook("");
-    setSelectedLesson("");
-    onClose();
+    router.back();
   };
 
   const isValid = selectedBook && selectedLesson;

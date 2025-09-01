@@ -1030,7 +1030,7 @@ export const LessonPlanQuestionBankModal: React.FC<
                       {/* Nguồn */}
                       {question.referenceSource && (
                         <div className="text-xs text-gray-500 border-t pt-2">
-                          📚 {question.referenceSource}
+                          {question.referenceSource}
                         </div>
                       )}
                     </div>

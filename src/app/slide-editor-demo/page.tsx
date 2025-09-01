@@ -67,6 +67,14 @@ export default function SlideEditorDemo() {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationMessage, setGenerationMessage] = useState("");
   const [slideName, setSlideName] = useState<string>();
+  const [isReloading, setIsReloading] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    const generating = localStorage.getItem("isGeneratingSlide");
+    const savedResultId = localStorage.getItem("generatingSlideId");
+    return generating === "true" && !!savedResultId;
+  });
 
   const {
     data: templateDetail,
@@ -93,6 +101,24 @@ export default function SlideEditorDemo() {
   });
   const [finalData, setFinalData] = useState<any>(null);
 
+  // Effect để khôi phục state khi reload
+  useEffect(() => {
+    if (isReloading) {
+      const savedTemplateId = localStorage.getItem("generatingTemplateId");
+      const savedBookId = localStorage.getItem("generatingBookId");
+      const savedLessonId = localStorage.getItem("generatingLessonId");
+
+      // Khôi phục các giá trị đã lưu
+      if (savedTemplateId) setSelectedTemplateId(savedTemplateId);
+      if (savedBookId) setSelectedBookId(savedBookId);
+      if (savedLessonId) setSelectedLessonId(savedLessonId);
+
+      setShowBookLessonModal(false);
+      setShowTemplateSelector(false);
+      setEnabled(true); // Enable websocket
+    }
+  }, [isReloading]);
+
   // Effect để xử lý beforeunload event khi đang tạo slide
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -113,6 +139,12 @@ export default function SlideEditorDemo() {
     if (websocketData?.result_id) {
       setCompletedResultId(websocketData.result_id);
       setIsGenerating(false);
+      // Clear all localStorage flags when generation is complete
+      localStorage.removeItem("isGeneratingSlide");
+      localStorage.removeItem("generatingSlideId");
+      localStorage.removeItem("generatingTemplateId");
+      localStorage.removeItem("generatingBookId");
+      localStorage.removeItem("generatingLessonId");
       toast.success("Tạo slide hoàn thành!", {
         id: "slide-generation", // Replace loading toast
       });
@@ -158,6 +190,12 @@ export default function SlideEditorDemo() {
         websocketData?.result_id
       ) {
         setIsGenerating(false);
+        // Clear all localStorage flags when generation is complete
+        localStorage.removeItem("isGeneratingSlide");
+        localStorage.removeItem("generatingSlideId");
+        localStorage.removeItem("generatingTemplateId");
+        localStorage.removeItem("generatingBookId");
+        localStorage.removeItem("generatingLessonId");
         toast.success("Tạo slide hoàn thành!", {
           id: "slide-generation", // Replace loading toast
         });
@@ -201,6 +239,17 @@ export default function SlideEditorDemo() {
       setSlides(normalizedSlides);
       setHasLoadedData(true);
       setShouldAutoNavigate(true); // Enable auto-navigation for WebSocket data
+
+      // Tắt trạng thái reload khi nhận được dữ liệu slide
+      if (isReloading) {
+        setIsReloading(false);
+        // Clear all localStorage flags when slides are received
+        localStorage.removeItem("isGeneratingSlide");
+        localStorage.removeItem("generatingSlideId");
+        localStorage.removeItem("generatingTemplateId");
+        localStorage.removeItem("generatingBookId");
+        localStorage.removeItem("generatingLessonId");
+      }
 
       // Note: SlideEditorLayout will handle the current slide index internally
     }
@@ -258,6 +307,11 @@ export default function SlideEditorDemo() {
 
   // Auto show book/lesson modal first on load (optional)
   useEffect(() => {
+    // Ngăn modal hiển thị khi đang trong quá trình khôi phục
+    if (isReloading) {
+      return;
+    }
+
     if (!selectedBookId && !selectedLessonId) {
       const timer = setTimeout(() => {
         setShowBookLessonModal(true);
@@ -265,7 +319,7 @@ export default function SlideEditorDemo() {
 
       return () => clearTimeout(timer);
     }
-  }, [selectedBookId, selectedLessonId]);
+  }, [selectedBookId, selectedLessonId, isReloading]);
 
   // Function để post data về BE
   const handleProcessTemplate = async (templateData: any) => {
@@ -396,6 +450,19 @@ export default function SlideEditorDemo() {
         onSuccess: (response: any) => {
           toast.success("Gửi dữ liệu thành công!");
 
+          // Set localStorage flags to indicate slide generation is in progress
+          localStorage.setItem("isGeneratingSlide", "true");
+          localStorage.setItem(
+            "generatingSlideId",
+            response?.data?.id || `temp_${Date.now()}`
+          );
+          localStorage.setItem(
+            "generatingTemplateId",
+            selectedTemplateId || ""
+          );
+          localStorage.setItem("generatingBookId", selectedBookId || "");
+          localStorage.setItem("generatingLessonId", selectedLessonId || "");
+
           // Start generation tracking
           setIsGenerating(true);
           setGenerationProgress(0);
@@ -419,6 +486,13 @@ export default function SlideEditorDemo() {
           setIsAutoProcessing(false);
         },
         onError: (error: any) => {
+          // Clear all localStorage flags when there's an error
+          localStorage.removeItem("isGeneratingSlide");
+          localStorage.removeItem("generatingSlideId");
+          localStorage.removeItem("generatingTemplateId");
+          localStorage.removeItem("generatingBookId");
+          localStorage.removeItem("generatingLessonId");
+          setIsGenerating(false);
           toast.error(
             `${error?.response?.data || "Có lỗi xảy ra khi gửi dữ liệu"}`
           );
@@ -541,6 +615,21 @@ export default function SlideEditorDemo() {
     }
   };
 
+  // Hiển thị màn hình loading khi đang reload
+  if (isReloading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang khôi phục quá trình tạo slide...</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Vui lòng chờ trong giây lát.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen relative">
       {/* Loading overlay khi đang process template */}
@@ -554,7 +643,7 @@ export default function SlideEditorDemo() {
         </div>
       )}
 
-      {selectedTemplateId && (
+      {selectedTemplateId ? (
         <div className="h-screen flex flex-col">
           <SlideEditorLayout
             initialSlides={slides}
@@ -579,26 +668,28 @@ export default function SlideEditorDemo() {
             }}
           />
         </div>
-      )}
+      ) : (
+        <>
+          {/* Template Selector Modal */}
+          {selectedLessonId && (
+            <TemplateSelector
+              isOpen={showTemplateSelector}
+              onClose={() => setShowTemplateSelector(false)}
+              onSelectTemplate={handleTemplateSelect}
+              title="Chọn mẫu slide"
+            />
+          )}
 
-      {/* Template Selector Modal */}
-      {selectedLessonId && (
-        <TemplateSelector
-          isOpen={showTemplateSelector}
-          onClose={() => setShowTemplateSelector(false)}
-          onSelectTemplate={handleTemplateSelect}
-          title="Chọn mẫu slide"
-        />
-      )}
-
-      {/* Book & Lesson Selector Modal */}
-      {!selectedBookId && (
-        <BookLessonSelectorModal
-          isOpen={showBookLessonModal}
-          onClose={() => setShowBookLessonModal(false)}
-          onConfirm={handleBookLessonConfirm}
-          title="Chọn sách và bài học"
-        />
+          {/* Book & Lesson Selector Modal - Không hiển thị khi đang khôi phục */}
+          {!selectedBookId && !isReloading && (
+            <BookLessonSelectorModal
+              isOpen={showBookLessonModal}
+              onClose={() => setShowBookLessonModal(false)}
+              onConfirm={handleBookLessonConfirm}
+              title="Chọn sách và bài học"
+            />
+          )}
+        </>
       )}
 
       {/* Save Lesson Plan Modal */}

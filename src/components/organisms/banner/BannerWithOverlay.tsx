@@ -23,6 +23,7 @@ interface BannerWithOverlayProps {
   relaxation?: number;
   searchClassName?: string;
   quickActions?: QuickAction[];
+  hideSearch?: boolean;
 }
 
 const BannerWithOverlay = ({
@@ -39,6 +40,7 @@ const BannerWithOverlay = ({
   relaxation = 0.9,
   searchClassName = "",
   quickActions,
+  hideSearch = false,
 }: BannerWithOverlayProps) => {
   return (
     <div
@@ -62,6 +64,7 @@ const BannerWithOverlay = ({
         subtitle={subtitle}
         onSearch={onSearch}
         quickActions={quickActions}
+        hideSearch={hideSearch}
       />
     </div>
   );

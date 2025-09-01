@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
-import { useBooksBySubjectService } from "@/services/bookServices";
+import {
+  useBookActiveBySubjectService,
+  useBooksBySubjectService,
+} from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { useQuestionBanksWithParamsService } from "@/services/questionBankServices";
@@ -46,10 +49,11 @@ export const ExerciseQuestionBankModal: React.FC<
     }
   );
 
-  const { data: booksData } = useBooksBySubjectService(
+  const { data: booksData } = useBookActiveBySubjectService(
     selectedSubject?.id || "",
+    "ACTIVE",
     {
-      enabled: !!selectedSubject,
+      enabled: !!selectedSubject, // Only call when subject is selected
     }
   );
 
@@ -278,7 +282,7 @@ export const ExerciseQuestionBankModal: React.FC<
       const correctAnswer = content.answer;
 
       return (
-        <div className="space-y-2 mt-3">
+        <div className="space-y-2 mt-3 font-questrial">
           <p className="text-sm font-medium text-gray-600 mb-2">
             Các phương án lựa chọn:
           </p>
@@ -323,7 +327,7 @@ export const ExerciseQuestionBankModal: React.FC<
       const statements = content.statements;
 
       return (
-        <div className="space-y-2 mt-3">
+        <div className="space-y-2 mt-3 font-questrial">
           <p className="text-sm font-medium text-gray-600 mb-2">
             Các phát biểu:
           </p>
@@ -380,7 +384,7 @@ export const ExerciseQuestionBankModal: React.FC<
     switch (currentView) {
       case "grades":
         return (
-          <div className="space-y-2 flex gap-6">
+          <div className="space-y-2 flex gap-6 font-questrial">
             {gradesData?.data?.content &&
             Array.isArray(gradesData.data.content) ? (
               gradesData.data.content.map((grade: any, index: number) => (
@@ -456,7 +460,7 @@ export const ExerciseQuestionBankModal: React.FC<
                     onClick={() => handleBookSelect(book)}
                     className="flex flex-col items-center gap-3 p-3 rounded-lg cursor-pointer"
                   >
-                    <img src={"/images/files/BOOK.svg"} />
+                    <img src={"/images/files/BOOK_V2.svg"} />
                     <span className="truncate w-full">{book.name}</span>
                   </div>
                 ))}{" "}
@@ -643,7 +647,7 @@ export const ExerciseQuestionBankModal: React.FC<
   };
 
   return (
-    <div className="fixed inset-0 bg-black/10 bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/10 bg-opacity-50 flex items-center justify-center z-50 font-questrial">
       <div className="bg-white rounded-lg overflow-y-hidden shadow-xl w-full max-w-7xl h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
@@ -801,7 +805,7 @@ export const ExerciseQuestionBankModal: React.FC<
                       {/* Nguồn */}
                       {question.referenceSource && (
                         <div className="text-xs text-gray-500 border-t pt-2">
-                          📚 {question.referenceSource}
+                          {question.referenceSource}
                         </div>
                       )}
                     </div>
@@ -810,13 +814,13 @@ export const ExerciseQuestionBankModal: React.FC<
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   <div className="text-center">
-                    <p className="text-lg mb-2">
+                    <p className="text-lg mb-2 font-calsans">
                       Chưa có câu hỏi nào được chọn
                     </p>
                     <p className="text-sm">
                       {currentView === "questions"
                         ? "Chọn câu hỏi từ danh sách bên trái"
-                        : "Chọn khối → môn → sách → bài học để xem câu hỏi"}
+                        : "Chọn khối - môn - sách - bài học để xem câu hỏi"}
                     </p>
                   </div>
                 </div>
