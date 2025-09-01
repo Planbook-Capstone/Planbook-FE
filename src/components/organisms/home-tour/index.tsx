@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Tour, Button } from "antd";
 import type { TourProps } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
@@ -16,6 +16,8 @@ interface HomeTourProps {
 const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState(0);
+  // Prevent reopening tour right after manual close (useRef to persist across renders)
+  const justClosedRef = useRef(false);
   const isMobile = useIsMobile();
 
   // Debug function để kiểm tra ChatBox
@@ -392,13 +394,16 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
   // Kiểm tra xem user đã xem tour chưa
   useEffect(() => {
     const hasSeenTour = localStorage.getItem("home-tour-completed");
-    if (!hasSeenTour) {
+    if (!hasSeenTour && !justClosedRef.current) {
       // Delay để đảm bảo DOM đã render hoàn toàn, đặc biệt là ChatBox
       const delay = isMobile ? 1500 : 2000; // Tăng delay cho desktop
       setTimeout(() => {
         // Debug ChatBox trước khi bắt đầu tour
         debugChatBox();
-        setOpen(true);
+        // Chỉ mở nếu chưa vừa tắt
+        if (!justClosedRef.current) {
+          setOpen(true);
+        }
       }, delay);
     }
   }, [isMobile, debugChatBox]);
@@ -421,6 +426,7 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
 
   const handleTourClose = () => {
     setOpen(false);
+    justClosedRef.current = true;
     localStorage.setItem("home-tour-completed", "true");
     onTourComplete?.();
 
@@ -428,6 +434,7 @@ const HomeTour: React.FC<HomeTourProps> = ({ onTourComplete, bookTypes }) => {
     if (isMobile) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    // Không reset justClosedRef trong cùng phiên, chỉ reset khi reload trang
   };
 
   const resetTour = () => {

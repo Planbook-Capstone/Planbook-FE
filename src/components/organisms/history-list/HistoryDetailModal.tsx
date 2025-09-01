@@ -200,7 +200,7 @@ const LessonPlanNodes = ({ nodes }: { nodes: any }) => {
   const processedNodes = processNodes(nodes);
 
   if (processedNodes.length === 0) {
-    return <div>Không có dữ liệu nodes</div>;
+    return <div>Không có dữ liệu</div>;
   }
 
   return (

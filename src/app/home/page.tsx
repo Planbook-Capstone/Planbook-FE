@@ -63,7 +63,7 @@ export default function Home() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
-
+  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   // Reset currentPage to 0 when selectedBookType changes
   useEffect(() => {
     setCurrentPage(0);
@@ -75,13 +75,14 @@ export default function Home() {
     refetch,
     isLoading: isLoadingToolLogs,
   } = useToolLogsWithParamsService(
-    [currentPage, pageSize, selectedBookType], // dependencies for query key
+    [currentPage, pageSize, selectedBookType, sortBy], // dependencies for query key
     { retry: 1, staleTime: 0 }, // options
     {
       userId: user?.id,
       offset: currentPage,
       pageSize: pageSize,
-      sort: "createdAt,desc",
+      sortBy: "createdAt",
+      sortDirection: sortBy !== "newest" ? "asc" : "desc",
       ...(selectedBookType !== "all" ? { toolId: selectedBookType } : {}),
     } // pagination params
   );
@@ -252,22 +253,36 @@ export default function Home() {
             {HistoryIcon}
             Lịch sử
           </h1>
-          <Select
-            value={selectedBookType}
-            onValueChange={(value) => setSelectedBookType(value)}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Tất cả" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              {bookTypes?.data?.content?.map((bt: any) => (
-                <SelectItem key={bt.id} value={bt.id}>
-                  {bt.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex justify-end items-center gap-2">
+            <Select
+              value={sortBy}
+              onValueChange={(value: "newest" | "oldest") => setSortBy(value)}
+            >
+              <SelectTrigger className="min-w-[100px] flex-1 md:flex-none md:w-auto rounded-sm">
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Mới nhất</SelectItem>
+                <SelectItem value="oldest">Cũ nhất</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={selectedBookType}
+              onValueChange={(value) => setSelectedBookType(value)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Tất cả" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {bookTypes?.data?.content?.map((bt: any) => (
+                  <SelectItem key={bt.id} value={bt.id}>
+                    {bt.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
