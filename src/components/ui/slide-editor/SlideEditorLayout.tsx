@@ -19,10 +19,13 @@ import ShapeToolbar from "./ShapeToolbar";
 import SlidePresentation from "./SlidePresentation";
 import ExerciseSidebar from "./ExerciseSidebar";
 import { TablePropertiesPanel } from "./TablePropertiesPanel";
+import { ToolbarSkeleton } from "@/components/molecules/loading-skeleton";
 
 import { ImageElement, VideoElement, ShapeElement } from "@/types";
 import { TextColorProvider } from "./TextColorContext";
 import { SlideTemplateTempData } from "@/contexts/SlideTemplateContext";
+import { LockIcon } from "lucide-react";
+import { LockPBIcon } from "@/constants/icon";
 
 // Helper function to normalize text from API (convert object to string)
 const normalizeTextFromAPI = (text: any): string => {
@@ -137,6 +140,14 @@ export default function SlideEditorLayout({
   const [activeTab, setActiveTab] = useState<string>("text"); // "text", "images", "background", or "effects"
   const [selectedTransition] = useState<string>("fade"); // Current selected transition
   const [isPresentationMode, setIsPresentationMode] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
+
+  useEffect(() => {
+    const generating = localStorage.getItem("isGeneratingSlide");
+    if (generating === "true") {
+      setIsReloading(true);
+    }
+  }, []);
 
   // Update slides when initialSlides prop changes
   useEffect(() => {
@@ -171,6 +182,13 @@ export default function SlideEditorLayout({
       if (JSON.stringify(slides) !== JSON.stringify(newSlides)) {
         // Loading new slides
         replaceSlidesState(newSlides);
+
+        // Turn off reloading state when slides are loaded
+        if (isReloading) {
+          setIsReloading(false);
+          // Clear the localStorage flag
+          localStorage.removeItem("isGeneratingSlide");
+        }
 
         // Auto navigate to the last slide (newest) when slides are updated
         if (autoNavigateToLast) {
@@ -1763,6 +1781,19 @@ export default function SlideEditorLayout({
     },
   ];
 
+  if (isReloading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang khôi phục quá trình tạo slide...</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Vui lòng chờ trong giây lát.
+          </p>
+        </div>
+      </div>
+    );
+  }
   return (
     <TextColorProvider>
       <div
@@ -1835,16 +1866,10 @@ export default function SlideEditorLayout({
 
             {/* Overlay loading khi đang tạo slide */}
             {isGenerating && (
-              <div className="absolute inset-0 bg-white bg-opacity-70 z-50 flex items-center justify-center">
-                <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                  <div className="flex flex-col items-center gap-3">
-                    <img
-                      src="/loading/loading_AI.gif"
-                      alt="AI Loading"
-                      className="w-8 h-8"
-                    />
-                    <p className="text-sm text-gray-600">Đang tạo slide...</p>
-                  </div>
+              <div className="absolute inset-0 z-50 overflow-hidden bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="w-full max-w-md space-y-3 p-4 font-calsans flex-col flex justify-center items-center">
+                  {LockPBIcon}
+                  Tạm Khoá
                 </div>
               </div>
             )}
@@ -1857,16 +1882,10 @@ export default function SlideEditorLayout({
 
             {/* Overlay loading khi đang tạo slide */}
             {isGenerating && activeTab === "exercises" && (
-              <div className="absolute inset-0 bg-white bg-opacity-70 z-50 flex items-center justify-center">
-                <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                  <div className="flex flex-col items-center gap-3">
-                    <img
-                      src="/loading/loading_AI.gif"
-                      alt="AI Loading"
-                      className="w-8 h-8"
-                    />
-                    <p className="text-sm text-gray-600">Đang tạo slide...</p>
-                  </div>
+              <div className="absolute inset-0 z-50 overflow-hidden bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="w-full max-w-md space-y-3 p-4 font-calsans flex-col flex justify-center items-center">
+                  {LockPBIcon}
+                  Tạm Khoá
                 </div>
               </div>
             )}
@@ -1882,16 +1901,10 @@ export default function SlideEditorLayout({
 
             {/* Overlay loading khi đang tạo slide */}
             {isGenerating && activeTab === "background" && (
-              <div className="absolute inset-0 bg-white bg-opacity-70 z-50 flex items-center justify-center">
-                <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-200">
-                  <div className="flex flex-col items-center gap-3">
-                    <img
-                      src="/loading/loading_AI.gif"
-                      alt="AI Loading"
-                      className="w-8 h-8"
-                    />
-                    <p className="text-sm text-gray-600">Đang tạo slide...</p>
-                  </div>
+              <div className="absolute inset-0 z-50 overflow-hidden bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="w-full max-w-md space-y-3 p-4 font-calsans flex-col flex justify-center items-center">
+                  {LockPBIcon}
+                  Tạm Khoá
                 </div>
               </div>
             )}

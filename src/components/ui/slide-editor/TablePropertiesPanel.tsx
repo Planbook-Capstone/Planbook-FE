@@ -3,7 +3,7 @@ import { TableElement } from "@/types";
 
 interface TablePropertiesPanelProps {
   element: TableElement;
-  selectedCell?: {row: number, col: number} | null;
+  selectedCell?: { row: number; col: number } | null;
   selectedRow?: number | null;
   onUpdate: (updates: Partial<TableElement>) => void;
 }
@@ -19,16 +19,20 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
   // Update table style
   const updateTableStyle = (styleUpdates: any) => {
     onUpdate({
-      style: { ...style, ...styleUpdates }
+      style: { ...style, ...styleUpdates },
     });
   };
 
   // Update cell style
-  const updateCellStyle = (rowIndex: number, colIndex: number, cellStyleUpdates: any) => {
+  const updateCellStyle = (
+    rowIndex: number,
+    colIndex: number,
+    cellStyleUpdates: any
+  ) => {
     const cellKey = `${rowIndex}-${colIndex}`;
     const newCellStyles = {
       ...cellStyles,
-      [cellKey]: { ...cellStyles[cellKey], ...cellStyleUpdates }
+      [cellKey]: { ...cellStyles[cellKey], ...cellStyleUpdates },
     };
     onUpdate({ cellStyles: newCellStyles });
   };
@@ -37,7 +41,7 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
   const updateRowStyle = (rowIndex: number, rowStyleUpdates: any) => {
     const newRowStyles = {
       ...rowStyles,
-      [rowIndex]: { ...rowStyles[rowIndex], ...rowStyleUpdates }
+      [rowIndex]: { ...rowStyles[rowIndex], ...rowStyleUpdates },
     };
     onUpdate({ rowStyles: newRowStyles });
   };
@@ -56,13 +60,15 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
   };
 
   return (
-    <div className="w-64 bg-white border-l border-gray-200 p-4 h-full overflow-y-auto">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Table Properties</h3>
-      
+    <div className="w-80 bg-white border-l border-gray-200 p-4 h-full overflow-y-auto">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        Table Properties
+      </h3>
+
       {/* Table-wide settings */}
       <div className="space-y-4 mb-6">
         <h4 className="font-medium text-gray-700">Table Style</h4>
-        
+
         {/* Font Family */}
         <div>
           <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -88,7 +94,9 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
           <input
             type="number"
             value={style.fontSize || 14}
-            onChange={(e) => updateTableStyle({ fontSize: parseInt(e.target.value) })}
+            onChange={(e) =>
+              updateTableStyle({ fontSize: parseInt(e.target.value) })
+            }
             className="w-full p-2 border border-gray-300 rounded-md text-sm"
             min="8"
             max="72"
@@ -129,7 +137,9 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
           <input
             type="number"
             value={style.borderWidth || 1}
-            onChange={(e) => updateTableStyle({ borderWidth: parseInt(e.target.value) })}
+            onChange={(e) =>
+              updateTableStyle({ borderWidth: parseInt(e.target.value) })
+            }
             className="w-full p-2 border border-gray-300 rounded-md text-sm"
             min="0"
             max="10"
@@ -144,7 +154,9 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
           <input
             type="color"
             value={style.headerBackgroundColor || "#f3f4f6"}
-            onChange={(e) => updateTableStyle({ headerBackgroundColor: e.target.value })}
+            onChange={(e) =>
+              updateTableStyle({ headerBackgroundColor: e.target.value })
+            }
             className="w-full h-10 border border-gray-300 rounded-md"
           />
         </div>
@@ -157,7 +169,9 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
           <input
             type="color"
             value={style.cellBackgroundColor || "#ffffff"}
-            onChange={(e) => updateTableStyle({ cellBackgroundColor: e.target.value })}
+            onChange={(e) =>
+              updateTableStyle({ cellBackgroundColor: e.target.value })
+            }
             className="w-full h-10 border border-gray-300 rounded-md"
           />
         </div>
@@ -185,7 +199,7 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
           <h4 className="font-medium text-gray-700">
             Cell Style (Row {selectedCell.row + 1}, Col {selectedCell.col + 1})
           </h4>
-          
+
           {/* Cell Background */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -193,8 +207,16 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
             </label>
             <input
               type="color"
-              value={getCurrentCellStyle().backgroundColor || style.cellBackgroundColor || "#ffffff"}
-              onChange={(e) => updateCellStyle(selectedCell.row, selectedCell.col, { backgroundColor: e.target.value })}
+              value={
+                getCurrentCellStyle().backgroundColor ||
+                style.cellBackgroundColor ||
+                "#ffffff"
+              }
+              onChange={(e) =>
+                updateCellStyle(selectedCell.row, selectedCell.col, {
+                  backgroundColor: e.target.value,
+                })
+              }
               className="w-full h-10 border border-gray-300 rounded-md"
             />
           </div>
@@ -206,8 +228,14 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
             </label>
             <input
               type="color"
-              value={getCurrentCellStyle().textColor || style.textColor || "#000000"}
-              onChange={(e) => updateCellStyle(selectedCell.row, selectedCell.col, { textColor: e.target.value })}
+              value={
+                getCurrentCellStyle().textColor || style.textColor || "#000000"
+              }
+              onChange={(e) =>
+                updateCellStyle(selectedCell.row, selectedCell.col, {
+                  textColor: e.target.value,
+                })
+              }
               className="w-full h-10 border border-gray-300 rounded-md"
             />
           </div>
@@ -220,7 +248,11 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
             <input
               type="number"
               value={getCurrentCellStyle().fontSize || style.fontSize || 14}
-              onChange={(e) => updateCellStyle(selectedCell.row, selectedCell.col, { fontSize: parseInt(e.target.value) })}
+              onChange={(e) =>
+                updateCellStyle(selectedCell.row, selectedCell.col, {
+                  fontSize: parseInt(e.target.value),
+                })
+              }
               className="w-full p-2 border border-gray-300 rounded-md text-sm"
               min="8"
               max="72"
@@ -234,7 +266,11 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
             </label>
             <select
               value={getCurrentCellStyle().fontWeight || "normal"}
-              onChange={(e) => updateCellStyle(selectedCell.row, selectedCell.col, { fontWeight: e.target.value })}
+              onChange={(e) =>
+                updateCellStyle(selectedCell.row, selectedCell.col, {
+                  fontWeight: e.target.value,
+                })
+              }
               className="w-full p-2 border border-gray-300 rounded-md text-sm"
             >
               <option value="normal">Normal</option>
@@ -248,8 +284,14 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
               Cell Text Alignment
             </label>
             <select
-              value={getCurrentCellStyle().textAlign || style.textAlign || "center"}
-              onChange={(e) => updateCellStyle(selectedCell.row, selectedCell.col, { textAlign: e.target.value })}
+              value={
+                getCurrentCellStyle().textAlign || style.textAlign || "center"
+              }
+              onChange={(e) =>
+                updateCellStyle(selectedCell.row, selectedCell.col, {
+                  textAlign: e.target.value,
+                })
+              }
               className="w-full p-2 border border-gray-300 rounded-md text-sm"
             >
               <option value="left">Left</option>
@@ -266,7 +308,7 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
           <h4 className="font-medium text-gray-700">
             Row Style (Row {selectedRow + 1})
           </h4>
-          
+
           {/* Row Background */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -274,8 +316,14 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
             </label>
             <input
               type="color"
-              value={getCurrentRowStyle().backgroundColor || style.cellBackgroundColor || "#ffffff"}
-              onChange={(e) => updateRowStyle(selectedRow, { backgroundColor: e.target.value })}
+              value={
+                getCurrentRowStyle().backgroundColor ||
+                style.cellBackgroundColor ||
+                "#ffffff"
+              }
+              onChange={(e) =>
+                updateRowStyle(selectedRow, { backgroundColor: e.target.value })
+              }
               className="w-full h-10 border border-gray-300 rounded-md"
             />
           </div>
@@ -287,8 +335,12 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
             </label>
             <input
               type="color"
-              value={getCurrentRowStyle().textColor || style.textColor || "#000000"}
-              onChange={(e) => updateRowStyle(selectedRow, { textColor: e.target.value })}
+              value={
+                getCurrentRowStyle().textColor || style.textColor || "#000000"
+              }
+              onChange={(e) =>
+                updateRowStyle(selectedRow, { textColor: e.target.value })
+              }
               className="w-full h-10 border border-gray-300 rounded-md"
             />
           </div>
@@ -301,7 +353,11 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
             <input
               type="number"
               value={getCurrentRowStyle().fontSize || style.fontSize || 14}
-              onChange={(e) => updateRowStyle(selectedRow, { fontSize: parseInt(e.target.value) })}
+              onChange={(e) =>
+                updateRowStyle(selectedRow, {
+                  fontSize: parseInt(e.target.value),
+                })
+              }
               className="w-full p-2 border border-gray-300 rounded-md text-sm"
               min="8"
               max="72"
@@ -315,7 +371,9 @@ export const TablePropertiesPanel: React.FC<TablePropertiesPanelProps> = ({
             </label>
             <select
               value={getCurrentRowStyle().fontWeight || "normal"}
-              onChange={(e) => updateRowStyle(selectedRow, { fontWeight: e.target.value })}
+              onChange={(e) =>
+                updateRowStyle(selectedRow, { fontWeight: e.target.value })
+              }
               className="w-full p-2 border border-gray-300 rounded-md text-sm"
             >
               <option value="normal">Normal</option>

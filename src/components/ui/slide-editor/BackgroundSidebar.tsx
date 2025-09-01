@@ -500,7 +500,7 @@ export default function BackgroundSidebar({
                 ),
               },
             ]}
-            defaultTab="bg-neutral-700"
+            defaultTab="images"
             className="flex-1 min-h-0 flex flex-col pt-4 p-2"
           />
         </div>

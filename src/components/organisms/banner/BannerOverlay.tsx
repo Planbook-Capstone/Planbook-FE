@@ -16,6 +16,7 @@ interface BannerOverlayProps {
   onSearch?: (query: string) => void;
   className?: string;
   searchClassName?: string;
+  hideSearch?: boolean;
   quickActions?: QuickAction[];
 }
 
@@ -26,6 +27,7 @@ const BannerOverlay = ({
   className = "",
   searchClassName = "",
   quickActions,
+  hideSearch = false,
 }: BannerOverlayProps) => {
   // Default quick actions if none provided
   const defaultQuickActions: QuickAction[] = [
@@ -66,6 +68,7 @@ const BannerOverlay = ({
       <div
         className={cn(
           "w-full max-w-2xl px-4 pointer-events-auto",
+          hideSearch && "hidden",
           searchClassName
         )}
       >
