@@ -36,7 +36,7 @@ const BannerOverlay = ({
     { title: "Tạo slide", href: "/slide-editor-demo/setup" },
   ];
 
-  const actionsToShow = quickActions || defaultQuickActions;
+  const actionsToShow = quickActions || [];
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

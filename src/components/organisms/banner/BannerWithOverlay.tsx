@@ -63,7 +63,7 @@ const BannerWithOverlay = ({
         title={title}
         subtitle={subtitle}
         onSearch={onSearch}
-        quickActions={quickActions}
+        // quickActions={quickActions}
         hideSearch={hideSearch}
       />
     </div>
