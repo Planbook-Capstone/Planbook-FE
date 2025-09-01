@@ -627,7 +627,7 @@ export default function MatrixTemplate2() {
             // Mark this row as restored from history
             setRestoredFromHistory((prev) => new Set(prev).add(rowIdx));
             toast.info(
-              `Đã khôi phục dữ liệu đã nhập cho bài "${historyData.lessonID}"`
+              `Dữ liệu đã được tự động khôi phục từ hệ thống.`
             );
             return {
               ...row,
@@ -638,44 +638,66 @@ export default function MatrixTemplate2() {
           }
         }
 
-        // Remove from restored set if no history
+        // Always remove from restored set if lesson doesn't have history or is empty
         setRestoredFromHistory((prev) => {
           const newSet = new Set(prev);
           newSet.delete(rowIdx);
           return newSet;
         });
 
-        // If no history, just update lessonID and keep existing distribution
-        // Only reset if the row has no distribution values at all
-        let newDistribution = row.distribution;
+        // If no history, auto-distribute this row
+        const newDistribution = { ...row.distribution };
 
-        // Check if the row has any distribution values > 0
-        let hasAnyValues = false;
-        if (row.distribution) {
-          templateParts.forEach((part: any, partIndex: number) => {
-            const partKey = `part${partIndex + 1}`;
-            if (row.distribution[partKey]) {
+        templateParts.forEach((part: any, partIndex: number) => {
+          const partKey = `part${partIndex + 1}`;
+          const maximum = Number(part.maximum || part.maxQuestions) || 0;
+
+          // Calculate total used by history rows for this part
+          let usedByHistory = 0;
+          matrix.forEach((r, idx) => {
+            if (restoredFromHistory.has(idx)) {
               part.difficultyLevels?.forEach((level: any) => {
-                const value = Number(row.distribution[partKey][level.id]) || 0;
-                if (value > 0) {
-                  hasAnyValues = true;
-                }
+                const value = Number(r.distribution[partKey]?.[level.id]) || 0;
+                usedByHistory += value;
               });
             }
           });
-        }
 
-        // Only initialize distribution if the row has no values at all
-        if (!hasAnyValues) {
-          newDistribution = {};
-          templateParts.forEach((part: any, partIndex: number) => {
-            const partKey = `part${partIndex + 1}`;
-            newDistribution[partKey] = {};
-            part.difficultyLevels?.forEach((level: any) => {
-              newDistribution[partKey][level.id] = 0;
-            });
+          // Calculate total used by other non-history rows (excluding current row)
+          let usedByOthers = 0;
+          matrix.forEach((r, idx) => {
+            if (
+              idx !== rowIdx &&
+              !restoredFromHistory.has(idx) &&
+              r.lessonID &&
+              r.lessonID.trim() !== ""
+            ) {
+              part.difficultyLevels?.forEach((level: any) => {
+                const value = Number(r.distribution[partKey]?.[level.id]) || 0;
+                usedByOthers += value;
+              });
+            }
           });
-        }
+
+          // Calculate remaining for this row
+          const remainingForThisRow = Math.max(
+            0,
+            maximum - usedByHistory - usedByOthers
+          );
+
+          if (remainingForThisRow > 0 && part.difficultyLevels) {
+            const distributedValues = distributeMaximumAcrossDifficulties(
+              remainingForThisRow,
+              part.difficultyLevels
+            );
+            (newDistribution as any)[partKey] = { ...distributedValues };
+          } else {
+            (newDistribution as any)[partKey] = {};
+            part.difficultyLevels?.forEach((level: any) => {
+              (newDistribution as any)[partKey][level.id] = 0;
+            });
+          }
+        });
 
         return {
           ...row,
@@ -725,20 +747,21 @@ export default function MatrixTemplate2() {
 
   // Function to auto-distribute maximum values for a specific row
   const autoDistributeRow = (rowIdx: number) => {
+    // Skip if this row is from history
+    if (restoredFromHistory.has(rowIdx)) {
+      toast.warning("Không thể phân bổ lại cho hàng từ lịch sử!");
+      return;
+    }
+
+    // Skip if no lesson selected
+    const currentRow = matrix[rowIdx];
+    if (!currentRow.lessonID || currentRow.lessonID.trim() === "") {
+      toast.warning("Vui lòng chọn bài học trước khi phân bổ!");
+      return;
+    }
+
     const updatedMatrix = matrix.map((row, i) => {
       if (i === rowIdx) {
-        // Skip if this row is from history
-        if (restoredFromHistory.has(rowIdx)) {
-          toast.warning("Không thể phân bổ lại cho hàng từ lịch sử!");
-          return row;
-        }
-
-        // Skip if no lesson selected
-        if (!row.lessonID || row.lessonID.trim() === "") {
-          toast.warning("Vui lòng chọn bài học trước khi phân bổ!");
-          return row;
-        }
-
         const newDistribution = { ...row.distribution };
 
         templateParts.forEach((part: any, partIndex: number) => {
@@ -823,7 +846,7 @@ export default function MatrixTemplate2() {
 
     setErrors(newErrors);
 
-    // Show success message
+    // Show success message only when distribution is successful
     toast.success("Đã phân bổ tự động thành công!");
   };
 
@@ -1285,7 +1308,19 @@ export default function MatrixTemplate2() {
                     className={`border px-2 py-4 align-middle ${part.color}`}
                     colSpan={part.difficultyLevels?.length || 3}
                   >
-                    <span className="font-normal">{part.name}</span>
+                    <span className="font-normal">
+                      {part.name}
+                      {part.label && (
+                        <div className="text-xs text-gray-600 mt-1">
+                          ({part.label})
+                        </div>
+                      )}
+                      {part.maximum !== undefined && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Tối đa: {part.maximum} câu
+                        </div>
+                      )}
+                    </span>
                   </th>
                 ))}
                 <th className="border px-2 py-4 align-middle" rowSpan={2}>
