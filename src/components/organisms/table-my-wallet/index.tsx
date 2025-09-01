@@ -35,7 +35,7 @@ export default function TableMyWallet({
 
     const csvContent = [
       headers.join(","),
-      ...transactions.map((transaction) =>
+      ...transactions?.content?.map((transaction) =>
         [
           `"${new Date(transaction.createdAt).toLocaleString("vi-VN")}"`,
           `"${transaction.type === "RECHARGE" ? "Nạp token" : "Sử dụng tool"}"`,
@@ -50,7 +50,9 @@ export default function TableMyWallet({
 
     // Download CSV with UTF-8 BOM for proper Vietnamese character encoding
     const BOM = "\uFEFF"; // UTF-8 BOM
-    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([BOM + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
@@ -64,7 +66,7 @@ export default function TableMyWallet({
     document.body.removeChild(link);
   };
 
-  console.log(transactions,"thy")
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
