@@ -3,7 +3,6 @@ import {
   createQueryHook,
   createSearchQueryHook,
   createQueryWithPathParamHook,
-  updateMutationUploadFilesHook,
   updateMutationHook,
   createDynamicQueryHook,
   deleteMutationHook,

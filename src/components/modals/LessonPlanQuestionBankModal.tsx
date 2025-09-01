@@ -4,8 +4,6 @@ import {
   Copy,
   Check,
   ChevronRight,
-  Folder,
-  FileText,
   ChevronLeft,
   ChevronDown,
 } from "lucide-react";
@@ -54,7 +52,6 @@ export const LessonPlanQuestionBankModal: React.FC<
       enabled: !!selectedSubject,
     }
   );
-  console.log("🔍 booksData:", booksData);
 
   // Get chapters by book, then lessons by chapters
   const { data: chaptersData } = useChaptersByBookService(
@@ -63,7 +60,6 @@ export const LessonPlanQuestionBankModal: React.FC<
       enabled: !!selectedBook,
     }
   );
-  console.log("🔍 chaptersData:", chaptersData);
 
   // Get lessons from chapters - use conditional logic to avoid Rules of Hooks
   const chapters = chaptersData?.data?.content || [];
@@ -843,7 +839,9 @@ export const LessonPlanQuestionBankModal: React.FC<
                             <div className="mb-4">
                               <p
                                 className="text-gray-900 font-medium mb-3"
-                                dangerouslySetInnerHTML={{ __html: renderQuestionContent(question) }}
+                                dangerouslySetInnerHTML={{
+                                  __html: renderQuestionContent(question),
+                                }}
                               />
                               {renderQuestionOptions(question)}
                             </div>
@@ -969,7 +967,11 @@ export const LessonPlanQuestionBankModal: React.FC<
                             {question.questionContent?.answer && (
                               <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium flex items-center gap-1">
                                 <Check size={12} className="text-emerald-700" />
-                                <span dangerouslySetInnerHTML={{ __html: question.questionContent.answer }} />
+                                <span
+                                  dangerouslySetInnerHTML={{
+                                    __html: question.questionContent.answer,
+                                  }}
+                                />
                               </span>
                             )}
                           </div>
@@ -987,7 +989,9 @@ export const LessonPlanQuestionBankModal: React.FC<
                       <div className="mb-3">
                         <p
                           className="text-gray-900 text-sm font-medium mb-2"
-                          dangerouslySetInnerHTML={{ __html: renderQuestionContent(question) }}
+                          dangerouslySetInnerHTML={{
+                            __html: renderQuestionContent(question),
+                          }}
                         />
 
                         {/* Options compact */}

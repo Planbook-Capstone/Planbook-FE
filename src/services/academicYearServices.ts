@@ -1,7 +1,6 @@
 import {
   createMutationHook,
   createQueryHook,
-  createQueryWithPathParamHook,
   patchMutationHook,
 } from "@/hooks/react-query";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";

@@ -1,7 +1,6 @@
 import {
   createDynamicQueryHook,
   createMutationHook,
-  createQueryHook,
   createQueryWithPathParamHook,
   createMultiQueryHook,
   patchMutationHook,
@@ -28,7 +27,7 @@ export const useVerifyUserService = (token?: string) => {
     queryKey: ["verify-user", token],
     queryFn: async () => {
       const response = await api.get(API_ENDPOINTS.AUTH.VERIFY, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       return response.data;
     },
@@ -47,9 +46,13 @@ export const useResetPasswordService = (token?: string) => {
 
   return useMutation({
     mutationFn: async (data: { password: string }) => {
-      const response = await api.patch(API_ENDPOINTS.AUTH.RESET_PASSWORD, data, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
-      });
+      const response = await api.patch(
+        API_ENDPOINTS.AUTH.RESET_PASSWORD,
+        data,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
+      );
       return response.data;
     },
     onSuccess: () => {

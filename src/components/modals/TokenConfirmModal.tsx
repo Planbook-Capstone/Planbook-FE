@@ -3,7 +3,7 @@
 import React from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/Button";
-import { Zap, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import Image from "next/image";
 
 interface TokenConfirmModalProps {
