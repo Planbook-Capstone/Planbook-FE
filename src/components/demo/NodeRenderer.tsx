@@ -733,11 +733,11 @@ export default function NodeRenderer({
                             )
                             ?.replace(
                               /✓/g,
-                              `<span class="inline-flex items-center gap-1 text-emerald-600 font-medium"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"></polyline></svg> Đúng</span>`
+                              `<span class="inline-flex items-center gap-1 text-emerald-600 font-medium"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"></polyline></svg> Đúng</span>`
                             )
                             ?.replace(
                               /✗/g,
-                              `<span class="inline-flex items-center gap-1 text-rose-600 font-medium"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Sai</span>`
+                              `<span class="inline-flex items-center gap-1 text-rose-600 font-medium"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Sai</span>`
                             ),
                         }}
                       />
