@@ -302,7 +302,7 @@ export default function BackgroundSidebar({
   // Simple background image handling - no gallery component needed
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col max-h-screen overflow-y-auto">
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col max-h-screen h-full overflow-y-auto">
       {/* Header */}
       {isTextColorMode && (
         <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -320,7 +320,7 @@ export default function BackgroundSidebar({
 
       {/* Tabs for Background */}
       {!isTextColorMode && (
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex-1 min-h-0 h-full overflow-y-auto">
           <Tabs
             tabs={[
               {

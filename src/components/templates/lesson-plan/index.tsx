@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { ChevronUp } from "lucide-react";
+import { LockPBIcon } from "@/constants/icon";
 import {
   useUpdateToolResultService,
   useToolResultByIdService,
@@ -680,7 +681,7 @@ function LessonPlanTemplate({
           <div
             className={`transition-all duration-300 ${
               sidebarCollapsed ? "w-0" : "w-80"
-            } overflow-hidden bg-white border-r border-gray-200`}
+            } overflow-hidden bg-white border-r border-gray-200 relative`}
           >
             <Sidebar
               activeTab={activeTab}
@@ -689,6 +690,14 @@ function LessonPlanTemplate({
               onRestoreNode={handleRestoreNode}
               componentPalette={componentPalette}
             />
+            {(isLoading || loadingNodes.size > 0) && (
+              <div className="absolute inset-0 z-50 overflow-hidden bg-white/50 backdrop-blur-sm flex items-center justify-center">
+                <div className="w-full max-w-md space-y-3 p-4 font-calsans flex-col flex justify-center items-center">
+                  {LockPBIcon}
+                  Tạm Khoá
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Main Canvas Area */}
