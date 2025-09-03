@@ -91,6 +91,13 @@ export const adminItems = [
     image: "/icons/gear.svg",
     active: "/icons/gear-active.svg",
   },
+  {
+    label: "Công cụ ngoài",
+    key: "external-tools",
+    icon: <SettingOutlined />,
+    image: "/icons/gear.svg",
+    active: "/icons/gear-active.svg",
+  },
 ];
 
 export const adminMenuItems: MenuItem[] = adminItems.map((item) =>

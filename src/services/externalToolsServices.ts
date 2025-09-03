@@ -5,6 +5,8 @@ import {
   updateMutationHook,
   deleteMutationHook,
 } from "@/hooks/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/config/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 
 // External Tools Services
@@ -40,7 +42,18 @@ export const useDeleteExternalToolService = deleteMutationHook(
 );
 
 // PATCH /api/external-tools/{id}/status - Thay đổi trạng thái công cụ
-export const useUpdateExternalToolStatusService = createMutationHook(
-  "external-tools-status",
-  `${API_ENDPOINTS.EXTERNAL_TOOLS}/status`
-);
+export const useUpdateExternalToolStatusService = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const response = await api.patch(
+        `${API_ENDPOINTS.EXTERNAL_TOOLS}/${id}/status?status=${status}`
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["external-tools"] });
+    },
+  });
+};

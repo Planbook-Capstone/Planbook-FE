@@ -54,6 +54,7 @@ export default function Home() {
     {
       offset: 1,
       pageSize: 10,
+      status: "ACTIVE",
       sortBy: "createdAt",
       sortDirection: "desc",
     }
@@ -191,7 +192,7 @@ export default function Home() {
               href={feature.href}
             />
           ))}
-        {/* {externalTools?.data?.content
+        {externalTools?.data?.content
           ?.sort((a: any, b: any) => a.priority - b.priority)
           ?.map((feature: any) => (
             <CardFeature
@@ -202,7 +203,7 @@ export default function Home() {
               description={feature.description}
               href={feature.href}
             />
-          ))} */}
+          ))}
       </section>
 
       <InfiniteCarousel
