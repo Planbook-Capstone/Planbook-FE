@@ -8,7 +8,7 @@ import {
   AcademicAnalysisResponse,
 } from "@/services/academicAnalysisService";
 import { toast } from "sonner";
-import { FileSpreadsheet, BarChart3 } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useSearchParams } from "next/navigation";
 import { useUploadAndExecuteToolService } from "@/services/executeToolServices";
@@ -65,6 +65,18 @@ export function AcademicAnalysisPage() {
     setShowResults(false);
   };
 
+  const handleDownloadTemplate = () => {
+    const templateUrl =
+      "https://gdwgakooknyysyrltfmq.supabase.co/storage/v1/object/public/planbook/bang_diem_format_ngang.xlsx";
+    const link = document.createElement("a");
+    link.href = templateUrl;
+    link.download = "template_phan_tich_hoc_luc.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Đang tải template...");
+  };
+
   if (showResults && analysisData) {
     return (
       <AcademicAnalysisResults data={analysisData} onReset={handleReset} />
@@ -109,23 +121,44 @@ export function AcademicAnalysisPage() {
             </h3>
             <div className="space-y-3 text-gray-600">
               <div className="flex items-start space-x-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
                   1
                 </span>
-                <p>
-                  Chuẩn bị file Excel với cấu trúc: ID học sinh, Tên, Lớp, và
-                  điểm các môn học
-                </p>
+                <div className="flex-1">
+                  <p className="mb-2">
+                    Tải xuống template mẫu để chuẩn bị file Excel đúng cấu trúc
+                  </p>
+                  <Button
+                    onClick={handleDownloadTemplate}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Tải template mẫu</span>
+                  </Button>
+                </div>
               </div>
+
               <div className="flex items-start space-x-3">
                 <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
                   2
+                </span>
+                <p>
+                  Điền thông tin học sinh và điểm số vào template theo đúng cấu
+                  trúc: mã học sinh, Tên, Lớp, và điểm các môn học
+                </p>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
+                  3
                 </span>
                 <p>Tải lên file bằng cách kéo thả hoặc click để chọn file</p>
               </div>
               <div className="flex items-start space-x-3">
                 <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
-                  3
+                  4
                 </span>
                 <p>
                   Hệ thống sẽ tự động phân tích và hiển thị kết quả phân loại
@@ -134,7 +167,7 @@ export function AcademicAnalysisPage() {
               </div>
               <div className="flex items-start space-x-3">
                 <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
-                  4
+                  5
                 </span>
                 <p>
                   Xem các biểu đồ thống kê và đề xuất cải thiện cho từng nhóm
