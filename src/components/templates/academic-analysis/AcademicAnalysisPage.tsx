@@ -113,9 +113,9 @@ export function AcademicAnalysisPage() {
         </div>
 
         {/* Main Content - Instructions and Upload */}
-        <div className="flex gap-6 my-6">
+        <div className="flex flex-col md:flex-row gap-6 my-6">
           {/* Instructions - 2/5 width on the left */}
-          <div className="w-2/5 bg-white rounded-xl shadow-lg p-6 border">
+          <div className="w-full md:w-2/5 bg-white rounded-xl shadow-lg p-6 border">
             <h3 className="text-lg font-calsans text-gray-900 mb-4">
               Hướng dẫn sử dụng
             </h3>
@@ -178,7 +178,7 @@ export function AcademicAnalysisPage() {
           </div>
 
           {/* Upload Section - 3/5 width on the right */}
-          <div className="w-3/5 bg-white rounded-xl shadow-lg p-8 border">
+          <div className="w-full md:w-3/5 bg-white rounded-xl shadow-lg p-8 border">
             <div className="flex items-center space-x-3 mb-6">
               <h2 className="text-xl font-calsans text-gray-900">
                 Tải lên file điểm số
