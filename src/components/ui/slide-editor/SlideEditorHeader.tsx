@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { SlideTemplateTempData } from "@/contexts/SlideTemplateContext";
+import SnapToggle from "./SnapToggle";
 
 interface SlideEditorHeaderProps {
   onSave?: () => void;
@@ -103,6 +104,11 @@ export default function SlideEditorHeader({
             </button>
           </div>
         )}
+
+        {/* Snap Toggle - Disabled by user request */}
+        {/* {userRole !== "TEACHER" && !isGenerating && (
+          <SnapToggle className="mr-2" />
+        )} */}
 
         {/* Load Sample Data Button - Hidden for teachers and when generating */}
         {userRole !== "TEACHER" && !isGenerating && (

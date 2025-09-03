@@ -4,43 +4,32 @@ import React, { useState } from "react";
 import { StudentAnalysis } from "@/services/academicAnalysisService";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/Button";
-import { 
-  Trophy, 
-  Medal, 
-  Award, 
-  TrendingUp, 
-  TrendingDown,
-  Eye,
-  EyeOff,
-  ChevronDown,
-  ChevronUp
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface StudentRankingTableProps {
   students?: StudentAnalysis[];
 }
 
-export function StudentRankingTable({ students = [] }: StudentRankingTableProps) {
+export function StudentRankingTable({
+  students = [],
+}: StudentRankingTableProps) {
   const [showAllStudents, setShowAllStudents] = useState(false);
   const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
 
   // Sort students by rank
   const sortedStudents = [...students].sort((a, b) => a.rank - b.rank);
-  
-  // Show top 5 by default, all if expanded
-  const displayedStudents = showAllStudents ? sortedStudents : sortedStudents.slice(0, 5);
 
-  const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return <Trophy className="w-5 h-5 text-yellow-500" />;
-      case 2:
-        return <Medal className="w-5 h-5 text-gray-400" />;
-      case 3:
-        return <Award className="w-5 h-5 text-amber-600" />;
-      default:
-        return <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-gray-600">#{rank}</span>;
-    }
+  // Show top 5 by default, all if expanded
+  const displayedStudents = showAllStudents
+    ? sortedStudents
+    : sortedStudents.slice(0, 5);
+
+  const getRankDisplay = (rank: number) => {
+    return (
+      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+        <span className="text-sm font-calsans text-gray-700">#{rank}</span>
+      </div>
+    );
   };
 
   const getGradeLevelColor = (gradeLevel: string) => {
@@ -63,28 +52,15 @@ export function StudentRankingTable({ students = [] }: StudentRankingTableProps)
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm border">
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <Trophy className="w-6 h-6 text-yellow-500" />
-          Bảng Xếp Hạng Học Sinh
-        </h3>
+        <h2 className="text-xl font-calsans">Bảng Xếp Hạng Học Sinh</h2>
         <Button
           variant="outline"
           onClick={() => setShowAllStudents(!showAllStudents)}
           className="flex items-center gap-2"
         >
-          {showAllStudents ? (
-            <>
-              <EyeOff className="w-4 h-4" />
-              Ẩn bớt
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4" />
-              Xem tất cả ({students.length})
-            </>
-          )}
+          {showAllStudents ? <>Ẩn bớt</> : <>Xem tất cả ({students.length})</>}
         </Button>
       </div>
 
@@ -98,11 +74,11 @@ export function StudentRankingTable({ students = [] }: StudentRankingTableProps)
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  {getRankIcon(studentData.rank)}
+                  {getRankDisplay(studentData.rank)}
                 </div>
-                
+
                 <div>
-                  <h4 className="font-semibold text-gray-900">
+                  <h4 className="font-calsans text-gray-900">
                     {studentData.student.name}
                   </h4>
                   <p className="text-sm text-gray-600">
@@ -113,12 +89,12 @@ export function StudentRankingTable({ students = [] }: StudentRankingTableProps)
 
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-lg font-calsans text-gray-900">
                     {studentData.average_score.toFixed(2)}
                   </div>
                   <div className="text-sm text-gray-600">Điểm TB</div>
                 </div>
-                
+
                 <Badge className={getGradeLevelColor(studentData.grade_level)}>
                   {studentData.grade_level}
                 </Badge>
@@ -145,8 +121,7 @@ export function StudentRankingTable({ students = [] }: StudentRankingTableProps)
                   {/* Strong subjects */}
                   {studentData.strong_subjects.length > 0 && (
                     <div>
-                      <h5 className="font-medium text-green-700 mb-2 flex items-center gap-1">
-                        <TrendingUp className="w-4 h-4" />
+                      <h5 className="font-calsans text-green-700 mb-2">
                         Môn mạnh
                       </h5>
                       <div className="flex flex-wrap gap-1">
@@ -165,8 +140,7 @@ export function StudentRankingTable({ students = [] }: StudentRankingTableProps)
                   {/* Weak subjects */}
                   {studentData.weak_subjects.length > 0 && (
                     <div>
-                      <h5 className="font-medium text-red-700 mb-2 flex items-center gap-1">
-                        <TrendingDown className="w-4 h-4" />
+                      <h5 className="font-calsans text-red-700 mb-2">
                         Môn cần cải thiện
                       </h5>
                       <div className="flex flex-wrap gap-1">
@@ -185,7 +159,9 @@ export function StudentRankingTable({ students = [] }: StudentRankingTableProps)
 
                 {/* Subject grades */}
                 <div className="mt-4">
-                  <h5 className="font-medium text-gray-700 mb-3">Điểm chi tiết theo môn</h5>
+                  <h5 className="font-calsans text-gray-700 mb-3">
+                    Điểm chi tiết theo môn
+                  </h5>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                     {studentData.student.grades.map((grade) => (
                       <div
@@ -193,7 +169,7 @@ export function StudentRankingTable({ students = [] }: StudentRankingTableProps)
                         className="flex justify-between items-center p-2 bg-gray-50 rounded text-sm"
                       >
                         <span className="text-gray-600">{grade.subject}:</span>
-                        <span className="font-medium">{grade.score}</span>
+                        <span className="font-calsans">{grade.score}</span>
                       </div>
                     ))}
                   </div>

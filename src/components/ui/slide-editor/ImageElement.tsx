@@ -46,8 +46,11 @@ export default function ImageElement({
   // Calculate original aspect ratio
   const originalAspectRatio = element.width / element.height;
 
-  // Snap alignment hook
-  const { handleDragWithSnap, clearGuides } = useSnapAlignment({});
+  // Snap alignment hook - uses global settings
+  const { handleDragWithSnap, clearGuides } = useSnapAlignment({
+    canvasWidth: 960,
+    canvasHeight: 540,
+  });
 
   // Track Shift key state
   useEffect(() => {

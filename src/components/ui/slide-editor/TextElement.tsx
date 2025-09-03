@@ -114,11 +114,8 @@ export default function TextElement({
     isEditing,
   });
 
-  // Snap alignment hook
+  // Snap alignment hook - uses global settings
   const { handleDragWithSnap, clearGuides } = useSnapAlignment({
-    threshold: 6,
-    showGuides: true,
-    snapToCanvas: true,
     canvasWidth: 960,
     canvasHeight: 540,
   });
@@ -282,7 +279,7 @@ export default function TextElement({
       });
       e.stopPropagation();
       if (!isEditing) {
-        onSelect(element.id, e);
+        onSelect(element.id);
       }
     },
     [element.id, isEditing, onSelect]
