@@ -7,9 +7,10 @@ import {
   createDynamicQueryHook,
   deleteMutationHook,
 } from "@/hooks/react-query";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import api from "@/config/axios";
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
+import { supabase } from "@/config/supabaseClient";
 
 export const useMaterialervice = createQueryHook(
   "materials",
@@ -100,3 +101,56 @@ export const useDeleteMaterialService = deleteMutationHook(
   "materials",
   API_ENDPOINTS.ACADEMIC_RESOURCE
 );
+
+// ===== SUPABASE UPLOAD SERVICE =====
+
+/**
+ * Upload file to Supabase Storage
+ * @param file - File to upload
+ * @param bucketName - Supabase bucket name (default: 'planbook')
+ * @returns Promise with file URL
+ */
+export const uploadFileToSupabase = async (
+  file: File,
+  bucketName: string = "planbook"
+): Promise<string> => {
+  try {
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const fileExtension = file.name.split(".").pop();
+    const fileName = `uploads/${timestamp}_${Math.random()
+      .toString(36)
+      .substring(7)}.${fileExtension}`;
+
+    // Upload file to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Supabase upload error:", error);
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(fileName);
+
+    if (!urlData?.publicUrl) {
+      throw new Error("Failed to get public URL");
+    }
+
+    return urlData.publicUrl;
+  } catch (error) {
+    console.error("Error uploading to Supabase:", error);
+    throw error;
+  }
+};
+
+/**
+ * Hook for uploading file to Supabase and executing tool
+ */

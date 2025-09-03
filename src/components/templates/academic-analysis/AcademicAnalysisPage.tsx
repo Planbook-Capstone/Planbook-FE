@@ -8,15 +8,20 @@ import {
   AcademicAnalysisResponse,
 } from "@/services/academicAnalysisService";
 import { toast } from "sonner";
-import { FileSpreadsheet, BarChart3 } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useSearchParams } from "next/navigation";
+import { useUploadAndExecuteToolService } from "@/services/executeToolServices";
 
 export function AcademicAnalysisPage() {
   const [analysisData, setAnalysisData] =
     useState<AcademicAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
 
-  const uploadMutation = useUploadAcademicAnalysis();
+  const searchParams = useSearchParams();
+  const bookTypeId = searchParams.get("bookTypeId") || "";
+
+  const uploadAndExecuteMutation = useUploadAndExecuteToolService();
 
   // Reset state on component mount
   useEffect(() => {
@@ -26,21 +31,26 @@ export function AcademicAnalysisPage() {
 
   const handleFileSelect = async (file: File) => {
     try {
-      toast.success("Đang phân tích file Excel...");
+      toast.success("Đang tiến phân tích...");
 
-      // Create FormData and call API
-      const formData = new FormData();
-      formData.append("file", file);
+      const result = await uploadAndExecuteMutation.mutateAsync({
+        file,
+        toolId: bookTypeId,
+        bookId: 1,
+        lessonId: 1,
+        academicYearId: 1,
+        bucketName: "planbook",
+      });
 
-      const result = await uploadMutation.mutateAsync(formData);
-
-      // Check if result has data property or is the data itself
-      const analysisResult = result.data || result;
+      // Extract analysis result from tool execution
+      const analysisResult = result.toolResult?.data?.data.data;
 
       if (analysisResult) {
         setAnalysisData(analysisResult);
         setShowResults(true);
         toast.success("Phân tích hoàn tất!");
+        console.log("Supabase URL:", result.supabaseUrl);
+        console.log("Tool Result:", result.toolResult?.data?.data?.data);
       } else {
         toast.error("Không nhận được dữ liệu từ server");
       }
@@ -55,259 +65,21 @@ export function AcademicAnalysisPage() {
     setShowResults(false);
   };
 
-  // Temporary test function with sample data for debugging
-  const handleTestWithSampleData = () => {
-    const sampleData = {
-      class_statistics: {
-        class_name: "7A",
-        total_students: 10,
-        overall_average: 6.6,
-        highest_score: 8.72,
-        lowest_score: 4.83,
-        grade_distribution: {
-          Giỏi: 2,
-          Khá: 3,
-          "Trung bình": 3,
-          Yếu: 2,
-        },
-        top_students: [
-          {
-            name: "Phạm Như Anh",
-            score: 8.72,
-          },
-          {
-            name: "Lê Thị Thanh Bình",
-            score: 8.05,
-          },
-          {
-            name: "Trần Quốc Bình",
-            score: 6.94,
-          },
-          {
-            name: "Lê Thị Ngọc Diệp",
-            score: 6.92,
-          },
-          {
-            name: "Đoàn Văn Hoàng Anh",
-            score: 6.65,
-          },
-        ],
-        weak_students: [
-          {
-            name: "Nguyễn Văn Duy",
-            score: 4.89,
-          },
-          {
-            name: "Nguyễn Văn Đức",
-            score: 4.83,
-          },
-        ],
-        subject_statistics: [
-          {
-            subject: "Công Nghệ",
-            average_score: 6.4,
-            highest_score: 8.9,
-            lowest_score: 3.6,
-            highest_score_student: "Phạm Như Anh",
-            lowest_score_student: "Nguyễn Văn Duy",
-            total_students: 10,
-            pass_rate: 80,
-            excellent_count: 2,
-            good_count: 3,
-            average_count: 3,
-            weak_count: 2,
-          },
-          {
-            subject: "Toán",
-            average_score: 6.49,
-            highest_score: 8.9,
-            lowest_score: 5.1,
-            highest_score_student: "Phạm Như Anh",
-            lowest_score_student: "Nguyễn Văn Duy",
-            total_students: 10,
-            pass_rate: 100,
-            excellent_count: 2,
-            good_count: 2,
-            average_count: 6,
-            weak_count: 0,
-          },
-          {
-            subject: "Ngữ Văn",
-            average_score: 6.3,
-            highest_score: 8.4,
-            lowest_score: 3,
-            highest_score_student: "Phạm Như Anh",
-            lowest_score_student: "Nguyễn Văn Đức",
-            total_students: 10,
-            pass_rate: 80,
-            excellent_count: 2,
-            good_count: 3,
-            average_count: 3,
-            weak_count: 2,
-          },
-          {
-            subject: "Tiếng Anh",
-            average_score: 5.95,
-            highest_score: 9,
-            lowest_score: 2.9,
-            highest_score_student: "Phạm Như Anh",
-            lowest_score_student: "Nguyễn Văn Duy",
-            total_students: 10,
-            pass_rate: 80,
-            excellent_count: 1,
-            good_count: 3,
-            average_count: 4,
-            weak_count: 2,
-          },
-          {
-            subject: "Vật Lý",
-            average_score: 6.76,
-            highest_score: 9.7,
-            lowest_score: 4.4,
-            highest_score_student: "Phạm Như Anh",
-            lowest_score_student: "Nguyễn Văn Đức",
-            total_students: 10,
-            pass_rate: 80,
-            excellent_count: 2,
-            good_count: 4,
-            average_count: 2,
-            weak_count: 2,
-          },
-          {
-            subject: "Hóa Học",
-            average_score: 6.46,
-            highest_score: 8.3,
-            lowest_score: 4.1,
-            highest_score_student: "Phạm Như Anh",
-            lowest_score_student: "Nguyễn Văn Đức",
-            total_students: 10,
-            pass_rate: 80,
-            excellent_count: 1,
-            good_count: 5,
-            average_count: 2,
-            weak_count: 2,
-          },
-          {
-            subject: "Sinh Học",
-            average_score: 7.13,
-            highest_score: 8.8,
-            lowest_score: 5.4,
-            highest_score_student: "Lê Thị Thanh Bình",
-            lowest_score_student: "Nguyễn Văn Đức",
-            total_students: 10,
-            pass_rate: 100,
-            excellent_count: 2,
-            good_count: 5,
-            average_count: 3,
-            weak_count: 0,
-          },
-          {
-            subject: "Lịch Sử",
-            average_score: 6.66,
-            highest_score: 9.8,
-            lowest_score: 3.6,
-            highest_score_student: "Phạm Như Anh",
-            lowest_score_student: "Nguyễn Văn Duy",
-            total_students: 10,
-            pass_rate: 90,
-            excellent_count: 1,
-            good_count: 5,
-            average_count: 3,
-            weak_count: 1,
-          },
-          {
-            subject: "Địa Lý",
-            average_score: 6.83,
-            highest_score: 9.1,
-            lowest_score: 4.5,
-            highest_score_student: "Phạm Như Anh",
-            lowest_score_student: "Lê Thị Huyền",
-            total_students: 10,
-            pass_rate: 90,
-            excellent_count: 2,
-            good_count: 4,
-            average_count: 3,
-            weak_count: 1,
-          },
-          {
-            subject: "Tin Học",
-            average_score: 7.18,
-            highest_score: 8.6,
-            lowest_score: 5.1,
-            highest_score_student: "Lê Thị Thanh Bình",
-            lowest_score_student: "Nguyễn Văn Đức",
-            total_students: 10,
-            pass_rate: 100,
-            excellent_count: 4,
-            good_count: 3,
-            average_count: 3,
-            weak_count: 0,
-          },
-        ],
-      },
-      student_summaries: [
-        {
-          student: {
-            id: "HS001",
-            name: "Phạm Như Anh",
-            class_name: "7A",
-            grades: [
-              { subject: "Toán", score: 8.9 },
-              { subject: "Ngữ Văn", score: 8.4 },
-            ],
-          },
-          average_score: 8.72,
-          rank: 1,
-          grade_level: "Giỏi",
-          weak_subjects: [],
-          strong_subjects: ["Toán", "Ngữ Văn", "Vật Lý"],
-        },
-        {
-          student: {
-            id: "HS002",
-            name: "Nguyễn Văn Duy",
-            class_name: "7A",
-            grades: [
-              { subject: "Toán", score: 5.1 },
-              { subject: "Ngữ Văn", score: 3.0 },
-            ],
-          },
-          average_score: 4.89,
-          rank: 9,
-          grade_level: "Yếu",
-          weak_subjects: ["Ngữ Văn", "Tiếng Anh", "Vật Lý"],
-          strong_subjects: [],
-        },
-      ],
-      recommendations: [
-        "👥 Học sinh cần hỗ trợ cá nhân (2 em):",
-        "   • Nguyễn Văn Duy (TB: 4.89) - Yếu: Ngữ Văn, Tiếng Anh, Vật Lý",
-        "   • Nguyễn Văn Đức (TB: 4.83) - Yếu: Ngữ Văn, Vật Lý, Hóa Học",
-        "🤝 Đề xuất nhóm học tập: Ghép 2 học sinh giỏi với 2 học sinh yếu để hỗ trợ lẫn nhau.",
-        "   • Phạm Như Anh (TB: 8.72) hỗ trợ Nguyễn Văn Duy (TB: 4.89)",
-        "   • Lê Thị Thanh Bình (TB: 8.05) hỗ trợ Nguyễn Văn Đức (TB: 4.83)",
-      ],
-    };
-
-    setAnalysisData(sampleData);
-    setShowResults(true);
-    toast.success("Đã tải dữ liệu test!");
+  const handleDownloadTemplate = () => {
+    const templateUrl =
+      "https://gdwgakooknyysyrltfmq.supabase.co/storage/v1/object/public/planbook/bang_diem_format_ngang.xlsx";
+    const link = document.createElement("a");
+    link.href = templateUrl;
+    link.download = "template_phan_tich_hoc_luc.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Đang tải template...");
   };
 
   if (showResults && analysisData) {
     return (
-      <div className="relative">
-        <div className="fixed top-4 right-4 z-50">
-          <Button
-            onClick={handleReset}
-            variant="outline"
-            className="bg-white shadow-lg"
-          >
-            Phân tích file khác
-          </Button>
-        </div>
-        <AcademicAnalysisResults data={analysisData} />
-      </div>
+      <AcademicAnalysisResults data={analysisData} onReset={handleReset} />
     );
   }
 
@@ -349,23 +121,44 @@ export function AcademicAnalysisPage() {
             </h3>
             <div className="space-y-3 text-gray-600">
               <div className="flex items-start space-x-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
                   1
                 </span>
-                <p>
-                  Chuẩn bị file Excel với cấu trúc: ID học sinh, Tên, Lớp, và
-                  điểm các môn học
-                </p>
+                <div className="flex-1">
+                  <p className="mb-2">
+                    Tải xuống template mẫu để chuẩn bị file Excel đúng cấu trúc
+                  </p>
+                  <Button
+                    onClick={handleDownloadTemplate}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Tải template mẫu</span>
+                  </Button>
+                </div>
               </div>
+
               <div className="flex items-start space-x-3">
                 <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
                   2
+                </span>
+                <p>
+                  Điền thông tin học sinh và điểm số vào template theo đúng cấu
+                  trúc: mã học sinh, Tên, Lớp, và điểm các môn học
+                </p>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
+                  3
                 </span>
                 <p>Tải lên file bằng cách kéo thả hoặc click để chọn file</p>
               </div>
               <div className="flex items-start space-x-3">
                 <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
-                  3
+                  4
                 </span>
                 <p>
                   Hệ thống sẽ tự động phân tích và hiển thị kết quả phân loại
@@ -374,7 +167,7 @@ export function AcademicAnalysisPage() {
               </div>
               <div className="flex items-start space-x-3">
                 <span className="flex-shrink-0 w-6 h-6 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
-                  4
+                  5
                 </span>
                 <p>
                   Xem các biểu đồ thống kê và đề xuất cải thiện cho từng nhóm
@@ -394,19 +187,8 @@ export function AcademicAnalysisPage() {
 
             <ExcelUpload
               onFileSelect={handleFileSelect}
-              isUploading={uploadMutation.isPending}
+              isUploading={uploadAndExecuteMutation.isPending}
             />
-
-            {/* Test Button for Development */}
-            <div className="text-center mt-6">
-              <Button
-                onClick={handleTestWithSampleData}
-                variant="outline"
-                className="border-green-300 text-green-700 hover:bg-green-50"
-              >
-                Test với dữ liệu mẫu (Debug)
-              </Button>
-            </div>
           </div>
         </div>
       </div>

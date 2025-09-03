@@ -135,7 +135,7 @@ export const TOOL_ACTION_LABELS = {
   SLIDE_GENERATOR: "Tạo slide bài giảng",
   QUIZ_GAME: "Tạo trò chơi câu hỏi",
   MANUAL_EXAM_CREATOR: "Trộn đề thi theo ma trận",
-  FORMU_LENS: "Tra cứu tài nguyên hoá học",
+  FORMU_LENS: "Phân tích học lực chuyên sâu",
 } as const;
 
 // Type definition for tool action types
