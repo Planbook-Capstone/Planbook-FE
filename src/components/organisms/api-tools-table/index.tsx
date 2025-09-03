@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/FormField";
 import { Textarea } from "@/components/ui/textarea";
+import { IconUpload } from "@/components/ui/IconUpload";
 import { ExternalToolConfig, mockExternalToolConfigs } from "@/data/tools";
 import { Plus, Eye, Edit, Trash2 } from "lucide-react";
 import {
@@ -73,6 +74,7 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
     tokenCostPerQuery: 0,
     inputJson: "",
     href: "",
+    icon: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -165,6 +167,7 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
       tokenCostPerQuery: formData.tokenCostPerQuery,
       inputJson: JSON.parse(formData.inputJson.trim()),
       href: formData.href.trim(),
+      icon: formData.icon,
     };
 
     console.log("🚀 Creating tool:", newTool);
@@ -197,6 +200,7 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
       tokenCostPerQuery: formData.tokenCostPerQuery,
       inputJson: JSON.parse(formData.inputJson.trim()),
       href: formData.href.trim(),
+      icon: formData.icon,
     };
 
     console.log("Updating tool:", updatedTool);
@@ -234,6 +238,7 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
       tokenCostPerQuery: (tool as any).tokenCostPerQuery || 0,
       inputJson: JSON.stringify((tool as any).inputJson) || "",
       href: (tool as any).href || "",
+      icon: (tool as any).icon || "",
     });
     setIsEditModalOpen(true);
   };
@@ -255,6 +260,7 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
       tokenCostPerQuery: 0,
       inputJson: "",
       href: "",
+      icon: "",
     });
     setFormErrors({});
   };
@@ -272,6 +278,28 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
             title={name}
           >
             {name}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "icon",
+      header: "Icon",
+      cell: ({ row }) => {
+        const icon = (row.original as any).icon;
+        return (
+          <div className="flex items-center justify-center">
+            {icon ? (
+              <img
+                src={icon}
+                alt="API Icon"
+                className="w-8 h-8 object-contain rounded border"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gray-100 rounded border flex items-center justify-center">
+                <span className="text-xs text-gray-400">N/A</span>
+              </div>
+            )}
           </div>
         );
       },
@@ -538,6 +566,26 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
 
               <div className="md:col-span-2">
                 <FormField
+                  label="Đường dẫn đến trang web"
+                  htmlFor="href"
+                  error={formErrors.href}
+                >
+                  <Textarea
+                    id="href"
+                    value={formData.href}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        href: e.target.value,
+                      }))
+                    }
+                    rows={2}
+                    className="resize-y"
+                  />
+                </FormField>
+              </div>
+              <div className="md:col-span-2">
+                <FormField
                   label="Input JSON"
                   htmlFor="inputJson"
                   error={formErrors.inputJson}
@@ -576,6 +624,18 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
               </div>
             </div>
 
+            {/* Icon Upload - chiếm full hàng ở cuối form */}
+            <div className="pt-4 border-t border-gray-100">
+              <FormField label="Icon" htmlFor="icon">
+                <IconUpload
+                  value={formData.icon}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, icon: value }))
+                  }
+                />
+              </FormField>
+            </div>
+
             <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
               <Button
                 variant="outline"
@@ -606,6 +666,20 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
                     {selectedTool.name}
                   </p>
                 </div>
+                {(selectedTool as any).icon && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">
+                      Icon
+                    </label>
+                    <div className="mt-2">
+                      <img
+                        src={(selectedTool as any).icon}
+                        alt="API Icon"
+                        className="w-16 h-16 object-contain rounded border"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="text-sm font-medium text-gray-600">
                     API URL
@@ -787,6 +861,27 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
 
               <div className="md:col-span-2">
                 <FormField
+                  label="Đường dẫn đến trang web"
+                  htmlFor="edit-href"
+                  error={formErrors.href}
+                >
+                  <Textarea
+                    id="edit-href"
+                    value={formData.href}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        href: e.target.value,
+                      }))
+                    }
+                    rows={2}
+                    className="resize-y"
+                  />
+                </FormField>
+              </div>
+
+              <div className="md:col-span-2">
+                <FormField
                   label="Input JSON"
                   htmlFor="edit-inputJson"
                   error={formErrors.inputJson}
@@ -823,6 +918,18 @@ export default function APIToolsTable({ className }: APIToolsTableProps) {
                   />
                 </FormField>
               </div>
+            </div>
+
+            {/* Icon Upload - chiếm full hàng ở cuối form */}
+            <div className="pt-4 border-t border-gray-100">
+              <FormField label="Icon" htmlFor="edit-icon">
+                <IconUpload
+                  value={formData.icon}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, icon: value }))
+                  }
+                />
+              </FormField>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">

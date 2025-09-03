@@ -7,6 +7,7 @@ export interface ExternalToolConfig {
   clientId: string;
   clientSecret: string;
   description?: string;
+  icon?: string; // Base64 encoded image or URL
   ownerId: string;
 }
 
