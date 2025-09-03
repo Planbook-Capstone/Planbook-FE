@@ -185,13 +185,6 @@ export const toolManagerItems = [
     image: "/icons/gear.svg",
     active: "/icons/gear-active.svg",
   },
-  {
-    label: "Doanh thu",
-    key: "revenue",
-    icon: <HomeOutlined />,
-    image: "/icons/diamond.svg",
-    active: "/icons/diamond-active.svg",
-  },
 ];
 
 function getToolManagerItem(
