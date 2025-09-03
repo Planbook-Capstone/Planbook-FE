@@ -35,6 +35,7 @@ import {
 } from "@/services/externalToolsServices";
 import { useToolLogsWithParamsService } from "@/services/toolLogServices";
 import { calculateTokenUsage } from "@/utils/tokenUsageCalculation";
+import { Badge } from "@/components/ui/badge";
 
 // Mock current user (tool-manager)
 const CURRENT_USER_ID = "uuid-4"; // Phạm Thị Tool Manager
@@ -80,6 +81,7 @@ export default function ToolManagerDashboardPage() {
     description: "",
     tokenCostPerQuery: 0,
     inputJson: "",
+    href: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -195,10 +197,6 @@ export default function ToolManagerDashboardPage() {
       errors.clientSecret = "Client Secret là bắt buộc";
     }
 
-    if (formData.inputJson.trim() && !validateJson(formData.inputJson)) {
-      errors.inputJson = "Input JSON không đúng định dạng";
-    }
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -216,6 +214,7 @@ export default function ToolManagerDashboardPage() {
       description: formData.description.trim(),
       tokenCostPerQuery: formData.tokenCostPerQuery,
       inputJson: JSON.parse(formData.inputJson.trim()),
+      href: formData.href.trim(),
     };
 
     console.log("🚀 Creating tool:", newTool);
@@ -244,6 +243,7 @@ export default function ToolManagerDashboardPage() {
       description: formData.description.trim(),
       tokenCostPerQuery: formData.tokenCostPerQuery,
       inputJson: JSON.parse(formData.inputJson.trim()),
+      href: formData.href.trim(),
     };
 
     console.log("Updating tool:", updatedTool);
@@ -280,6 +280,7 @@ export default function ToolManagerDashboardPage() {
       description: tool.description || "",
       tokenCostPerQuery: (tool as any).tokenCostPerQuery || 0,
       inputJson: JSON.stringify((tool as any).inputJson) || "",
+      href: (tool as any).href || "",
     });
     setIsEditModalOpen(true);
   };
@@ -300,6 +301,7 @@ export default function ToolManagerDashboardPage() {
       description: "",
       tokenCostPerQuery: 0,
       inputJson: "",
+      href: "",
     });
     setFormErrors({});
   };
@@ -314,38 +316,113 @@ export default function ToolManagerDashboardPage() {
     {
       accessorKey: "name",
       header: "Tên API",
-      cell: ({ row }) => (
-        <div className="font-medium text-gray-900 font-questrial">
-          {row.getValue("name")}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const name = row.getValue("name") as string;
+        return (
+          <div
+            className="font-medium text-gray-900 font-questrial max-w-xs truncate cursor-pointer hover:text-blue-600"
+            title={name}
+          >
+            {name}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "apiUrl",
       header: "API URL",
-      cell: ({ row }) => (
-        <div className="text-gray-600 font-questrial text-sm max-w-xs truncate">
-          {row.getValue("apiUrl")}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const apiUrl = row.getValue("apiUrl") as string;
+        return (
+          <div
+            className="text-gray-600 font-questrial text-sm max-w-xs truncate cursor-pointer hover:text-blue-600"
+            title={apiUrl}
+          >
+            {apiUrl}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "clientId",
       header: "Client ID",
       cell: ({ row }) => (
         <div className="text-gray-600 font-questrial text-sm">
-          {row.getValue("clientId")}
+          ••••••••••••••••
         </div>
       ),
     },
     {
+      accessorKey: "clientSecret",
+      header: "Client Secret",
+      cell: ({ row }) => {
+        const clientSecret = row.getValue("clientSecret") as string;
+        const [isVisible, setIsVisible] = React.useState(false);
+        const [copied, setCopied] = React.useState(false);
+
+        const handleClick = async () => {
+          if (isVisible) {
+            // Copy to clipboard
+            try {
+              await navigator.clipboard.writeText(clientSecret);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            } catch (err) {
+              console.error("Failed to copy: ", err);
+            }
+          } else {
+            setIsVisible(true);
+            // Hide again after 5 seconds
+            setTimeout(() => setIsVisible(false), 5000);
+          }
+        };
+
+        return (
+          <div
+            className="text-gray-600 font-questrial text-sm cursor-pointer hover:text-blue-600 max-w-xs truncate select-none"
+            onClick={handleClick}
+            title={
+              copied ? "Đã copy!" : isVisible ? "Click để copy" : "Click để xem"
+            }
+          >
+            {copied
+              ? "✓ Đã copy!"
+              : isVisible
+              ? clientSecret
+              : "••••••••••••••••"}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "description",
       header: "Mô tả",
-      cell: ({ row }) => (
-        <div className="text-gray-600 font-questrial text-sm max-w-xs truncate">
-          {row.getValue("description") || "Không có mô tả"}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const description =
+          (row.getValue("description") as string) || "Không có mô tả";
+        return (
+          <div
+            className="text-gray-600 font-questrial text-sm max-w-xs truncate cursor-pointer hover:text-blue-600"
+            title={description}
+          >
+            {description}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = (row.getValue("status") as string) || "Không có status";
+        return (
+          <div>
+            <Badge variant={status == "ACTIVE" ? "success" : "warning"}>
+              {status}
+            </Badge>
+          </div>
+        );
+      },
     },
     {
       id: "actions",
@@ -563,13 +640,13 @@ export default function ToolManagerDashboardPage() {
 
       {/* Create Tool Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Tạo API mới</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Tên API" htmlFor="name" error={formErrors.name}>
                 <Input
                   id="name"
@@ -578,6 +655,24 @@ export default function ToolManagerDashboardPage() {
                     setFormData((prev) => ({ ...prev, name: e.target.value }))
                   }
                   placeholder="Nhập tên API"
+                />
+              </FormField>
+
+              <FormField
+                label="Token Cost Per Query"
+                htmlFor="tokenCostPerQuery"
+              >
+                <Input
+                  id="tokenCostPerQuery"
+                  type="number"
+                  value={formData.tokenCostPerQuery}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      tokenCostPerQuery: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  placeholder="8"
                 />
               </FormField>
 
@@ -600,17 +695,21 @@ export default function ToolManagerDashboardPage() {
               </FormField>
 
               <FormField
-                label="API URL"
-                htmlFor="apiUrl"
-                error={formErrors.apiUrl}
+                label="Client Secret"
+                htmlFor="clientSecret"
+                error={formErrors.clientSecret}
               >
                 <Input
-                  id="apiUrl"
-                  value={formData.apiUrl}
+                  id="clientSecret"
+                  type="password"
+                  value={formData.clientSecret}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, apiUrl: e.target.value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      clientSecret: e.target.value,
+                    }))
                   }
-                  placeholder="https://api.example.com"
+                  placeholder="Nhập Client Secret"
                 />
               </FormField>
 
@@ -632,45 +731,21 @@ export default function ToolManagerDashboardPage() {
                 />
               </FormField>
 
-              <div className="md:col-span-2">
-                <FormField
-                  label="Client Secret"
-                  htmlFor="clientSecret"
-                  error={formErrors.clientSecret}
-                >
-                  <Input
-                    id="clientSecret"
-                    type="password"
-                    value={formData.clientSecret}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        clientSecret: e.target.value,
-                      }))
-                    }
-                    placeholder="Nhập Client Secret"
-                  />
-                </FormField>
-              </div>
-              <div className="md:col-span-2">
-                <FormField
-                  label="Token Cost Per Query"
-                  htmlFor="tokenCostPerQuery"
-                >
-                  <Input
-                    id="tokenCostPerQuery"
-                    type="number"
-                    value={formData.tokenCostPerQuery}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        tokenCostPerQuery: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                    placeholder="8"
-                  />
-                </FormField>
-              </div>
+              <FormField
+                label="API URL"
+                htmlFor="apiUrl"
+                error={formErrors.apiUrl}
+              >
+                <Input
+                  id="apiUrl"
+                  value={formData.apiUrl}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, apiUrl: e.target.value }))
+                  }
+                  placeholder="https://api.example.com"
+                />
+              </FormField>
+
               <div className="md:col-span-2">
                 <FormField
                   label="Input JSON"
@@ -687,7 +762,7 @@ export default function ToolManagerDashboardPage() {
                       }))
                     }
                     placeholder='{"className": "SE1705"}'
-                    rows={3}
+                    rows={2}
                     className="resize-y"
                   />
                 </FormField>
@@ -705,7 +780,7 @@ export default function ToolManagerDashboardPage() {
                       }))
                     }
                     placeholder="Mô tả về API này..."
-                    rows={3}
+                    rows={2}
                   />
                 </FormField>
               </div>
@@ -726,7 +801,7 @@ export default function ToolManagerDashboardPage() {
 
       {/* View Tool Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="!max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-calsans">Chi tiết API</DialogTitle>
           </DialogHeader>
@@ -773,19 +848,29 @@ export default function ToolManagerDashboardPage() {
                     ••••••••••••••••
                   </p>
                 </div>
-                {selectedTool.description && (
+                {(selectedTool as any).href && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">
+                      Href
+                    </label>
+                    <p className="font-questrial text-gray-900 break-all">
+                      {(selectedTool as any).href}
+                    </p>
+                  </div>
+                )}
+                {selectedTool.description && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 ">
                       Mô tả
                     </label>
-                    <p className="font-questrial text-gray-900">
+                    <p className="font-questrial text-gray-900 line-clamp-3 max-w-[500px]">
                       {selectedTool.description}
                     </p>
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end gap-3 pt-4 border-gray-200">
                 <Button
                   variant="outline"
                   onClick={() => setIsViewModalOpen(false)}
@@ -800,13 +885,13 @@ export default function ToolManagerDashboardPage() {
 
       {/* Edit Tool Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-calsans">Chỉnh sửa API</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="Tên API"
                 htmlFor="edit-name"
@@ -819,6 +904,24 @@ export default function ToolManagerDashboardPage() {
                     setFormData((prev) => ({ ...prev, name: e.target.value }))
                   }
                   placeholder="Nhập tên API"
+                />
+              </FormField>
+
+              <FormField
+                label="Token Cost Per Query"
+                htmlFor="edit-tokenCostPerQuery"
+              >
+                <Input
+                  id="edit-tokenCostPerQuery"
+                  type="number"
+                  value={formData.tokenCostPerQuery}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      tokenCostPerQuery: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  placeholder="8"
                 />
               </FormField>
 
@@ -841,17 +944,21 @@ export default function ToolManagerDashboardPage() {
               </FormField>
 
               <FormField
-                label="API URL"
-                htmlFor="edit-apiUrl"
-                error={formErrors.apiUrl}
+                label="Client Secret"
+                htmlFor="edit-clientSecret"
+                error={formErrors.clientSecret}
               >
                 <Input
-                  id="edit-apiUrl"
-                  value={formData.apiUrl}
+                  id="edit-clientSecret"
+                  type="password"
+                  value={formData.clientSecret}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, apiUrl: e.target.value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      clientSecret: e.target.value,
+                    }))
                   }
-                  placeholder="https://api.example.com"
+                  placeholder="Nhập Client Secret mới"
                 />
               </FormField>
 
@@ -873,45 +980,21 @@ export default function ToolManagerDashboardPage() {
                 />
               </FormField>
 
-              <div className="md:col-span-2">
-                <FormField
-                  label="Client Secret"
-                  htmlFor="edit-clientSecret"
-                  error={formErrors.clientSecret}
-                >
-                  <Input
-                    id="edit-clientSecret"
-                    type="password"
-                    value={formData.clientSecret}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        clientSecret: e.target.value,
-                      }))
-                    }
-                    placeholder="Nhập Client Secret mới"
-                  />
-                </FormField>
-              </div>
-              <div className="md:col-span-2">
-                <FormField
-                  label="Token Cost Per Query"
-                  htmlFor="edit-tokenCostPerQuery"
-                >
-                  <Input
-                    id="edit-tokenCostPerQuery"
-                    type="number"
-                    value={formData.tokenCostPerQuery}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        tokenCostPerQuery: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                    placeholder="8"
-                  />
-                </FormField>
-              </div>
+              <FormField
+                label="API URL"
+                htmlFor="edit-apiUrl"
+                error={formErrors.apiUrl}
+              >
+                <Input
+                  id="edit-apiUrl"
+                  value={formData.apiUrl}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, apiUrl: e.target.value }))
+                  }
+                  placeholder="https://api.example.com"
+                />
+              </FormField>
+
               <div className="md:col-span-2">
                 <FormField
                   label="Input JSON"
@@ -928,7 +1011,7 @@ export default function ToolManagerDashboardPage() {
                       }))
                     }
                     placeholder='{"className": "SE1705"}'
-                    rows={3}
+                    rows={2}
                     className="resize-y"
                   />
                 </FormField>
@@ -946,7 +1029,7 @@ export default function ToolManagerDashboardPage() {
                       }))
                     }
                     placeholder="Mô tả về API này..."
-                    rows={3}
+                    rows={2}
                   />
                 </FormField>
               </div>

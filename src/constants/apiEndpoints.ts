@@ -187,12 +187,17 @@ export const EXAM_ENDPOINTS = {
   MATRIX_CONFIGS: buildEndpoint(SERVICES.EXAM_SERVICE, "/matrix-configs"),
 } as const;
 
-
+// Academic Analysis Endpoints (Secondary API - Port 8000)
+export const ACADEMIC_ANALYSIS_ENDPOINTS = {
+  UPLOAD_ANALYSIS: "/api/v1/upload-and-analyze",
+  GET_ANALYSIS: (id: string) => `/api/v1/analysis/${id}`,
+} as const;
 
 // Combined endpoints for easy access
 export const ALL_API_ENDPOINTS = {
   MAIN: API_ENDPOINTS,
   PDF: PDF_API_ENDPOINTS,
+  ACADEMIC_ANALYSIS: ACADEMIC_ANALYSIS_ENDPOINTS,
 } as const;
 
 // Type for API endpoints (optional, for better TypeScript support)
