@@ -17,6 +17,8 @@ import { getDifficultyText } from "@/constants";
 import { GridSkeleton } from "@/components/molecules/grid-skeleton";
 import { Button } from "@/components/ui/Button";
 import TemplatePreview from "@/components/organisms/template-preview";
+import FileIcon from "@/components/ui/FileIcon";
+import { exportAcademicAnalysisToExcel } from "@/utils/academicAnalysisExcelExport";
 
 // Component để hiển thị ma trận cho EXAM_CREATOR
 const ExamCreatorMatrix = ({ matrix }: { matrix: any[] }) => {
@@ -1115,6 +1117,38 @@ export default function HistoryDetailModal({
                   </div>
                 ) : historyItem.code === "SLIDE_GENERATOR" ? (
                   <SlideGeneratorInput input={historyItem.input} />
+                ) : historyItem.code === "FORMU_LENS" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3">
+                    <div
+                      className="flex gap-4 border rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => {
+                        if (historyItem.input?.link) {
+                          // Tạo link download
+                          const link = document.createElement("a");
+                          link.href = historyItem.input.link;
+                          link.download = "bang-diem.xlsx"; // Tên file khi download
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }
+                      }}
+                    >
+                      <FileIcon type={"XLSX"} size={"lg"} />
+                      <div className="text-sm flex flex-col gap-2">
+                        <p className="font-calsans text-base line-clamp-1">
+                          Bảng điểm
+                        </p>
+                        <p className=" line-clamp-1 text-sm font-questrial">
+                          Bảng điểm của học sinh
+                        </p>
+                        {historyItem.input?.link && (
+                          <p className="text-xs text-blue-600">
+                            Click để tải xuống
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <div>
                     <pre className="text-sm whitespace-pre-wrap break-words">
@@ -1160,7 +1194,7 @@ export default function HistoryDetailModal({
                 )}
               </div>
             ) : (
-              <div>Không có dữ liệu input</div>
+              <div>Không có dữ liệu đầu vào</div>
             )}
           </div>
         </TabsContent>
@@ -1178,6 +1212,36 @@ export default function HistoryDetailModal({
                   <LessonPlanOutput output={historyItem.output} />
                 ) : historyItem.code === "SLIDE_GENERATOR" ? (
                   <SlideGeneratorOutput output={historyItem.output} />
+                ) : historyItem.code === "FORMU_LENS" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-3">
+                    <div
+                      className="flex gap-4 border rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={async () => {
+                        if (historyItem.output) {
+                          try {
+                            await exportAcademicAnalysisToExcel(
+                              historyItem.output
+                            );
+                          } catch (error) {
+                            console.error("Export error:", error);
+                          }
+                        }
+                      }}
+                    >
+                      <FileIcon type={"XLSX"} size={"lg"} />
+                      <div className="text-sm flex flex-col gap-2">
+                        <p className="font-calsans text-base line-clamp-1">
+                          Kết quả
+                        </p>
+                        <p className=" line-clamp-1 text-sm font-questrial">
+                          Tổng kết phân tích học tập
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          Click để tải xuống
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <pre className="text-sm whitespace-pre-wrap break-words">
                     {JSON.stringify(historyItem.output, null, 2)}
