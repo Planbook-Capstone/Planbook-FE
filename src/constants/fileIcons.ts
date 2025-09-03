@@ -14,4 +14,5 @@ export const FILE_ICONS: Partial<Record<FileType, string>> = {
   DOC: "/images/files/DOC.svg",
   DOCX: "/images/files/DOC.svg",
   PPTX: "/images/files/PPTX.svg",
+  XLSX: "/images/files/XLS.svg",
 };

@@ -6,6 +6,7 @@ import { Upload, FileSpreadsheet, X, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { UploadCloudIcon } from "@/constants/icon";
+import DocumentItem from "@/components/molecules/document-item";
 
 interface ExcelUploadProps {
   onFileSelect: (file: File) => void;
@@ -99,30 +100,12 @@ export function ExcelUpload({
       ) : (
         <div className="border rounded-lg p-6 bg-gray-50">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded">
-                <FileSpreadsheet className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">{selectedFile.name}</p>
-                <p className="text-sm text-gray-500">
-                  {formatFileSize(selectedFile.size)}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {uploadStatus === "success" && (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRemoveFile}
-                disabled={isUploading}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+            <DocumentItem
+              name={selectedFile.name}
+              description={formatFileSize(selectedFile.size)}
+              type="XLSX"
+              onRemove={handleRemoveFile}
+            />
           </div>
 
           {uploadStatus !== "success" && (
