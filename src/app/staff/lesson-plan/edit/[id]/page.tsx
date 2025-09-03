@@ -8,6 +8,8 @@ import { useState } from "react";
 import { Edit } from "lucide-react";
 import EditLessonPlanNodeModal from "@/components/organisms/edit-lesson-plan-node-modal";
 import { GridSkeleton } from "@/components/molecules/grid-skeleton";
+import { useLessonPlanByIdService } from "@/services/lessonPlanServices";
+import { formatDateVN } from "@/utils/dateUtils";
 
 interface LessonPlanNode {
   id: number;
@@ -140,9 +142,12 @@ const NodeRenderer = ({
 
 function EditLessonPlanTemplatePage() {
   const { id } = useParams();
+
   const { data: allNode, isLoading } = useLessonPlanAllNodeService(
     id?.toString() || ""
   )();
+
+  const { data: lessonPlan } = useLessonPlanByIdService(id?.toString() || "");
   const [editingNode, setEditingNode] = useState<LessonPlanNode | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -172,6 +177,15 @@ function EditLessonPlanTemplatePage() {
 
   return (
     <div className="p-6 mx-auto">
+      <div className="pb-5">
+        <div className="text-lg md:text-xl pb-1 ">
+          Đang sửa mẫu{" "}
+          <span className="font-calsans text-amber-400">
+            {lessonPlan?.data?.name}
+          </span>
+        </div>
+        <p>Cập nhật lần cuối: {formatDateVN(lessonPlan?.data?.updatedAt)}</p>
+      </div>
       <div>
         {allNode?.data?.map((node: LessonPlanNode) => (
           <NodeRenderer
