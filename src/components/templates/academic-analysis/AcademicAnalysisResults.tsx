@@ -1,25 +1,39 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { AcademicAnalysisResponse } from "@/services/academicAnalysisService";
 import { AcademicOverviewCompact } from "@/components/organisms/academic-overview-compact/AcademicOverviewCompact";
 import { StudentLists } from "@/components/organisms/student-lists/StudentLists";
 import { RecommendationsList } from "@/components/organisms/recommendations/RecommendationsList";
 import { StudentRankingTable } from "@/components/organisms/student-ranking-table/StudentRankingTable";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { exportAcademicAnalysisToExcel } from "@/utils/academicAnalysisExcelExport";
 
 interface AcademicAnalysisResultsProps {
   data: AcademicAnalysisResponse;
   onReset?: () => void;
-  supabaseUrl?: string;
 }
 
 export function AcademicAnalysisResults({
   data,
   onReset,
-  supabaseUrl,
 }: AcademicAnalysisResultsProps) {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportToExcel = async () => {
+    if (!data) return;
+
+    setIsExporting(true);
+    try {
+      await exportAcademicAnalysisToExcel(data);
+    } catch (error) {
+      console.error("Export error:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (!data) {
     return (
       <div className="min-h-screen bg-yellow-400 p-6 flex items-center justify-center">
@@ -53,20 +67,18 @@ export function AcademicAnalysisResults({
               </h1>
             </div>
 
-            {supabaseUrl && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">File nguồn:</span>
-                <a
-                  href={supabaseUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>Xem file</span>
-                </a>
-              </div>
-            )}
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={handleExportToExcel}
+                disabled={isExporting}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>{isExporting ? "Đang xuất..." : "Xuất Excel"}</span>
+              </Button>
+            </div>
           </div>
         </div>
         {/* Compact Overview with Charts */}

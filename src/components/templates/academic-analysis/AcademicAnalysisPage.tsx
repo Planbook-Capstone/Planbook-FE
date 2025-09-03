@@ -17,7 +17,6 @@ export function AcademicAnalysisPage() {
   const [analysisData, setAnalysisData] =
     useState<AcademicAnalysisResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [supabaseUrl, setSupabaseUrl] = useState<string>("");
 
   const searchParams = useSearchParams();
   const bookTypeId = searchParams.get("bookTypeId") || "";
@@ -28,7 +27,6 @@ export function AcademicAnalysisPage() {
   useEffect(() => {
     setAnalysisData(null);
     setShowResults(false);
-    setSupabaseUrl("");
   }, []);
 
   const handleFileSelect = async (file: File) => {
@@ -43,9 +41,6 @@ export function AcademicAnalysisPage() {
         academicYearId: 1,
         bucketName: "planbook",
       });
-
-      // Store Supabase URL for reference
-      setSupabaseUrl(result.supabaseUrl);
 
       // Extract analysis result from tool execution
       const analysisResult = result.toolResult?.data?.data.data;
@@ -68,16 +63,11 @@ export function AcademicAnalysisPage() {
   const handleReset = () => {
     setAnalysisData(null);
     setShowResults(false);
-    setSupabaseUrl("");
   };
 
   if (showResults && analysisData) {
     return (
-      <AcademicAnalysisResults
-        data={analysisData}
-        onReset={handleReset}
-        supabaseUrl={supabaseUrl}
-      />
+      <AcademicAnalysisResults data={analysisData} onReset={handleReset} />
     );
   }
 
