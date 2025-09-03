@@ -16,9 +16,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCreateBookTypeService } from "@/services/bookTypeServices";
+import {
+  useCreateBookTypeService,
+  useUpdateBookTypeService,
+} from "@/services/bookTypeServices";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -56,38 +59,53 @@ const FormSchema = z.object({
     })
     .int("Phải là số nguyên")
     .gt(0, "Phải lớn hơn 0"),
-  icon: z.any().optional(), // Use z.any() to avoid SSR issues with File type
-  iconUrl: z.string().optional(), // Text input for icon URL/path
+  icon: z.any(), // Use z.any() to avoid SSR issues with File type
   code: z.string().min(1, "Vui lòng nhập mã chức năng"),
 });
 
 interface CreateBookTypeFormProps {
   onClose?: () => void;
   onSuccess?: () => void;
+  initialValues?: {
+    id?: string;
+    name: string;
+    description: string;
+    href: string;
+    tokenCostPerQuery: number;
+    priority?: number;
+    icon?: string; // base64
+    code?: string;
+  };
 }
 
 function CreateBookTypeForm({
   onClose,
   onSuccess,
+  initialValues,
 }: CreateBookTypeFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { mutate: createBookType } = useCreateBookTypeService();
+  const { mutate: updateBookType } = useUpdateBookTypeService();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      href: "",
-      tokenCostPerQuery: undefined,
-      priority: undefined,
+      name: initialValues?.name || "",
+      description: initialValues?.description || "",
+      href: initialValues?.href || "",
+      tokenCostPerQuery: initialValues?.tokenCostPerQuery || undefined,
+      priority: initialValues?.priority || undefined,
       icon: undefined,
-      code: "",
+      code: initialValues?.code || "",
     },
     mode: "onChange",
   });
 
-
+  useEffect(() => {
+    if (initialValues?.icon) {
+      setImagePreview(initialValues.icon);
+    }
+  }, [initialValues]);
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -99,9 +117,9 @@ function CreateBookTypeForm({
   };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    let base64Icon: string | undefined;
+    let base64Icon = initialValues?.icon; // Use existing icon for edit mode
 
-    // File is optional for create mode
+    // If a new file is uploaded, validate and convert it
     if (data.icon && data.icon instanceof File) {
       const allowedTypes = [
         "image/svg+xml",
@@ -115,8 +133,11 @@ function CreateBookTypeForm({
         return;
       }
       base64Icon = await fileToBase64(data.icon);
+    } else if (!initialValues?.id) {
+      // For create mode, file is required
+      toast.error("Vui lòng chọn một file ảnh hoặc SVG");
+      return;
     }
-    // If no file is selected, base64Icon remains undefined (optional)
 
     const payload = {
       name: data.name,
@@ -131,20 +152,39 @@ function CreateBookTypeForm({
     console.log("Payload gửi lên API:", payload);
 
     try {
-      // Create mode only
-      createBookType(payload, {
-        onSuccess: () => {
-          toast.success("Tạo mới thành công!");
-          form.reset();
-          setImagePreview(null);
-          onSuccess?.();
-          onClose?.();
-        },
-        onError: (error: any) => {
-          console.log(error?.response?.data);
-          toast.error("Đã xảy ra lỗi khi gửi dữ liệu.");
-        },
-      });
+      if (initialValues?.id) {
+        // Edit mode
+        updateBookType(
+          {
+            id: initialValues.id,
+            data: payload,
+          },
+          {
+            onSuccess: () => {
+              toast.success("Cập nhật thành công!");
+              onSuccess?.(); // Call parent success callback first
+              onClose?.();
+            },
+            onError: (error) => {
+              console.log(error?.response?.data);
+              toast.error("Đã xảy ra lỗi khi cập nhật dữ liệu.");
+            },
+          }
+        );
+      } else {
+        // Create mode
+        createBookType(payload, {
+          onSuccess: () => {
+            toast.success("Tạo mới thành công!");
+            form.reset();
+            onClose?.();
+          },
+          onError: (error) => {
+            console.log(error?.response?.data);
+            toast.error("Đã xảy ra lỗi khi gửi dữ liệu.");
+          },
+        });
+      }
     } catch (error) {
       toast.error("Đã xảy ra lỗi khi gửi dữ liệu");
     }
@@ -160,19 +200,6 @@ function CreateBookTypeForm({
               <FormLabel>Tên chức năng</FormLabel>
               <FormControl>
                 <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Mã chức năng</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Nhập mã chức năng..." />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -237,7 +264,7 @@ function CreateBookTypeForm({
           name="icon"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Icon (tùy chọn)</FormLabel>
+              <FormLabel>Icon</FormLabel>
               <FormControl>
                 <Input
                   type="file"
@@ -278,26 +305,39 @@ function CreateBookTypeForm({
           )}
         />
 
-        <Button type="submit">Tạo mới</Button>
+        <Button type="submit">{initialValues ? "Chỉnh sửa" : "Tạo mới"}</Button>
       </form>
     </Form>
   );
 }
 
 // Modal wrapper component
-interface CreateBookTypeModalProps {
+interface EdiBookTypeModalProps {
+  initialValues?: {
+    id?: string;
+    name: string;
+    description: string;
+    href: string;
+    tokenCostPerQuery: number;
+    icon?: string;
+    priority?: number;
+    code?: string;
+  };
+  isEdit?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onSuccess?: () => void;
   trigger?: React.ReactNode;
 }
 
-function CreateBookTypeModal({
+function EdiBookTypeModal({
+  initialValues,
+  isEdit = false,
   open,
   onOpenChange,
   onSuccess,
   trigger,
-}: CreateBookTypeModalProps) {
+}: EdiBookTypeModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
 
   // Use external open state if provided, otherwise use internal state
@@ -321,11 +361,14 @@ function CreateBookTypeModal({
         ))}
       <DialogContent className="min-w-[630px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Tạo chức năng mới</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Chỉnh sửa chức năng" : "Tạo chức năng mới"}
+          </DialogTitle>
         </DialogHeader>
         <CreateBookTypeForm
           onClose={() => setIsOpen(false)}
           onSuccess={onSuccess}
+          initialValues={initialValues}
         />
       </DialogContent>
     </Dialog>
@@ -333,4 +376,4 @@ function CreateBookTypeModal({
 }
 
 export default CreateBookTypeForm;
-export { CreateBookTypeModal };
+export { EdiBookTypeModal };

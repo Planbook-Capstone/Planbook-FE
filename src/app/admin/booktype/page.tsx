@@ -1,12 +1,13 @@
 "use client";
 import BookTypeTable from "@/components/organisms/booktype-list";
-import { CreateBookTypeModal } from "@/components/organisms/create-booktype-form";
+import { EdiBookTypeModal } from "@/components/organisms/edit-booktype-form";
 import { Button } from "@/components/ui/Button";
 import { BookTypeResponse } from "@/types";
 import { Row } from "@tanstack/react-table";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useUpdateBookTypeStatus } from "@/services/bookTypeServices";
+import { CreateBookTypeModal } from "@/components/organisms/create-booktype-form";
 
 function BookTypePage() {
   const [selected, setSelected] = useState<Row<BookTypeResponse>[]>([]);
@@ -75,7 +76,7 @@ function BookTypePage() {
 
       {/* Edit Modal */}
       {editModalOpen && selected.length === 1 && (
-        <CreateBookTypeModal
+        <EdiBookTypeModal
           open={editModalOpen}
           onOpenChange={(open) => {
             setEditModalOpen(open);
