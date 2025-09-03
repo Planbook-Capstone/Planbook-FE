@@ -331,7 +331,7 @@ export function AcademicAnalysisPage() {
         </div> */}
         <div className="relative">
           <img
-            src="/images/banner/analysis.png"
+            src="/images/banner/bannerAcademicAnalysis.svg"
             className="w-full rounded-2xl"
           />
           <img
