@@ -25,7 +25,7 @@ export function AcademicAnalysisResults({
   }
   console.log(data);
   return (
-    <div className="min-h-screen  p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Compact Overview with Charts */}
         <AcademicOverviewCompact

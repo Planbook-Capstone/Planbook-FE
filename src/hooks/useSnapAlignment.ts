@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { getSnapSettings } from "@/config/snapConfig";
 
 // Element interface for snap calculations
 export interface SnapElement {
@@ -30,7 +31,7 @@ export interface SnapResult {
 
 // Snap configuration
 export interface SnapConfig {
-  threshold: number; // Distance threshold for snapping (default: 6px)
+  threshold: number; // Distance threshold for snapping (default: 2px - Low sensitivity)
   showGuides: boolean; // Whether to show alignment guides
   snapToCanvas: boolean; // Whether to snap to canvas edges
   canvasWidth: number; // Canvas width for edge snapping
@@ -39,7 +40,7 @@ export interface SnapConfig {
 
 // Default snap configuration
 const DEFAULT_SNAP_CONFIG: SnapConfig = {
-  threshold: 6,
+  threshold: 2, // Low sensitivity - reduced from 6px to 2px
   showGuides: true,
   snapToCanvas: true,
   canvasWidth: 960,
@@ -47,7 +48,14 @@ const DEFAULT_SNAP_CONFIG: SnapConfig = {
 };
 
 export function useSnapAlignment(config: Partial<SnapConfig> = {}) {
-  const snapConfig = { ...DEFAULT_SNAP_CONFIG, ...config };
+  const globalSettings = getSnapSettings();
+  const snapConfig = {
+    ...DEFAULT_SNAP_CONFIG,
+    threshold: globalSettings.threshold,
+    showGuides: globalSettings.showGuides,
+    snapToCanvas: globalSettings.snapToCanvas,
+    ...config,
+  };
   const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
 
   // Calculate element edges and center points
@@ -65,6 +73,18 @@ export function useSnapAlignment(config: Partial<SnapConfig> = {}) {
   // Calculate snap positions for an element
   const calculateSnap = useCallback(
     (draggedElement: SnapElement, otherElements: SnapElement[]): SnapResult => {
+      const globalSettings = getSnapSettings();
+
+      // If snapping is disabled globally, return original position
+      if (!globalSettings.enabled) {
+        return {
+          x: draggedElement.x,
+          y: draggedElement.y,
+          snapped: false,
+          guides: [],
+        };
+      }
+
       const { threshold, snapToCanvas, canvasWidth, canvasHeight } = snapConfig;
 
       let snapX = draggedElement.x;
@@ -72,7 +92,25 @@ export function useSnapAlignment(config: Partial<SnapConfig> = {}) {
       let snapped = false;
       const guides: AlignmentGuide[] = [];
 
+      // In guide-only mode, we still calculate guides but don't actually snap
+      const shouldActuallySnap = !globalSettings.guideOnly;
+
       const draggedBounds = getElementBounds(draggedElement);
+
+      // Helper function to handle snapping logic
+      const handleSnap = (
+        condition: boolean,
+        snapLogic: () => void,
+        guideLogic: () => void
+      ) => {
+        if (condition) {
+          if (shouldActuallySnap) {
+            snapLogic();
+            snapped = true;
+          }
+          guideLogic();
+        }
+      };
 
       // Canvas edge snap points
       const canvasSnapPoints = snapToCanvas
@@ -323,6 +361,16 @@ export function useSnapAlignment(config: Partial<SnapConfig> = {}) {
           });
         }
       });
+
+      // In guide-only mode, return original position but keep guides
+      if (globalSettings.guideOnly) {
+        return {
+          x: draggedElement.x,
+          y: draggedElement.y,
+          snapped: false,
+          guides,
+        };
+      }
 
       return {
         x: snapX,

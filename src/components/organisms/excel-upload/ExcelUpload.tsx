@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Upload, FileSpreadsheet, X, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
+import React, { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { Upload, FileSpreadsheet, X, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
+import { UploadCloudIcon } from "@/constants/icon";
 
 interface ExcelUploadProps {
   onFileSelect: (file: File) => void;
@@ -12,47 +13,55 @@ interface ExcelUploadProps {
   className?: string;
 }
 
-export function ExcelUpload({ onFileSelect, isUploading = false, className }: ExcelUploadProps) {
+export function ExcelUpload({
+  onFileSelect,
+  isUploading = false,
+  className,
+}: ExcelUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
       setSelectedFile(file);
-      setUploadStatus('idle');
+      setUploadStatus("idle");
     }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'application/vnd.ms-excel': ['.xls'],
-      'text/csv': ['.csv']
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+      "application/vnd.ms-excel": [".xls"],
+      "text/csv": [".csv"],
     },
     multiple: false,
-    disabled: isUploading
+    disabled: isUploading,
   });
 
   const handleUpload = () => {
     if (selectedFile) {
       onFileSelect(selectedFile);
-      setUploadStatus('success');
+      setUploadStatus("success");
     }
   };
 
   const handleRemoveFile = () => {
     setSelectedFile(null);
-    setUploadStatus('idle');
+    setUploadStatus("idle");
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   return (
@@ -62,19 +71,20 @@ export function ExcelUpload({ onFileSelect, isUploading = false, className }: Ex
           {...getRootProps()}
           className={cn(
             "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-            isDragActive 
-              ? "border-blue-500 bg-blue-50" 
+            isDragActive
+              ? "border-blue-500 bg-blue-50"
               : "border-gray-300 hover:border-gray-400",
             isUploading && "opacity-50 cursor-not-allowed"
           )}
         >
           <input {...getInputProps()} />
           <div className="flex flex-col items-center space-y-4">
-            <div className="p-4 bg-gray-100 rounded-full">
-              <Upload className="w-8 h-8 text-gray-600" />
+            <div className="p-4 h-28 w-28 rounded-full">
+              {/* <Upload className="w-8 h-8 text-gray-600" /> */}
+              {UploadCloudIcon}
             </div>
             <div>
-              <p className="text-lg font-medium text-gray-900">
+              <p className="text-lg font-calsans text-gray-500">
                 {isDragActive ? "Thả file vào đây..." : "Tải lên file Excel"}
               </p>
               <p className="text-sm text-gray-500 mt-1">
@@ -101,7 +111,7 @@ export function ExcelUpload({ onFileSelect, isUploading = false, className }: Ex
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              {uploadStatus === 'success' && (
+              {uploadStatus === "success" && (
                 <CheckCircle className="w-5 h-5 text-green-500" />
               )}
               <Button
@@ -114,8 +124,8 @@ export function ExcelUpload({ onFileSelect, isUploading = false, className }: Ex
               </Button>
             </div>
           </div>
-          
-          {uploadStatus !== 'success' && (
+
+          {uploadStatus !== "success" && (
             <div className="mt-4 flex justify-end">
               <Button
                 onClick={handleUpload}
