@@ -19,6 +19,7 @@ export const getPageLabel = (pathname: string): string => {
     "/chats": "Tạo slide bài giảng",
     "/reports": "Báo cáo",
     "/formu-lens": "Tra cứu tài nguyên hoá học",
+    "/academic-analysis": "Phân tích lớp học chuyên sâu",
   };
 
   // Remove any query parameters and get clean pathname
