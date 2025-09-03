@@ -15,15 +15,17 @@ interface UseLessonPlanGenerationProps {
   demoData: DemoNode[];
   lessonId: string | null;
   lessonById: any;
+  items: any[];
   getAllFinalData: () => DemoNode[];
   convertLessonPlanToDemoNode: (lessonPlanData: any) => DemoNode[];
-  mergeAIDataToFinalData: (aiData: DemoNode[]) => DemoNode[] | undefined;
+  mergeAIDataToFinalData: (aiData: DemoNode[], targetStep?: number) => DemoNode[] | undefined;
 }
 
 export const useLessonPlanGeneration = ({
   demoData,
   lessonId,
   lessonById,
+  items,
   getAllFinalData,
   convertLessonPlanToDemoNode,
   mergeAIDataToFinalData,
@@ -37,6 +39,8 @@ export const useLessonPlanGeneration = ({
 
   // Track processed data to prevent duplicate toasts
   const processedDataRef = useRef<string>("");
+
+
 
   // Store functions in refs to avoid dependency issues
   const convertLessonPlanToDemoNodeRef = useRef(convertLessonPlanToDemoNode);
@@ -112,9 +116,19 @@ export const useLessonPlanGeneration = ({
         console.log("🔄 Converted data:", convertedData);
 
         if (convertedData.length > 0) {
-          // Merge into finalData instead of replace
-          const mergedResult = mergeAIDataToFinalDataRef.current(convertedData);
-          console.log("✅ Merged result:", mergedResult);
+          // Find target step based on parentId of first node
+          let targetStep: number | undefined = undefined;
+          if (convertedData.length > 0 && convertedData[0].parentId) {
+            const parentId = convertedData[0].parentId;
+            const stepIndex = items.findIndex(item => item.id.toString() === parentId);
+            if (stepIndex !== -1) {
+              targetStep = stepIndex;
+              console.log("🎯 Found target step based on parentId:", parentId, "-> step:", targetStep);
+            }
+          }
+
+          const mergedResult = mergeAIDataToFinalDataRef.current(convertedData, targetStep);
+          console.log("✅ Merged result:", mergedResult, "Target step:", targetStep);
           toast.success(`Đã tạo thành công 1 mục nội dung.`);
         } else {
           console.log("⚠️ No converted data to merge");
