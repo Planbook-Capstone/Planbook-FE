@@ -367,22 +367,25 @@ function LessonPlanTemplate({
 
   // Merge AI data into finalData
   const mergeAIDataToFinalData = useCallback(
-    (aiData: DemoNode[]) => {
+    (aiData: DemoNode[], targetStep?: number) => {
       console.log("🔄 mergeAIDataToFinalData called with:", aiData);
-      console.log("📍 Current step:", currentStep, "Items:", items);
+      console.log("📍 Current step:", currentStep, "Target step:", targetStep, "Items:", items);
 
-      if (!items || items.length <= currentStep) {
+      // Use targetStep if provided, otherwise use currentStep
+      const stepToUse = targetStep !== undefined ? targetStep : currentStep;
+
+      if (!items || items.length <= stepToUse) {
         console.log("❌ No items or invalid step");
         return undefined;
       }
 
-      const currentStepId = items[currentStep].id.toString();
+      const targetStepId = items[stepToUse].id.toString();
 
-      // Get current step data from finalData or demoData
-      const currentStepData = finalData[currentStepId] || demoData;
+      // Get target step data from finalData or demoData (if targeting current step)
+      const targetStepData = finalData[targetStepId] || (stepToUse === currentStep ? demoData : []);
 
       // Merge logic: if same id then update, otherwise add new
-      const mergedData = [...currentStepData];
+      const mergedData = [...targetStepData];
 
       aiData.forEach((aiNode) => {
         const existingIndex = mergedData.findIndex(
@@ -407,11 +410,13 @@ function LessonPlanTemplate({
       // Update finalData
       setFinalData((prev) => ({
         ...prev,
-        [currentStepId]: mergedData,
+        [targetStepId]: mergedData,
       }));
 
-      // Update demoData
-      setDemoData(mergedData);
+      // Update demoData only if we're merging into current step
+      if (stepToUse === currentStep) {
+        setDemoData(mergedData);
+      }
 
       return mergedData;
     },
@@ -435,6 +440,7 @@ function LessonPlanTemplate({
     demoData,
     lessonId,
     lessonById,
+    items,
     getAllFinalData,
     convertLessonPlanToDemoNode,
     mergeAIDataToFinalData,
