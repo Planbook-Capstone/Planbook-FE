@@ -524,11 +524,101 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     };
   };
 
+  // Hàm tạo dữ liệu preview với các thay đổi từ state
+  const getPreviewData = () => {
+    if (!localExamResult?.data) return null;
+
+    // Tạo bản sao sâu của dữ liệu gốc
+    const previewData = JSON.parse(JSON.stringify(localExamResult.data));
+
+    // Cập nhật nội dung câu hỏi và đáp án từ state
+    if (previewData?.parts) {
+      previewData.parts.forEach((part: any, partIndex: number) => {
+        part.questions?.forEach((question: any, questionIndex: number) => {
+          const questionKey = `part${partIndex + 1}-${
+            question?.questionNumber || questionIndex
+          }`;
+
+          // Cập nhật nội dung câu hỏi
+          const questionContentKey = `${questionKey}-question`;
+          if (questionContents[questionContentKey]) {
+            question.question = questionContents[questionContentKey];
+          }
+
+          // Cập nhật độ khó
+          if (questionDifficulties[questionKey]) {
+            question.difficultyLevel = questionDifficulties[questionKey];
+          }
+
+          // Cập nhật hình ảnh
+          if (questionImages[questionKey]) {
+            question.image = questionImages[questionKey];
+          }
+
+          // Cập nhật theo từng loại câu hỏi
+          if (partIndex === 0) {
+            // Part 1 - Multiple choice
+            // Cập nhật đáp án đúng
+            if (correctAnswers[questionKey]) {
+              question.answer = correctAnswers[questionKey];
+            }
+
+            // Cập nhật nội dung các lựa chọn
+            if (question.options) {
+              Object.keys(question.options).forEach((optionKey) => {
+                const optionContentKey = `${questionKey}-option-${optionKey}`;
+                if (answerContents[optionContentKey]) {
+                  question.options[optionKey] = answerContents[optionContentKey];
+                }
+              });
+            }
+          } else if (partIndex === 1) {
+            // Part 2 - True/False
+            // Cập nhật nội dung và đáp án của các statement
+            if (question.statements) {
+              Object.keys(question.statements).forEach((statementKey) => {
+                const statementContentKey = `${questionKey}-statement-${statementKey}`;
+                if (answerContents[statementContentKey]) {
+                  question.statements[statementKey].text = answerContents[statementContentKey];
+                }
+
+                // Cập nhật đáp án true/false
+                if (
+                  trueFalseAnswers[questionKey] &&
+                  trueFalseAnswers[questionKey][statementKey] !== undefined
+                ) {
+                  question.statements[statementKey].answer =
+                    trueFalseAnswers[questionKey][statementKey];
+                }
+              });
+            }
+          } else if (partIndex === 2) {
+            // Part 3 - Essay
+            // Cập nhật đáp án
+            const answerContentKey = `${questionKey}-answer`;
+            if (answerContents[answerContentKey]) {
+              question.answer = answerContents[answerContentKey];
+            }
+          }
+        });
+      });
+    }
+
+    return previewData;
+  };
+
   const handleDownload = async () => {
     try {
       if (localExamResult?.data) {
-        // Chuyển đổi dữ liệu từ format localExamResult.data sang format ExamData
-        const convertedData = convertToExamData(localExamResult.data);
+        // Sử dụng dữ liệu preview đã được cập nhật
+        const previewData = getPreviewData();
+        if (!previewData) {
+          toast.error("Không có dữ liệu đề thi để tải xuống");
+          return;
+        }
+
+        // Chuyển đổi dữ liệu từ format previewData sang format ExamData
+        const convertedData = convertToExamData(previewData);
 
         // Debug: Log converted data to check format
         console.log("🔍 Converted data for DOCX:", {
@@ -1317,7 +1407,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                   className="max-w-[210mm] mx-auto bg-white shadow-lg"
                   style={{ minHeight: "297mm" }}
                 >
-                  <TemplatePreview data={localExamResult?.data} />
+                  <TemplatePreview data={getPreviewData()} />
                 </div>
               </div>
             </div>
