@@ -358,9 +358,13 @@ export default function CreateSlideTemplatePage() {
           const blob = await response.blob();
 
           // Create file from blob
-          const file = new File([blob], `imageBlock_slide_${i + 1}_${tempData?.name || 'template'}.png`, {
-            type: 'image/png'
-          });
+          const file = new File(
+            [blob],
+            `imageBlock_slide_${i + 1}_${tempData?.name || "template"}.png`,
+            {
+              type: "image/png",
+            }
+          );
 
           // Upload to API
           const formData = new FormData();
@@ -369,14 +373,18 @@ export default function CreateSlideTemplatePage() {
             "metadataJson",
             JSON.stringify({
               type: "slide-image",
-              name: `imageBlock_slide_${i + 1}_${tempData?.name || 'template'}`,
-              description: `Slide ${i + 1} image for template ${tempData?.name || 'template'}`,
+              name: `imageBlock_slide_${i + 1}_${tempData?.name || "template"}`,
+              description: `Slide ${i + 1} image for template ${
+                tempData?.name || "template"
+              }`,
               url: "null", // Will be set by backend after file upload
               tagIds: 9,
             })
           );
 
-          const uploadResult = await createMaterialMutation.mutateAsync(formData);
+          const uploadResult = await createMaterialMutation.mutateAsync(
+            formData
+          );
           const imageUrl = uploadResult?.data?.data?.url;
 
           if (imageUrl) {
@@ -385,7 +393,9 @@ export default function CreateSlideTemplatePage() {
           } else {
             // Fallback to base64 if upload fails
             imageBlocks[slideKey] = slideImageBase64;
-            console.log(`⚠️ Upload failed for slide ${i + 1}, using base64 fallback`);
+            console.log(
+              `⚠️ Upload failed for slide ${i + 1}, using base64 fallback`
+            );
           }
         } catch (uploadError) {
           console.error(`❌ Error uploading slide ${i + 1}:`, uploadError);

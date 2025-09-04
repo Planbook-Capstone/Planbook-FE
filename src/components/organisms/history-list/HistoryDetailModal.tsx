@@ -899,6 +899,424 @@ const ManualExamCreatorInput = ({ input }: { input: any }) => {
   );
 };
 
+// Component để hiển thị input cho FORMU_LENS
+const AcademicAnalysisInput = ({ input }: { input: any }) => {
+  const handleDownload = () => {
+    if (input.link) {
+      // Tạo một thẻ a ẩn để tải file
+      const link = document.createElement("a");
+      link.href = input.link;
+      link.download = ""; // Để trình duyệt tự động đặt tên file
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {/* Excel icon */}
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <img src="/images/files/XLS.svg" />
+            </div>
+            <div>
+              <h5 className="font-medium text-gray-900">
+                Tài liệu phân tích học thuật
+              </h5>
+              <p className="text-sm text-gray-600">File Excel (.xlsx)</p>
+            </div>
+          </div>
+          <button
+            onClick={handleDownload}
+            className="px-4 py-2 bg-neutral-600 text-white rounded-lg hover:bg-neutral-700 transition-colors flex items-center space-x-2"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span>Tải về</span>
+          </button>
+        </div>
+
+        {input.link && (
+          <div className="mt-4 pt-3 border-t border-neutral-200">
+            <p className="text-xs text-gray-500 break-all">
+              <strong>Đường dẫn:</strong> {input.link}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Component để hiển thị output cho FORMU_LENS
+const AcademicAnalysisOutput = ({ output }: { output: any }) => {
+  const handleExportWord = async () => {
+    try {
+      // Import docx library
+      const {
+        Document,
+        Packer,
+        Paragraph,
+        TextRun,
+        HeadingLevel,
+        AlignmentType,
+      } = await import("docx");
+      const { saveAs } = await import("file-saver");
+
+      const stats = output.class_statistics;
+
+      // Create document paragraphs
+      const paragraphs = [];
+
+      // Title
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "BÁO CÁO PHÂN TÍCH HỌC LỰC",
+              bold: true,
+              size: 32,
+              color: "1e40af",
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 400 },
+        })
+      );
+
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Lớp: ${stats?.class_name || "N/A"}`,
+              bold: true,
+              size: 24,
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 600 },
+        })
+      );
+
+      // Section I: Class Statistics
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "I. THỐNG KÊ TỔNG QUAN LỚP HỌC",
+              bold: true,
+              size: 24,
+              color: "dc2626",
+            }),
+          ],
+          spacing: { before: 400, after: 200 },
+        })
+      );
+
+      if (stats) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ text: "• Tổng số học sinh: " }),
+              new TextRun({ text: `${stats.total_students}`, bold: true }),
+            ],
+            spacing: { after: 100 },
+          })
+        );
+
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ text: "• Điểm trung bình chung: " }),
+              new TextRun({ text: `${stats.overall_average}`, bold: true }),
+            ],
+            spacing: { after: 100 },
+          })
+        );
+
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ text: "• Điểm cao nhất: " }),
+              new TextRun({ text: `${stats.highest_score}`, bold: true }),
+              new TextRun({
+                text: ` (${stats.top_students?.[0]?.name || "N/A"})`,
+              }),
+            ],
+            spacing: { after: 100 },
+          })
+        );
+
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({ text: "• Điểm thấp nhất: " }),
+              new TextRun({ text: `${stats.lowest_score}`, bold: true }),
+            ],
+            spacing: { after: 100 },
+          })
+        );
+
+        // Grade distribution
+        if (stats.grade_distribution) {
+          paragraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: "• Phân loại học lực:" })],
+              spacing: { after: 100 },
+            })
+          );
+
+          Object.entries(stats.grade_distribution).forEach(([grade, count]) => {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({ text: `  - ${grade}: ` }),
+                  new TextRun({ text: `${count} học sinh`, bold: true }),
+                ],
+                spacing: { after: 50 },
+              })
+            );
+          });
+        }
+      }
+
+      // Section II: Recommendations
+      if (output.recommendations && output.recommendations.length > 0) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "II. KHUYẾN NGHỊ VÀ ĐỀ XUẤT",
+                bold: true,
+                size: 24,
+                color: "dc2626",
+              }),
+            ],
+            spacing: { before: 400, after: 200 },
+          })
+        );
+
+        output.recommendations.forEach((rec: string) => {
+          const cleanText = rec.replace(
+            /[^\w\s\u00C0-\u024F\u1E00-\u1EFF:().,\-•]/g,
+            ""
+          );
+          paragraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `• ${cleanText}` })],
+              spacing: { after: 100 },
+            })
+          );
+        });
+      }
+
+      // Section III: Top Students
+      if (stats?.top_students && stats.top_students.length > 0) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "III. HỌC SINH XUẤT SẮC",
+                bold: true,
+                size: 24,
+                color: "dc2626",
+              }),
+            ],
+            spacing: { before: 400, after: 200 },
+          })
+        );
+
+        stats.top_students.forEach((student: any, index: number) => {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: `${index + 1}. ${student.name}: ` }),
+                new TextRun({ text: `${student.score} điểm`, bold: true }),
+              ],
+              spacing: { after: 100 },
+            })
+          );
+        });
+      }
+
+      // Section IV: Weak Students
+      if (stats?.weak_students && stats.weak_students.length > 0) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "IV. HỌC SINH CẦN HỖ TRỢ",
+                bold: true,
+                size: 24,
+                color: "dc2626",
+              }),
+            ],
+            spacing: { before: 400, after: 200 },
+          })
+        );
+
+        stats.weak_students.forEach((student: any, index: number) => {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: `${index + 1}. ${student.name}: ` }),
+                new TextRun({ text: `${student.score} điểm`, bold: true }),
+              ],
+              spacing: { after: 100 },
+            })
+          );
+        });
+      }
+
+      // Section V: Subject Statistics
+      if (stats?.subject_statistics && stats.subject_statistics.length > 0) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "V. THỐNG KÊ THEO MÔN HỌC",
+                bold: true,
+                size: 24,
+                color: "dc2626",
+              }),
+            ],
+            spacing: { before: 400, after: 200 },
+          })
+        );
+
+        stats.subject_statistics.forEach((subject: any) => {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `${subject.subject}:`,
+                  bold: true,
+                  size: 20,
+                }),
+              ],
+              spacing: { before: 200, after: 100 },
+            })
+          );
+
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: `  • Tỷ lệ đạt: ${subject.pass_rate}%` }),
+              ],
+              spacing: { after: 50 },
+            })
+          );
+
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: `  • Điểm TB: ${subject.average_score}` }),
+              ],
+              spacing: { after: 50 },
+            })
+          );
+
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `  • Cao nhất: ${subject.highest_score} (${subject.highest_score_student})`,
+                }),
+              ],
+              spacing: { after: 50 },
+            })
+          );
+
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `  • Thấp nhất: ${subject.lowest_score} (${subject.lowest_score_student})`,
+                }),
+              ],
+              spacing: { after: 100 },
+            })
+          );
+        });
+      }
+
+      // Create document
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: paragraphs,
+          },
+        ],
+      });
+
+      // Generate and save
+      const blob = await Packer.toBlob(doc);
+      const fileName = `Bao_cao_phan_tich_${stats?.class_name || "lop"}_${
+        new Date().toISOString().split("T")[0]
+      }.docx`;
+
+      saveAs(blob, fileName);
+      console.log("✅ Word document generated successfully:", fileName);
+    } catch (error) {
+      console.error("❌ Error generating Word document:", error);
+      alert("Có lỗi xảy ra khi tạo file Word. Vui lòng thử lại.");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Export Button */}
+      <div className="flex justify-between items-center rounded-lg py-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+            <img src="/images/files/DOC.svg" />
+          </div>
+          <div>
+            <h5 className="font-medium text-gray-900">
+              Báo cáo phân tích học lực
+            </h5>
+            <p className="text-sm text-gray-600">File Word (.docx)</p>
+          </div>
+        </div>
+        <button
+          onClick={handleExportWord}
+          className="px-4 py-2 bg-neutral-600 text-white rounded-lg hover:bg-neutral-700 transition-colors flex items-center space-x-2 text-md"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span>Xuất Word</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Component để hiển thị output cho MANUAL_EXAM_CREATOR
 const ManualExamCreatorOutput = ({ output }: { output: any }) => {
   const [selectedExamIndex, setSelectedExamIndex] = useState(0);
@@ -1115,6 +1533,8 @@ export default function HistoryDetailModal({
                   </div>
                 ) : historyItem.code === "SLIDE_GENERATOR" ? (
                   <SlideGeneratorInput input={historyItem.input} />
+                ) : historyItem.code === "FORMU_LENS" ? (
+                  <AcademicAnalysisInput input={historyItem.input} />
                 ) : (
                   <div>
                     <pre className="text-sm whitespace-pre-wrap break-words">
@@ -1178,6 +1598,8 @@ export default function HistoryDetailModal({
                   <LessonPlanOutput output={historyItem.output} />
                 ) : historyItem.code === "SLIDE_GENERATOR" ? (
                   <SlideGeneratorOutput output={historyItem.output} />
+                ) : historyItem.code === "FORMU_LENS" ? (
+                  <AcademicAnalysisOutput output={historyItem.output} />
                 ) : (
                   <pre className="text-sm whitespace-pre-wrap break-words">
                     {JSON.stringify(historyItem.output, null, 2)}
