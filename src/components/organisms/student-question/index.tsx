@@ -37,7 +37,10 @@ export function StudentQuestion({
               <span className="text-neutral-900 font-calsans">
                 Câu {question.questionNumber}:
               </span>{" "}
-              {question.question}
+              <span
+                className="text-gray-800 text-base leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: question.question }}
+              />
             </h3>
 
             {/* Illustration Image */}
@@ -81,10 +84,10 @@ export function StudentQuestion({
                     }
                     className="mt-1 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="flex-1">
+                  <div className="flex gap-2 items-center">
                     <span className="font-medium text-blue-600">{key}.</span>{" "}
-                    {value}
-                  </span>
+                    <span dangerouslySetInnerHTML={{ __html: value }} />
+                  </div>
                 </label>
               ))}
             </div>
@@ -106,7 +109,7 @@ export function StudentQuestion({
               <span className="text-blue-600 font-calsans">
                 Câu {question.questionNumber}:
               </span>{" "}
-              {question.question}
+              <span dangerouslySetInnerHTML={{ __html: question.question }} />
             </h3>
 
             {/* Illustration Image */}
@@ -136,9 +139,13 @@ export function StudentQuestion({
                     <span className="font-medium text-blue-600">
                       {key.toUpperCase()})
                     </span>{" "}
-                    {typeof statement === "object" && statement?.text
-                      ? statement.text
-                      : String(statement || "")}
+                    {typeof statement === "object" && statement?.text ? (
+                      <span
+                        dangerouslySetInnerHTML={{ __html: statement?.text }}
+                      />
+                    ) : (
+                      String(statement || "")
+                    )}
                   </p>
 
                   <div className="flex gap-4">
@@ -205,7 +212,7 @@ export function StudentQuestion({
               <span className="text-blue-600 font-calsans">
                 Câu {question.questionNumber}:
               </span>{" "}
-              {question.question}
+              <span dangerouslySetInnerHTML={{ __html: question.question }} />
             </h3>
 
             {/* Illustration Image */}
@@ -236,7 +243,9 @@ export function StudentQuestion({
                 type="text"
                 placeholder="Nhập đáp án của bạn..."
                 value={textAnswer}
-                onChange={(e) => onAnswerChange(question.id, e.target.value)}
+                onChange={(e: any) =>
+                  onAnswerChange(question.id, e.target.value)
+                }
                 className="text-base"
               />
               <p className="text-xs text-gray-500">

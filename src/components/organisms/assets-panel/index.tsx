@@ -5,13 +5,8 @@ import { useDraggable } from "@dnd-kit/core";
 import { toast } from "sonner";
 import {
   Image,
-  Upload,
   CloudUpload,
   Route,
-  X,
-  PanelRightClose,
-  PanelRightOpen,
-  List,
   CircleArrowOutDownLeft,
   CircleArrowOutUpRight,
   Database,
@@ -158,12 +153,7 @@ export default function AssetsPanel() {
 
   const handleQuestionSelect = (question: QuestionBankItem) => {
     console.log("Selected question:", question);
-    toast.success(
-      `Đã thêm câu hỏi: ${question.questionContent.question.substring(
-        0,
-        50
-      )}...`
-    );
+ 
     // Question is automatically added to exam context by the modal
   };
 

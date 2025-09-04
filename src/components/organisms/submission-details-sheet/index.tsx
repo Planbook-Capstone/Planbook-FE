@@ -22,6 +22,7 @@ import { SubmissionData, ResultDetail } from "@/services/examInstanceServices";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface SubmissionDetailsSheetProps {
   submission: SubmissionData;
@@ -207,8 +208,24 @@ export function SubmissionDetailsSheet({
         className="md:w-1/3 !max-w-none  sm:w-[500px] overflow-y-auto"
       >
         <SheetHeader className="space-y-4">
-          <SheetTitle className="text-xl font-calsans font-normal">
-            Chi tiết bài làm của - {submission.studentName}
+          <SheetTitle className="  font-normal">
+            <p className="text-xl font-calsans">
+              Chi tiết bài làm của - {submission.studentName}
+            </p>
+            <div>
+              <p>Mã bài làm của học sinh</p>
+              <div>
+                <p> {submission.id}</p>
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(String(submission.id));
+                    toast.success("Đã copy mã bài làm!");
+                  }}
+                >
+                  Copy mã bài làm
+                </Button>
+              </div>
+            </div>
           </SheetTitle>
           <SheetDescription className="text-sm text-gray-600">
             Nộp lúc:{" "}

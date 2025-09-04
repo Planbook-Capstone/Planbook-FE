@@ -737,9 +737,9 @@ function DocumentSourceSelector({
                     <SelectValue placeholder="Chọn dạng đề" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Dạng 1</SelectItem>
-                    <SelectItem value="2">Dạng 2</SelectItem>
-                    <SelectItem value="3">Dạng 3</SelectItem>
+                    <SelectItem value="1">Dạng 1 (Trắc nghiệm)</SelectItem>
+                    <SelectItem value="2">Dạng 2 (Đúng / Sai)</SelectItem>
+                    <SelectItem value="3">Dạng 3 (Tự luận ngắn)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

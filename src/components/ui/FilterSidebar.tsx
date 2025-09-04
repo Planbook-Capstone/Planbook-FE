@@ -38,7 +38,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     { value: "KNOWLEDGE", label: "Biết" },
     { value: "COMPREHENSION", label: "Hiểu" },
     { value: "APPLICATION", label: "Vận dụng" },
-    { value: "ANALYSIS", label: "Vận dụng cao" },
+    
   ];
 
   const hasActiveFilters = 

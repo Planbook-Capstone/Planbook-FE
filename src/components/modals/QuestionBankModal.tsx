@@ -87,14 +87,19 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
   // Log PART_II questions for debugging
   React.useEffect(() => {
     if (questionBankData?.data) {
-      const part2Questions = questionBankData.data.filter(q => q.questionType === "PART_II");
+      const part2Questions = questionBankData.data.filter(
+        (q) => q.questionType === "PART_II"
+      );
       if (part2Questions.length > 0) {
-        console.log("🔍 Found PART_II questions in question bank:", part2Questions.map(q => ({
-          id: q.id,
-          questionContent: q.questionContent,
-          statements: q.questionContent.statements,
-          answers: q.questionContent.answers
-        })));
+        console.log(
+          "🔍 Found PART_II questions in question bank:",
+          part2Questions.map((q) => ({
+            id: q.id,
+            questionContent: q.questionContent,
+            statements: q.questionContent.statements,
+            answers: q.questionContent.answers,
+          }))
+        );
       }
     }
   }, [questionBankData]);
@@ -161,7 +166,10 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
       );
       toast.info("Đã bỏ chọn câu hỏi", {
         description:
-          stripHtmlTags(questionToRemove.questionContent.question).substring(0, 50) + "...",
+          stripHtmlTags(questionToRemove.questionContent.question).substring(
+            0,
+            50
+          ) + "...",
         duration: 2000,
       });
     }
@@ -191,9 +199,18 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
       // Add to selection (no confirmation needed)
       setSelectedQuestions((prev) => new Set([...prev, question.id]));
       setSelectedQuestionsData((prev) => [...prev, question]);
-
+      toast.info("Đã bỏ chọn câu hỏi", {
+        description:
+          stripHtmlTags(questionToRemove.questionContent.question).substring(
+            0,
+            50
+          ) + "...",
+        duration: 2000,
+      });
       toast.success("Đã chọn câu hỏi", {
-        description: stripHtmlTags(question.questionContent.question).substring(0, 50) + "...",
+        description:
+          stripHtmlTags(question.questionContent.question).substring(0, 50) +
+          "...",
         duration: 2000,
       });
     }
@@ -233,7 +250,8 @@ export const QuestionBankModal: React.FC<QuestionBankModalProps> = ({
     // Show toast notification
     const sectionName = getSectionName(questionType);
     toast.success(`Đã thêm câu hỏi vào ${sectionName}`, {
-      description: stripHtmlTags(questionContent.question).substring(0, 80) + "...",
+      description:
+        stripHtmlTags(questionContent.question).substring(0, 80) + "...",
       duration: 3000,
     });
 

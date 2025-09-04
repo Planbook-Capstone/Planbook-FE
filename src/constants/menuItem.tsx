@@ -95,8 +95,8 @@ export const adminItems = [
     label: "Công cụ ngoài",
     key: "external-tools",
     icon: <SettingOutlined />,
-    image: "/icons/gear.svg",
-    active: "/icons/gear-active.svg",
+    image: "/icons/tool.svg",
+    active: "/icons/tool-active.svg",
   },
 ];
 

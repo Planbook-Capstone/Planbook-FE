@@ -139,9 +139,6 @@ export const ordersColumns = (
       cell: ({ row }) => (
         <div className="font-medium text-gray-900  font-questrial">
           {row.original.code}
-          <Button variant={"menuitem"} size={"icon"}>
-            {CoppyIcon}
-          </Button>
         </div>
       ),
     },

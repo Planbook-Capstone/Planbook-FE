@@ -5,8 +5,6 @@ import Sider from "antd/es/layout/Sider";
 import { useState } from "react";
 import { adminItems, adminMenuItems, getLabel } from "@/constants/menuItem";
 import Header from "@/components/organisms/header";
-import Image from "next/image";
-import { Button } from "@/components/ui/Button";
 import { SidebarMenu } from "@/components/molecules/sidebar-menu";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -46,14 +44,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <SidebarMenu menuItems={adminItems} defaultActiveKey="/" />
 
           <div className="flex flex-col justify-center items-center w-full gap-3">
-            {/* <Button variant={"menuitem"}>
-              <Image
-                alt="notification"
-                src="/icons/bell.svg"
-                width="35"
-                height="35"
-              />
-            </Button> */}
             <AvatarButton />
           </div>
         </div>
