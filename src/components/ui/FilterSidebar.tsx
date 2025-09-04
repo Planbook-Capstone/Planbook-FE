@@ -134,7 +134,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </div>
 
         {/* Bài học */}
-        <div>
+        {/* <div>
           <label className="text-sm font-medium text-gray-700 block mb-3">
             Bài học
           </label>
@@ -152,7 +152,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
               ))}
             </select>
           </div>
-        </div>
+        </div> */}
 
         {/* Clear filters button */}
         {hasActiveFilters && (
