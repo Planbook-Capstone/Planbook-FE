@@ -9,6 +9,7 @@ import {
 import { API_ENDPOINTS } from "@/constants/apiEndpoints";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/config/axios";
+import axios from "axios";
 
 export const useUserServices = createMutationHook(
   "user",
@@ -26,7 +27,7 @@ export const useVerifyUserService = (token?: string) => {
   return useQuery({
     queryKey: ["verify-user", token],
     queryFn: async () => {
-      const response = await api.get(API_ENDPOINTS.AUTH.VERIFY, {
+      const response = await axios.get(API_ENDPOINTS.AUTH.VERIFY, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       return response.data;
