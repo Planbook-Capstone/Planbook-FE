@@ -19,7 +19,7 @@ import { saveAs } from "file-saver";
 function parseHtmlToTextRuns(html: string): TextRun[] {
   const textRuns: TextRun[] = [];
 
-  // Pre-process: Convert markdown to HTML
+  // Pre-process: Convert markdown to HTML and handle <br/> tags
   const processedHtml = html
     .replace(/\*\*\*(.*?)\*\*\*/g, "<strong>$1</strong>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
@@ -27,7 +27,8 @@ function parseHtmlToTextRuns(html: string): TextRun[] {
     .replace(
       /([A-Za-z])(\d+)(?![0-9\s]*(?:ml|gam|g|kg|l|mol|M|%))/g,
       "$1<sub>$2</sub>"
-    );
+    )
+    .replace(/<br\s*\/?>/g, "\n"); // Convert <br/> tags to newlines
 
   // Split by single newlines to handle all line breaks
   const lines = processedHtml.split(/\n/);
@@ -983,26 +984,41 @@ export const generateDocx = async (
         const titleText = node.title || "Item";
         const contentText = node.content || "";
 
-        // Process title and content separately
+        // Create title paragraph with bullet
         const titleRuns = [
-          new TextRun({ text: `${titleText}: `, bold: true, size: 24 }),
+          new TextRun({ text: `${titleText}`, bold: true, size: 24 }),
         ];
-        const contentRuns = parseHtmlToTextRuns(contentText);
 
         elements.push(
           new Paragraph({
-            children: [...titleRuns, ...contentRuns],
+            children: titleRuns,
             bullet: {
               level: depth,
             },
             spacing: {
-              after: 60, // 3pt
+              after: 30, // 1.5pt - reduced spacing after title
             },
             indent: {
               left: depth * 360,
             },
           })
         );
+
+        // Create content paragraph (indented, no bullet)
+        if (contentText.trim()) {
+          const contentRuns = parseHtmlToTextRuns(contentText);
+          elements.push(
+            new Paragraph({
+              children: contentRuns,
+              spacing: {
+                after: 60, // 3pt
+              },
+              indent: {
+                left: (depth * 360) + 360, // Additional indent for content
+              },
+            })
+          );
+        }
 
         // Process children
         if (node.children && node.children.length > 0) {
