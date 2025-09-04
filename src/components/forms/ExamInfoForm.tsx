@@ -76,9 +76,12 @@ function ExamInfoForm({ examInfo, onExamInfoChange }: ExamInfoFormProps) {
             id="duration"
             type="number"
             value={examInfo.duration}
-            onChange={(e: any) =>
-              onExamInfoChange("duration", parseInt(e.target.value) || 0)
-            }
+            onChange={(e: any) => {
+              const value = parseInt(e.target.value) || 0;
+              // Giới hạn giá trị tối thiểu là 1 phút
+              const clampedValue = Math.max(value, 1);
+              onExamInfoChange("duration", clampedValue);
+            }}
             placeholder="90"
             min="1"
           />
@@ -91,9 +94,12 @@ function ExamInfoForm({ examInfo, onExamInfoChange }: ExamInfoFormProps) {
             id="numberOfExams"
             type="number"
             value={examInfo.numberOfExams}
-            onChange={(e: any) =>
-              onExamInfoChange("numberOfExams", parseInt(e.target.value) || 1)
-            }
+            onChange={(e: any) => {
+              const value = parseInt(e.target.value);
+              // Giới hạn giá trị từ 1 đến 50
+              const clampedValue = Math.min(Math.max(value, 1), 50);
+              onExamInfoChange("numberOfExams", clampedValue);
+            }}
             placeholder="1"
             min="1"
             max="50"
