@@ -96,6 +96,7 @@ function ExamInfoForm({ examInfo, onExamInfoChange }: ExamInfoFormProps) {
             }
             placeholder="1"
             min="1"
+            max="50"
           />
         </div>
       </div>
