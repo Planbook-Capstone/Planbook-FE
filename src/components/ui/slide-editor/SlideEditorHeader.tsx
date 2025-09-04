@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { SlideTemplateTempData } from "@/contexts/SlideTemplateContext";
 import SnapToggle from "./SnapToggle";
+import { useRouter } from "next/navigation";
 
 interface SlideEditorHeaderProps {
   onSave?: () => void;
@@ -62,11 +63,19 @@ export default function SlideEditorHeader({
   userRole = "admin",
   isGenerating = false,
 }: SlideEditorHeaderProps) {
+  const router = useRouter();
   return (
     <header className="h-16 py-5 bg-white border-b border-gray-200 flex items-center justify-between px-6">
       {/* Left Section - Logo & Title */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
+          <p
+            onClick={() => router.back()}
+            className="font-questrial cursor-pointer text-neutral-600"
+          >
+            Quay lại
+          </p>
+          <div className="h-5 border-l border-gray-300" />
           <h1 className="text-xl font-calsans text-gray-900">
             {templateData?.name}
           </h1>
