@@ -5,7 +5,7 @@ import { DowloadIcon } from "@/constants/icon";
 import { useUploadDocxToOnlineService } from "@/services/lessonPlanGenerationServices";
 import { useState } from "react";
 import ConfirmSaveResult from "./modals/ConfirmSaveResult";
-import { da } from "date-fns/locale";
+import { useLessonByIdService } from "@/services/lessonServices";
 
 interface CellContent {
   text?: string;
@@ -65,6 +65,27 @@ export default function PreviewModal({
 }: PreviewModalProps) {
   if (!isOpen) return null;
   const { mutate } = useUploadDocxToOnlineService();
+
+  // Get lesson ID from currentResultData
+  const lessonId = currentResultData?.lessonIds?.[0];
+
+  // Fetch lesson data by ID if lessonId exists
+  const { data: lessonFromApi } = useLessonByIdService(lessonId?.toString(), {
+    enabled: !!lessonId, // Only fetch when lessonId exists
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  // Use lesson from API if available, otherwise fallback to prop lesson
+  const currentLesson = lessonFromApi?.data || lesson;
+
+  // Debug logging
+  console.log("🔍 PreviewModal lesson data:", {
+    lessonId,
+    lessonFromApi: lessonFromApi?.data,
+    fallbackLesson: lesson,
+    currentLesson,
+  });
 
   // State for confirm save result modal
   const [showConfirmSaveResult, setShowConfirmSaveResult] = useState(false);
@@ -458,7 +479,7 @@ export default function PreviewModal({
           >
             <div className="flex flex-col items-start gap-2 w-full">
               <span className="text-black font-bold flex-shrink-0">
-                {node.title || "Item"}:
+                {node.title || "Item"}
               </span>
               <div className="text-gray-700 leading-relaxed flex-1 pl-6">
                 {node.content &&
@@ -647,7 +668,7 @@ export default function PreviewModal({
                 <div className="text-center space-y-2 mt-6">
                   <div className="font-bold text-lg">
                     TÊN BÀI DẠY:
-                    {" " + lesson?.name?.toUpperCase()}
+                    {" " + currentLesson?.name?.toUpperCase()}
                   </div>
                   <div>
                     Môn học/Hoạt động giáo dục: ..........; lớp:........

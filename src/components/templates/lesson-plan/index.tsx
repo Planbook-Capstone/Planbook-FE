@@ -548,6 +548,8 @@ function LessonPlanTemplate({
     refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary calls
   });
 
+  console.log(currentToolResult?.data?.lessonIds[0],"test")
+
   // Handle save result function
   const handleSaveResult = useCallback(
     (formData: { name: string; description?: string }) => {
