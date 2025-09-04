@@ -31,7 +31,7 @@ export function AcademicAnalysisPage() {
 
   const handleFileSelect = async (file: File) => {
     try {
-      toast.success("Đang tiến phân tích...");
+      toast.success("Đang tiến hành phân tích...");
 
       const result = await uploadAndExecuteMutation.mutateAsync({
         file,
