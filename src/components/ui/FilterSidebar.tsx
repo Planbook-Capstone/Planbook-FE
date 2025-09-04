@@ -3,6 +3,8 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Filter } from "lucide-react";
+import { Select } from "antd";
+import type { SelectProps } from "antd";
 import { QuestionBankFilterParams } from "@/services/questionBankServices";
 
 interface FilterSidebarProps {
@@ -28,20 +30,19 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   lessonsData,
   lessonId,
 }) => {
-  const questionTypeOptions = [
-    { value: "PART_I", label: "Phần 1" },
-    { value: "PART_II", label: "Phần 2" },
-    { value: "PART_III", label: "Phần 3" },
+  const questionTypeOptions: SelectProps["options"] = [
+    { value: "PART_I", label: "Phần 1 (Trắc nghiệm)" },
+    { value: "PART_II", label: "Phần 2 (Đúng/ Sai)" },
+    { value: "PART_III", label: "Phần 3 (Tự luận)" },
   ];
 
-  const difficultyLevelOptions = [
-    { value: "KNOWLEDGE", label: "Biết" },
-    { value: "COMPREHENSION", label: "Hiểu" },
+  const difficultyLevelOptions: SelectProps["options"] = [
+    { value: "KNOWLEDGE", label: "Nhận biết" },
+    { value: "COMPREHENSION", label: "Thông hiểu" },
     { value: "APPLICATION", label: "Vận dụng" },
-    
   ];
 
-  const hasActiveFilters = 
+  const hasActiveFilters =
     filterParams.questionTypes?.length ||
     filterParams.difficultyLevels?.length ||
     searchValue.trim() ||
@@ -54,14 +55,15 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-gray-600" />
           <h3 className="text-lg font-semibold text-gray-800">Bộ lọc</h3>
-          {/* Active filters indicator */}
           {hasActiveFilters && (
             <div className="flex items-center gap-1 text-xs">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               <span className="text-blue-600 font-medium">
                 {(filterParams.questionTypes?.length || 0) +
                   (filterParams.difficultyLevels?.length || 0) +
-                  (filterParams.lessonId && filterParams.lessonId !== lessonId ? 1 : 0)}{" "}
+                  (filterParams.lessonId && filterParams.lessonId !== lessonId
+                    ? 1
+                    : 0)}{" "}
                 bộ lọc đang hoạt động
               </span>
             </div>
@@ -94,22 +96,18 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         {/* Phần thi */}
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-3">
-            Phần thi
+            Dạng câu
           </label>
-          <div className="space-y-2">
-            <select
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-200 appearance-none"
-              value={filterParams.questionTypes?.[0] || "all"}
-              onChange={(e) => onQuestionTypeChange(e.target.value)}
-            >
-              <option value="all">Tất cả phần</option>
-              {questionTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            className="w-full"
+            value={filterParams.questionTypes?.[0] || "all"}
+            onChange={(value) => onQuestionTypeChange(value)}
+            options={[
+              { value: "all", label: "Tất cả phần" },
+              ...questionTypeOptions,
+            ]}
+            getPopupContainer={(triggerNode) => triggerNode.parentNode}
+          />
         </div>
 
         {/* Độ khó */}
@@ -117,42 +115,17 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
           <label className="text-sm font-medium text-gray-700 block mb-3">
             Độ khó
           </label>
-          <div className="space-y-2">
-            <select
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-200 appearance-none"
-              value={filterParams.difficultyLevels?.[0] || "all"}
-              onChange={(e) => onDifficultyChange(e.target.value)}
-            >
-              <option value="all">Tất cả mức độ</option>
-              {difficultyLevelOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            className="w-full"
+            value={filterParams.difficultyLevels?.[0] || "all"}
+            onChange={(value) => onDifficultyChange(value)}
+            options={[
+              { value: "all", label: "Tất cả mức độ" },
+              ...difficultyLevelOptions,
+            ]}
+            getPopupContainer={(triggerNode) => triggerNode.parentNode}
+          />
         </div>
-
-        {/* Bài học */}
-        {/* <div>
-          <label className="text-sm font-medium text-gray-700 block mb-3">
-            Bài học
-          </label>
-          <div className="space-y-2">
-            <select
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-200 appearance-none"
-              value={filterParams.lessonId || "all"}
-              onChange={(e) => onLessonChange(e.target.value)}
-            >
-              <option value="all">Tất cả bài</option>
-              {lessonsData?.data?.content?.map((lesson: any) => (
-                <option key={lesson.id} value={lesson.id}>
-                  {lesson.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div> */}
 
         {/* Clear filters button */}
         {hasActiveFilters && (
