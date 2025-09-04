@@ -9,7 +9,10 @@ import {
 } from "lucide-react";
 import { useGradesService } from "@/services/gradeServices";
 import { useSubjectsByGradeService } from "@/services/subjectServices";
-import { useBooksBySubjectService } from "@/services/bookServices";
+import {
+  useBookActiveBySubjectService,
+  useBooksBySubjectService,
+} from "@/services/bookServices";
 import { useChaptersByBookService } from "@/services/chapterServices";
 import { useLessonsByChaptersService } from "@/services/lessonServices";
 import { useQuestionBanksWithParamsService } from "@/services/questionBankServices";
@@ -46,10 +49,11 @@ export const LessonPlanQuestionBankModal: React.FC<
   );
   console.log("🔍 subjectsData:", subjectsData);
 
-  const { data: booksData } = useBooksBySubjectService(
-    selectedSubject?.id || "",
+  const { data: booksData } = useBookActiveBySubjectService(
+    selectedSubject,
+    "ACTIVE",
     {
-      enabled: !!selectedSubject,
+      enabled: !!selectedSubject, // Only call when subject is selected
     }
   );
 
