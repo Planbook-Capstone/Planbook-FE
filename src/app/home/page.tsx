@@ -34,6 +34,7 @@ import { useCancelPaymentService } from "@/services/orderServices";
 import { toast } from "sonner";
 import HomeTour from "@/components/organisms/home-tour";
 import { GridSkeleton } from "@/components/molecules/grid-skeleton";
+import { useBookTypesActiveService } from "../../services/bookTypeServices";
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -41,7 +42,7 @@ export default function Home() {
     "all"
   );
   const orderCode = searchParams.get("orderCode");
-  const { data: bookTypes, isLoading } = useBookTypesService();
+  const { data: bookTypes, isLoading } = useBookTypesActiveService();
   const {
     data: externalTools,
     isLoading: isLoadingTools,
@@ -139,7 +140,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const filteredBookTypes = useMemo(() => {
     if (!bookTypes?.data?.content) return [];
-    if (!searchQuery) return bookTypes.data.content;
+    if (!searchQuery)
+      return bookTypes.data.content?.filter((item: any) => !item.app) || [];
 
     return bookTypes.data.content.filter((feature: any) =>
       feature.name.toLowerCase().includes(searchQuery.toLowerCase())
