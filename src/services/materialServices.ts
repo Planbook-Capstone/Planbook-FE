@@ -23,7 +23,7 @@ export const useMaterialSearchService = (tagIds?: string) => {
 
   return createSearchQueryHook(
     "materials-search",
-    API_ENDPOINTS.ACADEMIC_RESOURCE_SEARCH
+    `${API_ENDPOINTS.ACADEMIC_RESOURCE_SEARCH}?size=30`
   )(searchParams);
 };
 
@@ -45,7 +45,7 @@ export const useCreateMaterialInternalService = createMutationHook(
 
 export const useMaterialInternalService = createQueryHook(
   "private-materials",
-  API_ENDPOINTS.ACADEMIC_RESOURSE_INTERNAL
+  `${API_ENDPOINTS.ACADEMIC_RESOURSE_INTERNAL}?size=30`
 );
 
 // Infinite query hook for lazy loading materials
