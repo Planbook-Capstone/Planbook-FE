@@ -54,12 +54,13 @@ export default function StaffUsersManagementPage() {
 
   // Use the paginated service
   const { data: allUsers, refetch } = useAllUsersService(
-    [currentPage, pageSize], // dependencies for query key
+    [currentPage, pageSize, filterValue], // dependencies for query key
     { retry: 1, staleTime: 0 }, // options
     {
       offset: currentPage, // Convert 1-based to 0-based for API
       pageSize: pageSize,
       sort: "createdAt,desc",
+      ...(filterValue !== "all" && { role: filterValue }), // Add role filter when not "all"
     } // pagination params
   );
   // API hooks
@@ -128,16 +129,16 @@ export default function StaffUsersManagementPage() {
           <div className="flex items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Search Input */}
-              <div className="relative flex-1">
+              {/* <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="text"
-                  placeholder="Tìm kiếm theo tên, email hoặc username..."
+                  placeholder="Tìm kiếm theo tên..."
                   value={searchValue}
                   onChange={(e: any) => setSearchValue(e.target.value)}
                   className="pl-10 min-w-xs"
                 />
-              </div>
+              </div> */}
 
               {/* Filter Select */}
               <div className="w-full sm:w-48">
