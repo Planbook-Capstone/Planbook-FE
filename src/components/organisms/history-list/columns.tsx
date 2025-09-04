@@ -1,6 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye } from "lucide-react";
 import { getToolActionName } from "@/constants";
 import LessonNamesCell from "./LessonNamesCell";
 import { Button } from "@/components/ui/Button";
@@ -52,7 +51,7 @@ export const historyColumns: ColumnDef<HistoryItem>[] = [
     header: "Chức năng sử dụng",
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <span className="font-medium truncate max-w-[150px]">
+        <span className="font-medium truncate max-w-[200px]">
           {getToolActionName(row.original.code)}
         </span>
       </div>

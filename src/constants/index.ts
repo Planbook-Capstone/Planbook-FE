@@ -136,6 +136,7 @@ export const TOOL_ACTION_LABELS = {
   QUIZ_GAME: "Tạo trò chơi câu hỏi",
   MANUAL_EXAM_CREATOR: "Trộn đề thi theo ma trận",
   FORMU_LENS: "Phân tích học lực chuyên sâu",
+  EXAM_GRADING: "Chấm phiếu trắc nghiệm",
 } as const;
 
 // Type definition for tool action types
