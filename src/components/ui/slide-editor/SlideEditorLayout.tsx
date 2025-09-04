@@ -765,20 +765,83 @@ export default function SlideEditorLayout({
         }
       };
 
+      // Helper function to convert HTML to plain text while preserving chemical formulas
+      const stripHtmlTags = (html: string) => {
+        if (!html) return "";
+
+        // First, convert subscript numbers to Unicode subscript characters for chemical formulas
+        let text = html
+          .replace(/<sub[^>]*>(\d+)<\/sub>/gi, (match, number) => {
+            // Convert digits to Unicode subscript
+            const subscriptMap: { [key: string]: string } = {
+              "0": "₀",
+              "1": "₁",
+              "2": "₂",
+              "3": "₃",
+              "4": "₄",
+              "5": "₅",
+              "6": "₆",
+              "7": "₇",
+              "8": "₈",
+              "9": "₉",
+            };
+            return number
+              .split("")
+              .map((digit: string) => subscriptMap[digit] || digit)
+              .join("");
+          })
+          // Convert superscript numbers to Unicode superscript characters
+          .replace(/<sup[^>]*>(\d+)<\/sup>/gi, (match, number) => {
+            const superscriptMap: { [key: string]: string } = {
+              "0": "⁰",
+              "1": "¹",
+              "2": "²",
+              "3": "³",
+              "4": "⁴",
+              "5": "⁵",
+              "6": "⁶",
+              "7": "⁷",
+              "8": "⁸",
+              "9": "⁹",
+            };
+            return number
+              .split("")
+              .map((digit: string) => superscriptMap[digit] || digit)
+              .join("");
+          })
+          // Remove other HTML tags but keep the content
+          .replace(/<strong[^>]*>/gi, "")
+          .replace(/<\/strong>/gi, "")
+          .replace(/<p[^>]*>/gi, "")
+          .replace(/<\/p>/gi, "")
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/&nbsp;/gi, " ")
+          .replace(/&lt;/gi, "<")
+          .replace(/&gt;/gi, ">")
+          .replace(/&amp;/gi, "&");
+
+        // Remove any remaining HTML tags
+        text = text.replace(/<[^>]*>/g, "");
+
+        return text.trim();
+      };
+
       // Helper function to render question content
       const renderQuestionContent = (question: any) => {
         const content = question.questionContent;
         if (!content) return "Không có nội dung";
 
+        let questionText = "";
         if (typeof content === "string") {
-          return content;
+          questionText = content;
+        } else if (content.question) {
+          questionText = content.question;
+        } else {
+          return "Không có nội dung";
         }
 
-        if (content.question) {
-          return content.question;
-        }
-
-        return "Không có nội dung";
+        // Strip HTML tags and return clean text
+        return stripHtmlTags(questionText);
       };
 
       // Helper function for difficulty text
@@ -841,7 +904,8 @@ export default function SlideEditorLayout({
                 if (options) {
                   Object.entries(options).forEach(
                     ([key, value]: [string, any]) => {
-                      slideContent += `${key}. ${value}\n`;
+                      const cleanValue = stripHtmlTags(value);
+                      slideContent += `${key}. ${cleanValue}\n`;
                     }
                   );
                 }
@@ -851,7 +915,8 @@ export default function SlideEditorLayout({
                 if (statements) {
                   Object.entries(statements).forEach(
                     ([key, value]: [string, any]) => {
-                      slideContent += `${key}) ${value.text}\n`;
+                      const cleanText = stripHtmlTags(value.text);
+                      slideContent += `${key}) ${cleanText}\n`;
                     }
                   );
                 }

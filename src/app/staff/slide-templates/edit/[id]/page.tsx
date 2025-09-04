@@ -10,6 +10,8 @@ import {
 import { useCreateMaterialService } from "@/services/materialServices";
 import { toast } from "sonner";
 import Loading from "@/components/ui/loading";
+import { convertGoogleSlideJsonToEditor } from "@/utils/googleSlidesConverter";
+import sampleData from "@/data/sample-presentation.json";
 
 export default function EditSlideTemplatePage() {
   const router = useRouter();
@@ -23,6 +25,8 @@ export default function EditSlideTemplatePage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
+  const [slides, setSlides] = useState<any[]>([]);
+  const [hasLoadedData, setHasLoadedData] = useState(false);
   // Helper function để convert blob URL thành base64
   const convertBlobToBase64 = (blobUrl: string): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -350,9 +354,15 @@ export default function EditSlideTemplatePage() {
           const blob = await response.blob();
 
           // Create file from blob
-          const file = new File([blob], `imageBlock_slide_${i + 1}_${template?.data?.name || 'template'}.png`, {
-            type: 'image/png'
-          });
+          const file = new File(
+            [blob],
+            `imageBlock_slide_${i + 1}_${
+              template?.data?.name || "template"
+            }.png`,
+            {
+              type: "image/png",
+            }
+          );
 
           // Upload to API
           const formData = new FormData();
@@ -361,14 +371,20 @@ export default function EditSlideTemplatePage() {
             "metadataJson",
             JSON.stringify({
               type: "slide-image",
-              name: `imageBlock_slide_${i + 1}_${template?.data?.name || 'template'}`,
-              description: `Slide ${i + 1} image for template ${template?.data?.name || 'template'}`,
+              name: `imageBlock_slide_${i + 1}_${
+                template?.data?.name || "template"
+              }`,
+              description: `Slide ${i + 1} image for template ${
+                template?.data?.name || "template"
+              }`,
               url: "null", // Will be set by backend after file upload
               tagIds: ["9"],
             })
           );
 
-          const uploadResult = await createMaterialMutation.mutateAsync(formData);
+          const uploadResult = await createMaterialMutation.mutateAsync(
+            formData
+          );
           const imageUrl = uploadResult?.data?.data?.url;
 
           if (imageUrl) {
@@ -377,7 +393,9 @@ export default function EditSlideTemplatePage() {
           } else {
             // Fallback to base64 if upload fails
             imageBlocks[slideKey] = slideImageBase64;
-            console.log(`⚠️ Upload failed for slide ${i + 1}, using base64 fallback`);
+            console.log(
+              `⚠️ Upload failed for slide ${i + 1}, using base64 fallback`
+            );
           }
         } catch (uploadError) {
           console.error(`❌ Error uploading slide ${i + 1}:`, uploadError);
@@ -674,6 +692,72 @@ export default function EditSlideTemplatePage() {
     );
   }
 
+  const handleLoadSampleData = async () => {
+    setIsLoading(true);
+    try {
+      // Convert Google Slides JSON to editor format
+      const convertedData = convertGoogleSlideJsonToEditor(sampleData);
+
+      // Transform to match SlideEditorLayout expected format
+      const editorSlides = convertedData.slides.map((slide: any) => ({
+        id: slide.id,
+        elements: slide.elements.map((element: any) => {
+          // Debug logging for problematic coordinates
+          if (
+            element.x < 0 ||
+            element.y < 0 ||
+            element.x > 960 ||
+            element.y > 540
+          ) {
+            console.warn(`🚨 Problematic element after conversion:`, {
+              id: element.id,
+              type: element.type,
+              coordinates: { x: element.x, y: element.y },
+              size: { width: element.width, height: element.height },
+              text: element.text?.slice(0, 50) + "...",
+            });
+          }
+
+          return {
+            id: element.id,
+            type: element.type,
+            x: element.x,
+            y: element.y,
+            width: element.width,
+            height: element.height,
+            text: element.text || "",
+            style: element.style || {},
+            // Add any additional properties needed
+          };
+        }),
+      }));
+
+      setSlides(editorSlides);
+      setHasLoadedData(true);
+
+      console.log("✅ Loaded sample data:", convertedData);
+      console.log("📊 Slides:", editorSlides.length);
+      console.log(
+        "📄 Elements total:",
+        editorSlides.reduce(
+          (total: number, slide: any) => total + slide.elements.length,
+          0
+        )
+      );
+    } catch (error) {
+      console.error("❌ Failed to load sample data:", error);
+      alert("Failed to load sample data. Check console for details.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearData = () => {
+    setSlides([]);
+    setHasLoadedData(false);
+    toast.success("Đã xóa dữ liệu mẫu!");
+  };
+
   // Convert template data thành format cho slide editor
   console.log("🔄 Converting template data...");
   const initialSlideData = convertTemplateToSlideEditor(
@@ -681,6 +765,9 @@ export default function EditSlideTemplatePage() {
     template.data.imageBlocks || {}
   );
   console.log("🔄 Initial slide data:", initialSlideData);
+
+  // Use slides from state if available, otherwise use initial data
+  const slidesToUse = slides.length > 0 ? slides : initialSlideData.slides;
 
   return (
     <div className="h-screen flex flex-col relative">
@@ -743,13 +830,17 @@ export default function EditSlideTemplatePage() {
         }`}
       >
         <SlideEditorLayout
-          initialSlides={initialSlideData.slides}
+          initialSlides={slidesToUse}
           templateData={{
             name: template.data.name,
             description: template.data.description,
           }}
           onSave={handleSave}
           onCancel={handleCancel}
+          onLoadSampleData={handleLoadSampleData}
+          onClearData={handleClearData}
+          isLoadingData={isLoading}
+          hasLoadedData={hasLoadedData}
         />
       </div>
     </div>

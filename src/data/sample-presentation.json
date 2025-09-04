@@ -12,7 +12,7 @@
         {
           "objectId": "p1_i1559",
           "type": "shape",
-          "text": "LessonName 70",
+          "text": "LessonName_70",
           "position": {
             "x": 1298375,
             "y": 914450
@@ -71,7 +71,7 @@
         {
           "objectId": "p1_i1560",
           "type": "shape",
-          "text": "LessonDescription 200",
+          "text": "LessonDescription_200",
           "position": {
             "x": 1759575,
             "y": 2581450
@@ -184,7 +184,7 @@
         {
           "objectId": "g36ebc629d7b_0_131",
           "type": "shape",
-          "text": "CreatedDate 50",
+          "text": "CreatedDate_50",
           "position": {
             "x": 2363975,
             "y": 4137000
@@ -259,7 +259,7 @@
         {
           "objectId": "p5_i1647",
           "type": "shape",
-          "text": "TitleName 80",
+          "text": "TitleName_100",
           "position": {
             "x": 696475,
             "y": 1409800
@@ -315,7 +315,7 @@
         {
           "objectId": "p5_i1649",
           "type": "shape",
-          "text": "TitleContent 450",
+          "text": "MainPointContent_1_450",
           "position": {
             "x": 696475,
             "y": 2279500
@@ -495,7 +495,7 @@
         {
           "objectId": "g36ebc629d7b_0_177",
           "type": "shape",
-          "text": "ImageContent 500",
+          "text": "MainPointContent_1_500",
           "position": {
             "x": 751200,
             "y": 853650
@@ -577,7 +577,7 @@
         {
           "objectId": "g36ebc629d7b_0_178",
           "type": "shape",
-          "text": "ImageName 150",
+          "text": "MainPointName_1_150",
           "position": {
             "x": 751225,
             "y": 3944050
@@ -732,7 +732,7 @@
         {
           "objectId": "p8_i1734",
           "type": "shape",
-          "text": "TitleName 50",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 521225
@@ -788,7 +788,7 @@
         {
           "objectId": "p8_i1735",
           "type": "shape",
-          "text": "TitleContent 400",
+          "text": "MainPointContent_1_400",
           "position": {
             "x": 720000,
             "y": 1368425
@@ -874,7 +874,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_86",
           "type": "shape",
-          "text": "ImageContent 300",
+          "text": "MainPointContent_2_300",
           "position": {
             "x": 4792525,
             "y": 1324625
@@ -956,7 +956,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_87",
           "type": "shape",
-          "text": "ImageName 50",
+          "text": "MainPointName_2_50",
           "position": {
             "x": 4792525,
             "y": 3944050
@@ -1111,7 +1111,7 @@
         {
           "objectId": "g344c5b38388_0_1",
           "type": "shape",
-          "text": "TitleName 50",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 368825
@@ -1167,7 +1167,7 @@
         {
           "objectId": "g344c5b38388_0_2",
           "type": "shape",
-          "text": "SubtitleName 100",
+          "text": "MainPointName_1_100",
           "position": {
             "x": 720000,
             "y": 2737625
@@ -1210,7 +1210,7 @@
         {
           "objectId": "g344c5b38388_0_3",
           "type": "shape",
-          "text": "TitleContent 300",
+          "text": "MainPointContent_1_300",
           "position": {
             "x": 720000,
             "y": 1081125
@@ -1266,7 +1266,7 @@
         {
           "objectId": "g344c5b38388_0_6",
           "type": "shape",
-          "text": "SubtitleContent 300",
+          "text": "MainPointContent_2_300",
           "position": {
             "x": 720000,
             "y": 3360975
@@ -1319,7 +1319,7 @@
         {
           "objectId": "g344c5b38388_0_8",
           "type": "shape",
-          "text": "TitleName 50",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 521225
@@ -1375,7 +1375,7 @@
         {
           "objectId": "g344c5b38388_0_9",
           "type": "shape",
-          "text": "SubtitleName 80",
+          "text": "MainPointName_1_80",
           "position": {
             "x": 720000,
             "y": 1283675
@@ -1414,7 +1414,7 @@
         {
           "objectId": "g344c5b38388_0_11",
           "type": "shape",
-          "text": "SubtitleContent 350",
+          "text": "MainPointContent_1_350",
           "position": {
             "x": 720000,
             "y": 1923000
@@ -1462,7 +1462,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_19",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 521225
@@ -1518,7 +1518,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_20",
           "type": "shape",
-          "text": "SubtitleContent 260",
+          "text": "MainPointContent_1_260",
           "position": {
             "x": 4826579,
             "y": 1819775
@@ -1555,7 +1555,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_21",
           "type": "shape",
-          "text": "SubtitleContent 260",
+          "text": "MainPointContent_2_260",
           "position": {
             "x": 1132013,
             "y": 1819775
@@ -1606,7 +1606,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_177",
           "type": "shape",
-          "text": "SubtitleName 33",
+          "text": "MainPointName_1_33",
           "position": {
             "x": 1132024.9875,
             "y": 1377400
@@ -1659,7 +1659,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_178",
           "type": "shape",
-          "text": "SubtitleName 33",
+          "text": "MainPointName_2_33",
           "position": {
             "x": 4826574.9875,
             "y": 1377400
@@ -1723,7 +1723,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_263",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 521225
@@ -1779,7 +1779,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_264",
           "type": "shape",
-          "text": "SubtitleContent 300",
+          "text": "MainPointContent_1_300",
           "position": {
             "x": 4973743.625,
             "y": 2213325
@@ -1821,7 +1821,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_265",
           "type": "shape",
-          "text": "SubtitleContent 300",
+          "text": "MainPointContent_2_300",
           "position": {
             "x": 913151.19,
             "y": 2213325
@@ -1877,7 +1877,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_266",
           "type": "shape",
-          "text": "SubtitleName 60",
+          "text": "MainPointName_1_60",
           "position": {
             "x": 1132024.9875,
             "y": 1611925
@@ -1934,7 +1934,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_267",
           "type": "shape",
-          "text": "SubtitleName 60",
+          "text": "MainPointName_2_60",
           "position": {
             "x": 4826574.9875,
             "y": 1611925
@@ -1991,7 +1991,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_286",
           "type": "shape",
-          "text": "TitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 1251500,
             "y": 1093925
@@ -2058,7 +2058,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_527",
           "type": "shape",
-          "text": "TitleName 30",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 521225
@@ -2114,7 +2114,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_528",
           "type": "shape",
-          "text": "SubtitleContent 245",
+          "text": "MainPointContent_1_245",
           "position": {
             "x": 720000,
             "y": 1642900
@@ -2205,7 +2205,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_529",
           "type": "shape",
-          "text": "ImageContent 350",
+          "text": "MainPointContent_2_350",
           "position": {
             "x": 5112950,
             "y": 1324625
@@ -2287,7 +2287,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_530",
           "type": "shape",
-          "text": "ImageName 100",
+          "text": "MainPointName_2_100",
           "position": {
             "x": 5011375,
             "y": 3912775
@@ -2436,7 +2436,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_558",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_1_18",
           "position": {
             "x": 720000,
             "y": 1293350
@@ -2511,7 +2511,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_560",
           "type": "shape",
-          "text": "SubtitleContent 245",
+          "text": "MainPointContent_2_245",
           "position": {
             "x": 720000,
             "y": 3428150
@@ -2602,7 +2602,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_561",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_2_18",
           "position": {
             "x": 720000,
             "y": 3085350
@@ -2688,7 +2688,7 @@
         {
           "objectId": "p10_i1760",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 318000
@@ -2730,7 +2730,7 @@
         {
           "objectId": "p10_i1761",
           "type": "shape",
-          "text": "SubtitleContent 300",
+          "text": "MainPointContent_1_300",
           "position": {
             "x": 352524.825,
             "y": 1837694.8975
@@ -2786,7 +2786,7 @@
         {
           "objectId": "p10_i1762",
           "type": "shape",
-          "text": "SubtitleContent 300",
+          "text": "MainPointContent_1_300",
           "position": {
             "x": 3341390.7625,
             "y": 1837694.7175
@@ -2828,7 +2828,7 @@
         {
           "objectId": "p10_i1763",
           "type": "shape",
-          "text": "SubtitleContent 300",
+          "text": "MainPointContent_1_300",
           "position": {
             "x": 6330256.7025,
             "y": 1837696.6349999998
@@ -2870,7 +2870,7 @@
         {
           "objectId": "p10_i1764",
           "type": "shape",
-          "text": "SubtitleName 40",
+          "text": "MainPointName_2_40",
           "position": {
             "x": 593529.0875,
             "y": 1391000
@@ -2926,7 +2926,7 @@
         {
           "objectId": "p10_i1765",
           "type": "shape",
-          "text": "SubtitleName 40",
+          "text": "MainPointName_3_40",
           "position": {
             "x": 3413523.6100000003,
             "y": 1391000
@@ -2968,7 +2968,7 @@
         {
           "objectId": "p10_i1766",
           "type": "shape",
-          "text": "SubtitleName 40",
+          "text": "MainPointName_4_40",
           "position": {
             "x": 6233268.1375,
             "y": 1391000
@@ -3010,7 +3010,7 @@
         {
           "objectId": "g36f2d71d7b3_0_24",
           "type": "shape",
-          "text": "TitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 1737800,
             "y": 796900
@@ -3063,7 +3063,7 @@
         {
           "objectId": "g36f2d71d7b3_0_15",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 372725
@@ -3105,7 +3105,7 @@
         {
           "objectId": "g36f2d71d7b3_0_16",
           "type": "shape",
-          "text": "SubtitleContent 250",
+          "text": "MainPointContent_1_250",
           "position": {
             "x": 719975.0825,
             "y": 1560625.165
@@ -3161,7 +3161,7 @@
         {
           "objectId": "g36f2d71d7b3_0_17",
           "type": "shape",
-          "text": "SubtitleContent 250",
+          "text": "MainPointContent_1_250",
           "position": {
             "x": 3419207.1325,
             "y": 1560625
@@ -3203,7 +3203,7 @@
         {
           "objectId": "g36f2d71d7b3_0_18",
           "type": "shape",
-          "text": "SubtitleContent 250",
+          "text": "MainPointContent_1_250",
           "position": {
             "x": 6118439.185,
             "y": 1560626.7625
@@ -3245,7 +3245,7 @@
         {
           "objectId": "g36f2d71d7b3_0_19",
           "type": "shape",
-          "text": "SubtitleName 20",
+          "text": "MainPointName_2_20",
           "position": {
             "x": 937625,
             "y": 1010000.0249999999
@@ -3301,7 +3301,7 @@
         {
           "objectId": "g36f2d71d7b3_0_20",
           "type": "shape",
-          "text": "SubtitleName 20",
+          "text": "MainPointName_3_20",
           "position": {
             "x": 3484350,
             "y": 1010000.0249999999
@@ -3343,7 +3343,7 @@
         {
           "objectId": "g36f2d71d7b3_0_21",
           "type": "shape",
-          "text": "SubtitleName 20",
+          "text": "MainPointName_4_20",
           "position": {
             "x": 6031075,
             "y": 1010000.0249999999
@@ -3396,7 +3396,7 @@
         {
           "objectId": "g36ebc629d7b_0_348",
           "type": "shape",
-          "text": "SubtitleContent 250",
+          "text": "MainPointContent_1_250",
           "position": {
             "x": 719975.0825,
             "y": 1560625.165
@@ -3452,7 +3452,7 @@
         {
           "objectId": "g36ebc629d7b_0_349",
           "type": "shape",
-          "text": "SubtitleContent 250",
+          "text": "MainPointContent_1_250",
           "position": {
             "x": 3419207.1325,
             "y": 1560625
@@ -3494,7 +3494,7 @@
         {
           "objectId": "g36ebc629d7b_0_350",
           "type": "shape",
-          "text": "SubtitleContent 250",
+          "text": "MainPointContent_1_250",
           "position": {
             "x": 6118439.185,
             "y": 1560626.7625
@@ -3536,7 +3536,7 @@
         {
           "objectId": "g36ebc629d7b_0_351",
           "type": "shape",
-          "text": "SubtitleName 20",
+          "text": "MainPointName_2_20",
           "position": {
             "x": 937625,
             "y": 1010000.0249999999
@@ -3592,7 +3592,7 @@
         {
           "objectId": "g36ebc629d7b_0_352",
           "type": "shape",
-          "text": "SubtitleName 20",
+          "text": "MainPointName_3_20",
           "position": {
             "x": 3484350,
             "y": 1010000.0249999999
@@ -3634,7 +3634,7 @@
         {
           "objectId": "g36ebc629d7b_0_353",
           "type": "shape",
-          "text": "SubtitleName 20",
+          "text": "MainPointName_4_20",
           "position": {
             "x": 6031075,
             "y": 1010000.0249999999
@@ -3687,7 +3687,7 @@
         {
           "objectId": "p11_i1790",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 325800
@@ -3729,7 +3729,7 @@
         {
           "objectId": "p11_i1791",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 813750,
             "y": 1346125
@@ -3785,7 +3785,7 @@
         {
           "objectId": "p11_i1792",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 4781225,
             "y": 1400875
@@ -3827,7 +3827,7 @@
         {
           "objectId": "p11_i1793",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 813750,
             "y": 3170275
@@ -3869,7 +3869,7 @@
         {
           "objectId": "p11_i1794",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 4718699.99,
             "y": 3159625
@@ -3911,7 +3911,7 @@
         {
           "objectId": "p11_i1795",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_2_25",
           "position": {
             "x": 813725.005,
             "y": 994374.9825
@@ -3953,7 +3953,7 @@
         {
           "objectId": "p11_i1796",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_3_25",
           "position": {
             "x": 813725,
             "y": 2826974.9725
@@ -3995,7 +3995,7 @@
         {
           "objectId": "p11_i1797",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_4_25",
           "position": {
             "x": 5786399.6475,
             "y": 1022637.4825
@@ -4037,7 +4037,7 @@
         {
           "objectId": "g36ebc629d7b_0_118",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_5_25",
           "position": {
             "x": 5786399.6475,
             "y": 2852637.4825
@@ -4090,7 +4090,7 @@
         {
           "objectId": "g36f2d71d7b3_0_1",
           "type": "shape",
-          "text": "TitleName 50",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 265225
@@ -4132,7 +4132,7 @@
         {
           "objectId": "g36f2d71d7b3_0_2",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 524527.715,
             "y": 1728555.6199999999
@@ -4188,7 +4188,7 @@
         {
           "objectId": "g36f2d71d7b3_0_3",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 4789453.1125,
             "y": 1707328.2974999999
@@ -4230,7 +4230,7 @@
         {
           "objectId": "g36f2d71d7b3_0_4",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 524527.715,
             "y": 3483924.6325
@@ -4272,7 +4272,7 @@
         {
           "objectId": "g36f2d71d7b3_0_5",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 4797239.5975,
             "y": 3473231.32
@@ -4314,7 +4314,7 @@
         {
           "objectId": "g36f2d71d7b3_0_6",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_2_25",
           "position": {
             "x": 524500.365,
             "y": 1299175
@@ -4356,7 +4356,7 @@
         {
           "objectId": "g36f2d71d7b3_0_7",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_3_25",
           "position": {
             "x": 524500.36,
             "y": 3139228.37
@@ -4398,7 +4398,7 @@
         {
           "objectId": "g36f2d71d7b3_0_8",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_4_25",
           "position": {
             "x": 5965493.4875,
             "y": 1327552.4475
@@ -4440,7 +4440,7 @@
         {
           "objectId": "g36f2d71d7b3_0_9",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_5_25",
           "position": {
             "x": 5965493.4875,
             "y": 3164995.2525
@@ -4482,7 +4482,7 @@
         {
           "objectId": "g36f2d71d7b3_0_12",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_5_150",
           "position": {
             "x": 522900,
             "y": 741475
@@ -4549,7 +4549,7 @@
         {
           "objectId": "g36ebc629d7b_0_314",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 813750,
             "y": 1346125
@@ -4605,7 +4605,7 @@
         {
           "objectId": "g36ebc629d7b_0_315",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 4781225,
             "y": 1400875
@@ -4647,7 +4647,7 @@
         {
           "objectId": "g36ebc629d7b_0_316",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 813750,
             "y": 3170275
@@ -4689,7 +4689,7 @@
         {
           "objectId": "g36ebc629d7b_0_317",
           "type": "shape",
-          "text": "SubtitleContent 150",
+          "text": "MainPointContent_1_150",
           "position": {
             "x": 4718699.99,
             "y": 3159625
@@ -4731,7 +4731,7 @@
         {
           "objectId": "g36ebc629d7b_0_318",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_2_25",
           "position": {
             "x": 813725.005,
             "y": 994374.9825
@@ -4773,7 +4773,7 @@
         {
           "objectId": "g36ebc629d7b_0_319",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_3_25",
           "position": {
             "x": 813725,
             "y": 2826974.9725
@@ -4815,7 +4815,7 @@
         {
           "objectId": "g36ebc629d7b_0_320",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_4_25",
           "position": {
             "x": 5786399.6475,
             "y": 1022637.4825
@@ -4857,7 +4857,7 @@
         {
           "objectId": "g36ebc629d7b_0_321",
           "type": "shape",
-          "text": "SubtitleName 25",
+          "text": "MainPointName_5_25",
           "position": {
             "x": 5786399.6475,
             "y": 2852637.4825
@@ -4910,7 +4910,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_449",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 3533400,
             "y": 1250325
@@ -4952,7 +4952,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_450",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 6117100,
             "y": 1250325
@@ -4994,7 +4994,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_451",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 368825
@@ -5036,7 +5036,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_452",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 949700,
             "y": 1250325
@@ -5092,7 +5092,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_453",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 949700,
             "y": 2952924.1675
@@ -5134,7 +5134,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_454",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 3533400,
             "y": 2952874.1
@@ -5176,7 +5176,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_455",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 6117100,
             "y": 2952874.2325
@@ -5218,7 +5218,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_456",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_2_18",
           "position": {
             "x": 950640,
             "y": 841725
@@ -5260,7 +5260,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_457",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_3_18",
           "position": {
             "x": 3534339,
             "y": 841725
@@ -5302,7 +5302,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_458",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_4_18",
           "position": {
             "x": 6118038,
             "y": 841725
@@ -5344,7 +5344,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_459",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_5_18",
           "position": {
             "x": 950641,
             "y": 2460313
@@ -5386,7 +5386,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_460",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_6_18",
           "position": {
             "x": 3534339,
             "y": 2460313
@@ -5428,7 +5428,7 @@
         {
           "objectId": "g36e9e0ba4ea_0_461",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_7_18",
           "position": {
             "x": 6118037,
             "y": 2460313
@@ -5481,7 +5481,7 @@
         {
           "objectId": "g36f2d71d7b3_0_60",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 3533400,
             "y": 1250325
@@ -5523,7 +5523,7 @@
         {
           "objectId": "g36f2d71d7b3_0_61",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 6117100,
             "y": 1250325
@@ -5565,7 +5565,7 @@
         {
           "objectId": "g36f2d71d7b3_0_62",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 368825
@@ -5607,7 +5607,7 @@
         {
           "objectId": "g36f2d71d7b3_0_63",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 949700,
             "y": 1250325
@@ -5663,7 +5663,7 @@
         {
           "objectId": "g36f2d71d7b3_0_64",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 949700,
             "y": 2952924.1675
@@ -5705,7 +5705,7 @@
         {
           "objectId": "g36f2d71d7b3_0_65",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 3533400,
             "y": 2952874.1
@@ -5747,7 +5747,7 @@
         {
           "objectId": "g36f2d71d7b3_0_67",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_2_18",
           "position": {
             "x": 950640,
             "y": 841725
@@ -5789,7 +5789,7 @@
         {
           "objectId": "g36f2d71d7b3_0_68",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_3_18",
           "position": {
             "x": 3534339,
             "y": 841725
@@ -5831,7 +5831,7 @@
         {
           "objectId": "g36f2d71d7b3_0_69",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_4_18",
           "position": {
             "x": 6118038,
             "y": 841725
@@ -5873,7 +5873,7 @@
         {
           "objectId": "g36f2d71d7b3_0_70",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_5_18",
           "position": {
             "x": 950641,
             "y": 2460313
@@ -5915,7 +5915,7 @@
         {
           "objectId": "g36f2d71d7b3_0_71",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_6_18",
           "position": {
             "x": 3534339,
             "y": 2460313
@@ -5968,7 +5968,7 @@
         {
           "objectId": "g36f2d71d7b3_0_26",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 3533400,
             "y": 1555125
@@ -6010,7 +6010,7 @@
         {
           "objectId": "g36f2d71d7b3_0_27",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 6117100,
             "y": 1555125
@@ -6052,7 +6052,7 @@
         {
           "objectId": "g36f2d71d7b3_0_28",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 216425
@@ -6094,7 +6094,7 @@
         {
           "objectId": "g36f2d71d7b3_0_29",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 949700,
             "y": 1555125
@@ -6150,7 +6150,7 @@
         {
           "objectId": "g36f2d71d7b3_0_30",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 949700,
             "y": 3257724.1675
@@ -6192,7 +6192,7 @@
         {
           "objectId": "g36f2d71d7b3_0_31",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 3533400,
             "y": 3257674.1
@@ -6234,7 +6234,7 @@
         {
           "objectId": "g36f2d71d7b3_0_32",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 6117100,
             "y": 3257674.2325
@@ -6276,7 +6276,7 @@
         {
           "objectId": "g36f2d71d7b3_0_33",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_2_30",
           "position": {
             "x": 626124.9825,
             "y": 1146525
@@ -6318,7 +6318,7 @@
         {
           "objectId": "g36f2d71d7b3_0_34",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_3_30",
           "position": {
             "x": 3409381.205,
             "y": 1146525
@@ -6360,7 +6360,7 @@
         {
           "objectId": "g36f2d71d7b3_0_35",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_4_30",
           "position": {
             "x": 6190387.9275,
             "y": 1146525
@@ -6402,7 +6402,7 @@
         {
           "objectId": "g36f2d71d7b3_0_36",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_5_30",
           "position": {
             "x": 628375.5625,
             "y": 2765124.3475
@@ -6444,7 +6444,7 @@
         {
           "objectId": "g36f2d71d7b3_0_37",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_6_30",
           "position": {
             "x": 3409381.205,
             "y": 2765124.3475
@@ -6486,7 +6486,7 @@
         {
           "objectId": "g36f2d71d7b3_0_38",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_7_30",
           "position": {
             "x": 6190386.85,
             "y": 2765124.3475
@@ -6528,7 +6528,7 @@
         {
           "objectId": "g36f2d71d7b3_0_41",
           "type": "shape",
-          "text": "TitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 1593275,
             "y": 724575
@@ -6595,7 +6595,7 @@
         {
           "objectId": "g36f2d71d7b3_0_43",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 3533400,
             "y": 1555125
@@ -6637,7 +6637,7 @@
         {
           "objectId": "g36f2d71d7b3_0_44",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 6117100,
             "y": 1555125
@@ -6679,7 +6679,7 @@
         {
           "objectId": "g36f2d71d7b3_0_45",
           "type": "shape",
-          "text": "TitleName 40",
+          "text": "TitleName_100",
           "position": {
             "x": 720000,
             "y": 216425
@@ -6721,7 +6721,7 @@
         {
           "objectId": "g36f2d71d7b3_0_46",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 949700,
             "y": 1555125
@@ -6777,7 +6777,7 @@
         {
           "objectId": "g36f2d71d7b3_0_47",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 949700,
             "y": 3257724.1675
@@ -6819,7 +6819,7 @@
         {
           "objectId": "g36f2d71d7b3_0_48",
           "type": "shape",
-          "text": "SubtitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 3533400,
             "y": 3257674.1
@@ -6861,7 +6861,7 @@
         {
           "objectId": "g36f2d71d7b3_0_50",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_2_30",
           "position": {
             "x": 626124.9825,
             "y": 1146525
@@ -6903,7 +6903,7 @@
         {
           "objectId": "g36f2d71d7b3_0_51",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_3_30",
           "position": {
             "x": 3409381.205,
             "y": 1146525
@@ -6945,7 +6945,7 @@
         {
           "objectId": "g36f2d71d7b3_0_52",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_4_30",
           "position": {
             "x": 6190387.9275,
             "y": 1146525
@@ -6987,7 +6987,7 @@
         {
           "objectId": "g36f2d71d7b3_0_53",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_5_30",
           "position": {
             "x": 628375.5625,
             "y": 2765124.3475
@@ -7029,7 +7029,7 @@
         {
           "objectId": "g36f2d71d7b3_0_54",
           "type": "shape",
-          "text": "SubtitleName 30",
+          "text": "MainPointName_6_30",
           "position": {
             "x": 3409381.205,
             "y": 2765124.3475
@@ -7071,7 +7071,7 @@
         {
           "objectId": "g36f2d71d7b3_0_56",
           "type": "shape",
-          "text": "TitleContent 200",
+          "text": "MainPointContent_1_200",
           "position": {
             "x": 1593275,
             "y": 724575
@@ -7138,7 +7138,7 @@
         {
           "objectId": "g36ebc629d7b_0_267",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 3533400,
             "y": 1250325
@@ -7180,7 +7180,7 @@
         {
           "objectId": "g36ebc629d7b_0_268",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 6117100,
             "y": 1250325
@@ -7222,7 +7222,7 @@
         {
           "objectId": "g36ebc629d7b_0_270",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 949700,
             "y": 1250325
@@ -7278,7 +7278,7 @@
         {
           "objectId": "g36ebc629d7b_0_271",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 949700,
             "y": 2952924.1675
@@ -7320,7 +7320,7 @@
         {
           "objectId": "g36ebc629d7b_0_272",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 3533400,
             "y": 2952874.1
@@ -7362,7 +7362,7 @@
         {
           "objectId": "g36ebc629d7b_0_273",
           "type": "shape",
-          "text": "SubtitleContent 130",
+          "text": "MainPointContent_1_130",
           "position": {
             "x": 6117100,
             "y": 2952874.2325
@@ -7404,7 +7404,7 @@
         {
           "objectId": "g36ebc629d7b_0_274",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_2_18",
           "position": {
             "x": 950640,
             "y": 841725
@@ -7446,7 +7446,7 @@
         {
           "objectId": "g36ebc629d7b_0_275",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_3_18",
           "position": {
             "x": 3534339,
             "y": 841725
@@ -7488,7 +7488,7 @@
         {
           "objectId": "g36ebc629d7b_0_276",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_4_18",
           "position": {
             "x": 6118038,
             "y": 841725
@@ -7530,7 +7530,7 @@
         {
           "objectId": "g36ebc629d7b_0_277",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_5_18",
           "position": {
             "x": 950641,
             "y": 2460313
@@ -7572,7 +7572,7 @@
         {
           "objectId": "g36ebc629d7b_0_278",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_6_18",
           "position": {
             "x": 3534339,
             "y": 2460313
@@ -7614,7 +7614,7 @@
         {
           "objectId": "g36ebc629d7b_0_279",
           "type": "shape",
-          "text": "SubtitleName 18",
+          "text": "MainPointName_7_18",
           "position": {
             "x": 6118037,
             "y": 2460313

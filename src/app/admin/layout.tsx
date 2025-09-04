@@ -46,14 +46,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <SidebarMenu menuItems={adminItems} defaultActiveKey="/" />
 
           <div className="flex flex-col justify-center items-center w-full gap-3">
-            <Button variant={"menuitem"}>
+            {/* <Button variant={"menuitem"}>
               <Image
                 alt="notification"
                 src="/icons/bell.svg"
                 width="35"
                 height="35"
               />
-            </Button>
+            </Button> */}
             <AvatarButton />
           </div>
         </div>
