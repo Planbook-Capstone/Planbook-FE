@@ -44,7 +44,7 @@ export default function FileLayout({ children, params }: FileLayoutProps) {
       buttons.push({
         label: "Chỉnh sửa",
         onClick: () => {
-          router.push(`/results/lesson-plan/${fileId}`);
+          router.push(`/results/lesson-plan/${fileId}?lessonId=${data?.data?.lessonIds[0]}`);
         },
         variant: "custom",
         icon: <Settings className="w-4 h-4" />,
