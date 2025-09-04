@@ -91,7 +91,16 @@ const groupPart2ByQuestion = (results: ResultDetail[]) => {
 // Helper function to format question display
 const formatQuestionDisplay = (result: ResultDetail) => {
   if (result.question) {
-    return `Câu ${result.questionNumber}: ${result.question}`;
+    return (
+      <div>
+        Câu {result.questionNumber}:
+        <span
+          dangerouslySetInnerHTML={{
+            __html: result.question,
+          }}
+        />
+      </div>
+    );
   }
   return `${result.question}`;
 };
