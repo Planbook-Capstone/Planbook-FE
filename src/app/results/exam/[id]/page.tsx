@@ -16,7 +16,9 @@ function ExamResultPage({ params }: ExamResultPageProps) {
     data: examResultResponse,
     isLoading,
     error,
-  } = useToolResultByIdService(id);
+  } = useToolResultByIdService(id, {
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <div>

@@ -160,12 +160,7 @@ export default function ToolExamPanel() {
 
   const handleQuestionSelect = (question: QuestionBankItem) => {
     console.log("Selected question:", question);
-    toast.success(
-      `Đã thêm câu hỏi: ${question.questionContent.question.substring(
-        0,
-        50
-      )}...`
-    );
+  
     // Question is automatically added to exam context by the modal
   };
 

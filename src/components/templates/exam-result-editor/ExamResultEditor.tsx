@@ -187,14 +187,6 @@ function ImageUploadZone({
 function ExamResultEditorTemplate({ examResult }: Props) {
   const router = useRouter();
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [localExamResult, setLocalExamResult] = useState(examResult);
-
-  // Update local state when examResult prop changes (only on initial load)
-  useEffect(() => {
-    if (examResult && !localExamResult) {
-      setLocalExamResult(examResult);
-    }
-  }, [examResult, localExamResult]);
 
   // Function to update answer states for newly added questions
   const updateAnswerStatesForNewQuestion = useCallback(
@@ -236,13 +228,12 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     []
   );
 
-  // Use the new hook for exam result editor with local state
+  // Use the new hook for exam result editor
   const { addQuestionFromBankByType, deleteQuestion, addEmptyQuestion } =
     useExamResultEditor({
-      examResult: localExamResult,
+      examResult: examResult,
       onDataChange: (updatedData) => {
-        // Update local state when data changes
-        setLocalExamResult(updatedData);
+        // Data changes are handled by the hook internally
         setQuestionContents((prev) => ({ ...prev }));
       },
       onQuestionAdded: updateAnswerStatesForNewQuestion,
@@ -284,13 +275,13 @@ function ExamResultEditorTemplate({ examResult }: Props) {
 
   // Initialize correct answers from API data
   useEffect(() => {
-    if (localExamResult?.data?.parts) {
+    if (examResult?.data?.parts) {
       const newCorrectAnswers: Record<string, string> = {};
       const newTrueFalseAnswers: Record<string, Record<string, boolean>> = {};
       const newImageUploadStates: Record<string, boolean> = {};
       const newQuestionImages: Record<string, string> = {};
 
-      localExamResult.data.parts.forEach((part: any, partIndex: number) => {
+      examResult.data.parts.forEach((part: any, partIndex: number) => {
         part.questions?.forEach((question: any, questionIndex: number) => {
           const questionKey = `part${partIndex + 1}-${
             question?.questionNumber || questionIndex
@@ -337,13 +328,13 @@ function ExamResultEditorTemplate({ examResult }: Props) {
       console.log("🔍 Updated all states:", {
         newCorrectAnswers,
         newTrueFalseAnswers,
-        totalQuestions: localExamResult.data.parts.reduce(
+        totalQuestions: examResult.data.parts.reduce(
           (total: number, part: any) => total + (part.questions?.length || 0),
           0
         ),
       });
     }
-  }, [localExamResult]);
+  }, [examResult]);
 
   const toggleImageUpload = (questionId: string) => {
     setImageUploadStates((prev) => ({
@@ -391,27 +382,27 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     const [part, questionNumber] = questionId.split("-");
     const partIndex = part === "part1" ? 0 : part === "part2" ? 1 : 2;
 
-    // Update the localExamResult object
-    if (localExamResult?.data?.parts[partIndex]?.questions) {
-      const questionIndex = localExamResult.data.parts[
+    // Update the examResult object
+    if (examResult?.data?.parts[partIndex]?.questions) {
+      const questionIndex = examResult.data.parts[
         partIndex
       ].questions.findIndex(
         (q: any) =>
           q.questionNumber === parseInt(questionNumber) ||
-          localExamResult.data.parts[partIndex].questions.indexOf(q) ===
+          examResult.data.parts[partIndex].questions.indexOf(q) ===
             parseInt(questionNumber)
       );
 
       if (questionIndex !== -1) {
         if (imageUrl) {
-          localExamResult.data.parts[partIndex].questions[questionIndex].image =
+          examResult.data.parts[partIndex].questions[questionIndex].image =
             imageUrl;
           console.log(
             `🖼️ Updated question ${questionId} with image:`,
             imageUrl
           );
         } else {
-          delete localExamResult.data.parts[partIndex].questions[questionIndex]
+          delete examResult.data.parts[partIndex].questions[questionIndex]
             .image;
           console.log(`🗑️ Removed image from question ${questionId}`);
         }
@@ -526,10 +517,10 @@ function ExamResultEditorTemplate({ examResult }: Props) {
 
   // Hàm tạo dữ liệu preview với các thay đổi từ state
   const getPreviewData = () => {
-    if (!localExamResult?.data) return null;
+    if (!examResult?.data) return null;
 
     // Tạo bản sao sâu của dữ liệu gốc
-    const previewData = JSON.parse(JSON.stringify(localExamResult.data));
+    const previewData = JSON.parse(JSON.stringify(examResult.data));
 
     // Cập nhật nội dung câu hỏi và đáp án từ state
     if (previewData?.parts) {
@@ -609,7 +600,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
 
   const handleDownload = async () => {
     try {
-      if (localExamResult?.data) {
+      if (examResult?.data) {
         // Sử dụng dữ liệu preview đã được cập nhật
         const previewData = getPreviewData();
         if (!previewData) {
@@ -642,13 +633,13 @@ function ExamResultEditorTemplate({ examResult }: Props) {
     name: string;
     description?: string;
   }) => {
-    if (!localExamResult?.id) {
+    if (!examResult?.id) {
       toast.error("Không tìm thấy ID để lưu kết quả");
       return;
     }
 
-    // Create a deep copy of localExamResult to avoid mutating the original
-    const updatedExamResult = JSON.parse(JSON.stringify(localExamResult));
+    // Create a deep copy of examResult to avoid mutating the original
+    const updatedExamResult = JSON.parse(JSON.stringify(examResult));
 
     // Update all question contents, answer contents, difficulties, and correct answers
     if (updatedExamResult?.data?.parts) {
@@ -724,12 +715,12 @@ function ExamResultEditorTemplate({ examResult }: Props) {
       name: formData.name,
       description: formData.description || "",
       data: updatedExamResult.data,
-      ...(localExamResult?.status === "DRAFT" ? { status: "ARCHIVED" } : {}),
+      ...(examResult?.status === "DRAFT" ? { status: "ARCHIVED" } : {}),
     };
 
     updateToolResult(
       {
-        id: localExamResult.id,
+        id: examResult.id,
         data: saveData,
       },
       {
@@ -791,7 +782,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             >
               Quay lại
             </p>
-            <p className="font-calsans text-lg">{localExamResult?.name}</p>
+            <p className="font-calsans text-lg">{examResult?.name}</p>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => setShowPreviewModal(true)} variant="outline">
@@ -811,7 +802,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
           <div className="flex-1 space-y-10 p-5 col-span-4 border-l min-h-screen ">
             {/* Navigation buttons for parts */}
             <div className="flex gap-2 mb-6 border-b pb-4">
-              {localExamResult?.data?.parts?.map((part: any, index: number) => (
+              {examResult?.data?.parts?.map((part: any, index: number) => (
                 <Button
                   key={index}
                   onClick={() => setActivePart(index + 1)}
@@ -824,13 +815,13 @@ function ExamResultEditorTemplate({ examResult }: Props) {
               ))}
             </div>
             {/* Part 1 - Multiple Choice */}
-            {activePart === 1 && localExamResult?.data?.parts[0] && (
+            {activePart === 1 && examResult?.data?.parts[0] && (
               <>
                 <div className="flex justify-between items-center mb-4">
-                  {localExamResult?.data?.parts[0]?.title && (
+                  {examResult?.data?.parts[0]?.title && (
                     <h2 className="text-xl font-calsans text-blue-700">
-                      <span>{localExamResult?.data?.parts[0]?.part}: </span>
-                      {localExamResult?.data?.parts[0]?.title}
+                      <span>{examResult?.data?.parts[0]?.part}: </span>
+                      {examResult?.data?.parts[0]?.title}
                     </h2>
                   )}
                   <Button
@@ -843,7 +834,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                     Thêm câu hỏi
                   </Button>
                 </div>
-                {localExamResult?.data?.parts[0]?.questions?.map(
+                {examResult?.data?.parts[0]?.questions?.map(
                   (question: any, idx: number) => (
                     <div key={idx}>
                       <div>
@@ -1011,13 +1002,13 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             )}
 
             {/* Part 2 - True/False */}
-            {activePart === 2 && localExamResult?.data?.parts[1] && (
+            {activePart === 2 && examResult?.data?.parts[1] && (
               <>
                 <div className="flex justify-between items-center mb-4">
-                  {localExamResult?.data?.parts[1]?.title && (
+                  {examResult?.data?.parts[1]?.title && (
                     <h2 className="text-xl font-calsans text-blue-700">
-                      <span>{localExamResult?.data?.parts[1]?.part}: </span>
-                      {localExamResult?.data?.parts[1]?.title}
+                      <span>{examResult?.data?.parts[1]?.part}: </span>
+                      {examResult?.data?.parts[1]?.title}
                     </h2>
                   )}
                   <Button
@@ -1030,7 +1021,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                     Thêm câu hỏi
                   </Button>
                 </div>
-                {localExamResult?.data?.parts[1]?.questions?.map(
+                {examResult?.data?.parts[1]?.questions?.map(
                   (question: any, idx: number) => (
                     <div key={idx}>
                       <div>
@@ -1246,13 +1237,13 @@ function ExamResultEditorTemplate({ examResult }: Props) {
             )}
 
             {/* Part 3 - Essay Questions */}
-            {activePart === 3 && localExamResult?.data?.parts[2] && (
+            {activePart === 3 && examResult?.data?.parts[2] && (
               <>
                 <div className="flex justify-between items-center mb-4">
-                  {localExamResult?.data?.parts[2]?.title && (
+                  {examResult?.data?.parts[2]?.title && (
                     <h2 className="text-xl font-calsans text-blue-700">
-                      <span>{localExamResult?.data?.parts[2]?.part}: </span>
-                      {localExamResult?.data?.parts[2]?.title}
+                      <span>{examResult?.data?.parts[2]?.part}: </span>
+                      {examResult?.data?.parts[2]?.title}
                     </h2>
                   )}
                   <Button
@@ -1265,7 +1256,7 @@ function ExamResultEditorTemplate({ examResult }: Props) {
                     Thêm câu hỏi
                   </Button>
                 </div>
-                {localExamResult?.data?.parts[2]?.questions?.map(
+                {examResult?.data?.parts[2]?.questions?.map(
                   (question: any, idx: number) => (
                     <div key={idx}>
                       <div>
@@ -1419,11 +1410,11 @@ function ExamResultEditorTemplate({ examResult }: Props) {
           isOpen={showConfirmSaveResult}
           onClose={() => setShowConfirmSaveResult(false)}
           onConfirm={handleConfirmSave}
-          resultId={localExamResult?.id}
-          data={localExamResult}
+          resultId={examResult?.id}
+          data={examResult}
           isLoading={isSavingResult}
-          initialName={localExamResult?.name || ""}
-          initialDescription={localExamResult?.description || ""}
+          initialName={examResult?.name || ""}
+          initialDescription={examResult?.description || ""}
         />
       </div>
     </DndContext>
