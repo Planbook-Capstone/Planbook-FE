@@ -1282,38 +1282,22 @@ const AcademicAnalysisOutput = ({ output }: { output: any }) => {
 
   return (
     <div className="space-y-4">
-      {/* Export Button */}
-      <div className="flex justify-between items-center rounded-lg py-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center">
-            <img src="/images/files/DOC.svg" />
-          </div>
-          <div>
-            <h5 className="font-medium text-gray-900">
+      <div className="grid grid-cols-1 md:grid-cols-3">
+        <div
+          className="flex gap-4 border rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={handleExportWord}
+        >
+          <FileIcon type={"DOCX"} size={"lg"} />
+          <div className="text-sm flex flex-col gap-2">
+            <p className="font-calsans text-base line-clamp-1">
+              Báo cáo phân tích
+            </p>
+            <p className=" line-clamp-1 text-sm font-questrial">
               Báo cáo phân tích học lực
-            </h5>
-            <p className="text-sm text-gray-600">File Word (.docx)</p>
+            </p>
+            <p className="text-xs text-blue-600">Click để tải xuống</p>
           </div>
         </div>
-        <button
-          onClick={handleExportWord}
-          className="px-4 py-2 bg-neutral-600 text-white rounded-lg hover:bg-neutral-700 transition-colors flex items-center space-x-2 text-md"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <span>Xuất Word</span>
-        </button>
       </div>
     </div>
   );
@@ -1631,36 +1615,38 @@ export default function HistoryDetailModal({
                 ) : historyItem.code === "SLIDE_GENERATOR" ? (
                   <SlideGeneratorOutput output={historyItem.output} />
                 ) : historyItem.code === "FORMU_LENS" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3">
-                    <div
-                      className="flex gap-4 border rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={async () => {
-                        if (historyItem.output) {
-                          try {
-                            await exportAcademicAnalysisToExcel(
-                              historyItem.output
-                            );
-                          } catch (error) {
-                            console.error("Export error:", error);
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3">
+                      <div
+                        className="flex gap-4 border rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={async () => {
+                          if (historyItem.output) {
+                            try {
+                              await exportAcademicAnalysisToExcel(
+                                historyItem.output
+                              );
+                            } catch (error) {
+                              console.error("Export error:", error);
+                            }
                           }
-                        }
-                      }}
-                    >
-                      <FileIcon type={"XLSX"} size={"lg"} />
-                      <div className="text-sm flex flex-col gap-2">
-                        <p className="font-calsans text-base line-clamp-1">
-                          Kết quả
-                        </p>
-                        <p className=" line-clamp-1 text-sm font-questrial">
-                          Tổng kết phân tích học tập
-                        </p>
-                        <p className="text-xs text-blue-600">
-                          Click để tải xuống
-                        </p>
+                        }}
+                      >
+                        <FileIcon type={"XLSX"} size={"lg"} />
+                        <div className="text-sm flex flex-col gap-2">
+                          <p className="font-calsans text-base line-clamp-1">
+                            Kết quả
+                          </p>
+                          <p className=" line-clamp-1 text-sm font-questrial">
+                            Tổng kết phân tích học tập
+                          </p>
+                          <p className="text-xs text-blue-600">
+                            Click để tải xuống
+                          </p>
+                        </div>
                       </div>
                     </div>
+                    <AcademicAnalysisOutput output={historyItem.output} />
                   </div>
-                  <AcademicAnalysisOutput output={historyItem.output} />
                 ) : (
                   <pre className="text-sm whitespace-pre-wrap break-words">
                     {JSON.stringify(historyItem.output, null, 2)}
