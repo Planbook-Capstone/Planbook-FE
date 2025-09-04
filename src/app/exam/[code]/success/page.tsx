@@ -87,7 +87,7 @@ export default function ExamSuccessPage({ params }: ExamSuccessPageProps) {
       await navigator.clipboard.writeText(examResult?.submissionId);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000); // reset sau 2s
-      toast.success("Coppy thành công");
+      toast.success("Copy thành công");
     } catch (err) {
       console.error("Copy failed", err);
     }
@@ -276,7 +276,7 @@ export default function ExamSuccessPage({ params }: ExamSuccessPageProps) {
                         </p>
                       </div>
                       <Button onClick={handleCopy} variant={"outline"}>
-                        {CoppyIcon} Coppy
+                        {CoppyIcon} Copy
                       </Button>
                     </div>
                   )}
