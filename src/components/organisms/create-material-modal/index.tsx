@@ -31,7 +31,7 @@ export default function CreateMaterialModal({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">
-            Tạo Material Mới
+            Tạo Học Liệu Mới
           </DialogTitle>
         </DialogHeader>
 

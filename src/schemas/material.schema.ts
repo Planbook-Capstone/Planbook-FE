@@ -78,7 +78,7 @@ export const materialSchema = z.object({
 
   lessonId: z
     .string()
-    .min(1, "Vui lòng chọn bài học"),
+    .optional(),
 
   file: fileSchema,
 });

@@ -53,7 +53,7 @@ function CreateMaterialForm({
       name: "",
       description: "",
       tags: [],
-      lessonId: "",
+      lessonId: undefined,
       file: undefined,
     },
   });
@@ -206,7 +206,7 @@ function CreateMaterialForm({
       {/* Lesson Selection Field */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">
-          Bài học <span className="text-red-500">*</span>
+          Bài học
         </label>
         <Controller
           name="lessonId"
